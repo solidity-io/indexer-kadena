@@ -25,8 +25,8 @@ terraform version
 ```bash
 terraform init
 
-export TF_VAR_AWS_ACCESS_KEY_ID="access_key_value"
-export TF_VAR_AWS_SECRET_ACCESS_KEY="secret_key_value"
+export TF_VAR_AWS_ACCESS_KEY_ID="YOUR_ACCESS_KEY_ID"
+export TF_VAR_AWS_SECRET_ACCESS_KEY="YOUR_SECRET_ACCESS_KEY"
 export TF_VAR_AWS_ACCOUNT_ID="YOUR_AWS_ACCOUNT_ID"
 export TF_VAR_AWS_USER_NAME="YOUR_AWS_USER_NAME"
 ```
@@ -51,4 +51,10 @@ This is a indexer for the Kadena blockchain. It is a work in progress and is not
 
 ```bash
 yarn && yarn dev
+```
+
+## Migration
+
+```bash
+yarn sequelize-cli db:migrate
 ```

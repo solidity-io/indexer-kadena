@@ -1,5 +1,5 @@
 import { startBackFill } from "./api/blockchain";
-import { NETWORK } from "./config/constants";
+import { NETWORK } from "./utils/constants";
 import dotenv from "dotenv";
 
 async function main() {

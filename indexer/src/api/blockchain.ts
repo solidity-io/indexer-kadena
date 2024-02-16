@@ -15,7 +15,7 @@ import {
   SYNC_MIN_HEIGHT,
   SYNC_FETCH_INTERVAL_IN_BLOCKS,
   TIME_BETWEEN_REQUESTS_IN_MS,
-} from "../config/constants";
+} from "../utils/constants";
 
 export async function startBackFill(network: string): Promise<void> {
   try {
