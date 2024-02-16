@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 require("dotenv").config();
 
 module.exports = {
@@ -10,7 +12,8 @@ module.exports = {
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false
+        rejectUnauthorized: true,
+        ca: fs.readFileSync("src/config/global-bundle.pem").toString(),
       },
     },
   },
