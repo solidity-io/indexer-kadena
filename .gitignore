@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+draft/
+.env
+.terraform
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+.terraform.plan
