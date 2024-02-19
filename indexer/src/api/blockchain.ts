@@ -1,5 +1,13 @@
 import axios from "axios";
 import {
+  BASE_URL,
+  ATTEMPTS_MAX_RETRY,
+  ATTEMPTS_INTERVAL_IN_MS,
+  SYNC_MIN_HEIGHT,
+  SYNC_FETCH_INTERVAL_IN_BLOCKS,
+  TIME_BETWEEN_REQUESTS_IN_MS,
+} from "../utils/constants";
+import {
   saveHeader,
   savePayload,
   saveLastCut,
@@ -8,14 +16,46 @@ import {
   saveSyncError,
 } from "../services/s3Storage";
 import { getDecoded } from "../utils/helpers";
-import {
-  BASE_URL,
-  ATTEMPTS_MAX_RETRY,
-  ATTEMPTS_INTERVAL_IN_MS,
-  SYNC_MIN_HEIGHT,
-  SYNC_FETCH_INTERVAL_IN_BLOCKS,
-  TIME_BETWEEN_REQUESTS_IN_MS,
-} from "../utils/constants";
+import { listS3Objects, readAndParseS3Object } from "../services/s3Storage";
+import { blockService } from "../services/blockService";
+import { lastSyncService } from "../services/lastSyncService";
+
+export async function processHeaders(
+  network: string,
+  chainId: number
+): Promise<void> {
+  try {
+    const lastSync = await lastSyncService.find(chainId, network);
+    let keys = [];
+    if (lastSync) {
+      console.log(`Last sync found. Fetching keys from ${lastSync.key}`);
+      keys = await listS3Objects(network, chainId, lastSync.key);
+    } else {
+      console.log(`No last sync found. Fetching all keys for chainId ${chainId}`);
+      keys = await listS3Objects(network, chainId);
+    }
+
+    for (const key of keys) {
+      const parsedData = await readAndParseS3Object(key);
+      // console.log(`Successfully parsed`, parsedData);
+      await blockService.save(parsedData);
+
+      const lastSyncData = {
+        chainId: parsedData.chainId,
+        height: parsedData.height,
+        network: network,
+        key: key,
+      } as any;
+
+      await lastSyncService.save(lastSyncData);
+
+      // break;
+      // console.log(`Successfully processed and saved ${key}`);
+    }
+  } catch (error) {
+    console.error("Error processing block headers from storage:", error);
+  }
+}
 
 export async function startBackFill(network: string): Promise<void> {
   try {

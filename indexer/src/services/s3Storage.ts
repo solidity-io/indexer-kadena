@@ -1,4 +1,8 @@
-import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  PutObjectCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+} from "@aws-sdk/client-s3";
 import { s3Client } from "./s3Client";
 import "dotenv/config";
 
@@ -147,7 +151,52 @@ export async function saveLastCut(network: string, data: any) {
   }
 }
 
-async function getStreamAsString(stream: any) {
+export async function listS3Objects(
+  network: string,
+  chainId: number,
+  startAfter?: string
+): Promise<string[]> {
+  const prefix = `${network}/chains/${chainId}/headers/`;
+  try {
+    let command = new ListObjectsV2Command({
+      Bucket: AWS_S3_BUCKET_NAME,
+      Prefix: prefix,
+    });
+
+    if (startAfter) {
+      command.input.StartAfter = startAfter;
+    }
+
+    const { Contents } = await s3Client.send(command);
+    if (!Contents) {
+      console.log("No objects found in S3 for the given prefix:", prefix);
+      return [];
+    }
+
+    return Contents.map((obj) => obj.Key ?? "");
+  } catch (error) {
+    console.error("Error listing S3 objects:", error);
+    throw error;
+  }
+}
+
+export async function readAndParseS3Object(key: string): Promise<any> {
+  const params = {
+    Bucket: AWS_S3_BUCKET_NAME,
+    Key: key,
+  };
+
+  try {
+    const { Body } = await s3Client.send(new GetObjectCommand(params));
+    const content = await getStreamAsString(Body);
+    return JSON.parse(content);
+  } catch (error) {
+    console.error(`Error reading and parsing S3 object ${key}:`, error);
+    throw error;
+  }
+}
+
+async function getStreamAsString(stream: any): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = "";
     stream.on("data", (chunk: any) => (data += chunk));
