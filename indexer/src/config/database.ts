@@ -31,7 +31,7 @@ export async function initializeDatabase(): Promise<void> {
 
   try {
     await sequelize.sync();
-    console.log("Tables have been created successfully.");
+    console.log("Tables have been synchronized successfully.");
   } catch (error) {
     console.error("Unable to create tables:", error);
     throw error;

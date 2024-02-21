@@ -19,6 +19,7 @@ import { getDecoded } from "../utils/helpers";
 import { listS3Objects, readAndParseS3Object } from "../services/s3Storage";
 import { blockService } from "../services/blockService";
 import { lastSyncService } from "../services/lastSyncService";
+import https from "https";
 
 export async function processHeaders(
   network: string,
@@ -31,7 +32,9 @@ export async function processHeaders(
       console.log(`Last sync found. Fetching keys from ${lastSync.key}`);
       keys = await listS3Objects(network, chainId, lastSync.key);
     } else {
-      console.log(`No last sync found. Fetching all keys for chainId ${chainId}`);
+      console.log(
+        `No last sync found. Fetching all keys for chainId ${chainId}`
+      );
       keys = await listS3Objects(network, chainId);
     }
 
@@ -57,7 +60,64 @@ export async function processHeaders(
   }
 }
 
-export async function startBackFill(network: string): Promise<void> {
+export async function startStreaming(network: string): Promise<void> {
+  const options = {
+    method: "GET",
+    hostname: "api.chainweb.com",
+    port: 443,
+    path: `/chainweb/0.0/${network}/header/updates`,
+  };
+
+  const req = https.request(options, (res) => {
+    console.log(`Status Code: ${res.statusCode}`);
+    console.log(`Status Message: ${res.statusMessage}`);
+
+    res.on("data", async (chunk) => {
+      // console.log(`\nReceived chunk: ${chunk}`);
+      const chunkStr = chunk.toString();
+      const dataLine = chunkStr
+        .split("\n")
+        .find((line: any) => line.startsWith("data:"));
+
+      if (dataLine) {
+        const jsonData = dataLine.replace("data:", "").trim();
+
+        try {
+          const blockData = JSON.parse(jsonData);
+          // console.log(blockData);
+          const height = blockData.header.height;
+          const chainId = blockData.header.chainId;
+          const creationTime = blockData.header.creationTime;
+
+          console.log(
+            `chainId: ${chainId} - height: ${height} - creationTime: ${creationTime}`
+          );
+
+          const payloadHash = blockData.header.payloadHash;
+
+          await saveHeader(network, chainId, height, blockData);
+          console.log("Payload hash:", payloadHash);
+
+          fetchPayloadWithRetry(network, chainId, height, payloadHash);
+        } catch (e) {
+          console.error("Error parsing JSON:", e);
+        }
+      }
+    });
+
+    res.on("end", () => {
+      console.log("No more data in response.");
+    });
+  });
+
+  req.on("error", (e) => {
+    console.error(`problem with request: ${e.message}`);
+  });
+
+  req.end();
+}
+
+export async function startBackfill(network: string): Promise<void> {
   try {
     const result = await fetchCut(network);
     const hashes = result.hashes;

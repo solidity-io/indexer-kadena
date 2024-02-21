@@ -1,25 +1,37 @@
 import { NETWORK } from "./utils/constants";
-import { startBackFill, processHeaders } from "./api/blockchain";
+import {
+  startStreaming,
+  startBackfill,
+  processHeaders,
+} from "./api/blockchain";
 import dotenv from "dotenv";
+import { program } from "commander";
 import { initializeDatabase } from "./config/database";
+
+program
+  .option("-s, --startStreaming", "Start streaming blockchain data")
+  .option("-b, --startBackfill", "Start backfilling blockchain data");
+
+program.parse(process.argv);
+
+const options = program.opts();
 
 async function main() {
   try {
     console.log("Loading environment variables...");
-
     dotenv.config();
-
     console.log("Initializing database...");
     await initializeDatabase();
 
-    console.log(
-      `process.env.AWS_S3_BUCKET_NAME: ${process.env.AWS_S3_BUCKET_NAME}`
-    );
-
-    console.log("Starting blockchain data indexing process...");
-
-    await processHeaders(NETWORK, 1);
-    // await startBackFill(NETWORK);
+    if (options.startStreaming) {
+      console.log("Starting streaming...");
+      await startStreaming(NETWORK);
+    } else if (options.startBackfill) {
+      console.log("Starting backfill...");
+      await startBackfill(NETWORK);
+    } else {
+      console.log("No specific task requested.");
+    }
 
     console.log("Blockchain data indexing process has finished.");
   } catch (error) {
