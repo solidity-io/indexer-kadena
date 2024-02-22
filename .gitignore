@@ -7,3 +7,4 @@ draft/
 .terraform.lock.hcl
 .terraform.tfstate.lock.info
 .terraform.plan
+.github/workflows/.artifacts/

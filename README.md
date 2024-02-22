@@ -34,13 +34,13 @@ export TF_VAR_AWS_USER_NAME="YOUR_AWS_USER_NAME"
 ### Plan
 
 ```bash
-terraform plan -out=.terraform.plan
+yarn terraform plan
 ```
 
 ### Apply
 
 ```bash
-terraform apply .terraform.plan
+yarn terraform apply
 ```
 
 # Kadena Indexer
@@ -50,11 +50,26 @@ This is a indexer for the Kadena blockchain. It is a work in progress and is not
 ## Getting Started
 
 ```bash
-yarn && yarn dev
+yarn && yarn indexer build
 ```
 
-## Migration
+## Workflows
+
+In order to test the workflows locally, you need to install [act](https://github.com/nektos/act).
+You can install it using the following command:
 
 ```bash
-yarn sequelize-cli db:migrate
+brew install act
+```
+
+If you want to run the terraform workflow manually, you can use the following command:
+
+```bash
+yarn run-terraform-workflow
+```
+
+If you want to run the indexer workflow manually, you can use the following command:
+
+```bash
+yarn run-indexer-workflow
 ```

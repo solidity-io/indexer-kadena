@@ -1,0 +1,13 @@
+{
+  "name": "@kadena-indexer/terraform",
+  "private": true,
+  "type": "module",
+  "description": "Terraform module for Kadena Indexer",
+  "version": "1.0.0",
+  "scripts": {
+    "plan": "terraform plan -out=.terraform.plan",
+    "apply": "terraform apply .terraform.plan"
+  },
+  "author": "Hackachain team",
+  "license": "ISC"
+}
