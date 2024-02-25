@@ -63,12 +63,11 @@ export async function saveHeader(
 export async function savePayload(
   network: string,
   chainId: number,
-  height: number,
   payloadHash: string,
   data: any,
   suffix: string = ""
 ) {
-  const objectKey = `${network}/chains/${chainId}/payloads/${network}_${chainId}_${height}_${payloadHash}${suffix}.json`;
+  const objectKey = `${network}/chains/${chainId}/payloads/${network}_${chainId}_${payloadHash}${suffix}.json`;
   const jsonData = JSON.stringify(data);
 
   try {

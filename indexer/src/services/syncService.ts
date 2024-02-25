@@ -135,7 +135,9 @@ export async function startStreaming(network: string): Promise<void> {
           await saveHeader(network, chainId, height, blockData);
           // console.log("Payload hash:", payloadHash);
 
-          fetchPayloadWithRetry(network, chainId, height, payloadHash);
+          fetchPayloadWithRetry(network, chainId, height, height, [
+            payloadHash,
+          ]);
 
           await syncStatusService.save({
             chainId: chainId,
@@ -313,15 +315,19 @@ async function fetchHeadersWithRetry(
     const items = response.data.items;
     for (const header of items) {
       await saveHeader(network, chainId, header.height, header);
-      console.log("Fetching payload from hash:", header.payloadHash);
-
-      await fetchPayloadWithRetry(
-        network,
-        chainId,
-        header.height,
-        header.payloadHash
-      );
     }
+
+    const payloadHashes = items.map((header: any) => header.payloadHash);
+
+    console.log("Fetching payload from hashes:", payloadHashes);
+
+    await fetchPayloadWithRetry(
+      network,
+      chainId,
+      maxHeight,
+      minHeight,
+      payloadHashes
+    );
 
     await syncStatusService.save({
       chainId: chainId,
@@ -381,42 +387,53 @@ async function fetchHeadersWithRetry(
 async function fetchPayloadWithRetry(
   network: string,
   chainId: number,
-  height: number,
-  payloadHash: string,
+  fromHeight: number,
+  toHeight: number,
+  payloadHashes: string[],
   attempt = 1
 ): Promise<void> {
-  const endpoint = `${BASE_URL}/${network}/chain/${chainId}/payload/${payloadHash}/outputs`;
+  const endpoint = `${BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
   try {
-    const response = await axios.get(endpoint);
-    const transactions = response.data.transactions;
-    // console.log("Number of transactions:", transactions.length);
-    transactions.forEach((transaction: any) => {
-      transaction[0] = getDecoded(transaction[0]);
-      transaction[1] = getDecoded(transaction[1]);
-    });
-    await savePayload(network, chainId, height, payloadHash, transactions);
+    const response = (await axios.post(endpoint, payloadHashes, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      }
+    })) as any;
+
+    const payloads = response.data;
+    for (const payload of payloads) {
+      const transactions = payload.transactions;
+      // console.log("Number of transactions:", transactions.length);
+      transactions.forEach((transaction: any) => {
+        transaction[0] = getDecoded(transaction[0]);
+        transaction[1] = getDecoded(transaction[1]);
+      });
+      await savePayload(network, chainId, payload.payloadHash, transactions);
+    }
   } catch (error) {
     if (attempt < ATTEMPTS_MAX_RETRY) {
       console.log(
         `Retrying... Attempt ${
           attempt + 1
-        } of ${ATTEMPTS_MAX_RETRY} for payloadHash ${payloadHash}`
+        } of ${ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
       );
+      console.log("Error fetching payload:", error);
       await delay(ATTEMPTS_INTERVAL_IN_MS);
       await fetchPayloadWithRetry(
         network,
         chainId,
-        height,
-        payloadHash,
+        fromHeight,
+        toHeight,
+        payloadHashes,
         attempt + 1
       );
     } else {
       await syncErrorService.save({
         network: network,
         chainId: chainId,
-        fromHeight: height,
-        toHeight: height,
-        payloadHash: payloadHash,
+        fromHeight: fromHeight,
+        toHeight: toHeight,
         data: error,
         endpoint: endpoint,
         source: SOURCE_API,
@@ -424,7 +441,7 @@ async function fetchPayloadWithRetry(
 
       console.log(
         "Max retry attempts reached. Unable to fetch transactions for",
-        { network, chainId, height, payloadHash }
+        { network, chainId, fromHeight, toHeight }
       );
     }
   }
