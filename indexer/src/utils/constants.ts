@@ -6,8 +6,8 @@ export const BASE_URL_MAINNET: string = "https://api.chainweb.com/chainweb/0.0";
 
 export const BASE_URL: string = BASE_URL_MAINNET;
 
-export const SYNC_MIN_HEIGHT: number = 4516000;
-export const SYNC_FETCH_INTERVAL_IN_BLOCKS: number = 10;
+export const SYNC_MIN_HEIGHT: number = 0;
+export const SYNC_FETCH_INTERVAL_IN_BLOCKS: number = 50;
 export const TIME_BETWEEN_REQUESTS_IN_MS: number = 5000;
 export const ATTEMPTS_MAX_RETRY: number = 10;
 export const ATTEMPTS_INTERVAL_IN_MS: number = 2000;

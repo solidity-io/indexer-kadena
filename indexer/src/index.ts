@@ -1,16 +1,18 @@
 import { NETWORK } from "./utils/constants";
 import {
   startStreaming,
-  startBackfill,
+  startBackFill,
+  startRetryErrors,
   processHeaders,
-} from "./api/blockchain";
+} from "./services/syncService";
 import dotenv from "dotenv";
 import { program } from "commander";
 import { initializeDatabase } from "./config/database";
 
 program
   .option("-s, --startStreaming", "Start streaming blockchain data")
-  .option("-b, --startBackfill", "Start backfilling blockchain data");
+  .option("-b, --startFill", "Start filling blockchain data")
+  .option("-h, --startRetryErrors", "Start retrying failed blocks");
 
 program.parse(process.argv);
 
@@ -26,9 +28,12 @@ async function main() {
     if (options.startStreaming) {
       console.log("Starting streaming...");
       await startStreaming(NETWORK);
-    } else if (options.startBackfill) {
-      console.log("Starting backfill...");
-      await startBackfill(NETWORK);
+    } else if (options.startFill) {
+      console.log("Starting filling...");
+      await startBackFill(NETWORK);
+    } else if (options.startRetryErrors) {
+      console.log("Starting retrying failed blocks...");
+      await startRetryErrors(NETWORK);
     } else {
       console.log("No specific task requested.");
     }
@@ -38,5 +43,14 @@ async function main() {
     console.error("An error occurred during the data indexing process:", error);
   }
 }
+
+async function handleGracefulShutdown(signal: string) {
+  console.log(`Received ${signal}. Graceful shutdown start.`);
+  console.log("Graceful shutdown complete.");
+  process.exit(0);
+}
+
+process.on("SIGINT", handleGracefulShutdown);
+process.on("SIGTERM", handleGracefulShutdown);
 
 main().then(() => console.log("Done"));

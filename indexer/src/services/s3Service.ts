@@ -3,19 +3,45 @@ import {
   GetObjectCommand,
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
-import { s3Client } from "./s3Client";
 import "dotenv/config";
+import { S3Client } from "@aws-sdk/client-s3";
 
 const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
+const REGION = process.env.AWS_S3_REGION;
+const ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
+const SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 
 if (!AWS_S3_BUCKET_NAME) {
   console.error("Missing AWS S3 bucket name in environment variables");
   process.exit(1);
 }
 
+if (!REGION) {
+  console.error("Missing AWS S3 region in environment variables");
+  process.exit(1);
+}
+
+if (!ACCESS_KEY_ID) {
+  console.error("Missing AWS access key ID in environment variables");
+  process.exit(1);
+}
+
+if (!SECRET_ACCESS_KEY) {
+  console.error("Missing AWS secret access key in environment variables");
+  process.exit(1);
+}
+
+const s3Client = new S3Client({
+  region: REGION,
+  credentials: {
+    accessKeyId: ACCESS_KEY_ID,
+    secretAccessKey: SECRET_ACCESS_KEY,
+  },
+});
+
 export async function saveHeader(
   network: string,
-  chainId: string,
+  chainId: number,
   height: number,
   data: any
 ) {
@@ -29,39 +55,14 @@ export async function saveHeader(
   try {
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
-    // console.log("Header saved:", objectKey);
   } catch (error) {
     console.error("Error saving header to S3:", error);
   }
 }
 
-export async function saveSyncError(
-  network: string,
-  chainId: string,
-  height: number,
-  payloadHash: string,
-  error: any
-) {
-  const objectKey = `${network}/chains/${chainId}/errors/${network}_${chainId}_${height}_${payloadHash}_error.json`;
-  const data = JSON.stringify(error);
-
-  try {
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: AWS_S3_BUCKET_NAME,
-        Key: objectKey,
-        Body: data,
-      })
-    );
-    // console.log("Sync error saved to S3:", objectKey);
-  } catch (error) {
-    console.error("Error saving sync error to S3:", error);
-  }
-}
-
 export async function savePayload(
   network: string,
-  chainId: string,
+  chainId: number,
   height: number,
   payloadHash: string,
   data: any,
@@ -78,58 +79,8 @@ export async function savePayload(
         Body: jsonData,
       })
     );
-    // console.log("Payload saved to S3:", objectKey);
   } catch (error) {
     console.error("Error saving payload to S3:", error);
-  }
-}
-
-export async function saveLastSync(
-  network: string,
-  chainId: string,
-  minHeight: number,
-  maxHeight: number
-) {
-  const objectKey = `${network}/chains/${chainId}/${network}_${chainId}_lastSync.json`;
-  const data = JSON.stringify({
-    minHeight: minHeight,
-    maxHeight: maxHeight,
-  });
-
-  try {
-    const command = new PutObjectCommand({
-      Bucket: AWS_S3_BUCKET_NAME,
-      Key: objectKey,
-      Body: data,
-    });
-    await s3Client.send(command);
-    // console.log("Last sync saved to S3:", objectKey);
-  } catch (error) {
-    console.error("Error saving last sync to S3:", error);
-  }
-}
-
-export async function getLastSync(network: string, chainId: string) {
-  const objectKey = `${network}/chains/${chainId}/${network}_${chainId}_lastSync.json`;
-
-  try {
-    const command = new GetObjectCommand({
-      Bucket: AWS_S3_BUCKET_NAME,
-      Key: objectKey,
-    });
-    const { Body } = await s3Client.send(command);
-    const data = (await getStreamAsString(Body)) as string;
-    const lastSync = JSON.parse(data);
-    console.log("Last sync fetched from S3:", lastSync);
-    return lastSync;
-  } catch (error: any) {
-    if (error.name === "NoSuchKey") {
-      console.log("Last sync does not exist.");
-      return null;
-    } else {
-      console.error("Error getting last sync from S3:", error);
-      throw error;
-    }
   }
 }
 
@@ -145,7 +96,6 @@ export async function saveLastCut(network: string, data: any) {
         Body: jsonData,
       })
     );
-    // console.log("Last cut saved to S3:", objectKey);
   } catch (error) {
     console.error("Error saving last cut to S3:", error);
   }
@@ -154,7 +104,8 @@ export async function saveLastCut(network: string, data: any) {
 export async function listS3Objects(
   network: string,
   chainId: number,
-  startAfter?: string
+  startAfter?: string,
+  limit?: number
 ): Promise<string[]> {
   const prefix = `${network}/chains/${chainId}/headers/`;
   try {
@@ -165,6 +116,10 @@ export async function listS3Objects(
 
     if (startAfter) {
       command.input.StartAfter = startAfter;
+    }
+
+    if (limit) {
+      command.input.MaxKeys = limit;
     }
 
     const { Contents } = await s3Client.send(command);
