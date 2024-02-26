@@ -14,7 +14,7 @@ export const sequelize = new Sequelize(
       ssl: {
         require: true,
         rejectUnauthorized: true,
-        ca: fs.readFileSync("src/config/global-bundle.pem").toString(),
+        ca: fs.readFileSync(__dirname + "/global-bundle.pem").toString(),
       },
     },
   }

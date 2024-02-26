@@ -2,7 +2,8 @@ import { writeFile, readFile } from "fs/promises";
 import { existsSync } from "fs";
 import { join } from "path";
 import { createIfNotExists } from "../utils/helpers";
-import { DATA_DIR } from "../utils/constants";
+
+export const DATA_DIR = join(__dirname, "../../", "data");
 
 export async function saveHeader(
   network: string,

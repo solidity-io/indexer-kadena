@@ -1,24 +1,80 @@
 import axios from "axios";
-import {
-  BASE_URL,
-  ATTEMPTS_MAX_RETRY,
-  ATTEMPTS_INTERVAL_IN_MS,
-  SYNC_MIN_HEIGHT,
-  SYNC_FETCH_INTERVAL_IN_BLOCKS,
-  TIME_BETWEEN_REQUESTS_IN_MS,
-} from "../utils/constants";
 import { saveHeader, savePayload, saveLastCut } from "./s3Service";
 import { getDecoded } from "../utils/helpers";
 import { listS3Objects, readAndParseS3Object } from "./s3Service";
 import { blockService } from "./blockService";
 import { syncStatusService } from "./syncStatusService";
 import { syncErrorService } from "./syncErrorService";
+import { register } from "../server/metrics";
+import { Histogram } from "prom-client";
 import https from "https";
+import "dotenv/config";
+import {
+  SOURCE_S3,
+  SOURCE_API,
+  SOURCE_BACKFILL,
+  SOURCE_STREAMING,
+} from "../models/syncStatus";
 
-const SOURCE_S3 = "s3";
-const SOURCE_API = "api";
-const SOURCE_BACKFILL = "backfill";
-const SOURCE_STREAMING = "Streaming";
+if (!process.env.SYNC_BASE_URL) {
+  console.error("Missing SYNC_BASE_URL in environment variables");
+  process.exit(1);
+}
+
+if (!process.env.SYNC_MIN_HEIGHT) {
+  console.error("Missing SYNC_MIN_HEIGHT in environment variables");
+  process.exit(1);
+}
+
+if (!process.env.SYNC_FETCH_INTERVAL_IN_BLOCKS) {
+  console.error(
+    "Missing SYNC_FETCH_INTERVAL_IN_BLOCKS in environment variables"
+  );
+  process.exit(1);
+}
+
+if (!process.env.SYNC_TIME_BETWEEN_REQUESTS_IN_MS) {
+  console.error(
+    "Missing SYNC_TIME_BETWEEN_REQUESTS_IN_MS in environment variables"
+  );
+  process.exit(1);
+}
+
+if (!process.env.SYNC_ATTEMPTS_MAX_RETRY) {
+  console.error("Missing SYNC_ATTEMPTS_MAX_RETRY in environment variables");
+  process.exit(1);
+}
+
+if (!process.env.SYNC_ATTEMPTS_INTERVAL_IN_MS) {
+  console.error(
+    "Missing SYNC_ATTEMPTS_INTERVAL_IN_MS in environment variables"
+  );
+  process.exit(1);
+}
+
+const SYNC_BASE_URL = process.env.SYNC_BASE_URL as string;
+const SYNC_MIN_HEIGHT = parseInt(process.env.SYNC_MIN_HEIGHT as string);
+const SYNC_FETCH_INTERVAL_IN_BLOCKS = parseInt(
+  process.env.SYNC_FETCH_INTERVAL_IN_BLOCKS as string
+);
+const SYNC_TIME_BETWEEN_REQUESTS_IN_MS = parseInt(
+  process.env.SYNC_TIME_BETWEEN_REQUESTS_IN_MS as string
+);
+const SYNC_ATTEMPTS_MAX_RETRY = parseInt(
+  process.env.SYNC_ATTEMPTS_MAX_RETRY as string
+);
+const SYNC_ATTEMPTS_INTERVAL_IN_MS = parseInt(
+  process.env.SYNC_ATTEMPTS_INTERVAL_IN_MS as string
+);
+
+const metrics = {
+  syncDuration: new Histogram({
+    name: "sync_duration_seconds",
+    help: "Duration of sync operations in seconds",
+    labelNames: ["chainId", "type", "minheight", "maxheight"],
+    registers: [register],
+  }),
+};
 
 /**
  * Processes headers from S3 for a specific network and chainId.
@@ -248,7 +304,7 @@ export async function startBackFill(network: string): Promise<void> {
           chains.splice(i, 1);
         }
 
-        await delay(TIME_BETWEEN_REQUESTS_IN_MS);
+        await delay(SYNC_TIME_BETWEEN_REQUESTS_IN_MS);
       }
     }
 
@@ -275,7 +331,7 @@ interface FetchCutResult {
  */
 async function fetchCut(network: string): Promise<any> {
   try {
-    const response = await axios.get(`${BASE_URL}/${network}/cut`);
+    const response = await axios.get(`${SYNC_BASE_URL}/${network}/cut`);
     return response.data as FetchCutResult;
   } catch (error) {
     console.error("Error fetching cut:", error);
@@ -302,7 +358,13 @@ async function fetchHeadersWithRetry(
   maxHeight: number,
   attempt: number = 1
 ): Promise<void> {
-  const endpoint = `${BASE_URL}/${network}/chain/${chainId}/header?minheight=${minHeight}&maxheight=${maxHeight}`;
+  const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/header?minheight=${minHeight}&maxheight=${maxHeight}`;
+  const end = metrics.syncDuration.startTimer({
+    chainId: chainId.toString(),
+    minheight: minHeight.toString(),
+    maxheight: maxHeight.toString(),
+    type: "headers",
+  });
   try {
     console.log(
       `Fetching headers from ${minHeight} to ${maxHeight} for chainId ${chainId}`
@@ -337,15 +399,16 @@ async function fetchHeadersWithRetry(
       network: network,
       source: SOURCE_BACKFILL,
     } as any);
+    end();
   } catch (error) {
     console.error(`Error fetching headers: ${error}`);
-    if (attempt < ATTEMPTS_MAX_RETRY) {
+    if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
       console.log(
         `Retrying fetch headers... Attempt ${
           attempt + 1
-        } of ${ATTEMPTS_MAX_RETRY}`
+        } of ${SYNC_ATTEMPTS_MAX_RETRY}`
       );
-      await delay(ATTEMPTS_INTERVAL_IN_MS);
+      await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
       await fetchHeadersWithRetry(
         network,
         chainId,
@@ -372,6 +435,7 @@ async function fetchHeadersWithRetry(
         maxHeight,
       });
     }
+    end();
   }
 }
 
@@ -392,19 +456,19 @@ async function fetchPayloadWithRetry(
   payloadHashes: string[],
   attempt = 1
 ): Promise<void> {
-  const endpoint = `${BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
+  const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
   try {
     const response = (await axios.post(endpoint, payloadHashes, {
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      }
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
     })) as any;
 
     const payloads = response.data;
     for (const payload of payloads) {
       const transactions = payload.transactions;
-      // console.log("Number of transactions:", transactions.length);
+      console.log("Number of transactions:", transactions.length);
       transactions.forEach((transaction: any) => {
         transaction[0] = getDecoded(transaction[0]);
         transaction[1] = getDecoded(transaction[1]);
@@ -412,14 +476,14 @@ async function fetchPayloadWithRetry(
       await savePayload(network, chainId, payload.payloadHash, transactions);
     }
   } catch (error) {
-    if (attempt < ATTEMPTS_MAX_RETRY) {
+    if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
       console.log(
         `Retrying... Attempt ${
           attempt + 1
-        } of ${ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
+        } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
       );
       console.log("Error fetching payload:", error);
-      await delay(ATTEMPTS_INTERVAL_IN_MS);
+      await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
       await fetchPayloadWithRetry(
         network,
         chainId,

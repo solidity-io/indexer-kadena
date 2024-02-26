@@ -5,6 +5,8 @@ import {
 } from "@aws-sdk/client-s3";
 import "dotenv/config";
 import { S3Client } from "@aws-sdk/client-s3";
+import { register } from "../server/metrics";
+import { Gauge } from "prom-client";
 
 const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
 const REGION = process.env.AWS_S3_REGION;
@@ -31,6 +33,15 @@ if (!SECRET_ACCESS_KEY) {
   process.exit(1);
 }
 
+const metrics = {
+  dataVolume: new Gauge({
+    name: "sync_data_volume_bytes",
+    help: "Volume of data processed in each sync operation",
+    labelNames: ["network", "chainId", "height", "payloadHash", "type"],
+    registers: [register],
+  }),
+};
+
 const s3Client = new S3Client({
   region: REGION,
   credentials: {
@@ -46,15 +57,25 @@ export async function saveHeader(
   data: any
 ) {
   const objectKey = `${network}/chains/${chainId}/headers/${network}_${chainId}_${height}.json`;
+  const jsonData = JSON.stringify(data);
   const params = {
     Bucket: AWS_S3_BUCKET_NAME,
     Key: objectKey,
-    Body: JSON.stringify(data),
+    Body: jsonData,
   };
 
   try {
     const command = new PutObjectCommand(params);
     await s3Client.send(command);
+    metrics.dataVolume.set(
+      {
+        network,
+        chainId: chainId.toString(),
+        height: height.toString(),
+        type: "header",
+      },
+      calculateDataSize(jsonData)
+    );
   } catch (error) {
     console.error("Error saving header to S3:", error);
   }
@@ -77,6 +98,15 @@ export async function savePayload(
         Key: objectKey,
         Body: jsonData,
       })
+    );
+    metrics.dataVolume.set(
+      {
+        network,
+        chainId: chainId.toString(),
+        payloadHash,
+        type: "payload",
+      },
+      calculateDataSize(jsonData)
     );
   } catch (error) {
     console.error("Error saving payload to S3:", error);
@@ -157,4 +187,8 @@ async function getStreamAsString(stream: any): Promise<string> {
     stream.on("end", () => resolve(data));
     stream.on("error", reject);
   });
+}
+
+function calculateDataSize(data: any) {
+  return Buffer.byteLength(JSON.stringify(data), "utf8");
 }

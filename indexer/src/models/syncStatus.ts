@@ -1,6 +1,11 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
 
+export const SOURCE_S3 = "s3";
+export const SOURCE_API = "api";
+export const SOURCE_BACKFILL = "backfill";
+export const SOURCE_STREAMING = "streaming";
+
 export interface SyncStatusAttributes {
   id: number;
   network: string;
@@ -35,7 +40,14 @@ SyncStatus.init(
     fromHeight: { type: DataTypes.INTEGER },
     toHeight: { type: DataTypes.INTEGER },
     key: { type: DataTypes.STRING },
-    source: { type: DataTypes.ENUM("s3", "api", "backfill", "streaming") },
+    source: {
+      type: DataTypes.ENUM(
+        SOURCE_S3,
+        SOURCE_API,
+        SOURCE_BACKFILL,
+        SOURCE_STREAMING
+      ),
+    },
   },
   {
     sequelize,

@@ -1,4 +1,3 @@
-import { NETWORK } from "./utils/constants";
 import {
   startStreaming,
   startBackFill,
@@ -16,6 +15,12 @@ program
 
 program.parse(process.argv);
 
+if (!process.env.SYNC_NETWORK) {
+  throw new Error("SYNC_NETWORK environment variable is not set");
+}
+
+const SYNC_NETWORK = process.env.SYNC_NETWORK;
+
 const options = program.opts();
 
 async function main() {
@@ -27,13 +32,13 @@ async function main() {
 
     if (options.startStreaming) {
       console.log("Starting streaming...");
-      await startStreaming(NETWORK);
+      await startStreaming(SYNC_NETWORK);
     } else if (options.startFill) {
       console.log("Starting filling...");
-      await startBackFill(NETWORK);
+      await startBackFill(SYNC_NETWORK);
     } else if (options.startRetryErrors) {
       console.log("Starting retrying failed blocks...");
-      await startRetryErrors(NETWORK);
+      await startRetryErrors(SYNC_NETWORK);
     } else {
       console.log("No specific task requested.");
     }

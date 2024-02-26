@@ -53,6 +53,24 @@ This is a indexer for the Kadena blockchain. It is a work in progress and is not
 yarn && yarn indexer build
 ```
 
+## Start Indexer::Filling
+
+```bash
+yarn indexer dev:startFill
+```
+
+## Start Indexer::Streaming
+
+```bash
+yarn indexer dev:startStreaming
+```
+
+## Start Indexer::Filling (Production)
+
+```bash
+yarn indexer prod:start
+```
+
 ## Workflows
 
 In order to test the workflows locally, you need to install [act](https://github.com/nektos/act).

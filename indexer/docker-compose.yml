@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  indexer:
+    build: ../.
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    command: yarn prod:startFill
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./src/server/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    depends_on:
+      - indexer
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SERVER_HTTP_PORT=3000
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
