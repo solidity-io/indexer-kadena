@@ -32,10 +32,10 @@
   "scripts": {
     "build": "tsc",
     "dev:startStreaming": "ts-node src/index.ts --startStreaming",
-    "dev:startFill": "ts-node src/index.ts --startFill",
-    "prod:start": "docker-compose up -d --build indexer && docker-compose logs -f indexer",
+    "dev:startBackFill": "ts-node src/index.ts --startBackFill",
+    "prod:start": "docker-compose up --build indexer && docker-compose logs -f indexer",
     "prod:startStreaming": "node dist/index.js --startStreaming",
-    "prod:startFill": "node dist/index.js --startFill"
+    "prod:startBackFill": "node dist/index.js --startBackFill"
   },
   "author": "Hackachain team",
   "license": "ISC"

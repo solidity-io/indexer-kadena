@@ -30,7 +30,7 @@ export async function initializeDatabase(): Promise<void> {
   }
 
   try {
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force: false });
     console.log("Tables have been synchronized successfully.");
   } catch (error) {
     console.error("Unable to create tables:", error);

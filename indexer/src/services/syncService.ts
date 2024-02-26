@@ -244,17 +244,17 @@ export async function startBackFill(network: string): Promise<void> {
 
     await saveLastCut(network, lastCutResult);
 
-    let lastSyncs = await syncStatusService.getLastSyncForAllChains(
-      network,
-      SOURCE_BACKFILL
-    );
+    let lastSyncs = await syncStatusService.getLastSyncForAllChains(network, [
+      SOURCE_BACKFILL,
+      SOURCE_STREAMING,
+    ]);
 
     let chains = Object.entries(lastCutResult.hashes)
       .map(([chainId, lastCut]) => {
         const lastSync = lastSyncs.find(
           (sync) => sync.chainId === parseInt(chainId)
         );
-        let currentHeight = lastSync ? lastSync.toHeight : lastCut.height;
+        let currentHeight = lastSync ? lastSync.toHeight - 1 : lastCut.height;
 
         console.log(
           `------------------------------------------\nChain ID ${chainId}: Starting at height ${currentHeight} from ${
@@ -264,7 +264,6 @@ export async function startBackFill(network: string): Promise<void> {
         return {
           chainId: parseInt(chainId),
           currentHeight,
-          startHeight: lastCut.height,
         };
       })
       .filter((chain) => chain.currentHeight > SYNC_MIN_HEIGHT);
@@ -282,7 +281,7 @@ export async function startBackFill(network: string): Promise<void> {
         );
 
         console.log(
-          "--------------------------------\nNext Height",
+          "------------------------------------------\nNext Height",
           nextHeight
         );
 
@@ -293,7 +292,6 @@ export async function startBackFill(network: string): Promise<void> {
         await fetchHeadersWithRetry(
           network,
           chain.chainId,
-          chain.startHeight,
           nextHeight,
           chain.currentHeight
         );
@@ -353,7 +351,6 @@ async function fetchCut(network: string): Promise<any> {
 async function fetchHeadersWithRetry(
   network: string,
   chainId: number,
-  startHeight: number | undefined,
   minHeight: number,
   maxHeight: number,
   attempt: number = 1
@@ -400,7 +397,6 @@ async function fetchHeadersWithRetry(
 
     await syncStatusService.save({
       chainId: chainId,
-      startHeight: startHeight,
       fromHeight: maxHeight,
       toHeight: minHeight,
       network: network,
@@ -419,7 +415,6 @@ async function fetchHeadersWithRetry(
       await fetchHeadersWithRetry(
         network,
         chainId,
-        startHeight,
         minHeight,
         maxHeight,
         attempt + 1
@@ -539,7 +534,6 @@ export async function startRetryErrors(network: string): Promise<void> {
         await fetchHeadersWithRetry(
           error.network,
           error.chainId,
-          undefined,
           error.fromHeight,
           error.toHeight
         );

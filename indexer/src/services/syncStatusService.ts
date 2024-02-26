@@ -1,4 +1,21 @@
-import SyncStatus, { SyncStatusAttributes } from "../models/syncStatus";
+import { Op, Sequelize } from "sequelize";
+import SyncStatus, {
+  SyncStatusAttributes,
+  SOURCE_BACKFILL,
+  SOURCE_STREAMING,
+} from "../models/syncStatus";
+
+if (!process.env.SYNC_FETCH_INTERVAL_IN_BLOCKS) {
+  console.error(
+    "Missing SYNC_FETCH_INTERVAL_IN_BLOCKS in environment variables"
+  );
+  process.exit(1);
+}
+
+const SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING = 1;
+const SYNC_FETCH_INTERVAL_IN_BLOCKS_FILLING = parseInt(
+  process.env.SYNC_FETCH_INTERVAL_IN_BLOCKS as string
+);
 
 export class SyncStatusService {
   async save(
@@ -9,16 +26,62 @@ export class SyncStatusService {
         ...lastSyncData,
       };
 
-      const existingBlock = await SyncStatus.findOne({
-        where: {
-          network: lastSyncData.network,
-          chainId: lastSyncData.chainId,
-        },
-      });
+      let filter = {};
+
+      if (lastSyncData.source === SOURCE_STREAMING) {
+        const LAST_BLOCK_IN_DB =
+          lastSyncData.fromHeight - SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING;
+        filter = {
+          where: {
+            [Op.and]: [
+              { network: lastSyncData.network },
+              { chainId: lastSyncData.chainId },
+              { source: lastSyncData.source },
+              {
+                [Op.or]: [
+                  {
+                    fromHeight: LAST_BLOCK_IN_DB,
+                  },
+                  {
+                    fromHeight: lastSyncData.toHeight,
+                  },
+                ],
+              },
+            ],
+          },
+        };
+      } else if (lastSyncData.source === SOURCE_BACKFILL) {
+        const LAST_BLOCK_IN_DB =
+          lastSyncData.toHeight + (SYNC_FETCH_INTERVAL_IN_BLOCKS_FILLING + 1);
+
+        filter = {
+          where: {
+            [Op.and]: [
+              { network: lastSyncData.network },
+              { chainId: lastSyncData.chainId },
+              { source: lastSyncData.source },
+              {
+                [Op.or]: [
+                  { toHeight: LAST_BLOCK_IN_DB },
+                  {
+                    toHeight: lastSyncData.toHeight,
+                  },
+                ],
+              },
+            ],
+          },
+        };
+
+        console.log("filter", filter);
+      }
+
+      const existingBlock = await SyncStatus.findOne(filter);
 
       if (existingBlock) {
-        if (parsedData.startHeight === undefined) {
-          parsedData.startHeight = existingBlock.startHeight;
+        if (lastSyncData.source === SOURCE_STREAMING) {
+          parsedData.toHeight = existingBlock.toHeight;
+        } else if (lastSyncData.source == SOURCE_BACKFILL) {
+          parsedData.fromHeight = existingBlock.fromHeight;
         }
         await existingBlock.update(parsedData);
         console.log("Sync status updated in database:", existingBlock.toHeight);
@@ -52,11 +115,17 @@ export class SyncStatusService {
 
   async getLastSyncForAllChains(
     network: string,
-    source: string
+    source: string[]
   ): Promise<SyncStatusAttributes[]> {
     try {
       const block = await SyncStatus.findAll({
         where: { network, source },
+        group: ["chainId"],
+        attributes: [
+          "chainId",
+          [Sequelize.fn("min", Sequelize.col("toHeight")), "toHeight"],
+          [Sequelize.fn("max", Sequelize.col("fromHeight")), "fromHeight"],
+        ],
       });
       return block.map((b) => b.toJSON() as SyncStatusAttributes);
     } catch (error) {

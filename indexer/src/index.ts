@@ -10,7 +10,7 @@ import { initializeDatabase } from "./config/database";
 
 program
   .option("-s, --startStreaming", "Start streaming blockchain data")
-  .option("-b, --startFill", "Start filling blockchain data")
+  .option("-b, --startBackFill", "Start back filling blockchain data")
   .option("-h, --startRetryErrors", "Start retrying failed blocks");
 
 program.parse(process.argv);
@@ -33,7 +33,7 @@ async function main() {
     if (options.startStreaming) {
       console.log("Starting streaming...");
       await startStreaming(SYNC_NETWORK);
-    } else if (options.startFill) {
+    } else if (options.startBackFill) {
       console.log("Starting filling...");
       await startBackFill(SYNC_NETWORK);
     } else if (options.startRetryErrors) {
