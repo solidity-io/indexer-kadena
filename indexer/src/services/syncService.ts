@@ -359,6 +359,8 @@ async function fetchHeadersWithRetry(
   attempt: number = 1
 ): Promise<void> {
   const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/header?minheight=${minHeight}&maxheight=${maxHeight}`;
+
+  console.log("Fetching headers from:", endpoint);
   const end = metrics.syncDuration.startTimer({
     chainId: chainId.toString(),
     minheight: minHeight.toString(),
@@ -375,13 +377,18 @@ async function fetchHeadersWithRetry(
     });
 
     const items = response.data.items;
-    for (const header of items) {
-      await saveHeader(network, chainId, header.height, header);
-    }
+
+    console.log(`Fetched ${items.length} headers for chainId ${chainId}`);
+
+    await Promise.all(
+      items.map((header: any) =>
+        saveHeader(network, chainId, header.height, header)
+      )
+    );
 
     const payloadHashes = items.map((header: any) => header.payloadHash);
 
-    console.log("Fetching payload from hashes:", payloadHashes);
+    // console.log("Fetching payload from hashes:", payloadHashes);
 
     await fetchPayloadWithRetry(
       network,
@@ -466,15 +473,9 @@ async function fetchPayloadWithRetry(
     })) as any;
 
     const payloads = response.data;
-    for (const payload of payloads) {
-      const transactions = payload.transactions;
-      console.log("Number of transactions:", transactions.length);
-      transactions.forEach((transaction: any) => {
-        transaction[0] = getDecoded(transaction[0]);
-        transaction[1] = getDecoded(transaction[1]);
-      });
-      await savePayload(network, chainId, payload.payloadHash, transactions);
-    }
+    // console.log("Fetching payload from hashes:", payloadHashes);
+
+    await processPayloads(network, chainId, payloads);
   } catch (error) {
     if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
       console.log(
@@ -509,6 +510,24 @@ async function fetchPayloadWithRetry(
       );
     }
   }
+}
+
+async function processPayloads(
+  network: string,
+  chainId: number,
+  payloads: any[]
+): Promise<void> {
+  const saveOperations = payloads.map(async (payload) => {
+    const transactions = payload.transactions;
+    // console.log("Number of transactions:", transactions.length);
+    transactions.forEach((transaction: any) => {
+      transaction[0] = getDecoded(transaction[0]);
+      transaction[1] = getDecoded(transaction[1]);
+    });
+    return savePayload(network, chainId, payload.payloadHash, transactions);
+  });
+
+  await Promise.all(saveOperations);
 }
 
 export async function startRetryErrors(network: string): Promise<void> {
