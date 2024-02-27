@@ -33,6 +33,7 @@
     "build": "tsc",
     "dev:startStreaming": "ts-node src/index.ts --startStreaming",
     "dev:startBackFill": "ts-node src/index.ts --startBackFill",
+    "dev:startMissingBlocks": "ts-node src/index.ts --startMissingBlocks",
     "prod:start": "docker-compose up --build indexer && docker-compose logs -f indexer",
     "prod:startStreaming": "node dist/index.js --startStreaming",
     "prod:startBackFill": "node dist/index.js --startBackFill"

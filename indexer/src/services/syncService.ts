@@ -312,6 +312,46 @@ export async function startBackFill(network: string): Promise<void> {
   }
 }
 
+function splitIntoChunks(
+  min: number,
+  max: number,
+  rangeSize: number
+): number[][] {
+  const chunks = [];
+  let current = max;
+  while (current > min) {
+    const next = Math.max(current - rangeSize, min);
+    chunks.push([next, current]);
+    current = next - 1;
+  }
+  return chunks;
+}
+
+export async function startMissingBlocks(network: string) {
+  const chains = await syncStatusService.getChains(network);
+
+  for (const chainId of chains) {
+    const missingBlocks = await syncStatusService.getMissingBlocks(
+      network,
+      chainId
+    );
+
+    for (const block of missingBlocks) {
+      console.log(
+        `Processing missing blocks for chain ID ${chainId} from heights ${block.fromHeight} to ${block.toHeight}`
+      );
+
+      splitIntoChunks(
+        block.toHeight,
+        block.fromHeight,
+        SYNC_FETCH_INTERVAL_IN_BLOCKS
+      ).forEach(async (chunk) => {
+        await fetchHeadersWithRetry(network, chainId, chunk[0], chunk[1]);
+      });
+    }
+  }
+}
+
 interface FetchCutResult {
   hashes: {
     [chainId: string]: {

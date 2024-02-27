@@ -133,6 +133,62 @@ export class SyncStatusService {
       throw error;
     }
   }
+
+  async getChains(network: string): Promise<number[]> {
+    try {
+      const block = await SyncStatus.findAll({
+        where: { network },
+        group: ["chainId"],
+        attributes: ["chainId"],
+        order: [["chainId", "ASC"]],
+      });
+      return block.map((b) => b.chainId);
+    } catch (error) {
+      console.error("Error getting chains:", error);
+      throw error;
+    }
+  }
+
+  async getMissingBlocks(
+    network: string,
+    chainId: number
+  ): Promise<SyncStatusAttributes[]> {
+    try {
+      const records = await SyncStatus.findAll({
+        where: { chainId, network },
+        order: [["toHeight", "DESC"]],
+      });
+
+      const missingBlocks = [] as SyncStatusAttributes[];
+      let lastToHeight = 0;
+
+      records.forEach((record, index) => {
+        const syncStatus = record.toJSON() as SyncStatusAttributes;
+        if (index === 0) {
+          lastToHeight = syncStatus.toHeight;
+          return;
+        }
+
+        if (syncStatus.fromHeight < lastToHeight) {
+          missingBlocks.push({
+            network: syncStatus.network,
+            chainId: syncStatus.chainId,
+            fromHeight: lastToHeight - 1,
+            toHeight: syncStatus.fromHeight - 1,
+            key: "",
+            source: "missingBlocks",
+            id: 0,
+          });
+        }
+        lastToHeight = syncStatus.toHeight;
+      });
+
+      return missingBlocks;
+    } catch (error) {
+      console.error("Error getting missing blocks:", error);
+      throw error;
+    }
+  }
 }
 
 export const syncStatusService = new SyncStatusService();

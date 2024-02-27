@@ -3,6 +3,7 @@ import {
   startBackFill,
   startRetryErrors,
   processHeaders,
+  startMissingBlocks,
 } from "./services/syncService";
 import dotenv from "dotenv";
 import { program } from "commander";
@@ -11,7 +12,8 @@ import { initializeDatabase } from "./config/database";
 program
   .option("-s, --startStreaming", "Start streaming blockchain data")
   .option("-b, --startBackFill", "Start back filling blockchain data")
-  .option("-h, --startRetryErrors", "Start retrying failed blocks");
+  .option("-r, --startRetryErrors", "Start retrying failed blocks")
+  .option("-m, --startMissingBlocks", "Process headers from the block");
 
 program.parse(process.argv);
 
@@ -39,6 +41,9 @@ async function main() {
     } else if (options.startRetryErrors) {
       console.log("Starting retrying failed blocks...");
       await startRetryErrors(SYNC_NETWORK);
+    } else if (options.startMissingBlocks) {
+      console.log("Starting processing missing blocks...");
+      await startMissingBlocks(SYNC_NETWORK);
     } else {
       console.log("No specific task requested.");
     }
