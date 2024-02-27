@@ -44,6 +44,14 @@ yarn terraform plan
 yarn terraform apply
 ```
 
+### Destroy Infrastructure
+
+If you want to destroy the infrastructure created, you can use the following command:
+
+```bash
+yarn terraform destroy
+```
+
 ## Installation
 
 Set up the indexer with the following commands:
