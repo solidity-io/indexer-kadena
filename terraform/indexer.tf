@@ -26,14 +26,6 @@ provider "aws" {
   secret_key = var.AWS_SECRET_ACCESS_KEY
 }
 
-resource "aws_s3_bucket" "kadena_indexer_bucket" {
-  bucket = "kadena-indexer-data"
-
-  tags = {
-    Name        = "My S3 Bucket"
-    Environment = "Development"
-  }
-}
 
 # Configure AWS RDS
 
@@ -66,16 +58,19 @@ variable "AWS_DB_ALLOCATED_STORAGE" {
   default     = 20
 }
 
-variable "AWS_DB_SUBNET_GROUP_NAME" {
-  description = "The DB subnet group name to be used for the RDS instance"
-  type        = string
-  default     = "default"
-}
-
 # Resources
 
-resource "aws_s3_bucket_policy" "kadena_indexer_bucket_policy" {
-  bucket = aws_s3_bucket.kadena_indexer_bucket.id
+resource "aws_s3_bucket" "kadindexer" {
+  bucket = "kadena-indexer-data"
+
+  tags = {
+    Name        = "KadIndexer S3 Bucket"
+    Environment = "Development"
+  }
+}
+
+resource "aws_s3_bucket_policy" "kadindexer" {
+  bucket = aws_s3_bucket.kadindexer.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -83,17 +78,98 @@ resource "aws_s3_bucket_policy" "kadena_indexer_bucket_policy" {
       {
         Action    = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
         Effect    = "Allow",
-        Resource  = "arn:aws:s3:::${aws_s3_bucket.kadena_indexer_bucket.bucket}/*",
+        Resource  = "arn:aws:s3:::${aws_s3_bucket.kadindexer.bucket}/*",
         Principal = { "AWS" : "arn:aws:iam::${var.AWS_ACCOUNT_ID}:user/${var.AWS_USER_NAME}" }
       },
       {
         Action    = "s3:ListBucket",
         Effect    = "Allow",
-        Resource  = aws_s3_bucket.kadena_indexer_bucket.arn,
+        Resource  = aws_s3_bucket.kadindexer.arn,
         Principal = { "AWS" : "arn:aws:iam::${var.AWS_ACCOUNT_ID}:user/${var.AWS_USER_NAME}" }
       }
     ]
   })
+}
+
+resource "aws_vpc" "kadindexer" {
+  enable_dns_support = true
+
+  enable_dns_hostnames = true
+
+  cidr_block = "10.0.0.0/16"
+
+  tags = {
+    Name = "kadindexer-vpc"
+  }
+}
+
+resource "aws_subnet" "kadindexer" {
+  cidr_block = "10.0.1.0/24"
+
+  availability_zone = "us-east-1a"
+
+  vpc_id = aws_vpc.kadindexer.id
+
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "kadindexer-subnet"
+  }
+}
+
+resource "aws_subnet" "kadindexer-b" {
+  cidr_block = "10.0.2.0/24"
+
+  availability_zone = "us-east-1b"
+
+  vpc_id = aws_vpc.kadindexer.id
+
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "kadindexer-subnet-b"
+  }
+}
+
+resource "aws_db_subnet_group" "kadindexer" {
+  name = "kadindexer_subnet_group"
+
+  subnet_ids = [aws_subnet.kadindexer.id, aws_subnet.kadindexer-b.id]
+
+  tags = {
+    Name = "kadindexer-subnet-group"
+  }
+}
+
+resource "aws_internet_gateway" "kadindexer" {
+  vpc_id = aws_vpc.kadindexer.id
+
+  tags = {
+    Name = "kadindexer-gateway"
+  }
+}
+
+resource "aws_route_table" "kadindexer" {
+  vpc_id = aws_vpc.kadindexer.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.kadindexer.id
+  }
+
+  tags = {
+    Name = "kadindexer-route-table"
+  }
+}
+
+resource "aws_route_table_association" "kadindexer" {
+  subnet_id      = aws_subnet.kadindexer.id
+  route_table_id = aws_route_table.kadindexer.id
+}
+
+resource "aws_route_table_association" "kadindexer-b" {
+  subnet_id      = aws_subnet.kadindexer-b.id
+  route_table_id = aws_route_table.kadindexer.id
 }
 
 resource "aws_db_instance" "postgres_db" {
@@ -107,7 +183,7 @@ resource "aws_db_instance" "postgres_db" {
   db_name           = var.AWS_DB_NAME
 
   vpc_security_group_ids = [aws_security_group.postgres_sg.id]
-  db_subnet_group_name   = var.AWS_DB_SUBNET_GROUP_NAME
+  db_subnet_group_name   = aws_db_subnet_group.kadindexer.name
 
   skip_final_snapshot = true
   publicly_accessible = true
@@ -121,6 +197,7 @@ resource "aws_db_instance" "postgres_db" {
 resource "aws_security_group" "postgres_sg" {
   name        = "postgres-traffic-only"
   description = "Allow only PostgreSQL traffic in both directions"
+  vpc_id      = aws_vpc.kadindexer.id
 
   # Ingress: Allow incoming PostgreSQL traffic
   ingress {
