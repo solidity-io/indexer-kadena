@@ -7,31 +7,12 @@ import "dotenv/config";
 import { S3Client } from "@aws-sdk/client-s3";
 import { register } from "../server/metrics";
 import { Gauge } from "prom-client";
+import { calculateDataSize, getRequiredEnvString } from "../utils/helpers";
 
-const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
-const REGION = process.env.AWS_S3_REGION;
-const ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-const SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
-
-if (!AWS_S3_BUCKET_NAME) {
-  console.error("Missing AWS S3 bucket name in environment variables");
-  process.exit(1);
-}
-
-if (!REGION) {
-  console.error("Missing AWS S3 region in environment variables");
-  process.exit(1);
-}
-
-if (!ACCESS_KEY_ID) {
-  console.error("Missing AWS access key ID in environment variables");
-  process.exit(1);
-}
-
-if (!SECRET_ACCESS_KEY) {
-  console.error("Missing AWS secret access key in environment variables");
-  process.exit(1);
-}
+const AWS_S3_BUCKET_NAME = getRequiredEnvString("AWS_S3_BUCKET_NAME");
+const REGION = getRequiredEnvString("AWS_S3_REGION");
+const ACCESS_KEY_ID = getRequiredEnvString("AWS_ACCESS_KEY_ID");
+const SECRET_ACCESS_KEY = getRequiredEnvString("AWS_SECRET_ACCESS_KEY");
 
 const metrics = {
   dataVolume: new Gauge({
@@ -50,13 +31,21 @@ const s3Client = new S3Client({
   },
 });
 
+/**
+ * Saves block header data to an S3 bucket.
+ *
+ * @param network The network identifier.
+ * @param chainId The chain ID associated with the header.
+ * @param height The height of the block.
+ * @param data The block header data.
+ */
 export async function saveHeader(
   network: string,
   chainId: number,
   height: number,
   data: any
 ) {
-  const objectKey = `${network}/chains/${chainId}/headers/${network}_${chainId}_${height}.json`;
+  const objectKey = `${network}/chains/${chainId}/headers/${height}.json`;
   const jsonData = JSON.stringify(data);
   const params = {
     Bucket: AWS_S3_BUCKET_NAME,
@@ -81,14 +70,21 @@ export async function saveHeader(
   }
 }
 
+/**
+ * Saves payload data to an S3 bucket
+ *
+ * @param network The network identifier.
+ * @param chainId The chain ID associated with the payload.
+ * @param payloadHash The hash of the payload.
+ * @param data The payload data.
+ */
 export async function savePayload(
   network: string,
   chainId: number,
   payloadHash: string,
-  data: any,
-  suffix: string = ""
+  data: any
 ) {
-  const objectKey = `${network}/chains/${chainId}/payloads/${network}_${chainId}_${payloadHash}${suffix}.json`;
+  const objectKey = `${network}/chains/${chainId}/payloads/${payloadHash}.json`;
   const jsonData = JSON.stringify(data);
 
   try {
@@ -113,23 +109,15 @@ export async function savePayload(
   }
 }
 
-export async function saveLastCut(network: string, data: any) {
-  const objectKey = `${network}/cut/${network}_lastCut.json`;
-  const jsonData = JSON.stringify(data);
-
-  try {
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: AWS_S3_BUCKET_NAME,
-        Key: objectKey,
-        Body: jsonData,
-      })
-    );
-  } catch (error) {
-    console.error("Error saving last cut to S3:", error);
-  }
-}
-
+/**
+ * Lists S3 objects based on the specified network and chain ID
+ *
+ * @param network The network identifier.
+ * @param chainId The chain ID for which to list headers.
+ * @param startAfter An optional parameter to specify the object key to start after for pagination.
+ * @param limit An optional parameter to specify the maximum number of objects to return.
+ * @returns A Promise resolving to an array of S3 object keys.
+ */
 export async function listS3Objects(
   network: string,
   chainId: number,
@@ -164,6 +152,12 @@ export async function listS3Objects(
   }
 }
 
+/**
+ * Reads and parses a JSON object from S3.
+ *
+ * @param key The key of the S3 object to read.
+ * @returns A Promise resolving to the parsed JSON object.
+ */
 export async function readAndParseS3Object(key: string): Promise<any> {
   const params = {
     Bucket: AWS_S3_BUCKET_NAME,
@@ -180,6 +174,12 @@ export async function readAndParseS3Object(key: string): Promise<any> {
   }
 }
 
+/**
+ * Converts a stream into a string.
+ *
+ * @param stream The stream to convert.
+ * @returns A Promise resolving to the string representation of the stream.
+ */
 async function getStreamAsString(stream: any): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = "";
@@ -187,8 +187,4 @@ async function getStreamAsString(stream: any): Promise<string> {
     stream.on("end", () => resolve(data));
     stream.on("error", reject);
   });
-}
-
-function calculateDataSize(data: any) {
-  return Buffer.byteLength(JSON.stringify(data), "utf8");
 }

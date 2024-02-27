@@ -31,12 +31,12 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev:startStreaming": "ts-node src/index.ts --startStreaming",
-    "dev:startBackFill": "ts-node src/index.ts --startBackFill",
-    "dev:startMissingBlocks": "ts-node src/index.ts --startMissingBlocks",
+    "dev:streaming": "ts-node src/index.ts --streaming",
+    "dev:backfill": "ts-node src/index.ts --backfill",
+    "dev:missing": "ts-node src/index.ts --missing",
     "prod:start": "docker-compose up --build indexer && docker-compose logs -f indexer",
-    "prod:startStreaming": "node dist/index.js --startStreaming",
-    "prod:startBackFill": "node dist/index.js --startBackFill"
+    "prod:streaming": "node dist/index.js --streaming",
+    "prod:backfill": "node dist/index.js --backfill"
   },
   "author": "Hackachain team",
   "license": "ISC"

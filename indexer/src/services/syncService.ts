@@ -1,7 +1,11 @@
 import axios from "axios";
-import { saveHeader, savePayload, saveLastCut } from "./s3Service";
-import { getDecoded } from "../utils/helpers";
-import { listS3Objects, readAndParseS3Object } from "./s3Service";
+import {
+  saveHeader,
+  savePayload,
+  listS3Objects,
+  readAndParseS3Object,
+} from "./s3Service";
+import { getDecoded, delay, splitIntoChunks } from "../utils/helpers";
 import { blockService } from "./blockService";
 import { syncStatusService } from "./syncStatusService";
 import { syncErrorService } from "./syncErrorService";
@@ -15,56 +19,19 @@ import {
   SOURCE_BACKFILL,
   SOURCE_STREAMING,
 } from "../models/syncStatus";
+import { getRequiredEnvString, getRequiredEnvNumber } from "../utils/helpers";
 
-if (!process.env.SYNC_BASE_URL) {
-  console.error("Missing SYNC_BASE_URL in environment variables");
-  process.exit(1);
-}
-
-if (!process.env.SYNC_MIN_HEIGHT) {
-  console.error("Missing SYNC_MIN_HEIGHT in environment variables");
-  process.exit(1);
-}
-
-if (!process.env.SYNC_FETCH_INTERVAL_IN_BLOCKS) {
-  console.error(
-    "Missing SYNC_FETCH_INTERVAL_IN_BLOCKS in environment variables"
-  );
-  process.exit(1);
-}
-
-if (!process.env.SYNC_TIME_BETWEEN_REQUESTS_IN_MS) {
-  console.error(
-    "Missing SYNC_TIME_BETWEEN_REQUESTS_IN_MS in environment variables"
-  );
-  process.exit(1);
-}
-
-if (!process.env.SYNC_ATTEMPTS_MAX_RETRY) {
-  console.error("Missing SYNC_ATTEMPTS_MAX_RETRY in environment variables");
-  process.exit(1);
-}
-
-if (!process.env.SYNC_ATTEMPTS_INTERVAL_IN_MS) {
-  console.error(
-    "Missing SYNC_ATTEMPTS_INTERVAL_IN_MS in environment variables"
-  );
-  process.exit(1);
-}
-
-const SYNC_BASE_URL = process.env.SYNC_BASE_URL as string;
-const SYNC_MIN_HEIGHT = parseInt(process.env.SYNC_MIN_HEIGHT as string);
-const SYNC_FETCH_INTERVAL_IN_BLOCKS = parseInt(
-  process.env.SYNC_FETCH_INTERVAL_IN_BLOCKS as string
+const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
+const SYNC_MIN_HEIGHT = getRequiredEnvNumber("SYNC_MIN_HEIGHT");
+const SYNC_FETCH_INTERVAL_IN_BLOCKS = getRequiredEnvNumber(
+  "SYNC_FETCH_INTERVAL_IN_BLOCKS"
 );
-const SYNC_TIME_BETWEEN_REQUESTS_IN_MS = parseInt(
-  process.env.SYNC_TIME_BETWEEN_REQUESTS_IN_MS as string
+const SYNC_TIME_BETWEEN_REQUESTS_IN_MS = getRequiredEnvNumber(
+  "SYNC_TIME_BETWEEN_REQUESTS_IN_MS"
 );
-const SYNC_ATTEMPTS_MAX_RETRY = parseInt(
-  process.env.SYNC_ATTEMPTS_MAX_RETRY as string
-);
-const SYNC_ATTEMPTS_INTERVAL_IN_MS = parseInt(
-  process.env.SYNC_ATTEMPTS_INTERVAL_IN_MS as string
+const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
+const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
+  "SYNC_ATTEMPTS_INTERVAL_IN_MS"
 );
 
 const metrics = {
@@ -117,33 +84,6 @@ export async function processHeaders(
     }
   } catch (error) {
     console.error("Error processing block headers from storage:", error);
-  }
-}
-
-/**
- * Processes multiple blockchain chains in a round-robin fashion until all chains reach a specified minimum height.
- * This method fetches the latest block cut and iteratively processes each chain by fetching and processing headers
- * from the highest available block down to a minimum sync height. It aims to evenly distribute the processing load
- * across all chains, ensuring a balanced synchronization process.
- *
- * Each iteration fetches headers for a single block from each chain, processes those headers, and then moves to the
- * next block in a round-robin manner. This process continues until all chains have reached the minimum required block height.
- *
- * @param {string} network - The network identifier (e.g., 'mainnet01') for which the chains are to be processed.
- * This is used to fetch the current cut and determine the starting heights for each chain.
- * @returns {Promise<void>} - A promise that resolves once all chains have been processed to the minimum height.
- */
-export async function processMultipleChains(
-  network: string,
-  chainIds: number[]
-): Promise<void> {
-  try {
-    const fetchPromises = chainIds.map((chainId) =>
-      processHeaders(network, chainId)
-    );
-    await Promise.all(fetchPromises);
-  } catch (error) {
-    console.error("Error processing multiple chains:", error);
   }
 }
 
@@ -240,54 +180,27 @@ export async function startStreaming(network: string): Promise<void> {
  */
 export async function startBackFill(network: string): Promise<void> {
   try {
-    const lastCutResult = (await fetchCut(network)) as FetchCutResult;
+    let chains = await getLastSync(network);
 
-    await saveLastCut(network, lastCutResult);
+    console.info("Starting backfill process for chains:", { chains });
 
-    let lastSyncs = await syncStatusService.getLastSyncForAllChains(network, [
-      SOURCE_BACKFILL,
-      SOURCE_STREAMING,
-    ]);
-
-    let chains = Object.entries(lastCutResult.hashes)
-      .map(([chainId, lastCut]) => {
-        const lastSync = lastSyncs.find(
-          (sync) => sync.chainId === parseInt(chainId)
-        );
-        let currentHeight = lastSync ? lastSync.toHeight - 1 : lastCut.height;
-
-        console.log(
-          `------------------------------------------\nChain ID ${chainId}: Starting at height ${currentHeight} from ${
-            lastSync ? "last sync" : "cut"
-          }.`
-        );
-        return {
-          chainId: parseInt(chainId),
-          currentHeight,
-        };
-      })
-      .filter((chain) => chain.currentHeight > SYNC_MIN_HEIGHT);
-
-    console.log("------------------------------------------\nChains", chains);
     while (chains.length > 0) {
       for (let i = chains.length - 1; i >= 0; i--) {
         const chain = chains[i];
 
-        console.log("------------------------------------------\nChain", chain);
+        console.info(`Processing chain:`, {
+          chainId: chain.chainId,
+          currentHeight: chain.currentHeight,
+        });
 
         let nextHeight = Math.max(
           chain.currentHeight - SYNC_FETCH_INTERVAL_IN_BLOCKS,
           SYNC_MIN_HEIGHT + 1
         );
 
-        console.log(
-          "------------------------------------------\nNext Height",
-          nextHeight
-        );
-
-        console.log(
-          `Processing Chain ID ${chain.chainId} from heights ${nextHeight} to ${chain.currentHeight}`
-        );
+        console.info(`Fetching headers for chain: ${chain.chainId}`, {
+          nextHeight,
+        });
 
         await fetchHeadersWithRetry(
           network,
@@ -312,21 +225,55 @@ export async function startBackFill(network: string): Promise<void> {
   }
 }
 
-function splitIntoChunks(
-  min: number,
-  max: number,
-  rangeSize: number
-): number[][] {
-  const chunks = [];
-  let current = max;
-  while (current > min) {
-    const next = Math.max(current - rangeSize, min);
-    chunks.push([next, current]);
-    current = next - 1;
-  }
-  return chunks;
+/**
+ * Retrieves the last synchronization status for each chain in a given network.
+ * It fetches the latest cut (highest block heights) from the network and combines
+ * this with the last recorded synchronization status for each chain. If no previous
+ * synchronization status is found, it starts from the height provided by the latest cut.
+ * This method is useful for determining the starting point for synchronization processes,
+ * ensuring that all chains are processed up to the current state.
+ *
+ * @param network The identifier of the Chainweb network from which to retrieve the last sync status.
+ * @returns A promise that resolves to an array of objects, each representing a chain with its
+ *          chain ID and the current height from which the synchronization should start.
+ */
+async function getLastSync(network: string): Promise<any> {
+  const lastCutResult = (await fetchCut(network)) as FetchCutResult;
+
+  let lastSyncs = await syncStatusService.getLastSyncForAllChains(network, [
+    SOURCE_BACKFILL,
+    SOURCE_STREAMING,
+  ]);
+
+  return Object.entries(lastCutResult.hashes)
+    .map(([chainId, lastCut]) => {
+      const lastSync = lastSyncs.find(
+        (sync) => sync.chainId === parseInt(chainId)
+      );
+      let currentHeight = lastSync ? lastSync.toHeight - 1 : lastCut.height;
+
+      console.info(`Chain ID: ${chainId}`, {
+        action: lastSync ? "Resuming from last sync" : "Starting from cut",
+        currentHeight: currentHeight,
+        source: lastSync ? "Last Sync" : "Cut",
+        notes: `Processing will start at height ${currentHeight}.`,
+      });
+
+      return {
+        chainId: parseInt(chainId),
+        currentHeight,
+      };
+    })
+    .filter((chain) => chain.currentHeight > SYNC_MIN_HEIGHT);
 }
 
+/**
+ * Initiates the process to handle missing blocks for all chains within a specified network.
+ * This function iterates through each chain in the network, identifies missing blocks, and
+ * processes them in chunks to manage large ranges efficiently.
+ *
+ * @param network The network identifier to process missing blocks for.
+ */
 export async function startMissingBlocks(network: string) {
   const chains = await syncStatusService.getChains(network);
 
@@ -337,19 +284,26 @@ export async function startMissingBlocks(network: string) {
     );
 
     for (const block of missingBlocks) {
-      console.log(
-        `Processing missing blocks for chain ID ${chainId} from heights ${block.fromHeight} to ${block.toHeight}`
-      );
+      console.info(`Processing missing blocks for chain ID ${chainId}`, {
+        fromHeight: block.fromHeight,
+        toHeight: block.toHeight,
+      });
 
       splitIntoChunks(
         block.toHeight,
         block.fromHeight,
         SYNC_FETCH_INTERVAL_IN_BLOCKS
       ).forEach(async (chunk) => {
+        console.info(`Processing chunk:`, {
+          fromHeight: chunk[0],
+          toHeight: chunk[1],
+        });
         await fetchHeadersWithRetry(network, chainId, chunk[0], chunk[1]);
       });
     }
   }
+
+  console.info("Missing blocks processing complete.");
 }
 
 interface FetchCutResult {
@@ -405,10 +359,6 @@ async function fetchHeadersWithRetry(
     type: "headers",
   });
   try {
-    console.log(
-      `Fetching headers from ${minHeight} to ${maxHeight} for chainId ${chainId}`
-    );
-
     const response = await axios.get(endpoint, {
       headers: { Accept: "application/json;blockheader-encoding=object" },
     });
@@ -424,8 +374,6 @@ async function fetchHeadersWithRetry(
     );
 
     const payloadHashes = items.map((header: any) => header.payloadHash);
-
-    // console.log("Fetching payload from hashes:", payloadHashes);
 
     await fetchPayloadWithRetry(
       network,
@@ -499,6 +447,8 @@ async function fetchPayloadWithRetry(
   attempt = 1
 ): Promise<void> {
   const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
+
+  console.log("Fetching payloads from:", endpoint);
   try {
     const response = (await axios.post(endpoint, payloadHashes, {
       headers: {
@@ -547,6 +497,15 @@ async function fetchPayloadWithRetry(
   }
 }
 
+/**
+ * Processes an array of payloads for a specific blockchain network and chain ID.
+ * Each payload typically includes transaction data that needs to be decoded and then saved.
+ *
+ * @param network The blockchain network identifier (e.g., "mainnet01").
+ * @param chainId The specific chain ID within the blockchain network.
+ * @param payloads An array of payload objects to be processed.
+ * @returns A Promise that resolves when all payloads have been processed.
+ */
 async function processPayloads(
   network: string,
   chainId: number,
@@ -565,6 +524,14 @@ async function processPayloads(
   await Promise.all(saveOperations);
 }
 
+/**
+ * Starts the process of retrying failed operations for a specific network.
+ * This function retrieves a list of errors recorded during previous operations,
+ * attempts to fetch and process the data again, and if successful, removes the error from the log.
+ *
+ * @param network The blockchain network identifier where the errors occurred.
+ * @returns A Promise that resolves when all retry attempts have been processed.
+ */
 export async function startRetryErrors(network: string): Promise<void> {
   try {
     const errors = await syncErrorService.getErrors(network, SOURCE_API);
@@ -577,7 +544,7 @@ export async function startRetryErrors(network: string): Promise<void> {
           error.fromHeight,
           error.toHeight
         );
-        syncErrorService.delete(error.id);
+        await syncErrorService.delete(error.id);
       } catch (error) {
         console.log("Error during error retrying:", error);
         console.log("Moving to next error...");
@@ -586,14 +553,4 @@ export async function startRetryErrors(network: string): Promise<void> {
   } catch (error) {
     console.log("Error during error retrying:", error);
   }
-}
-
-/**
- * Introduces a delay in the execution flow.
- *
- * @param ms The amount of time in milliseconds to delay.
- * @returns A promise that resolves after the specified delay.
- */
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

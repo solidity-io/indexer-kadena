@@ -4,19 +4,20 @@ import SyncStatus, {
   SOURCE_BACKFILL,
   SOURCE_STREAMING,
 } from "../models/syncStatus";
+import { getRequiredEnvNumber } from "../utils/helpers";
 
-if (!process.env.SYNC_FETCH_INTERVAL_IN_BLOCKS) {
-  console.error(
-    "Missing SYNC_FETCH_INTERVAL_IN_BLOCKS in environment variables"
-  );
-  process.exit(1);
-}
-
-const SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING = 1;
-const SYNC_FETCH_INTERVAL_IN_BLOCKS_FILLING = parseInt(
-  process.env.SYNC_FETCH_INTERVAL_IN_BLOCKS as string
+const SYNC_FETCH_INTERVAL_IN_BLOCKS_FILLING = getRequiredEnvNumber(
+  "SYNC_FETCH_INTERVAL_IN_BLOCKS"
 );
+const SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING = 1;
 
+/**
+ * Saves or updates the sync status in the database.
+ * If an existing sync status matches the given parameters, it updates that record.
+ * Otherwise, it creates a new sync status record.
+ * @param lastSyncData The last sync data to save.
+ * @returns The saved or updated sync status.
+ */
 export class SyncStatusService {
   async save(
     lastSyncData: SyncStatusAttributes
@@ -71,8 +72,6 @@ export class SyncStatusService {
             ],
           },
         };
-
-        console.log("filter", filter);
       }
 
       const existingBlock = await SyncStatus.findOne(filter);
@@ -97,6 +96,13 @@ export class SyncStatusService {
     }
   }
 
+  /**
+   * Finds a specific sync status record based on chain ID, network, and source.
+   * @param chainId The chain ID of the sync status to find.
+   * @param network The network of the sync status to find.
+   * @param source The source of the sync status to find.
+   * @returns The found sync status or null if no matching record is found.
+   */
   async find(
     chainId: number,
     network: string,
@@ -113,6 +119,14 @@ export class SyncStatusService {
     }
   }
 
+  /**
+   * Retrieves the last sync status for all chains within a specific network and source.
+   * This method groups the results by chain ID and calculates the minimum 'toHeight'
+   * and maximum 'fromHeight' for each chain.
+   * @param network The network to filter the sync statuses.
+   * @param source The sources to filter the sync statuses.
+   * @returns An array of sync statuses for each chain.
+   */
   async getLastSyncForAllChains(
     network: string,
     source: string[]
@@ -134,6 +148,12 @@ export class SyncStatusService {
     }
   }
 
+  /**
+   * Retrieves a list of unique chain IDs for a given network.
+   * This method is useful for identifying all chains that have sync status records in the database.
+   * @param network The network to filter the chains.
+   * @returns An array of unique chain IDs.
+   */
   async getChains(network: string): Promise<number[]> {
     try {
       const block = await SyncStatus.findAll({
@@ -149,6 +169,13 @@ export class SyncStatusService {
     }
   }
 
+  /**
+   * Calculates and returns the gaps (missing blocks) in the sync status records for a given chain and network.
+   * This method identifies ranges of blocks that have not been synced based on the existing records.
+   * @param network The network of the chain to check for missing blocks.
+   * @param chainId The chain ID to check for missing blocks.
+   * @returns An array of sync status attributes representing the gaps in synced blocks.
+   */
   async getMissingBlocks(
     network: string,
     chainId: number
@@ -169,12 +196,15 @@ export class SyncStatusService {
           return;
         }
 
-        if (syncStatus.fromHeight < lastToHeight) {
+        const blockDiffs = lastToHeight - syncStatus.fromHeight - 1;
+        if (blockDiffs > 0) {
+          const fromHeight = lastToHeight - 1;
+          const toHeight = fromHeight - (blockDiffs - 1);
           missingBlocks.push({
             network: syncStatus.network,
             chainId: syncStatus.chainId,
-            fromHeight: lastToHeight - 1,
-            toHeight: syncStatus.fromHeight - 1,
+            fromHeight: fromHeight,
+            toHeight: toHeight,
             key: "",
             source: "missingBlocks",
             id: 0,

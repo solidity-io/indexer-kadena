@@ -7,7 +7,7 @@ services:
       - ./.env
     ports:
       - "3000:3000"
-    command: yarn prod:startBackFill
+    command: yarn prod:backfill
     networks:
       - monitoring
 
