@@ -12,16 +12,11 @@ This project is a monorepo that contains the following packages:
 - [AWS Account](https://aws.amazon.com/)
 - [AWS Access Key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)
 
-## Quick Start
+### Dev Container
 
-### Terraform Setup
+This project is configured to run in a dev container. You can use the `Dev Containers: Open Folder in Container` command in VSCode to open the project in a dev container. This will automatically install the required dependencies and set up the environment. To use the dev container, you need to have Docker installed on your machine.
 
-```bash
-wget https://releases.hashicorp.com/terraform/1.7.3/terraform_1.7.3_linux_amd64.zip
-unzip terraform_1.7.3_linux_amd64.zip
-sudo mv terraform /usr/local/bin/
-terraform version
-```
+If you don't have Dev Containers installed, you can install it from the [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
 
 ### Configure Environment Variables
 
