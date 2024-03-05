@@ -1,0 +1,39 @@
+{
+  "name": "Kadena Indexer",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "NODE_VERSION": "18",
+      "INSTALL_AWS_CLI": "true",
+      "INSTALL_TERRAFORM": "true",
+      "TERRAFORM_VERSION": "1.7.3"
+    }
+  },
+  "forwardPorts": [3000, 9090, 3001],
+  "postCreateCommand": "yarn install",
+  "remoteUser": "node",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.tabSize": 2,
+        "eslint.validate": ["javascript", "typescript"],
+        "prettier.enable": true,
+        "editor.formatOnSave": true,
+        "prettier.singleQuote": true,
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "files.exclude": {
+          "**/.git": true,
+          "**/.DS_Store": true,
+          "**/node_modules": true
+        }
+      },
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-azuretools.vscode-docker",
+        "hashicorp.terraform"
+      ]
+    }
+  }
+}
