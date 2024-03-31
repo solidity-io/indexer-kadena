@@ -19,7 +19,7 @@
         "eslint.validate": ["javascript", "typescript"],
         "prettier.enable": true,
         "editor.formatOnSave": true,
-        "prettier.singleQuote": true,
+        "prettier.singleQuote": false,
         "terminal.integrated.shell.linux": "/bin/bash",
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "files.exclude": {

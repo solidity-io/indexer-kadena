@@ -13,6 +13,7 @@ export interface SyncStatusAttributes {
   fromHeight: number;
   toHeight: number;
   key: string;
+  prefix: string;
   source: string;
 }
 
@@ -26,6 +27,7 @@ class SyncStatus
   declare fromHeight: number;
   declare toHeight: number;
   declare key: string;
+  declare prefix: string;
   declare source: string;
 }
 
@@ -37,6 +39,7 @@ SyncStatus.init(
     fromHeight: { type: DataTypes.INTEGER },
     toHeight: { type: DataTypes.INTEGER },
     key: { type: DataTypes.STRING },
+    prefix: { type: DataTypes.STRING },
     source: {
       type: DataTypes.ENUM(
         SOURCE_S3,

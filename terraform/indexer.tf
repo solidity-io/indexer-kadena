@@ -61,7 +61,7 @@ variable "AWS_DB_ALLOCATED_STORAGE" {
 # Resources
 
 resource "aws_s3_bucket" "kadindexer" {
-  bucket = "kadena-indexer-data"
+  bucket = "kadena-indexer-data-001"
 
   tags = {
     Name        = "KadIndexer S3 Bucket"
@@ -192,6 +192,10 @@ resource "aws_db_instance" "postgres_db" {
     Name        = "My PostgreSQL Database"
     Environment = "Development"
   }
+}
+
+output "postgres_db_host" {
+  value = aws_db_instance.postgres_db.address
 }
 
 resource "aws_security_group" "postgres_sg" {
