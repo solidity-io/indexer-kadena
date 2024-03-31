@@ -34,6 +34,9 @@
     "dev:streaming": "ts-node src/index.ts --streaming",
     "dev:backfill": "ts-node src/index.ts --backfill",
     "dev:missing": "ts-node src/index.ts --missing",
+    "dev:headers": "ts-node src/index.ts --headers",
+    "dev:payloads": "ts-node src/index.ts --payloads",
+    "dev:run": "ts-node src/index.ts --run",
     "prod:start": "docker-compose up --build indexer && docker-compose logs -f indexer",
     "prod:streaming": "node dist/index.js --streaming",
     "prod:backfill": "node dist/index.js --backfill"

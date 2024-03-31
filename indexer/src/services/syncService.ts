@@ -7,8 +7,12 @@ import {
 } from "./s3Service";
 import { getDecoded, delay, splitIntoChunks } from "../utils/helpers";
 import { blockService } from "./blockService";
+import { transactionService } from "./transactionService";
+import { eventService } from "./eventService";
 import { syncStatusService } from "./syncStatusService";
 import { syncErrorService } from "./syncErrorService";
+import { transferService } from "./transferService";
+import { balanceService } from "./balanceService";
 import { register } from "../server/metrics";
 import { Histogram } from "prom-client";
 import https from "https";
@@ -20,6 +24,11 @@ import {
   SOURCE_STREAMING,
 } from "../models/syncStatus";
 import { getRequiredEnvString, getRequiredEnvNumber } from "../utils/helpers";
+import { BlockAttributes } from "../models/block";
+import { TransactionAttributes } from "../models/transaction";
+import { EventAttributes } from "../models/event";
+import { TransferAttributes } from "../models/transfer";
+import { BalanceAttributes } from "../models/balance";
 
 const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
 const SYNC_MIN_HEIGHT = getRequiredEnvNumber("SYNC_MIN_HEIGHT");
@@ -34,57 +43,643 @@ const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
   "SYNC_ATTEMPTS_INTERVAL_IN_MS"
 );
 
+/**
+ * Initializes a set of metrics for monitoring the performance and behavior of the synchronization process.
+ * This particular metric, 'syncDuration', is a histogram that tracks the duration of synchronization operations
+ * in seconds. It is designed to provide insights into the time taken to process synchronization tasks,
+ * helping to identify bottlenecks or inefficiencies in the sync process.
+ *
+ * The histogram labels are:
+ * - 'network': Identifies the blockchain network that the synchronization operation is being performed on.
+ * - 'chainId': Identifies the blockchain chain ID that the synchronization operation is being performed on.
+ * - 'type': Specifies the type of synchronization operation, such as headers or payloads.
+ * - 'minheight': The minimum block height included in the synchronization operation.
+ * - 'maxheight': The maximum block height included in the synchronization operation.
+ *
+ * This structured approach allows for detailed analysis of synchronization performance across different chains,
+ * operation types, and block height ranges.
+ */
 const metrics = {
   syncDuration: new Histogram({
     name: "sync_duration_seconds",
     help: "Duration of sync operations in seconds",
-    labelNames: ["chainId", "type", "minheight", "maxheight"],
+    labelNames: ["network", "chainId", "type", "minheight", "maxheight"],
     registers: [register],
   }),
 };
 
 /**
- * Processes headers from S3 for a specific network and chainId.
- * This method fetches a list of keys (headers) from an S3 bucket based on the last synchronization status.
+ * Type definition for a function that processes an individual key.
+ *
+ * @param {string} network - The identifier for the blockchain network (e.g., 'mainnet01').
+ * @param {string} prefix - The S3 object prefix used to locate blockchain header data.
+ * @param {string} key - The specific S3 object key that points to the data to be processed.
+ * @returns {Promise<void>} A promise that resolves when the processing of the key is complete.
+ */
+type ProcessKeyFunction = (
+  network: string,
+  prefix: string,
+  key: string
+) => Promise<void>;
+
+/**
+ * Processes keys from S3 for a specific network and chainId.
+ * This method fetches a list of keys from an S3 bucket based on the last synchronization status.
  * For each key, it reads and parses the S3 object to obtain block data, saves the block data to the database,
  * and updates the synchronization status accordingly.
  *
  * @param {string} network - The network identifier (e.g., 'mainnet01').
  * @param {number} chainId - The chain ID to process headers for.
+ * @param {string} prefix - The prefix for the S3 keys to process.
+ * @param {ProcessKeyFunction} processKey - The function to process each key.
+ * @param {number} maxKeys - The maximum number of keys to process in a single batch.
+ * @param {number} maxIterations - The maximum number of iterations to perform. Unlimited if not specified.
+ * @returns {Promise<number>} - A promise that resolves with the total number of keys processed.
  */
-export async function processHeaders(
+export async function processKeys(
   network: string,
-  chainId: number
-): Promise<void> {
+  chainId: number,
+  prefix: string,
+  processKey: ProcessKeyFunction,
+  maxKeys: number = 20,
+  maxIteractions?: number
+): Promise<number> {
+  let totalKeysProcessed = 0;
+
   try {
-    const lastSync = await syncStatusService.find(chainId, network, SOURCE_S3);
-    let keys = [];
-    if (lastSync) {
-      console.log(`Last sync found. Fetching keys from ${lastSync.key}`);
-      keys = await listS3Objects(network, chainId, lastSync.key);
-    } else {
-      console.log(
-        `No last sync found. Fetching all keys for chainId ${chainId}`
-      );
-      keys = await listS3Objects(network, chainId);
+    const lastSync = await syncStatusService.findWithPrefix(
+      chainId,
+      network,
+      prefix,
+      SOURCE_S3
+    );
+
+    let startAfter = lastSync ? lastSync.key : undefined;
+    let isFinished = false;
+    let iterationCount = 0;
+
+    while (
+      !isFinished &&
+      (!maxIteractions || iterationCount < maxIteractions)
+    ) {
+      const keys = await listS3Objects(prefix, maxKeys, startAfter);
+      if (keys.length > 0) {
+        await Promise.all(
+          keys.map(async (key) => {
+            processKey(network, prefix, key);
+          })
+        );
+        totalKeysProcessed += keys.length;
+        startAfter = keys[keys.length - 1];
+        iterationCount++;
+      } else {
+        isFinished = true;
+      }
     }
 
-    for (const key of keys) {
-      const parsedData = await readAndParseS3Object(key);
-      await blockService.save(parsedData);
-
-      await syncStatusService.save({
-        chainId: parsedData.chainId,
-        fromHeight: parsedData.height,
-        toHeight: parsedData.height,
-        network: network,
-        key: key,
-        source: SOURCE_S3,
-      } as any);
-    }
+    await syncStatusService.save({
+      chainId: chainId,
+      network: network,
+      key: startAfter,
+      prefix: prefix,
+      source: SOURCE_S3,
+    } as any);
   } catch (error) {
     console.error("Error processing block headers from storage:", error);
   }
+
+  return totalKeysProcessed;
+}
+
+/**
+ * Creates a signal object that can be used to manage shutdown or interrupt signals in asynchronous operations.
+ * It provides a mechanism to gracefully exit from a loop or terminate a process when an external signal is received.
+ * The signal object contains a boolean flag that is initially set to false and can be toggled to true using the
+ * trigger method. This flag can be checked periodically in asynchronous loops to determine if the process should
+ * continue running or begin shutdown procedures.
+ *
+ * @returns An object with properties 'isTriggered' to check the current state of the signal,
+ * and 'trigger' to change the state to triggered, indicating that a shutdown or interrupt has been requested.
+ */
+function createSignal() {
+  let isTriggered = false;
+  return {
+    get isTriggered() {
+      return isTriggered;
+    },
+    trigger() {
+      isTriggered = true;
+    },
+  };
+}
+
+const shutdownSignal = createSignal();
+
+/**
+ * Continuously processes S3 headers for a specific network as a background task (daemon).
+ * It checks for new headers to process and does so in a loop until a shutdown signal is received.
+ * This method ensures that your application stays up-to-date with the latest block headers.
+ *
+ * @param network The identifier for the blockchain network (e.g., 'mainnet01').
+ */
+export async function processS3HeadersDaemon(network: string) {
+  console.log("Daemon: Starting to process headers...");
+
+  const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "5000", 10);
+
+  process.on("SIGINT", () => shutdownSignal.trigger());
+  process.on("SIGTERM", () => shutdownSignal.trigger());
+
+  while (!shutdownSignal.isTriggered) {
+    try {
+      await processS3Headers(network);
+      console.log(
+        `Daemon: Waiting for ${
+          sleepInterval / 1000
+        } seconds before the next iteration...`
+      );
+      await delay(sleepInterval);
+    } catch (error) {
+      console.error("Daemon: Error occurred in processS3Headers -", error);
+      console.log(
+        `Daemon: Attempting to restart after waiting ${
+          sleepInterval / 1000
+        } seconds...`
+      );
+      await delay(sleepInterval);
+    }
+  }
+
+  console.log("Daemon: Shutting down gracefully.");
+}
+
+/**
+ * Continuously processes S3 payloads for a specific network as a background task (daemon).
+ * Similar to `processS3HeadersDaemon`, it runs in a loop, checking and processing new payloads,
+ * ensuring the application's data remains current with the blockchain state until a shutdown signal is received.
+ *
+ * @param network The identifier for the blockchain network (e.g., 'mainnet01').
+ */
+export async function processS3PayloadsDaemon(network: string) {
+  console.log("Daemon: Starting to process payloads...");
+
+  const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "5000", 10);
+
+  process.on("SIGINT", () => shutdownSignal.trigger());
+  process.on("SIGTERM", () => shutdownSignal.trigger());
+
+  while (!shutdownSignal.isTriggered) {
+    try {
+      await processS3Payloads(network);
+      console.log(
+        `Daemon: Waiting for ${
+          sleepInterval / 1000
+        } seconds before the next iteration...`
+      );
+      await delay(sleepInterval);
+    } catch (error) {
+      console.error("Daemon: Error occurred in processS3Payloads -", error);
+      console.log(
+        `Daemon: Attempting to restart after waiting ${
+          sleepInterval / 1000
+        } seconds...`
+      );
+      await delay(sleepInterval);
+    }
+  }
+
+  console.log("Daemon: Shutting down gracefully.");
+}
+
+/**
+ * Processes header keys for each chain within a specified network in a round-robin fashion.
+ * It processes a set number of keys for each chain and removes the chain from the processing
+ * list once there are no more keys to process. This ensures an even distribution of processing
+ * load across multiple chains.
+ *
+ * @param {string} network - The identifier of the network for which headers are to be processed.
+ */
+export async function processS3Headers(network: string) {
+  console.log("Starting processing headers...");
+
+  const chains = await syncStatusService.getChains(network);
+  const lastKeysProcessed = new Map<number, number>();
+
+  const MAX_KEYS = 20;
+  const MAX_ITERATIONS = 5;
+
+  while (chains.length > 0) {
+    let remainingChains = [];
+    for (const chainId of chains) {
+      const prefix = `${network}/chains/${chainId}/headers/`;
+      const totalKeysProcessed = await processKeys(
+        network,
+        chainId,
+        prefix,
+        processHeaderKey,
+        MAX_KEYS,
+        MAX_ITERATIONS
+      );
+
+      lastKeysProcessed.set(chainId, totalKeysProcessed);
+
+      if (totalKeysProcessed > 0) {
+        remainingChains.push(chainId);
+      }
+    }
+    chains.splice(0, chains.length, ...remainingChains);
+  }
+
+  console.log("Finished processing headers.");
+}
+
+/**
+ * Processes a batch of S3 payloads for a given network. It fetches the list of S3 object keys based on synchronization status,
+ * reads, parses, and processes each payload to extract and save transaction and event data into the database.
+ *
+ * @param network The identifier for the blockchain network (e.g., 'mainnet01').
+ */
+export async function processS3Payloads(network: string) {
+  console.log("Starting processing payloads...");
+
+  const chains = await syncStatusService.getChains(network);
+  const lastKeysProcessed = new Map<number, number>();
+
+  const MAX_KEYS = 20;
+  const MAX_ITERATIONS = 5;
+
+  while (chains.length > 0) {
+    let remainingChains = [];
+    for (const chainId of chains) {
+      const prefix = `${network}/chains/${chainId}/payloads/`;
+      const totalKeysProcessed = await processKeys(
+        network,
+        chainId,
+        prefix,
+        processPayloadKey,
+        MAX_KEYS,
+        MAX_ITERATIONS
+      );
+
+      lastKeysProcessed.set(chainId, totalKeysProcessed);
+
+      if (totalKeysProcessed > 0) {
+        remainingChains.push(chainId);
+      }
+    }
+    chains.splice(0, chains.length, ...remainingChains);
+  }
+
+  console.log("Finished processing payloads.");
+}
+
+/**
+ * Processes a single S3 payload key, extracting transaction and event information from the payload data.
+ * It parses the payload to save transaction attributes and related events into the database.
+ *
+ * @param network The blockchain network identifier.
+ * @param prefix The S3 object prefix used to locate blockchain data.
+ * @param key The specific S3 object key pointing to the payload data to be processed.
+ */
+async function processPayloadKey(network: string, prefix: string, key: string) {
+  const payloadData = await readAndParseS3Object(key);
+  const TRANSACTION_INDEX = 0;
+  const RECEIPT_INDEX = 1;
+
+  for (const transactionArray of payloadData) {
+    const transactionInfo = transactionArray[TRANSACTION_INDEX];
+    const receiptInfo = transactionArray[RECEIPT_INDEX];
+
+    let cmdData;
+    try {
+      cmdData = JSON.parse(transactionInfo.cmd);
+
+      console.log;
+    } catch (error) {
+      console.error(`Error parsing cmd JSON for key ${key}: ${error}`);
+    }
+
+    const eventsData = receiptInfo.events || [];
+    const payloadHash = key.split("/").pop()?.split(".")[0] || "";
+    const transactionAttributes = {
+      payloadHash: payloadHash,
+
+      code: cmdData.payload.exec ? cmdData.payload.exec.code : null,
+      data: cmdData.payload.exec ? cmdData.payload.exec.data : null,
+
+      chainid: cmdData.meta.chainId,
+      creationtime: cmdData.meta.creationtime
+        ? BigInt(cmdData.meta.creationtime)
+        : null,
+      gaslimit: cmdData.meta.gaslimit ? BigInt(cmdData.meta.gaslimit) : null,
+      gasprice: cmdData.meta.gasprice ? BigInt(cmdData.meta.gasprice) : null,
+
+      nonce: cmdData.nonce || "",
+      continuation: receiptInfo.continuation || "",
+      gas: BigInt(receiptInfo.gas || null),
+      result: receiptInfo.result || null,
+      logs: receiptInfo.logs || null,
+      metadata: receiptInfo.metadata || null,
+      num_events: eventsData ? eventsData.length : 0,
+      requestkey: receiptInfo.reqKey,
+      rollback: receiptInfo.result
+        ? receiptInfo.result.status != "success"
+        : true,
+
+      sender: cmdData.meta.sender || null,
+
+      step: receiptInfo.step || null,
+      ttl: cmdData.meta.ttl ? BigInt(cmdData.meta.ttl) : null,
+      txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
+    } as TransactionAttributes;
+
+    const eventsAttributes = eventsData.map((eventData: any) => {
+      return {
+        payloadHash: payloadHash,
+        chainid: transactionAttributes.chainid,
+        module: eventData.module.namespace
+          ? `${eventData.module.namespace}.${eventData.module.name}`
+          : eventData.module.name,
+        modulehash: eventData.moduleHash,
+        name: eventData.name,
+        params: eventData.params,
+        paramtext: eventData.params,
+        qualname: eventData.module.namespace
+          ? `${eventData.module.namespace}.${eventData.module.name}`
+          : eventData.module.name,
+        requestkey: receiptInfo.reqKey,
+      } as EventAttributes;
+    }) as EventAttributes[];
+
+    const transfersCoinAttributes = getCoinTransfers(
+      eventsData,
+      payloadHash,
+      transactionAttributes,
+      receiptInfo
+    );
+
+    const transfersNftAttributes = getNftTransfers(
+      eventsData,
+      payloadHash,
+      transactionAttributes,
+      receiptInfo
+    );
+
+    const transfersAttributes = [
+      transfersCoinAttributes,
+      transfersNftAttributes,
+    ].flat();
+
+    try {
+      await transactionService.save(transactionAttributes);
+
+      try {
+        await eventService.saveMany(eventsAttributes);
+      } catch (error) {
+        console.error(`Error saving event to the database: ${error}`);
+      }
+
+      try {
+        await transferService.saveMany(transfersAttributes);
+      } catch (error) {
+        console.error(`Error saving transfer to the database: ${error}`);
+      }
+
+      try {
+        await updateBalances(
+          network,
+          transactionAttributes.chainid,
+          transfersAttributes
+        );
+      } catch (error) {
+        console.error(`Error updating balances: ${error}`);
+      }
+    } catch (error) {
+      console.error(`Error saving transaction to the database: ${error}`);
+    }
+  }
+}
+
+/**
+ * Filters and processes NFT transfer events from a payload's event data. It identifies NFT transfer events based on
+ * predefined criteria (e.g., event name and parameter structure), and constructs transfer attribute objects for each.
+ *
+ * @param eventsData The array of event data from a transaction payload.
+ * @param payloadHash The hash of the payload containing these events.
+ * @param transactionAttributes Transaction attributes associated with the events.
+ * @param receiptInfo Receipt information associated with the events.
+ * @returns An array of transfer attributes specifically for NFT transfers.
+ */
+function getNftTransfers(
+  eventsData: any,
+  payloadHash: string | undefined,
+  transactionAttributes: TransactionAttributes,
+  receiptInfo: any
+) {
+  const TRANSFER_NFT_SIGNATURE = "TRANSFER";
+  const TRANSFER_NFT_PARAMS_LENGTH = 4;
+
+  const transferNftSignature = (eventData: any) =>
+    eventData.name == TRANSFER_NFT_SIGNATURE &&
+    eventData.params.length == TRANSFER_NFT_PARAMS_LENGTH &&
+    typeof eventData.params[0] == "string" &&
+    typeof eventData.params[1] == "string" &&
+    typeof eventData.params[2] == "string" &&
+    typeof eventData.params[3] == "number";
+
+  const transfersNftAttributes = eventsData
+    .filter(transferNftSignature)
+    .map((eventData: any) => {
+      const params = eventData.params;
+      const tokenId = params[0];
+      const from_acct = params[1];
+      const to_acct = params[2];
+      const amount = params[3];
+
+      console.log("Token ID:", tokenId);
+
+      return {
+        amount: amount,
+        payloadHash: payloadHash,
+        chainid: transactionAttributes.chainid,
+        from_acct: from_acct,
+        modulehash: eventData.moduleHash,
+        modulename: eventData.module.namespace
+          ? `${eventData.module.namespace}.${eventData.module.name}`
+          : eventData.module.name,
+        requestkey: receiptInfo.reqKey,
+        to_acct: to_acct,
+        tokenId: tokenId,
+      } as TransferAttributes;
+    }) as TransferAttributes[];
+  return transfersNftAttributes;
+}
+
+/**
+ * Filters and processes coin transfer events from a payload's event data. Similar to `getNftTransfers`, but focuses on
+ * coin-based transactions. It identifies events that represent coin transfers and constructs transfer attribute objects.
+ *
+ * @param eventsData The array of event data from a transaction payload.
+ * @param payloadHash The hash of the payload containing these events.
+ * @param transactionAttributes Transaction attributes associated with the events.
+ * @param receiptInfo Receipt information associated with the events.
+ * @returns An array of transfer attributes specifically for coin transfers.
+ */
+function getCoinTransfers(
+  eventsData: any,
+  payloadHash: string,
+  transactionAttributes: TransactionAttributes,
+  receiptInfo: any
+) {
+  const TRANSFER_COIN_SIGNATURE = "TRANSFER";
+  const TRANSFER_COIN_PARAMS_LENGTH = 3;
+
+  const transferCoinSignature = (eventData: any) =>
+    eventData.name == TRANSFER_COIN_SIGNATURE &&
+    eventData.params.length == TRANSFER_COIN_PARAMS_LENGTH &&
+    typeof eventData.params[0] == "string" &&
+    typeof eventData.params[1] == "string" &&
+    typeof eventData.params[2] == "number";
+
+  const transfersCoinAttributes = eventsData
+    .filter(transferCoinSignature)
+    .map((eventData: any) => {
+      const params = eventData.params;
+      const from_acct = params[0];
+      const to_acct = params[1];
+      const amount = params[2];
+      return {
+        amount: amount,
+        payloadHash: payloadHash,
+        chainid: transactionAttributes.chainid,
+        from_acct: from_acct,
+        modulehash: eventData.moduleHash,
+        modulename: eventData.module.namespace
+          ? `${eventData.module.namespace}.${eventData.module.name}`
+          : eventData.module.name,
+        requestkey: receiptInfo.reqKey,
+        to_acct: to_acct,
+      } as TransferAttributes;
+    }) as TransferAttributes[];
+  return transfersCoinAttributes;
+}
+
+/**
+ * Updates the balances for accounts involved in the transfers. It adjusts sender and recipient balances in the database,
+ * creating new balance records if necessary, or updating existing ones based on the transfer details.
+ *
+ * @param network The blockchain network identifier.
+ * @param chainId The specific chain ID within the network.
+ * @param transfers An array of transfer attributes detailing each transfer's sender, recipient, and amount.
+ */
+async function updateBalances(
+  network: string,
+  chainId: number,
+  transfers: TransferAttributes[]
+) {
+  for (const transfer of transfers) {
+    let senderBalance = await balanceService.findByAccountAndChainId(
+      transfer.from_acct,
+      chainId,
+      transfer.modulename,
+      network,
+      transfer.tokenId
+    );
+    const amountInSmallestUnit = BigInt(Math.round(transfer.amount * 1e18));
+
+    if (senderBalance) {
+      senderBalance.balance =
+        BigInt(senderBalance.balance) - amountInSmallestUnit;
+    } else {
+      senderBalance = {
+        account: transfer.from_acct,
+        balance: amountInSmallestUnit,
+        chainId: chainId,
+        tokenId: transfer.tokenId,
+        module: transfer.modulename,
+        qualname: transfer.modulename,
+        network: network,
+      } as BalanceAttributes;
+    }
+
+    await balanceService.saveOrUpdate(senderBalance);
+
+    let recipientBalance = await balanceService.findByAccountAndChainId(
+      transfer.to_acct,
+      chainId,
+      transfer.modulename,
+      network,
+      transfer.tokenId
+    );
+    if (recipientBalance) {
+      recipientBalance.balance =
+        BigInt(recipientBalance.balance) + amountInSmallestUnit;
+    } else {
+      recipientBalance = {
+        account: transfer.to_acct,
+        balance: amountInSmallestUnit,
+        chainId: chainId,
+        tokenId: transfer.tokenId,
+        module: transfer.modulename,
+        qualname: transfer.modulename,
+        network: network,
+      } as BalanceAttributes;
+    }
+    await balanceService.saveOrUpdate(recipientBalance);
+  }
+}
+
+/**
+ * Asynchronously processes a single header key by reading and parsing its associated data from an S3 object,
+ * saving the parsed block data to the database, and updating the synchronization status accordingly.
+ *
+ * The function is designed to be flexible, working with any specified network and handling data located using
+ * a combination of prefix and key. This allows it to be used in various contexts, including round-robin
+ * processing or individual header processing tasks. The function encapsulates the entire process of dealing
+ * with a single header's data, from fetching and parsing to persisting the changes in the system's state.
+ *
+ * @param {string} network - The identifier for the blockchain network (e.g., 'mainnet01'). This is used
+ *                           to specify the network context in which the header key is being processed,
+ *                           affecting how the data is saved and synchronized.
+ * @param {string} prefix - The S3 object prefix that precedes the key, used to construct the full path
+ *                          to the S3 object. This typically includes the network and chain ID,
+ *                          and helps in organizing and locating the blockchain data in S3.
+ * @param {string} key - The specific S3 object key that uniquely identifies the data
+ *                       to be processed. This key is used to fetch the data from S3 for processing.
+ *
+ * @returns {Promise<void>} A promise that resolves when the key has been successfully processed,
+ *                          including reading, parsing, saving the block data, and updating the sync status.
+ */
+async function processHeaderKey(network: string, prefix: string, key: string) {
+  const parsedData = await readAndParseS3Object(key);
+
+  if (!parsedData) {
+    console.error("No parsed data found for key:", key);
+    return;
+  }
+
+  let baseData = parsedData.header;
+  if (!baseData) {
+    baseData = parsedData;
+  }
+
+  const blockAttribute = {
+    nonce: baseData.nonce,
+    creationTime: baseData.creationTime,
+    parent: baseData.parent,
+    adjacents: baseData.adjacents,
+    target: baseData.target,
+    payloadHash: baseData.payloadHash,
+    chainId: baseData.chainId,
+    weight: baseData.weight,
+    height: baseData.height,
+    chainwebVersion: baseData.chainwebVersion,
+    epochStart: baseData.epochStart,
+    featureFlags: baseData.featureFlags,
+    hash: baseData.hash,
+  } as BlockAttributes;
+
+  await blockService.save(blockAttribute);
 }
 
 /**
@@ -96,6 +691,7 @@ export async function processHeaders(
  * @param {string} network - The network identifier (e.g., 'mainnet01').
  */
 export async function startStreaming(network: string): Promise<void> {
+  console.log("Starting streaming...");
   const options = {
     method: "GET",
     hostname: "api.chainweb.com",
@@ -129,7 +725,6 @@ export async function startStreaming(network: string): Promise<void> {
           const payloadHash = blockData.header.payloadHash;
 
           await saveHeader(network, chainId, height, blockData);
-          // console.log("Payload hash:", payloadHash);
 
           fetchPayloadWithRetry(network, chainId, height, height, [
             payloadHash,
@@ -180,6 +775,7 @@ export async function startStreaming(network: string): Promise<void> {
  */
 export async function startBackFill(network: string): Promise<void> {
   try {
+    console.log("Starting filling...");
     let chains = await getLastSync(network);
 
     console.info("Starting backfill process for chains:", { chains });
@@ -268,6 +864,44 @@ async function getLastSync(network: string): Promise<any> {
 }
 
 /**
+ * Initiates a background task (daemon) that periodically checks for and processes missing blocks across all chains
+ * within a specified network. It aims to identify gaps in the synchronized data, fetching and processing headers and
+ * payloads for missing blocks to ensure complete and up-to-date blockchain data coverage.
+ *
+ * @param network The blockchain network identifier where missing blocks are to be processed.
+ */
+export async function startMissingBlocksDaemon(network: string) {
+  console.log("Daemon: Starting to process missing blocks...");
+
+  const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "5000", 10);
+
+  process.on("SIGINT", () => shutdownSignal.trigger());
+  process.on("SIGTERM", () => shutdownSignal.trigger());
+
+  while (!shutdownSignal.isTriggered) {
+    try {
+      await startMissingBlocks(network);
+      console.log(
+        `Daemon: Waiting for ${
+          sleepInterval / 1000
+        } seconds before the next iteration...`
+      );
+      await delay(sleepInterval);
+    } catch (error) {
+      console.error("Daemon: Error occurred in startMissingBlocks -", error);
+      console.log(
+        `Daemon: Attempting to restart after waiting ${
+          sleepInterval / 1000
+        } seconds...`
+      );
+      await delay(sleepInterval);
+    }
+  }
+
+  console.log("Daemon: Shutting down gracefully.");
+}
+
+/**
  * Initiates the process to handle missing blocks for all chains within a specified network.
  * This function iterates through each chain in the network, identifies missing blocks, and
  * processes them in chunks to manage large ranges efficiently.
@@ -275,6 +909,7 @@ async function getLastSync(network: string): Promise<any> {
  * @param network The network identifier to process missing blocks for.
  */
 export async function startMissingBlocks(network: string) {
+  console.log("Starting processing missing blocks...");
   const chains = await syncStatusService.getChains(network);
 
   for (const chainId of chains) {
@@ -353,6 +988,7 @@ async function fetchHeadersWithRetry(
 
   console.log("Fetching headers from:", endpoint);
   const end = metrics.syncDuration.startTimer({
+    network: network,
     chainId: chainId.toString(),
     minheight: minHeight.toString(),
     maxheight: maxHeight.toString(),
@@ -458,7 +1094,6 @@ async function fetchPayloadWithRetry(
     })) as any;
 
     const payloads = response.data;
-    // console.log("Fetching payload from hashes:", payloadHashes);
 
     await processPayloads(network, chainId, payloads);
   } catch (error) {
@@ -534,6 +1169,7 @@ async function processPayloads(
  */
 export async function startRetryErrors(network: string): Promise<void> {
   try {
+    console.log("Starting retrying failed blocks...");
     const errors = await syncErrorService.getErrors(network, SOURCE_API);
 
     for (const error of errors) {

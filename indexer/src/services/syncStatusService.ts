@@ -3,6 +3,7 @@ import SyncStatus, {
   SyncStatusAttributes,
   SOURCE_BACKFILL,
   SOURCE_STREAMING,
+  SOURCE_S3,
 } from "../models/syncStatus";
 import { getRequiredEnvNumber } from "../utils/helpers";
 
@@ -72,6 +73,17 @@ export class SyncStatusService {
             ],
           },
         };
+      } else if (lastSyncData.source === SOURCE_S3) {
+        filter = {
+          where: {
+            [Op.and]: [
+              { network: lastSyncData.network },
+              { chainId: lastSyncData.chainId },
+              { prefix: lastSyncData.prefix },
+              { source: lastSyncData.source },
+            ],
+          },
+        };
       }
 
       const existingBlock = await SyncStatus.findOne(filter);
@@ -83,11 +95,17 @@ export class SyncStatusService {
           parsedData.fromHeight = existingBlock.fromHeight;
         }
         await existingBlock.update(parsedData);
-        console.log("Sync status updated in database:", existingBlock.toHeight);
+        console.log(
+          "Sync status updated in database:",
+          existingBlock.toHeight || existingBlock.key
+        );
         return existingBlock.toJSON() as SyncStatusAttributes;
       } else {
         const block = await SyncStatus.create(parsedData);
-        console.log("Sync status saved in database:", block.toHeight);
+        console.log(
+          "Sync status saved in database:",
+          block.toHeight || block.key
+        );
         return block.toJSON() as SyncStatusAttributes;
       }
     } catch (error) {
@@ -111,6 +129,23 @@ export class SyncStatusService {
     try {
       const block = await SyncStatus.findOne({
         where: { chainId, network, source },
+      });
+      return block ? (block.toJSON() as SyncStatusAttributes) : null;
+    } catch (error) {
+      console.error("Error finding block:", error);
+      throw error;
+    }
+  }
+
+  async findWithPrefix(
+    chainId: number,
+    network: string,
+    prefix: string,
+    source: string
+  ): Promise<SyncStatusAttributes | null> {
+    try {
+      const block = await SyncStatus.findOne({
+        where: { chainId, network, prefix, source },
       });
       return block ? (block.toJSON() as SyncStatusAttributes) : null;
     } catch (error) {
@@ -206,6 +241,7 @@ export class SyncStatusService {
             fromHeight: fromHeight,
             toHeight: toHeight,
             key: "",
+            prefix: "",
             source: "missingBlocks",
             id: 0,
           });
