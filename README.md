@@ -102,6 +102,13 @@ yarn indexer dev:run
 
 ## Additional Commands
 
+### Running with Docker
+
+```bash
+sudo docker build -t kadena-indexer:latest .
+sudo docker run --env-file ./indexer/.env -p 3000:3000 kadena-indexer:latest
+```
+
 ### Backfilling Blocks
 
 Scan for and store historical blocks.

@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-import { Sequelize } from "sequelize";
+import { QueryTypes, Sequelize } from "sequelize";
 
 export const sequelize = new Sequelize(
   process.env.DB_NAME as string,

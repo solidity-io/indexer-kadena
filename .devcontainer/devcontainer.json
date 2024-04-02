@@ -6,9 +6,13 @@
       "NODE_VERSION": "18",
       "INSTALL_AWS_CLI": "true",
       "INSTALL_TERRAFORM": "true",
+      "INSTALL_DOCKER_CLI": "true",
       "TERRAFORM_VERSION": "1.7.3"
     }
   },
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
   "forwardPorts": [3000, 9090, 3001],
   "postCreateCommand": "yarn install",
   "remoteUser": "node",
