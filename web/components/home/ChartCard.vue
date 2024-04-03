@@ -2,6 +2,7 @@
 withDefaults(
   defineProps<{
     label?: string;
+    float?: string,
     suffix?: string;
     isDark?: boolean;
     description?: string;
@@ -20,11 +21,34 @@ withDefaults(
     :class="isDark && 'bg-gray-800'"
     class="p-6 flex flex-col gap-4 rounded-lg"
   >
-    <span
+    <!-- <span
       class="text-font-500 font-[500]"
     >
       {{ label }}
-    </span>
+    </span> -->
+
+    <div
+      class="flex items-center justify-between gap-2"
+    >
+      <span
+        class="text-font-500 font-[500]"
+      >
+        {{ label }}
+      </span>
+
+      <div
+        v-if="float"
+        class="px-2 py-1 bg-gray-900 rounded"
+      >
+        <span
+          class="text-xs block"
+          :class="float.includes('-') ? 'text-system-red' : 'text-system-green'"
+        >
+          {{ float.replace('-', '') }}
+        </span>
+
+      </div>
+    </div>
 
     <div
       class="text-font-400 flex items-end gap-1"

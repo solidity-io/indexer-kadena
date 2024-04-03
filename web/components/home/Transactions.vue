@@ -10,7 +10,7 @@ const transactions = [
     receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
     gasPrice: 0.00001,
     amount: 0.155,
-    createdAt: Date.now()
+    createdAt: 1712173641169
   },
   {
     status: "1",
@@ -22,7 +22,7 @@ const transactions = [
     receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
     gasPrice: 0.00001,
     amount: 0.155,
-    createdAt: Date.now()
+    createdAt: 1712173641169
   },
   {
     status: "1",
@@ -34,7 +34,7 @@ const transactions = [
     receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
     gasPrice: 0.00001,
     amount: 0.155,
-    createdAt: Date.now()
+    createdAt: 1712173641169
   },
   {
     status: "0",
@@ -46,7 +46,7 @@ const transactions = [
     receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
     gasPrice: 0.00001,
     amount: 0.155,
-    createdAt: Date.now()
+    createdAt: 1712173641169
   },
   {
     status: "1",
@@ -58,7 +58,7 @@ const transactions = [
     receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
     gasPrice: 0.00001,
     amount: 0.155,
-    createdAt: Date.now()
+    createdAt: 1712173641169
   }
 ]
 </script>

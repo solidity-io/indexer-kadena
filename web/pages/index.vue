@@ -44,6 +44,7 @@ useHead({
           label="Kadena Price"
           description="$3,401.66"
           suffix="@0.0021 BTC"
+          float="2.46%"
         />
 
         <HomeChartCard
@@ -60,6 +61,7 @@ useHead({
         <HomeChartCard
           label="Circulating Supply"
           description="264.08 M"
+          float="-0.45%"
         />
       </div>
 

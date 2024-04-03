@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { format } from 'date-fns'
+
 const props = defineProps<{
   status: string,
   chainId: string,
@@ -6,7 +8,7 @@ const props = defineProps<{
   sender: string,
   receiver: string,
   amount: number,
-  createdAt: Date,
+  createdAt: number,
 }>()
 
 function shortenAddress (
@@ -21,7 +23,7 @@ function shortenAddress (
 
 <template>
   <div
-    class="flex items-center justify-between gap-4 py-3 border-b border-b-gray-300"
+    class="flex items-center gap-4 py-3 border-b border-b-gray-300"
   >
     <Status
       :status="+props.status > 0 ? 'success' : 'error'"
@@ -64,7 +66,7 @@ function shortenAddress (
     </div>
 
     <div
-      class="flex flex-col gap-4"
+      class="flex flex-col gap-4 mx-auto"
     >
       <div
         class="flex gap-2 text-sm"
@@ -100,15 +102,15 @@ function shortenAddress (
     </div>
 
     <div
-      class="flex flex-col text-sm gap-4"
+      class="flex flex-col items-end gap-4 ml-auto"
     >
       <div
-        class="flex gap-2"
+        class="flex px-2 py-0.5 border border-gray-300 rounded"
       >
         <span
-          class="text-font-400"
+          class="text-font-400 text-xs"
         >
-          {{ props.amount }}
+          {{ props.amount }} KDA
         </span>
       </div>
 
@@ -116,9 +118,9 @@ function shortenAddress (
         class="flex gap-2"
       >
         <span
-          class="text-font-400"
+          class="text-font-400 text-sm"
         >
-          {{ props.createdAt.toUTCString() }}
+          {{ format(props.createdAt, 'dd MMM y HH:mm:ss') }}
         </span>
       </div>
     </div>

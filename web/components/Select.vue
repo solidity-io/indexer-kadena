@@ -30,13 +30,13 @@ const emit = defineEmits(['update:modelValue'])
             class="hover:text-kadscan-500 flex items-center justify-center gap-2 px-3 py-2 ring-0 outline-none shrink-0"
           >
             <span
-              class="text-sm text-font-400 whitespace-nowrap	"
+              class="text-sm text-font-400 whitespace-nowrap block"
             >
               {{ modelValue.label }}
             </span>
 
             <IconArrow
-              class="transition shrink-0	"
+              class="transition shrink-0 h-5 w-5"
               :class="open ? 'rotate-90 text-kadscan-500' : '-rotate-90 text-font-500'"
             />
           </ListboxButton>

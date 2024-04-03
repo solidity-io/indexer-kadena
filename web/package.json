@@ -13,7 +13,6 @@
   "dependencies": {
     "@fontsource/inter": "^5.0.17",
     "@fontsource/roboto": "^5.0.12",
-    "@headlessui/vue": "^1.7.19",
     "@nuxtjs/tailwindcss": "^6.11.4",
     "autoprefixer": "^10.4.19",
     "chart.js": "^4.4.2",
@@ -23,6 +22,10 @@
     "tailwindcss": "^3.4.3",
     "vue": "^3.4.21",
     "vue-chartjs": "^5.3.0",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "nuxt-headlessui": "^1.1.5"
+  },
+  "overrides": {
+    "@headlessui/vue": "1.7.18"
   }
 }
