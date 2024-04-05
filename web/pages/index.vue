@@ -4,13 +4,13 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Home'
+  title: 'Kadscan'
 })
 </script>
 
 <template>
   <div
-    class="flex flex-col gap-10"
+    class="flex flex-col gap-10 pt-10"
   >
     <div
       class="flex gap-2 items-center justify-between bg-[linear-gradient(180deg,_#01D796_0%,_#009367_105.48%)] rounded-2xl py-[52px] px-[48px]"

@@ -1,66 +1,7 @@
 <script setup lang="ts">
-const transactions = [
-  {
-    status: "0",
-    chainId: "1",
-    requestKey: '2qkE8Fwl3ruJpf4d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    gasLimit: 150000,
-    ttl: 2880,
-    sender: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    gasPrice: 0.00001,
-    amount: 0.155,
-    createdAt: 1712173641169
-  },
-  {
-    status: "1",
-    chainId: "2",
-    requestKey: '2qkE8Fwl3ruJpf4d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    gasLimit: 150000,
-    ttl: 2880,
-    sender: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    gasPrice: 0.00001,
-    amount: 0.155,
-    createdAt: 1712173641169
-  },
-  {
-    status: "1",
-    chainId: "3",
-    requestKey: '2qkE8Fwl3ruJpf4d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    gasLimit: 150000,
-    ttl: 2880,
-    sender: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    gasPrice: 0.00001,
-    amount: 0.155,
-    createdAt: 1712173641169
-  },
-  {
-    status: "0",
-    chainId: "4",
-    requestKey: '2qkE8Fwl3ruJpf4d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    gasLimit: 150000,
-    ttl: 2880,
-    sender: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    gasPrice: 0.00001,
-    amount: 0.155,
-    createdAt: 1712173641169
-  },
-  {
-    status: "1",
-    chainId: "5",
-    requestKey: '2qkE8Fwl3ruJpf4d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    gasLimit: 150000,
-    ttl: 2880,
-    sender: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    receiver: "k:8ac2e82a3aa9a1f18e1f73ef660f1e2f0f91aced95e7f7365b41adf2c3c8ab43",
-    gasPrice: 0.00001,
-    amount: 0.155,
-    createdAt: 1712173641169
-  }
-]
+const {
+  transactions
+} = useAppConfig()
 </script>
 
 <template>
@@ -76,10 +17,14 @@ const transactions = [
         Recent Transactions
       </span>
 
-      <Button
-        label="View All"
-        size="medium"
-      />
+      <NuxtLink
+        to="/transactions"
+      >
+        <Button
+          label="View All"
+          size="medium"
+        />
+      </NuxtLink>
     </div>
 
     <div
@@ -88,7 +33,7 @@ const transactions = [
       <HomeTruncatedTransaction
         v-bind="transaction"
         :key="transaction.requestKey"
-        v-for="transaction in transactions"
+        v-for="transaction in transactions.slice(0, 5)"
       />
     </div>
   </div>

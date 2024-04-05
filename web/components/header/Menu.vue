@@ -7,7 +7,7 @@ const props = defineProps<Route>()
 <template>
   <div>
     <NuxtLink
-      :to="'#'"
+      :to="props.path"
       v-if="props.type === 'link'"
       class="px-3 py-2 text-font-400 hover:text-kadscan-500"
     >
