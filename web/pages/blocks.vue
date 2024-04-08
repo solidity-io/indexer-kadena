@@ -4,12 +4,12 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Transactions'
+  title: 'Blocks'
 })
 
 const {
-  transactions,
-  transactionTableColumns
+  blocks,
+  blocksTableColumns
 } = useAppConfig()
 
 const data = reactive({
@@ -26,7 +26,7 @@ const data = reactive({
       <h1
         class="text-[28px] font-semibold leading-[150%] text-font-400"
       >
-        Transactions
+        Blocks
       </h1>
     </div>
 
@@ -36,13 +36,13 @@ const data = reactive({
       <Card
         float="+2,02%"
         description="1,227,000"
-        label="KadenaTransactions (24h)"
+        label="Mined Blocks"
       />
 
       <Card
         float="19.56%"
         description="676.74 KDA"
-        label="Network transactions fee (24h)"
+        label="Transactions per Block"
       />
 
       <Card
@@ -54,7 +54,7 @@ const data = reactive({
       <Card
         suffix="(Average)"
         description="176,299"
-        label="Transactions Pending (Last 1H)"
+        label="Last Mined Block Height "
       />
     </div>
 
@@ -67,13 +67,13 @@ const data = reactive({
         <span
           class="text-font-400 text-lg leading-[100%] font-semibold tracking-[0.36px]"
         >
-          Recent Transactions
+          Recent Blocks
         </span>
       </div>
 
       <Table
-        :rows="transactions"
-        :columns="transactionTableColumns"
+        :rows="blocks"
+        :columns="blocksTableColumns"
       >
         <template #status="{ row }">
           <ColumnStatus

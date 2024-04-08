@@ -1,41 +1,7 @@
 <script setup lang="ts">
-const blocks = [
-  {
-    block: "4559754",
-    status: "0",
-    chainId: "1",
-    hash: '132qkE8Fwl3ruJpf4d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    createdAt: 1712173641169
-  },
-  {
-    block: "4559754",
-    status: "1",
-    chainId: "2",
-    hash: '2452qkE8Fwl3ruJpf4d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    createdAt: 1712173641169
-  },
-  {
-    block: "4559754",
-    status: "1",
-    chainId: "3",
-    hash: '32qkE68Fwl3ruJpf4d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    createdAt: 1712173641169
-  },
-  {
-    block: "4559754",
-    status: "0",
-    chainId: "4",
-    hash: '42qkE8Fwl3ruJpf5434d_9t1NhaBEz03cchuGA7RYGO5vnU',
-    createdAt: 1712173641169
-  },
-  {
-    block: "4559754",
-    status: "1",
-    chainId: "5",
-    hash: '52qkE8Fwl3ruJpf4d_43239t1NhaBEz03cchuGA7RYGO5vnU',
-    createdAt: 1712173641169
-  }
-]
+const {
+  blocks
+} = useAppConfig()
 </script>
 
 <template>
@@ -51,10 +17,14 @@ const blocks = [
         Recent Blocks
       </span>
 
-      <Button
-        label="View All"
-        size="medium"
-      />
+      <NuxtLink
+        to="/blocks"
+      >
+        <Button
+          label="View All"
+          size="medium"
+        />
+      </NuxtLink>
     </div>
 
     <div
@@ -63,7 +33,7 @@ const blocks = [
       <HomeTruncatedBlock
         v-bind="block"
         :key="block.hash"
-        v-for="block in blocks"
+        v-for="block in blocks.slice(0, 5)"
       />
     </div>
   </div>

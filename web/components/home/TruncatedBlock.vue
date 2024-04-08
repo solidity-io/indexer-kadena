@@ -23,7 +23,7 @@ function shortenAddress (
   <div
     class="flex items-center gap-4 py-3 border-b border-b-gray-300"
   >
-    <Status
+    <IconStatus
       :status="+props.status > 0 ? 'success' : 'error'"
     />
 
