@@ -26,7 +26,7 @@ const labelColor = {
       :class="[
         labelColor[variant]
       ]"
-      class="text-xs font-semibold leading-[150%]"
+      class="text-xs font-semibold leading-[150%] block"
     >
       {{ label }}
     </span>

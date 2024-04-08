@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import json from '../../txJson.json'
 
-defineProps<{
-  transaction: any
-}>()
+// defineProps<{
+//   transaction: any
+// }>()
 </script>
 
 <template>

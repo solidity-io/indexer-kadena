@@ -1,7 +1,7 @@
 <script setup lang="ts">
-defineProps<{
-  transaction: any
-}>()
+// defineProps<{
+//   transaction: any
+// }>()
 
 const result = {
   "amount": 65.12779373,

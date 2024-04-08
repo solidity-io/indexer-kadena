@@ -1,7 +1,7 @@
 <script setup lang="ts">
-defineProps<{
-  transaction: any
-}>()
+// defineProps<{
+//   transaction: any
+// }>()
 
 const result = [
   "k:d7bf621636d4fc45c0c50f59b511f88eb0a737837a7b6d800756762a295fdc4d",

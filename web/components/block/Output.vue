@@ -12,51 +12,46 @@
     "
   >
     <LabelValue
-      withCopy
-      label="From"
+      label="Gas"
       value="k:5d96a61871e582fb285a5b7fda79f1925bc0f68745f7a3a0ebea71d094f2718b"
     />
 
     <LabelValue
-      withCopy
-      label="To"
-      value="xfS-eHFuzE72619KflxCn0FKSa5BhvvhyR9THumhdOE"
-    />
-
-    <LabelValue
-      label="Crosschain"
+      label="Result"
     >
       <template #value>
         <div
           class="flex items-center gap-2"
         >
-          <span>
-            1
-          </span>
-
-          <IconChevron />
+          <IconSuccess
+            class="w-6 h-6"
+          />
 
           <span>
-            2 (origination)
+            Write Succeeded
           </span>
         </div>
       </template>
     </LabelValue>
 
     <LabelValue
-      label="Amount"
-      value="2"
+      label="Request Key"
+      value="IjZ0SDduU3ZEQnczVUpwekJT"
     />
 
     <LabelValue
-      label="Transaction Fee"
-      value="43.06 KDA (49.95 USD)"
+      label="Logs"
+      value="0ZrkuHRW8j_1uC0kY1Xu5BgIc11RsIxKfO4Eri1H-tQ"
     />
 
     <LabelValue
-      withCopy
-      label="Paid by"
-      value="k:9c56a61871e582fb285a5b7fda79f1925bc0f68745f7a3a0ebea71d094f2246a"
+      label="Metadata"
+      value="None"
+    />
+
+    <LabelValue
+      label="Transaction ID"
+      value="9902406"
     />
   </div>
 </template>

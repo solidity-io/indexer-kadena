@@ -39,6 +39,24 @@ export const blocksTableColumns = [
   },
 ]
 
+export const blockTransactionsTableColumns = [
+  {
+    cols: 2,
+    key: 'status',
+    label: 'Status'
+  },
+  {
+    cols: 8,
+    key: 'requestKey',
+    label: 'Request Key',
+  },
+  {
+    cols: 14,
+    key: 'code',
+    label: 'Code',
+  },
+]
+
 export const blocks = [
   {
     block: "4559754",

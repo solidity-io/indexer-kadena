@@ -1,7 +1,7 @@
 <script setup lang="ts">
-defineProps<{
-  transaction: any
-}>()
+// defineProps<{
+//   transaction: any
+// }>()
 </script>
 
 <template>
