@@ -22,107 +22,111 @@ function shortenAddress (
 </script>
 
 <template>
-  <div
-    class="flex items-center gap-4 py-3 border-b border-b-gray-300"
+  <NuxtLink
+    to="/transaction/1"
   >
-    <IconStatus
-      :status="+props.status > 0 ? 'success' : 'error'"
-    />
-
     <div
-      class="flex flex-col gap-4"
+      class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer"
     >
-      <div
-        class="flex gap-2 text-sm"
-      >
-        <span
-          class="text-font-500 whitespace-nowrap"
-        >
-          Request Key
-        </span>
+      <IconStatus
+        :status="+props.status > 0 ? 'success' : 'error'"
+      />
 
-        <span
-          class="text-font-400"
+      <div
+        class="flex flex-col gap-4"
+      >
+        <div
+          class="flex gap-2 text-sm"
         >
-          {{ shortenAddress(props.requestKey) }}
-        </span>
+          <span
+            class="text-font-500 whitespace-nowrap"
+          >
+            Request Key
+          </span>
+
+          <span
+            class="text-font-400"
+          >
+            {{ shortenAddress(props.requestKey) }}
+          </span>
+        </div>
+
+        <div
+          class="flex gap-2 text-sm"
+        >
+          <span
+            class="text-font-500 whitespace-nowrap"
+          >
+            Chain
+          </span>
+
+          <span
+            class="text-font-400"
+          >
+            {{ props.chainId }}
+          </span>
+        </div>
       </div>
 
       <div
-        class="flex gap-2 text-sm"
+        class="flex flex-col gap-4 mx-auto"
       >
-        <span
-          class="text-font-500 whitespace-nowrap"
+        <div
+          class="flex gap-2 text-sm"
         >
-          Chain
-        </span>
+          <span
+            class="text-font-500 whitespace-nowrap"
+          >
+            From
+          </span>
 
-        <span
-          class="text-font-400"
+          <span
+            class="text-font-400"
+          >
+            {{ shortenAddress(props.sender) }}
+          </span>
+        </div>
+
+        <div
+          class="flex gap-2 text-sm"
         >
-          {{ props.chainId }}
-        </span>
+          <span
+            class="text-font-500 whitespace-nowrap"
+          >
+            To
+          </span>
+
+          <span
+            class="text-font-400"
+          >
+            {{ shortenAddress(props.receiver) }}
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="flex flex-col items-end gap-4 ml-auto"
+      >
+        <div
+          class="flex px-2 py-0.5 border border-gray-300 rounded"
+        >
+          <span
+            class="text-font-400 text-xs"
+          >
+            {{ props.amount }} KDA
+          </span>
+        </div>
+
+        <div
+          class="flex gap-2"
+        >
+          <span
+            class="text-font-400 text-sm"
+          >
+            {{ format(props.createdAt, 'dd MMM y HH:mm:ss') }}
+          </span>
+        </div>
       </div>
     </div>
-
-    <div
-      class="flex flex-col gap-4 mx-auto"
-    >
-      <div
-        class="flex gap-2 text-sm"
-      >
-        <span
-          class="text-font-500 whitespace-nowrap"
-        >
-          From
-        </span>
-
-        <span
-          class="text-font-400"
-        >
-          {{ shortenAddress(props.sender) }}
-        </span>
-      </div>
-
-      <div
-        class="flex gap-2 text-sm"
-      >
-        <span
-          class="text-font-500 whitespace-nowrap"
-        >
-          To
-        </span>
-
-        <span
-          class="text-font-400"
-        >
-          {{ shortenAddress(props.receiver) }}
-        </span>
-      </div>
-    </div>
-
-    <div
-      class="flex flex-col items-end gap-4 ml-auto"
-    >
-      <div
-        class="flex px-2 py-0.5 border border-gray-300 rounded"
-      >
-        <span
-          class="text-font-400 text-xs"
-        >
-          {{ props.amount }} KDA
-        </span>
-      </div>
-
-      <div
-        class="flex gap-2"
-      >
-        <span
-          class="text-font-400 text-sm"
-        >
-          {{ format(props.createdAt, 'dd MMM y HH:mm:ss') }}
-        </span>
-      </div>
-    </div>
-  </div>
+  </NuxtLink>
 </template>
