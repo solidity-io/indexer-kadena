@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { gql } from 'nuxt-graphql-request/utils';
+
 definePageMeta({
   layout: 'app',
 })
@@ -6,6 +8,73 @@ definePageMeta({
 useHead({
   title: 'Kadscan'
 })
+
+const { $graphql } = useNuxtApp();
+
+const query = gql`
+  query GetLastBlockAndTransaction {
+    allTransactions(last: 5) {
+      nodes {
+        chainid
+        code
+        createdAt
+        continuation
+        creationtime
+        data
+        gas
+        gaslimit
+        gasprice
+        id
+        metadata
+        logs
+        nonce
+        nodeId
+        numEvents
+        pactid
+        payloadHash
+        proof
+        requestkey
+        result
+        sender
+        rollback
+        step
+        ttl
+        txid
+        updatedAt
+      }
+    }
+    allBlocks(last: 5) {
+      nodes {
+        adjacents
+        chainId
+        chainwebVersion
+        createdAt
+        creationTime
+        epochStart
+        featureFlags
+        hash
+        height
+        id
+        nodeId
+        nonce
+        parent
+        payloadHash
+        target
+        updatedAt
+        weight
+      }
+    }
+  }
+`
+
+const { data } = await useAsyncData('transactions', async () => {
+  const res = await $graphql.default.request(query);
+
+  return {
+    blocks: res.allBlocks,
+    transactions: res.allTransactions
+  };
+});
 </script>
 
 <template>
@@ -75,9 +144,13 @@ useHead({
     <div
       class="grid grid-cols-2 gap-6"
     >
-      <HomeTransactions />
+      <HomeTransactions
+        :data="data?.transactions"
+      />
 
-      <HomeBlocks />
+      <HomeBlocks
+        :data="data?.blocks"
+      />
     </div>
   </div>
 </template>

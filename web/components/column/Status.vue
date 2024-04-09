@@ -4,11 +4,11 @@ const props = defineProps<{
 }>()
 
 const variant = computed(() => {
-  return +props.row.status > 0 ? 'success' : 'failed'
+  return props.row.result.includes('\"status\":\"success\"') ? 'success' : 'failed'
 })
 
 const label = computed(() => {
-  return +props.row.status > 0 ? 'Success' : 'Finalized'
+  return props.row.result.includes('\"status\":\"success\"') ? 'Success' : 'Finalized'
 })
 </script>
 

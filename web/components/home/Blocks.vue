@@ -1,7 +1,11 @@
 <script setup lang="ts">
-const {
-  blocks
-} = useAppConfig()
+const props = defineProps<{
+  data: any
+}>()
+
+const blocks = computed(() => {
+  return props.data?.nodes || []
+})
 </script>
 
 <template>
@@ -33,7 +37,7 @@ const {
       <HomeTruncatedBlock
         v-bind="block"
         :key="block.hash"
-        v-for="block in blocks.slice(0, 5)"
+        v-for="block in blocks"
       />
     </div>
   </div>

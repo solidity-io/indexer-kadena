@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { gql } from 'nuxt-graphql-request/utils';
+
 definePageMeta({
   layout: 'app',
 })
@@ -8,13 +10,48 @@ useHead({
 })
 
 const {
-  blocks,
   blocksTableColumns
 } = useAppConfig()
 
-const data = reactive({
-  currentPage: 1,
-  totalPages: 15,
+const query = gql`
+  query GetBlocks($first: Int, $offset: Int) {
+    allBlocks(offset: $offset, orderBy: ID_DESC, first: $first) {
+      nodes {
+        adjacents
+        chainId
+        createdAt
+        chainwebVersion
+        creationTime
+        epochStart
+        featureFlags
+        hash
+        height
+        id
+        nodeId
+        parent
+        nonce
+        payloadHash
+        target
+        updatedAt
+        weight
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
+      totalCount
+    }
+  }
+`
+
+const {
+  page,
+  data: blocks,
+} = await usePaginate({
+  query,
+  key: 'allBlocks'
 })
 </script>
 
@@ -72,9 +109,15 @@ const data = reactive({
       </div>
 
       <Table
-        :rows="blocks"
+        :rows="blocks.nodes"
         :columns="blocksTableColumns"
       >
+        <template #todo>
+          <span>
+            - todo -
+          </span>
+        </template>
+
         <template #status="{ row }">
           <ColumnStatus
             :key="'status-' + row.requestKey"
@@ -88,18 +131,6 @@ const data = reactive({
           />
         </template>
 
-        <template #sender="{ row }">
-          <ColumnAddress
-            :value="row.sender"
-          />
-        </template>
-
-        <template #receiver="{ row }">
-          <ColumnAddress
-            :value="row.receiver"
-          />
-        </template>
-
         <template #icon>
           <div
             class="flex items-center justify-center"
@@ -110,9 +141,11 @@ const data = reactive({
       </Table>
 
       <PaginateTable
-        :currentPage="data.currentPage"
-        :totalPages="data.totalPages"
-        @pageChange="data.currentPage = $event"
+        itemsLabel="Blocks"
+        :currentPage="page"
+        :totalItems="blocks.totalCount ?? 1"
+        :totalPages="blocks.totalPages"
+        @pageChange="page = Number($event)"
       />
     </div>
   </div>

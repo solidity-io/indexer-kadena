@@ -2,11 +2,11 @@
 import { format } from 'date-fns'
 
 const props = defineProps<{
-  status: string,
-  chainId: string,
-  block: string,
+  parent: string,
+  chainId: number,
+  height: number,
   hash: string,
-  createdAt: number,
+  createdAt: string,
 }>()
 
 function shortenAddress (
@@ -17,6 +17,10 @@ function shortenAddress (
     -chars
   )}`
 }
+
+const status = computed((): 'success' | 'error' => {
+  return props.parent ? 'success' : 'error'
+})
 </script>
 
 <template>
@@ -27,7 +31,7 @@ function shortenAddress (
       class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer"
     >
       <IconStatus
-        :status="+props.status > 0 ? 'success' : 'error'"
+        :status="status"
       />
 
       <div
@@ -81,7 +85,7 @@ function shortenAddress (
           <span
             class="text-font-400"
           >
-            {{ props.block }}
+            {{ props.height }}
           </span>
         </div>
       </div>

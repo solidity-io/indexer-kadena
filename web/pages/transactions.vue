@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { gql } from 'nuxt-graphql-request/utils';
+
 definePageMeta({
   layout: 'app',
 })
@@ -8,13 +10,57 @@ useHead({
 })
 
 const {
-  transactions,
   transactionTableColumns
 } = useAppConfig()
 
-const data = reactive({
-  currentPage: 1,
-  totalPages: 15,
+const query = gql`
+  query GetTransactions($first: Int, $offset: Int) {
+    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
+      nodes {
+        chainid
+        code
+        createdAt
+        continuation
+        creationtime
+        data
+        gas
+        gaslimit
+        gasprice
+        id
+        metadata
+        logs
+        nonce
+        nodeId
+        numEvents
+        pactid
+        payloadHash
+        proof
+        requestkey
+        result
+        sender
+        rollback
+        step
+        ttl
+        txid
+        updatedAt
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
+      totalCount
+    }
+  }
+`
+
+const {
+  page,
+  data: transactions,
+} = await usePaginate({
+  query,
+  key: 'allTransactions'
 })
 </script>
 
@@ -72,12 +118,12 @@ const data = reactive({
       </div>
 
       <Table
-        :rows="transactions"
+        :rows="transactions.nodes"
         :columns="transactionTableColumns"
       >
         <template #status="{ row }">
           <ColumnStatus
-            :key="'status-' + row.requestKey"
+            :key="'status-' + row.requestkey"
             :row="row"
           />
         </template>
@@ -94,10 +140,22 @@ const data = reactive({
           />
         </template>
 
-        <template #receiver="{ row }">
-          <ColumnAddress
-            :value="row.receiver"
-          />
+        <template #receiver>
+          <!-- <ColumnAddress
+            value="TODO"
+          /> -->
+          <span>
+            - todo -
+          </span>
+        </template>
+
+        <template #block>
+          <!-- <ColumnAddress
+            value="TODO"
+          /> -->
+          <span>
+            - todo -
+          </span>
         </template>
 
         <template #icon>
@@ -110,9 +168,10 @@ const data = reactive({
       </Table>
 
       <PaginateTable
-        :currentPage="data.currentPage"
-        :totalPages="data.totalPages"
-        @pageChange="data.currentPage = $event"
+        :currentPage="page"
+        :totalItems="transactions.totalCount ?? 1"
+        :totalPages="transactions.totalPages"
+        @pageChange="page = Number($event)"
       />
     </div>
   </div>

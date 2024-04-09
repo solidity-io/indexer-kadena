@@ -1,7 +1,11 @@
 <script setup lang="ts">
-const {
-  transactions
-} = useAppConfig()
+const props = defineProps<{
+  data: any
+}>()
+
+const transactions = computed(() => {
+  return props.data?.nodes || []
+})
 </script>
 
 <template>
@@ -33,7 +37,7 @@ const {
       <HomeTruncatedTransaction
         v-bind="transaction"
         :key="transaction.requestKey"
-        v-for="transaction in transactions.slice(0, 5)"
+        v-for="transaction in transactions"
       />
     </div>
   </div>

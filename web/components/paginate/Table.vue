@@ -1,10 +1,11 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
+    totalItems: number;
     itemsLabel?: string;
-    totalPages?: string | number;
-    currentPage?: string | number;
-    itemsPerPage?: string | number;
+    totalPages?: number;
+    currentPage?: number;
+    itemsPerPage?: number;
   }>(),
   {
     currentPage: 1,
@@ -33,7 +34,7 @@ const buttons = [
       <span
         class="text-sm leading-[150%] text-font-500"
       >
-        Showing {{ itemsPerPage }} of {{ totalPages }} {{ itemsLabel }}
+        Showing {{ itemsPerPage }} of {{ totalItems }} {{ itemsLabel }}
       </span>
     </div>
 

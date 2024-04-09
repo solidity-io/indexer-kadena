@@ -2,13 +2,11 @@
 import { format } from 'date-fns'
 
 const props = defineProps<{
-  status: string,
-  chainId: string,
-  requestKey: string,
+  result: string,
   sender: string,
-  receiver: string,
-  amount: number,
-  createdAt: number,
+  chainid: number,
+  createdAt: string,
+  requestkey: string,
 }>()
 
 function shortenAddress (
@@ -19,6 +17,10 @@ function shortenAddress (
     -chars
   )}`
 }
+
+const status = computed((): 'success' | 'error' => {
+  return props.result.includes('\"status\":\"success\"') ? 'success' : 'error'
+})
 </script>
 
 <template>
@@ -29,7 +31,7 @@ function shortenAddress (
       class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer"
     >
       <IconStatus
-        :status="+props.status > 0 ? 'success' : 'error'"
+        :status="status"
       />
 
       <div
@@ -47,7 +49,7 @@ function shortenAddress (
           <span
             class="text-font-400"
           >
-            {{ shortenAddress(props.requestKey) }}
+            {{ shortenAddress(props.requestkey) }}
           </span>
         </div>
 
@@ -63,7 +65,7 @@ function shortenAddress (
           <span
             class="text-font-400"
           >
-            {{ props.chainId }}
+            {{ props.chainid }}
           </span>
         </div>
       </div>
@@ -99,7 +101,8 @@ function shortenAddress (
           <span
             class="text-font-400"
           >
-            {{ shortenAddress(props.receiver) }}
+            <!-- {{ shortenAddress("coin") }} -->
+            - todo -
           </span>
         </div>
       </div>
@@ -113,7 +116,8 @@ function shortenAddress (
           <span
             class="text-font-400 text-xs"
           >
-            {{ props.amount }} KDA
+            <!-- {{ props.amount }} KDA -->
+            - todo -
           </span>
         </div>
 
@@ -123,7 +127,7 @@ function shortenAddress (
           <span
             class="text-font-400 text-sm"
           >
-            {{ format(props.createdAt, 'dd MMM y HH:mm:ss') }}
+            {{ format(new Date(props.createdAt), 'dd MMM y HH:mm:ss') }}
           </span>
         </div>
       </div>
