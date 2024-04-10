@@ -1,7 +1,15 @@
 <script setup lang="ts">
-// defineProps<{
-//   transaction: any
-// }>()
+const props = defineProps<{
+  transaction: any
+}>()
+
+const variant = computed(() => {
+  return props.transaction.result.includes('\"status\":\"success\"') ? 'success' : 'failed'
+})
+
+const label = computed(() => {
+  return props.transaction.result.includes('\"status\":\"success\"') ? 'Success' : 'Finalized'
+})
 </script>
 
 <template>
@@ -14,7 +22,7 @@
     <LabelValue
       withCopy
       label="Request Key"
-      value="rE-A7ijxto8VLJzuhp_iEXVCnAZD23luDEt9XOVgaiA"
+      :value="transaction.requestkey"
     />
 
     <LabelValue
@@ -24,25 +32,25 @@
         #value
       >
         <Tag
-          variant="success"
-          label="Success"
+          :variant="variant"
+          :label="label"
         />
       </template>
     </LabelValue>
 
     <LabelValue
       label="Chain"
-      value="2"
+      :value="transaction.chainid"
     />
 
     <LabelValue
       label="Block Height"
-      value="4521530"
+      value="- todo -"
     />
 
     <LabelValue
       label="Timestamp"
-      value="Fri, 16 Feb 2024 13:13:35 GMT"
+      :value="new Date(transaction.createdAt).toUTCString()"
     />
   </div>
 </template>

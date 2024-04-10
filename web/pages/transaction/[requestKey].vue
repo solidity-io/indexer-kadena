@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { gql } from 'nuxt-graphql-request/utils';
 import { TabPanel } from '@headlessui/vue'
 
 definePageMeta({
@@ -10,8 +11,6 @@ useHead({
 })
 
 const data = reactive({
-  currentPage: 1,
-  totalPages: 15,
   tabs: [
     {
       key: 'overview',
@@ -31,6 +30,53 @@ const data = reactive({
     },
   ],
 })
+
+const query = gql`
+  query GetTransactionById($id: ID!) {
+    transaction(nodeId: $id) {
+      chainid
+      continuation
+      code
+      createdAt
+      creationtime
+      gas
+      data
+      gasprice
+      gaslimit
+      updatedAt
+      txid
+      step
+      rollback
+      ttl
+      sender
+      result
+      proof
+      requestkey
+      payloadHash
+      pactid
+      numEvents
+      nodeId
+      nonce
+      logs
+      metadata
+      id
+    }
+  }
+`
+
+const route = useRoute()
+
+const { $graphql } = useNuxtApp();
+
+const { data: transaction } = await useAsyncData('GetTransactionById', async () => {
+  const {
+    transaction
+  } = await $graphql.default.request(query, {
+    id: route.params.requestKey,
+  });
+
+  return transaction
+});
 </script>
 
 <template>
@@ -52,7 +98,9 @@ const data = reactive({
         rounded-2xl
       "
     >
-      <TransactionDetails />
+      <TransactionDetails
+        :transaction="transaction"
+      />
     </div>
 
     <div

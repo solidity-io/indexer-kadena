@@ -67,7 +67,7 @@ const query = gql`
   }
 `
 
-const { data } = await useAsyncData('transactions', async () => {
+const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
   const res = await $graphql.default.request(query);
 
   return {

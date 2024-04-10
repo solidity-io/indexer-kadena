@@ -2,6 +2,7 @@
 import { format } from 'date-fns'
 
 const props = defineProps<{
+  nodeId: string,
   result: string,
   sender: string,
   chainid: number,
@@ -25,7 +26,7 @@ const status = computed((): 'success' | 'error' => {
 
 <template>
   <NuxtLink
-    to="/transaction/1"
+    :to="`/transaction/${nodeId}`"
   >
     <div
       class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer"

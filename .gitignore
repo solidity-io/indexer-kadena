@@ -8,3 +8,4 @@ draft/
 .terraform.tfstate.lock.info
 .terraform.plan
 .github/workflows/.artifacts/
+.vercel

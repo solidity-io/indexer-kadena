@@ -30,7 +30,7 @@ export default defineNuxtConfig({
         /**
          * The client endpoint url
          */
-        endpoint: 'http://34.198.223.84:3000/graphql',
+        endpoint: 'https://h5pmt2ioxe.execute-api.us-east-1.amazonaws.com/',
 
         options: {
           method: 'POST', // Default to `POST`
