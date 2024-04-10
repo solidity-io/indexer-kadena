@@ -57,6 +57,7 @@ const query = gql`
 
 const {
   page,
+  pending,
   data: transactions,
 } = await usePaginate({
   query,
@@ -118,6 +119,7 @@ const {
       </div>
 
       <Table
+        :class="pending && 'bg-white'"
         :rows="transactions.nodes"
         :columns="transactionTableColumns"
       >

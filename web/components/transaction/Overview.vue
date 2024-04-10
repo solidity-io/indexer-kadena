@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// defineProps<{
-//   transaction: any
-// }>()
+defineProps<{
+  transaction: any
+}>()
 </script>
 
 <template>
@@ -14,20 +14,24 @@
     <LabelValue
       withCopy
       label="From"
-      value="k:5d96a61871e582fb285a5b7fda79f1925bc0f68745f7a3a0ebea71d094f2718b"
+      :value="transaction.sender"
     />
 
-    <LabelValue
+    <!-- <LabelValue
       withCopy
       label="To"
       value="xfS-eHFuzE72619KflxCn0FKSa5BhvvhyR9THumhdOE"
+    /> -->
+    <LabelValue
+      label="To"
+      value="- todo -"
     />
 
     <LabelValue
       label="Crosschain"
     >
       <template #value>
-        <div
+        <!-- <div
           class="flex items-center gap-2"
         >
           <span>
@@ -39,24 +43,39 @@
           <span>
             2 (origination)
           </span>
-        </div>
+        </div> -->
+        <span>
+          - todo -
+        </span>
       </template>
     </LabelValue>
 
-    <LabelValue
+    <!-- <LabelValue
       label="Amount"
       value="2"
+    /> -->
+    <LabelValue
+      label="Amount"
+      value="- todo -"
     />
 
-    <LabelValue
+    <!-- <LabelValue
       label="Transaction Fee"
       value="43.06 KDA (49.95 USD)"
+    /> -->
+    <LabelValue
+      label="Transaction Fee"
+      value="- todo -"
     />
 
-    <LabelValue
+    <!-- <LabelValue
       withCopy
       label="Paid by"
       value="k:9c56a61871e582fb285a5b7fda79f1925bc0f68745f7a3a0ebea71d094f2246a"
+    /> -->
+    <LabelValue
+      label="Paid by"
+      value="- todo -"
     />
   </div>
 </template>

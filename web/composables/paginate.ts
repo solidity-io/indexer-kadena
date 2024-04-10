@@ -12,7 +12,7 @@ export const usePaginate = async ({
   const page = ref(1)
   const limit = ref(20)
 
-  const { data: data } = await useAsyncData(key, async () => {
+  const { data, pending } = await useAsyncData(key, async () => {
     const res = await $graphql.default.request(query, {
       first: limit.value,
       offset: (page.value - 1) * 20,
@@ -33,5 +33,6 @@ export const usePaginate = async ({
     page,
     data,
     limit,
+    pending,
   }
 }
