@@ -2,9 +2,6 @@
 import { DatePicker as VCalendarDatePicker } from 'v-calendar'
 import type { DatePickerDate, DatePickerRangeObject } from 'v-calendar/dist/types/src/use/datePicker'
 import 'v-calendar/dist/style.css'
-import '@/css/calendar.css'
-import '@/css/transition.css'
-import '@/css/theme.css'
 
 const props = defineProps({
   modelValue: {
@@ -95,18 +92,58 @@ const attrs = {
   line-height: 150% !important; /* 18px */
 }
 
-.vc-day {
+.vc-day-content {
+  box-shadow: none;
+  border-radius: 8px;
   display: flex !important;
   width: 40px !important;
   height: 40px !important;
   justify-content: center !important;
   align-items: center !important;
-  color: var(--Font-Color-1, #FAFAFA) !important;
+  color: var(--Font-Color-1, #FAFAFA);
   text-align: center !important;
   font-family: Inter !important;
   font-size: 16px !important;
   font-style: normal !important;
   font-weight: 400 !important;
   line-height: 140% !important; /* 22.4px */
+}
+
+.vc-day-content.vc-highlight-content-solid {
+  border: 0px solid blue;
+}
+
+.vc-day-content.vc-highlight-content-solid,
+.vc-day-content.vc-highlight-content-outline {
+  outline: none;
+  background: var(--Gray-300, #525454);
+  color: var(--Kad-Green-500, #00F5AB);
+}
+
+.vc-day-content.vc-highlight-content-light,
+.vc-highlights {
+  border-radius: 0px;
+}
+
+.vc-week .vc-highlight-base-start,
+.vc-week .vc-highlight-base-middle,
+.vc-week .vc-highlight-base-end {
+  height: 100%;
+  border-radius: 0;
+  background-color: #3E4041;
+}
+
+.vc-week .vc-highlight-content-solid[tabindex="-1"]  {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.vc-week .vc-highlight-content-solid[tabindex="0"]  {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.is-not-in-month {
+  display: none !important
 }
 </style>

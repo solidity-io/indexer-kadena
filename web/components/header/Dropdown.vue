@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
+
+import { provideUseId, Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 
 import type { BaseRoute } from '~/config';
 
@@ -7,9 +8,6 @@ const props = defineProps<{
   label: string;
   items: BaseRoute[];
 }>()
-
-import { provideUseId } from '@headlessui/vue';
-//import { Disclosure, DisclosureButton, DisclosurePanel,} from '@headlessui/vue'
 
 provideUseId(() => useId())
 </script>

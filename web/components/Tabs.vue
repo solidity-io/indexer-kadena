@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
+import { provideUseId, TabGroup, TabList, Tab, TabPanels } from '@headlessui/vue'
 
 withDefaults(
   defineProps<{
@@ -9,6 +9,8 @@ withDefaults(
     tabs: []
   }
 )
+
+provideUseId(() => useId())
 </script>
 
 <template>

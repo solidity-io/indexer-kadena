@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const date = ref(new Date())
+const data = reactive({
+  date: null
+})
 </script>
 
 <template>
@@ -9,10 +11,8 @@ const date = ref(new Date())
       flex flex-col
     "
   >
-    <client-only>
-      <Calendar
-        v-model="date"
-      />
-    </client-only>
+    <DatePicker
+      v-model="data.date"
+    />
   </div>
 </template>
