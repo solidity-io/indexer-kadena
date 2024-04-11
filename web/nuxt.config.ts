@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   modules: [
     "nuxt-headlessui",
     "@nuxtjs/tailwindcss",
-    "nuxt-graphql-request"
+    "nuxt-graphql-request",
   ],
 
   build: {

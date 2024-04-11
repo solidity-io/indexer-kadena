@@ -2,6 +2,7 @@
 defineProps<{
   label: string;
   value?: string;
+  col?: boolean;
   withCopy?: boolean;
 }>()
 </script>
@@ -9,10 +10,12 @@ defineProps<{
 <template>
   <div
     class="flex gap-4"
-    :class="value ? 'items-center' : 'items-start'"
+    :class="[
+      col && 'flex-col !items-start'
+    ]"
   >
     <div
-      class="w-full max-w-[200px] h-max"
+      class="w-full max-w-[200px] h-max pt-[6px]"
     >
       <span
         class="text-font-500 text-sm font-medium block"
