@@ -77,8 +77,6 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
 
   return transaction
 });
-
-console.log('transaction', transaction.value)
 </script>
 
 <template>

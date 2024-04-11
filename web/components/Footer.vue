@@ -7,9 +7,6 @@ const {
 const linkRoutes = computed(() => routes.filter(({ type }) => type === 'link'))
 
 const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group'))
-
-console.log('linkRoutes', linkRoutes.value)
-console.log('GroupRoutes', groupRoutes.value)
 </script>
 
 <template>

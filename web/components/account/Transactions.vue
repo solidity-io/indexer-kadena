@@ -1,4 +1,60 @@
 <script setup lang="ts">
+import { gql } from 'nuxt-graphql-request/utils';
+
+const {
+  transactionTableColumns
+} = useAppConfig()
+
+const query = gql`
+  query GetTransactions($first: Int, $offset: Int) {
+    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
+      nodes {
+        chainid
+        code
+        createdAt
+        continuation
+        creationtime
+        data
+        gas
+        gaslimit
+        gasprice
+        id
+        metadata
+        logs
+        nonce
+        nodeId
+        numEvents
+        pactid
+        payloadHash
+        proof
+        requestkey
+        result
+        sender
+        rollback
+        step
+        ttl
+        txid
+        updatedAt
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
+      totalCount
+    }
+  }
+`
+
+const {
+  page,
+  pending,
+  data: transactions,
+} = await usePaginate({
+  query,
+  key: 'allTransactions'
+})
 </script>
 
 <template>
@@ -8,71 +64,67 @@
       flex flex-col
     "
   >
-    <LabelValue
-      withCopy
-      label="From"
-      :value="transaction.sender"
-    />
-
-    <!-- <LabelValue
-      withCopy
-      label="To"
-      value="xfS-eHFuzE72619KflxCn0FKSa5BhvvhyR9THumhdOE"
-    /> -->
-    <LabelValue
-      label="To"
-      value="- todo -"
-    />
-
-    <LabelValue
-      label="Crosschain"
+    <div
+      class="p-6 rounded-2xl border border-gray-300"
     >
-      <template #value>
-        <!-- <div
-          class="flex items-center gap-2"
-        >
+      <Table
+        :class="pending && 'bg-white'"
+        :rows="transactions.nodes"
+        :columns="transactionTableColumns"
+      >
+        <template #status="{ row }">
+          <ColumnStatus
+            :key="'status-' + row.requestkey"
+            :row="row"
+          />
+        </template>
+
+        <template #createdAt="{ row }">
+          <ColumnDate
+            :row="row"
+          />
+        </template>
+
+        <template #sender="{ row }">
+          <ColumnAddress
+            :value="row.sender"
+          />
+        </template>
+
+        <template #receiver>
+          <!-- <ColumnAddress
+            value="TODO"
+          /> -->
           <span>
-            1
+            - todo -
           </span>
+        </template>
 
-          <IconChevron />
-
+        <template #block>
+          <!-- <ColumnAddress
+            value="TODO"
+          /> -->
           <span>
-            2 (origination)
+            - todo -
           </span>
-        </div> -->
-        <span>
-          - todo -
-        </span>
-      </template>
-    </LabelValue>
+        </template>
 
-    <!-- <LabelValue
-      label="Amount"
-      value="2"
-    /> -->
-    <LabelValue
-      label="Amount"
-      value="- todo -"
-    />
+        <template #icon>
+          <div
+            class="flex items-center justify-center"
+          >
+            <IconEye />
+          </div>
+        </template>
+      </Table>
 
-    <!-- <LabelValue
-      label="Transaction Fee"
-      value="43.06 KDA (49.95 USD)"
-    /> -->
-    <LabelValue
-      label="Transaction Fee"
-      value="- todo -"
-    />
-
-    <!-- <LabelValue
-      withCopy
-      label="Paid by"
-      value="k:9c56a61871e582fb285a5b7fda79f1925bc0f68745f7a3a0ebea71d094f2246a"
-    /> -->
-    <LabelValue
-      label="Paid by"
-      value="- todo -"
-    />
+      <PaginateTable
+        itemsLabel="Transactions"
+        :currentPage="page"
+        :totalItems="transactions.totalCount ?? 1"
+        :totalPages="transactions.totalPages"
+        @pageChange="page = Number($event)"
+      />
+    </div>
   </div>
 </template>

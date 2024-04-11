@@ -4,7 +4,6 @@
 // }>()
 
 const {
-  transactions,
   blockTransactionsTableColumns
 } = useAppConfig()
 
@@ -31,7 +30,7 @@ const data = reactive({
       class="p-6 rounded-2xl border border-gray-300"
     >
       <Table
-        :rows="transactions"
+        :rows="[]"
         :columns="blockTransactionsTableColumns"
       >
         <template #status="{ row }">
@@ -69,6 +68,8 @@ const data = reactive({
       </Table>
 
       <PaginateTable
+        itemsLabel="Transactions"
+        :totalItems="150"
         :currentPage="data.currentPage"
         :totalPages="data.totalPages"
         @pageChange="data.currentPage = $event"

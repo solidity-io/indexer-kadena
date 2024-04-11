@@ -1,5 +1,64 @@
 <script setup lang="ts">
-//
+import { gql } from 'nuxt-graphql-request/utils';
+
+const {
+  statementTableColumns
+} = useAppConfig()
+
+const data = reactive({
+  date: null,
+})
+
+const query = gql`
+  query GetTransactions($first: Int, $offset: Int) {
+    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
+      nodes {
+        chainid
+        code
+        createdAt
+        continuation
+        creationtime
+        data
+        gas
+        gaslimit
+        gasprice
+        id
+        metadata
+        logs
+        nonce
+        nodeId
+        numEvents
+        pactid
+        payloadHash
+        proof
+        requestkey
+        result
+        sender
+        rollback
+        step
+        ttl
+        txid
+        updatedAt
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
+      totalCount
+    }
+  }
+`
+
+const {
+  page,
+  pending,
+  data: transactions,
+} = await usePaginate({
+  query,
+  key: 'allTransactions'
+})
 </script>
 
 <template>
@@ -9,80 +68,61 @@
       flex flex-col
     "
   >
-    <LabelValue
-      label="coin.TRANSFER"
+    <div
+      class="p-6 rounded-2xl border border-gray-300 gap-4 flex flex-col"
     >
-      <template #value>
-        <Code
-          value="k:d7bf621636d4fc45c0c50f59b511f88eb0a737837a7b6d800756762a295fdc4d"
+      <div>
+        <DatePicker
+          v-model="data.date"
         />
+      </div>
 
-        <Code
-          value="99cb7008d7d70c94f138cc366a825f0d9c83a8a2f4ba82c86c666e0ab6fecf3a"
-        />
+      <Table
+        :class="pending && 'bg-white'"
+        :rows="transactions.nodes"
+        :columns="statementTableColumns"
+      >
+        <template #createdAt="{ row }">
+          <ColumnDate
+            :row="row"
+          />
+        </template>
 
-        <Code
-          value="0.0000621"
-        />
-      </template>
-    </LabelValue>
+        <template #description>
+          <!-- <ColumnAddress
+            value="TODO"
+          /> -->
+          <span>
+            - todo -
+          </span>
+        </template>
 
-    <LabelValue
-      label="coin.TRANSFER_XCHAIN"
-    >
-      <template #value>
-        <Code
-          value="k:d7bf621636d4fc45c0c50f59b511f88eb0a737837a7b6d800756762a295fdc4d"
-        />
+        <template #amount>
+          <!-- <ColumnAddress
+            value="TODO"
+          /> -->
+          <span>
+            - todo -
+          </span>
+        </template>
 
-        <Code
-          value="k:d7bf621636d4fc45c0c50f59b511f88eb0a737837a7b6d800756762a295fdc4d"
-        />
+        <template #balance>
+          <!-- <ColumnAddress
+            value="TODO"
+          /> -->
+          <span>
+            - todo -
+          </span>
+        </template>
+      </Table>
 
-        <Code
-          value="65.12779373"
-        />
-
-        <Code
-          value="2"
-        />
-      </template>
-    </LabelValue>
-
-    <LabelValue
-      label="coin.TRANSFER"
-    >
-      <template #value>
-        <Code
-          value="k:d7bf621636d4fc45c0c50f59b511f88eb0a737837a7b6d800756762a295fdc4d"
-        />
-
-        <Code
-          value="-"
-        />
-
-        <Code
-          value="65.12779373"
-        />
-      </template>
-    </LabelValue>
-
-    <LabelValue
-      label="pact.X_YIELD"
-    >
-      <template #value>
-        <Code
-          value="2"
-        />
-
-        <Code
-          value="coin.transfer-crosschain"
-        />
-
-        <Code
-          :value="result"
-        />
-      </template>
-    </LabelValue>
+      <PaginateTable
+        itemsLabel="Transactions"
+        :currentPage="page"
+        :totalItems="transactions.totalCount ?? 1"
+        :totalPages="transactions.totalPages"
+        @pageChange="page = Number($event)"
+      />
+    </div>
   </div>
 </template>
