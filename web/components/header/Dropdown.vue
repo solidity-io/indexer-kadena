@@ -55,7 +55,7 @@ provideUseId(() => useId())
             class="flex flex-col gap-2"
           >
             <NuxtLink
-              :to="'#'"
+              :to="subroute.path"
               :key="subroute.tag"
               class="p-3 text-sm text-font-400 hover:text-kadscan-500"
               v-for="subroute in props.items"

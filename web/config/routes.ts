@@ -35,17 +35,17 @@ export const routes: Route[] = [
   {
     type: 'group',
     label: 'Tokens',
-    tag: 'route:tokens',
+    tag: 'route:token',
     subroutes: [
       {
-        path: '/tokens/trending',
+        path: '/token/trending',
         label: 'Trending tokens',
         tag: 'route:tokens:trending',
       },
       {
         path: '/tokens/transfers',
         label: 'Token Transfers',
-        tag: 'route:tokens:transfers',
+        tag: 'route:token:transfers',
       }
     ]
   },
@@ -55,8 +55,8 @@ export const routes: Route[] = [
     tag: 'route:nft',
     subroutes: [
       {
-        path: '/nft/trending',
-        tag: 'route:nft:trending',
+        path: '/nft/collections',
+        tag: 'route:nft:collections',
         label: 'NFT Trending Collections',
       },
       {

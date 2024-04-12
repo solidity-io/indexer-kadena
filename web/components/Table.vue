@@ -22,7 +22,7 @@ const props = withDefaults(
         :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
       >
         <span
-          class="text-font-500 text-xs font-semibold leading-[150%]"
+          class="text-font-500 text-xs font-semibold leading-[150%] h-[18px] block"
         >
           {{ column.label }}
         </span>
@@ -41,15 +41,15 @@ const props = withDefaults(
           :key="index"
           v-for="(column, index) in props.columns"
           :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
-          class="text-font-400 truncate"
-          :class="column.center && 'text-center'"
+          class="text-font-400 flex items-center"
+          :class="column.center && 'text-center justify-center'"
         >
           <slot
             :name="column.key"
             :row="row"
           >
             <span
-              class="text-font-400 text-sm"
+              class="text-font-400 text-sm truncate"
             >
               {{ row[column.key] }}
             </span>
