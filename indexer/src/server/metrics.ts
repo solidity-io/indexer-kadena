@@ -3,6 +3,7 @@ import { collectDefaultMetrics, Registry } from "prom-client";
 import { postgraphile } from "postgraphile";
 import { getRequiredEnvString } from "../utils/helpers";
 import path from "path";
+import cors from "cors";
 
 const register = new Registry();
 
@@ -17,6 +18,8 @@ const DB_HOST = getRequiredEnvString("DB_HOST");
 const SSL_CERT_PATH = path.resolve(__dirname, "../config/global-bundle.pem");
 const DB_CONNECTION = `postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}?ssl=true&&sslrootcert=${SSL_CERT_PATH}`;
 const SCHEMAS: Array<string> = ["public"];
+
+app.use(cors());
 
 app.get("/metrics", async (req, res) => {
   try {
@@ -42,4 +45,5 @@ app.listen(POST, () => {
     `Postgraphile server listening at http://localhost:${POST}/graphiql`
   );
 });
+
 export { register };

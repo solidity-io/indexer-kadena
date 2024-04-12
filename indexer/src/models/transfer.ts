@@ -1,7 +1,10 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
+import Transaction from "./transaction";
 
 export interface TransferAttributes {
+  id: number;
+  transactionId: number;
   amount: number;
   payloadHash: string;
   chainid: number;
@@ -14,6 +17,8 @@ export interface TransferAttributes {
 }
 
 class Transfer extends Model<TransferAttributes> implements TransferAttributes {
+  declare id: number;
+  declare transactionId: number;
   declare amount: number;
   declare payloadHash: string;
   declare chainid: number;
@@ -27,6 +32,8 @@ class Transfer extends Model<TransferAttributes> implements TransferAttributes {
 
 Transfer.init(
   {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    transactionId: { type: DataTypes.INTEGER, allowNull: true },
     amount: { type: DataTypes.DECIMAL, allowNull: false },
     payloadHash: { type: DataTypes.STRING, allowNull: false },
     chainid: { type: DataTypes.INTEGER, allowNull: false },
@@ -42,5 +49,10 @@ Transfer.init(
     modelName: "Transfer",
   }
 );
+
+Transfer.belongsTo(Transaction, {
+  foreignKey: "transactionId",
+  as: "transaction",
+});
 
 export default Transfer;

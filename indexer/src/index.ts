@@ -57,7 +57,7 @@ async function main() {
       startStreaming(SYNC_NETWORK);
       processS3HeadersDaemon(SYNC_NETWORK);
       processS3PayloadsDaemon(SYNC_NETWORK);
-      startMissingBlocksDaemon(SYNC_NETWORK);
+      // startMissingBlocksDaemon(SYNC_NETWORK);
     } else {
       console.log("No specific task requested.");
     }
