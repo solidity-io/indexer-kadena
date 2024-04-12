@@ -1,8 +1,10 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
+import Block from "./block";
 
 export interface TransactionAttributes {
   id: number;
+  blockId: number;
   payloadHash: string;
   chainid: number;
   code: object;
@@ -32,6 +34,7 @@ class Transaction
   implements TransactionAttributes
 {
   declare id: number;
+  declare blockId: number;
   declare result: object;
   declare payloadHash: string;
   declare chainid: number;
@@ -59,6 +62,7 @@ class Transaction
 Transaction.init(
   {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    blockId: { type: DataTypes.INTEGER, allowNull: true },
     payloadHash: { type: DataTypes.STRING },
     chainid: { type: DataTypes.INTEGER },
     code: { type: DataTypes.JSONB },
@@ -87,5 +91,10 @@ Transaction.init(
     modelName: "Transaction",
   }
 );
+
+Transaction.belongsTo(Block, {
+  foreignKey: "blockId",
+  as: "block",
+});
 
 export default Transaction;

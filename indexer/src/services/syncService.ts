@@ -29,6 +29,8 @@ import { TransactionAttributes } from "../models/transaction";
 import { EventAttributes } from "../models/event";
 import { TransferAttributes } from "../models/transfer";
 import { BalanceAttributes } from "../models/balance";
+import { sequelize } from "../config/database";
+import { Transaction } from "sequelize";
 
 const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
 const SYNC_MIN_HEIGHT = getRequiredEnvNumber("SYNC_MIN_HEIGHT");
@@ -431,29 +433,33 @@ async function processPayloadKey(network: string, prefix: string, key: string) {
     ].flat();
 
     try {
-      await transactionService.save(transactionAttributes);
+      let transactionInstance = await transactionService.save(
+        transactionAttributes
+      );
 
-      try {
-        await eventService.saveMany(eventsAttributes);
-      } catch (error) {
-        console.error(`Error saving event to the database: ${error}`);
-      }
+      let transactionId = transactionInstance[0].id;
 
-      try {
-        await transferService.saveMany(transfersAttributes);
-      } catch (error) {
-        console.error(`Error saving transfer to the database: ${error}`);
-      }
+      const eventsWithTransactionId = eventsAttributes.map((event) => ({
+        ...event,
+        transactionId: transactionId,
+      })) as EventAttributes[];
 
-      try {
-        await updateBalances(
-          network,
-          transactionAttributes.chainid,
-          transfersAttributes
-        );
-      } catch (error) {
-        console.error(`Error updating balances: ${error}`);
-      }
+      await eventService.saveMany(eventsWithTransactionId);
+
+      const transfersWithTransactionId = transfersAttributes.map(
+        (transfer) => ({
+          ...transfer,
+          transactionId: transactionId,
+        })
+      ) as TransferAttributes[];
+
+      await transferService.saveMany(transfersWithTransactionId);
+
+      await updateBalances(
+        network,
+        transactionAttributes.chainid,
+        transfersAttributes
+      );
     } catch (error) {
       console.error(`Error saving transaction to the database: ${error}`);
     }

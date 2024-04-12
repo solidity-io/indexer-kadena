@@ -1,7 +1,10 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
+import Transaction from "./transaction";
 
 export interface EventAttributes {
+  id: number;
+  transactionId: number;
   payloadHash: string;
   chainid: number;
   module: string;
@@ -14,6 +17,8 @@ export interface EventAttributes {
 }
 
 class Event extends Model<EventAttributes> implements EventAttributes {
+  declare id: number;
+  declare transactionId: number;
   declare payloadHash: string;
   declare chainid: number;
   declare module: string;
@@ -27,6 +32,8 @@ class Event extends Model<EventAttributes> implements EventAttributes {
 
 Event.init(
   {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    transactionId: { type: DataTypes.INTEGER, allowNull: true },
     payloadHash: { type: DataTypes.STRING, allowNull: false },
     chainid: { type: DataTypes.INTEGER, allowNull: false },
     module: { type: DataTypes.STRING, allowNull: false },
@@ -42,5 +49,10 @@ Event.init(
     modelName: "Event",
   }
 );
+
+Event.belongsTo(Transaction, {
+  foreignKey: "transactionId",
+  as: "transaction",
+});
 
 export default Event;
