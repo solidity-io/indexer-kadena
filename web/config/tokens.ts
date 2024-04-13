@@ -81,3 +81,49 @@ export const tokenTransfersTableColumns = [
     label: '',
   },
 ]
+
+export const tokenDetailTransferTableColumns = [
+  {
+    cols: 2,
+    key: 'hash',
+    label: 'Hash'
+  },
+  {
+    cols: 3,
+    key: 'block',
+    label: 'Block Height',
+  },
+  {
+    center: true,
+    cols: 2,
+    key: 'method',
+    label: 'Method',
+  },
+  {
+    cols: 4,
+    key: 'from',
+    label: 'From',
+  },
+  {
+    cols: 4,
+    key: 'to',
+    label: 'To',
+  },
+  {
+    cols: 3,
+    key: 'amount',
+    label: 'Quantity',
+  },
+  {
+    cols: 5,
+    key: 'date',
+    label: 'Date',
+  },
+  {
+    cols: 1,
+    center: true,
+    key: 'icon',
+    label: '',
+  },
+
+]
