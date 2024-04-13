@@ -25,13 +25,17 @@ provideUseId(() => useId())
         >
           <button
             :class="[
-              'pb-[11px] px-3 outline-none box-border border-b',
+              'pb-[10px] px-3 outline-none box-border border-b border-b-[2px]',
               selected
                 ? 'text-font-400  border-b-kadscan-500'
                 : 'text-font-500 border-b-transparent',
             ]"
           >
-            {{ tab.label }}
+            <span
+              class="block leading-[22px]"
+            >
+              {{ tab.label }}
+            </span>
           </button>
         </Tab>
       </TabList>

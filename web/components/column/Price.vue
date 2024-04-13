@@ -16,7 +16,7 @@ defineProps<{
     </span>
 
     <span
-      class="text-xs text-font-400 font-semibold leading-[150%] block"
+      class="text-xs text-font-500 font-semibold leading-[150%] block"
     >
       {{ dollar }}
     </span>
