@@ -38,7 +38,7 @@ export const routes: Route[] = [
     tag: 'route:token',
     subroutes: [
       {
-        path: '/token/trending',
+        path: '/tokens/trending',
         label: 'Trending tokens',
         tag: 'route:tokens:trending',
       },

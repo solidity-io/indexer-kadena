@@ -87,3 +87,43 @@ export const nftTransfersTableColumns = [
     label: '',
   },
 ]
+
+export const nftActivityTableColumns = [
+  {
+    cols: 2,
+    key: 'activity',
+    label: 'Activity',
+  },
+  {
+    cols: 2,
+    key: 'amount',
+    label: 'Price',
+  },
+  {
+    cols: 6,
+    key: 'hash',
+    label: 'Hash'
+  },
+  {
+    cols: 4,
+    key: 'from',
+    label: 'From',
+  },
+  {
+    cols: 4,
+    key: 'to',
+    label: 'To',
+  },
+  {
+    cols: 5,
+    key: 'date',
+    label: 'Date',
+  },
+
+  {
+    cols: 1,
+    center: true,
+    key: 'icon',
+    label: '',
+  },
+]

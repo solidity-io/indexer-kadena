@@ -16,29 +16,34 @@ provideUseId(() => useId())
 <template>
   <div>
     <TabGroup>
-      <TabList class="flex items-center gap-6">
-        <Tab
-          v-for="tab in tabs"
-          as="template"
-          :key="tab.key"
-          v-slot="{ selected }"
-        >
-          <button
-            :class="[
-              'pb-[10px] px-3 outline-none box-border border-b border-b-[2px]',
-              selected
-                ? 'text-font-400  border-b-kadscan-500'
-                : 'text-font-500 border-b-transparent',
-            ]"
+      <div
+        class="flex justify-between gap-4"
+      >
+        <TabList class="flex items-center gap-6">
+          <Tab
+            v-for="tab in tabs"
+            as="template"
+            :key="tab.key"
+            v-slot="{ selected }"
           >
-            <span
-              class="block leading-[22px]"
+            <button
+              :class="[
+                'pb-[10px] px-3 outline-none box-border border-b border-b-[2px]',
+                selected
+                  ? 'text-font-400  border-b-kadscan-500'
+                  : 'text-font-500 border-b-transparent',
+              ]"
             >
-              {{ tab.label }}
-            </span>
-          </button>
-        </Tab>
-      </TabList>
+              <span
+                class="block leading-[22px]"
+              >
+                {{ tab.label }}
+              </span>
+            </button>
+          </Tab>
+        </TabList>
+        <slot name="button" />
+      </div>
 
       <TabPanels class="pt-8">
         <slot />

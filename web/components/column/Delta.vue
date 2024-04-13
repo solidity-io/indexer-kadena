@@ -9,6 +9,6 @@ defineProps<{
     class="text-sm"
     :class="delta < 0 ? 'text-system-red' : 'text-system-green'"
   >
-    {{ delta * 100 }}%
+   {{ delta * 100 }}%
   </span>
 </template>
