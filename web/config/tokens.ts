@@ -125,5 +125,32 @@ export const tokenDetailTransferTableColumns = [
     key: 'icon',
     label: '',
   },
+]
 
+export const holdersTableColumns = [
+  {
+    cols: 1,
+    key: 'ranking',
+    label: '#'
+  },
+  {
+    cols: 7,
+    key: 'address',
+    label: 'Address',
+  },
+  {
+    cols: 5,
+    key: 'quantity',
+    label: 'Quantity',
+  },
+  {
+    cols: 5,
+    key: 'value',
+    label: 'Value',
+  },
+  {
+    cols: 6,
+    key: 'percentage',
+    label: 'Percentage',
+  },
 ]
