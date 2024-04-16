@@ -68,7 +68,7 @@ const {
       class="p-6 rounded-2xl border border-gray-300"
     >
       <Table
-        :class="pending && 'bg-white'"
+        :pending="pending"
         :rows="transactions.nodes"
         :columns="transactionTableColumns"
       >

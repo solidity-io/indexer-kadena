@@ -78,7 +78,7 @@ const {
       </div>
 
       <Table
-        :class="pending && 'bg-white'"
+        :pending="pending"
         :rows="transactions.nodes"
         :columns="statementTableColumns"
       >

@@ -29,7 +29,7 @@ const status = computed((): 'success' | 'error' => {
     :to="`/transaction/${nodeId}`"
   >
     <div
-      class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer"
+      class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer max-h-[82px]"
     >
       <IconStatus
         :status="status"

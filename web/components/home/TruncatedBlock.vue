@@ -28,7 +28,7 @@ const status = computed((): 'success' | 'error' => {
     to="/block/1"
   >
     <div
-      class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer"
+      class="flex items-center gap-4 py-3 max-h-[82px] border-b border-b-gray-300 hover:bg-gray-700 cursor-pointer"
     >
       <IconStatus
         :status="status"

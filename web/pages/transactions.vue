@@ -63,6 +63,10 @@ const {
   query,
   key: 'allTransactions'
 })
+
+const redirect = (transaction: any) => {
+  navigateTo({ path: `/transaction/${transaction.nodeId}` })
+}
 </script>
 
 <template>
@@ -119,9 +123,10 @@ const {
       </div>
 
       <Table
-        :class="pending && 'bg-white'"
+        :pending="pending"
         :rows="transactions.nodes"
         :columns="transactionTableColumns"
+        @rowClick="redirect"
       >
         <template #status="{ row }">
           <ColumnStatus

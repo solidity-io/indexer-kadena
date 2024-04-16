@@ -48,6 +48,7 @@ const query = gql`
 
 const {
   page,
+  pending,
   data: blocks,
 } = await usePaginate({
   query,
@@ -109,6 +110,7 @@ const {
       </div>
 
       <Table
+        :pending="pending"
         :rows="blocks.nodes"
         :columns="blocksTableColumns"
       >
