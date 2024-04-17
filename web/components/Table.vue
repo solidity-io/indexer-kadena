@@ -70,7 +70,7 @@ const emit = defineEmits(['rowClick'])
             :key="index"
             v-for="(column, index) in props.columns"
             :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
-            class="text-font-400 flex items-center"
+            class="text-font-400 flex items-center cursor-pointer"
             :class="column.center && 'text-center justify-center'"
           >
             <slot

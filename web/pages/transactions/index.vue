@@ -43,6 +43,27 @@ const query = gql`
         ttl
         txid
         updatedAt
+        transfersByTransactionId {
+          nodes {
+            amount
+            chainid
+            createdAt
+            fromAcct
+            id
+            modulehash
+            nodeId
+            modulename
+            payloadHash
+            requestkey
+            toAcct
+            tokenId
+            transactionId
+            updatedAt
+          }
+        }
+        blockByBlockId {
+          height
+        }
       }
       pageInfo {
         endCursor
@@ -65,8 +86,10 @@ const {
 })
 
 const redirect = (transaction: any) => {
-  navigateTo({ path: `/transaction/${transaction.nodeId}` })
+  navigateTo({ path: `/transactions/${transaction.nodeId}` })
 }
+
+console.log('transactions,', transactions.value)
 </script>
 
 <template>
@@ -130,7 +153,6 @@ const redirect = (transaction: any) => {
       >
         <template #status="{ row }">
           <ColumnStatus
-            :key="'status-' + row.requestkey"
             :row="row"
           />
         </template>
@@ -147,22 +169,14 @@ const redirect = (transaction: any) => {
           />
         </template>
 
-        <template #receiver>
-          <!-- <ColumnAddress
-            value="TODO"
-          /> -->
-          <span>
-            - todo -
-          </span>
+        <template #receiver="{ row }">
+          <ColumnTxReceiver
+            :row="row"
+          />
         </template>
 
-        <template #block>
-          <!-- <ColumnAddress
-            value="TODO"
-          /> -->
-          <span>
-            - todo -
-          </span>
+        <template #block="{ row }">
+          {{ row.blockByBlockId?.height ?? "null" }}
         </template>
 
         <template #icon>

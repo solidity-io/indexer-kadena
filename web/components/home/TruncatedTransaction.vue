@@ -4,29 +4,37 @@ import { format } from 'date-fns'
 const props = defineProps<{
   nodeId: string,
   result: string,
-  sender: string,
   chainid: number,
   createdAt: string,
   requestkey: string,
+  transfersByTransactionId: any
 }>()
 
-function shortenAddress (
+const shortenAddress = (
   address: string,
   chars = 5
-): string {
+): string => {
+  if (!address) {
+    return ''
+  }
+
   return `${address.slice(0, chars)}...${address.slice(
     -chars
   )}`
 }
 
-const status = computed((): 'success' | 'error' => {
-  return props.result.includes('\"status\":\"success\"') ? 'success' : 'error'
-})
+const {
+  sender,
+  status,
+  receiver,
+  transfers,
+  gasTransaction,
+} = useTransaction(props)
 </script>
 
 <template>
   <NuxtLink
-    :to="`/transaction/${nodeId}`"
+    :to="`/transactions/${nodeId}`"
   >
     <div
       class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer max-h-[82px]"
@@ -86,7 +94,7 @@ const status = computed((): 'success' | 'error' => {
           <span
             class="text-font-400"
           >
-            {{ shortenAddress(props.sender) }}
+            {{ shortenAddress(sender) }}
           </span>
         </div>
 
@@ -102,8 +110,7 @@ const status = computed((): 'success' | 'error' => {
           <span
             class="text-font-400"
           >
-            <!-- {{ shortenAddress("coin") }} -->
-            - todo -
+            {{ shortenAddress(receiver) }}
           </span>
         </div>
       </div>
@@ -117,8 +124,17 @@ const status = computed((): 'success' | 'error' => {
           <span
             class="text-font-400 text-xs"
           >
-            <!-- {{ props.amount }} KDA -->
-            - todo -
+            <template
+              v-if="transfers.length > 0"
+            >
+              {{ `${transfers[0].amount}` }}
+            </template>
+
+            <template
+              v-else
+            >
+              {{ `${Number(gasTransaction.amount).toPrecision(2)} ${gasTransaction.modulename}`}}
+            </template>
           </span>
         </div>
 

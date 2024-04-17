@@ -41,6 +41,42 @@ const query = gql`
         ttl
         txid
         updatedAt
+        eventsByTransactionId {
+          nodes {
+            chainid
+            createdAt
+            id
+            module
+            name
+            modulehash
+            nodeId
+            params
+            paramtext
+            payloadHash
+            qualname
+            requestkey
+            transactionId
+            updatedAt
+          }
+        }
+        transfersByTransactionId {
+          nodes {
+            amount
+            chainid
+            createdAt
+            fromAcct
+            modulehash
+            id
+            nodeId
+            modulename
+            requestkey
+            payloadHash
+            toAcct
+            tokenId
+            transactionId
+            updatedAt
+          }
+        }
       }
     }
     allBlocks(last: 5) {
@@ -62,6 +98,9 @@ const query = gql`
         target
         updatedAt
         weight
+        transactionsByBlockId {
+          totalCount
+        }
       }
     }
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   label: string;
-  value?: string;
+  value?: string | number;
   col?: boolean;
   withCopy?: boolean;
 }>()

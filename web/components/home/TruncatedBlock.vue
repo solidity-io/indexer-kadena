@@ -3,10 +3,12 @@ import { format } from 'date-fns'
 
 const props = defineProps<{
   parent: string,
+  nodeId: string,
   chainId: number,
   height: number,
   hash: string,
   createdAt: string,
+  transactionsByBlockId: any,
 }>()
 
 function shortenAddress (
@@ -25,7 +27,7 @@ const status = computed((): 'success' | 'error' => {
 
 <template>
   <NuxtLink
-    to="/block/1"
+    :to="`/blocks/${nodeId}`"
   >
     <div
       class="flex items-center gap-4 py-3 max-h-[82px] border-b border-b-gray-300 hover:bg-gray-700 cursor-pointer"
@@ -105,7 +107,7 @@ const status = computed((): 'success' | 'error' => {
           <span
             class="text-font-400"
           >
-            25
+            {{ transactionsByBlockId.totalCount }}
           </span>
         </div>
 

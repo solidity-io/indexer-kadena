@@ -1,81 +1,89 @@
 <script setup lang="ts">
 defineProps<{
-  transaction: any
+  code: string;
+  gasTransaction: any;
+  metadata: any;
+  receiver: string;
+  continuation: string;
 }>()
 </script>
 
 <template>
-  <div
-    class="
-      gap-6
-      flex flex-col
-    "
-  >
-    <LabelValue
-      withCopy
-      label="From"
-      :value="transaction.sender"
-    />
-
-    <!-- <LabelValue
-      withCopy
-      label="To"
-      value="xfS-eHFuzE72619KflxCn0FKSa5BhvvhyR9THumhdOE"
-    /> -->
-    <LabelValue
-      label="To"
-      value="- todo -"
-    />
-
-    <LabelValue
-      label="Crosschain"
+  <div>
+    <div
+      class="
+        gap-6
+        pb-6
+        flex flex-col
+      "
     >
-      <template #value>
-        <!-- <div
-          class="flex items-center gap-2"
-        >
-          <span>
-            1
-          </span>
+      <LabelValue
+        withCopy
+        label="From"
+        :value="metadata.sender"
+      />
 
-          <IconChevron />
+      <LabelValue
+        withCopy
+        label="To"
+        :value="receiver"
+      />
 
-          <span>
-            2 (origination)
-          </span>
-        </div> -->
-        <span>
-          - todo -
-        </span>
-      </template>
-    </LabelValue>
+      <LabelValue
+        label="Amount"
+        value="2"
+      />
+    </div>
 
-    <!-- <LabelValue
-      label="Amount"
-      value="2"
-    /> -->
-    <LabelValue
-      label="Amount"
-      value="- todo -"
-    />
+    <div
+      class="
+        py-6
+        gap-6
+        flex flex-col
+        border-t border-t-gray-300
+      "
+    >
+      <LabelValue
+        label="Transaction Fee"
+        :value="`${gasTransaction.amount} KDA`"
+      />
 
-    <!-- <LabelValue
-      label="Transaction Fee"
-      value="43.06 KDA (49.95 USD)"
-    /> -->
-    <LabelValue
-      label="Transaction Fee"
-      value="- todo -"
-    />
+      <LabelValue
+        withCopy
+        label="Paid by"
+        :value="gasTransaction.fromAcct"
+      />
+    </div>
 
-    <!-- <LabelValue
-      withCopy
-      label="Paid by"
-      value="k:9c56a61871e582fb285a5b7fda79f1925bc0f68745f7a3a0ebea71d094f2246a"
-    /> -->
-    <LabelValue
-      label="Paid by"
-      value="- todo -"
-    />
+    <div
+      class="
+        py-6
+        gap-6
+        flex flex-col
+        border-t border-t-gray-300
+      "
+    >
+      <LabelValue
+        label="Gas Price"
+        :value="`${metadata.gasPrice}`"
+      />
+    </div>
+
+    <div
+      class="
+        pt-6
+        border-t border-t-gray-300
+      "
+    >
+      <LabelValue
+        label="Code"
+      >
+        <template #value>
+          <HighlightValue>
+            {{ code }}
+          </HighlightValue>
+        </template>
+      </LabelValue>
+    </div>
   </div>
 </template>

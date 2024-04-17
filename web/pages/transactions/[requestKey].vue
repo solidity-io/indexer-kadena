@@ -60,6 +60,62 @@ const query = gql`
       logs
       metadata
       id
+      blockId
+      blockByBlockId {
+        adjacents
+        chainId
+        createdAt
+        chainwebVersion
+        epochStart
+        creationTime
+        featureFlags
+        hash
+        height
+        id
+        nodeId
+        nonce
+        target
+        parent
+        payloadHash
+        updatedAt
+        weight
+      }
+      eventsByTransactionId {
+        nodes {
+          updatedAt
+          transactionId
+          requestkey
+          qualname
+          paramtext
+          params
+          payloadHash
+          nodeId
+          modulehash
+          module
+          name
+          createdAt
+          id
+          chainid
+        }
+      }
+      transfersByTransactionId {
+        nodes {
+          updatedAt
+          transactionId
+          tokenId
+          requestkey
+          toAcct
+          payloadHash
+          nodeId
+          modulename
+          modulehash
+          id
+          createdAt
+          chainid
+          amount
+          fromAcct
+        }
+      }
     }
   }
 `
@@ -77,6 +133,10 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
 
   return transaction
 });
+
+
+const formattedTransaction = useTransaction(transaction.value)
+console.log("Formatted: ", formattedTransaction)
 </script>
 
 <template>
@@ -99,7 +159,7 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
       "
     >
       <TransactionDetails
-        :transaction="transaction"
+        v-bind="formattedTransaction"
       />
     </div>
 
@@ -115,22 +175,26 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
       >
         <TabPanel>
           <TransactionOverview
-            :transaction="transaction"
+            v-bind="formattedTransaction"
           />
         </TabPanel>
 
         <TabPanel>
           <TransactionMeta
-            :transaction="transaction"
+            v-bind="formattedTransaction"
           />
         </TabPanel>
 
         <TabPanel>
-          <TransactionOutput />
+          <TransactionOutput
+            v-bind="formattedTransaction"
+          />
         </TabPanel>
 
         <TabPanel>
-          <TransactionEvents />
+          <TransactionEvents
+            v-bind="formattedTransaction"
+          />
         </TabPanel>
       </Tabs>
     </div>
