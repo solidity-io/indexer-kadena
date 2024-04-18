@@ -35,6 +35,7 @@ export const useTransaction = (props: any): any => {
 
   return {
     publicKey,
+    sender: fromAcct,
     id: props.id || 0,
     logs: props?.logs,
     receiver: toAcct,

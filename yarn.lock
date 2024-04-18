@@ -4269,6 +4269,11 @@ chart.js@^4.4.2:
   dependencies:
     "@kurkle/color" "^0.3.0"
 
+chartjs-plugin-gradient@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/chartjs-plugin-gradient/-/chartjs-plugin-gradient-0.6.1.tgz#c558357c67e90167051adf409ffd5b69e87f210a"
+  integrity sha512-TGHNIh8KqQMLdb+UfY80cBHYRyOC47eeokmgkeajRdKGbFt462lJiyiq4ZJ25fiM7BGsmzoBLhmVyEw4B3gQxw==
+
 chokidar@^3.5.1, chokidar@^3.5.2, chokidar@^3.5.3, chokidar@^3.6.0:
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-3.6.0.tgz#197c6cc669ef2a8dc5e7b4d97ee4e092c3eb0d5b"

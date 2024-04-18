@@ -2,10 +2,10 @@
 withDefaults(
   defineProps<{
     label?: string;
-    float?: string,
+    delta?: number,
     suffix?: string;
     isDark?: boolean;
-    description?: string;
+    description?: string | number;
   }>(),
   {
     label: '',
@@ -31,14 +31,14 @@ withDefaults(
       </span>
 
       <div
-        v-if="float"
+        v-if="delta"
         class="px-2 py-1 bg-gray-900 rounded"
       >
         <span
           class="text-xs block"
-          :class="float.includes('-') ? 'text-system-red' : 'text-system-green'"
+          :class="delta < 0 ? 'text-system-red' : 'text-system-green'"
         >
-          {{ float.replace('-', '') }}
+            {{ delta.toFixed(2) }}%
         </span>
 
       </div>

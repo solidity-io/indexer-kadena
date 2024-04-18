@@ -107,13 +107,30 @@ const query = gql`
 `
 
 const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
-  const res = await $graphql.default.request(query);
+  const [
+    graphqlRes,
+    tokenDataRes,
+    tokenChartDataRes,
+  ] = await Promise.all([
+    $graphql.default.request(query),
+    fetch('https://api.coingecko.com/api/v3/coins/kadena?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
+    fetch('https://api.coingecko.com/api/v3/coins/kadena/market_chart?vs_currency=usd&days=14&interval=daily&x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC')
+  ])
+
+  const token = await tokenDataRes.json()
+
+  const chartData = await tokenChartDataRes.json()
+
+  console.log("chartData", chartData)
 
   return {
-    blocks: res.allBlocks,
-    transactions: res.allTransactions
+    token,
+    chartData,
+    blocks: graphqlRes.allBlocks,
+    transactions: graphqlRes.allTransactions
   };
 });
+
 </script>
 
 <template>
@@ -149,34 +166,44 @@ const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
         "
       >
         <HomeChartCard
-          label="Kadena Price"
-          description="$3,401.66"
-          suffix="@0.0021 BTC"
-          float="2.46%"
+          :label="data?.token.name + ' Price'"
+          :description="formatNumber.format(data?.token.market_data.current_price.usd)"
+          :delta="data?.token.market_data.price_change_percentage_24h_in_currency.usd"
         />
 
         <HomeChartCard
           isDark
-          label="Total transactions"
-          description="90.61 M"
+          label="Total Volume"
+          :description="formatNumber.format(data?.token.market_data.total_volume.usd)"
         />
 
         <HomeChartCard
           label="Market Capital"
-          description="$345.94 M"
+          :description="formatNumber.format(data?.token.market_data.market_cap.usd)"
         />
 
         <HomeChartCard
           label="Circulating Supply"
-          description="264.08 M"
-          float="-0.45%"
+          :description="formatNumber.format(data?.token.market_data.circulating_supply)"
         />
       </div>
 
       <div
-        class="w-full h-full"
+        class="w-full h-full flex flex-col gap-6"
       >
-        <Chart />
+        <span
+          class="text-font-400"
+        >
+          Total transactions history in 14 days
+        </span>
+
+        <div
+          class="h-full"
+        >
+          <Chart
+            v-bind="data?.chartData"
+          />
+        </div>
       </div>
     </div>
 

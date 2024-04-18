@@ -1,21 +1,36 @@
 <script setup lang="ts">
+import { format } from 'date-fns'
 import { Line } from 'vue-chartjs'
 
+const props = defineProps<{
+  prices: [number[]]
+}>()
 const chartData = ref({
-  labels: ['Feb 14', 'Feb 21', 'Feb 28', 'Mar 06', 'Mar 13'],
-    datasets: [{
-      label: 'Ethereum Price',
-      data: [348, 352, 345, 360, 355],
-      borderColor: '#00F5AB', // Cor da linha
-      borderWidth: 2,
-      tension: 0.4,
-      pointRadius: 0,
-      fill: {
-        target: 'origin',
-        above: 'rgba(0, 245, 171, 0.2)', // Cor do preenchimento acima (0, 245, 171) com opacidade de 100%
-        below: 'rgba(0, 245, 171, 0.1)'
-      }
-    }]
+  labels: props.prices.map(([label]) => {
+    return format(label, 'MMM dd')
+  }),
+  datasets: [{
+    data: props.prices.map(([_, value]) => {
+      return value
+    }),
+    fill: true,
+    borderColor: '#00F5AB',
+    backgroundColor: '#00F5AB',
+    borderWidth: 2,
+    tension: 0.4,
+    pointRadius: 0,
+    hoverRadius: 5,
+    hoverOffset: 4,
+    gradient: {
+      backgroundColor: {
+        axis: 'y',
+        colors: {
+          0: 'rgba(0, 245, 171, 0.01)',
+          100: 'rgba(0, 245, 171, 0.2)'
+        }
+      },
+    }
+  }]
 })
 const chartOptions = ref({
   maintainAspectRatio: false,
@@ -23,31 +38,70 @@ const chartOptions = ref({
   plugins: {
     legend: {
       display: false
+    },
+    tooltip: {
+      mode: 'index',
+      intersect: false,
+      backgroundColor: '#292B2C',
+      titleColor: '#fff',
+      bodyColor: '#fff',
+      borderColor: '#525454',
+      borderWidth: 1,
+      cornerRadius: 4,
+      displayColors: false,
+      callbacks: {
+        label: function(context: any) {
+          let label = context.dataset.label || '';
+
+          if (label) {
+            label += ': ';
+          }
+          if (context.parsed.y !== null) {
+            label += context.parsed.y.toFixed(2);
+          }
+
+          return `$${label}`;
+        }
+      }
     }
   },
   scales: {
     x: {
       grid: {
-        display: false
+        display: false,
+      },
+      ticks: {
+        maxTicksLimit: 5,
+        color: '#939393',
+        background: '#fff',
+        font: {
+          size: 12,
+          family: 'Inter',
+        },
       }
     },
 
     y: {
-      ticks: {
-        stepSize: 5 // Define o intervalo entre os ticks
-    },
-      min: 340, // Define o valor mínimo para o eixo y
+      min: 0,
       grid: {
         display: false
+      },
+      ticks: {
+        color: '#939393',
+        maxTicksLimit: 5,
+        font: {
+          size: 12,
+          family: 'Inter',
+        },
       }
     }
   }
-})
+}) as any
 </script>
 
 <template>
   <div
-    class="w-full h-full"
+    class="w-full h-full cursor-pointer"
   >
     <Line
       :data="chartData"
