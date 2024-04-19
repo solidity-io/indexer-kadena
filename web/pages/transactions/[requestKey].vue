@@ -135,7 +135,6 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
 });
 
 const formattedTransaction = useTransaction(transaction.value)
-console.log("Formatted: ", formattedTransaction)
 </script>
 
 <template>

@@ -61,8 +61,6 @@ const {
 const redirect = (block: any) => {
   navigateTo({ path: `/blocks/${block.nodeId}` })
 }
-
-console.log('blocks', blocks.value)
 </script>
 
 <template>

@@ -33,121 +33,123 @@ const {
 </script>
 
 <template>
-  <NuxtLink
-    :to="`/transactions/${nodeId}`"
-  >
-    <div
-      class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer max-h-[82px]"
+  <div>
+    <NuxtLink
+      :to="`/transactions/${nodeId}`"
     >
-      <IconStatus
-        :status="status"
-      />
-
       <div
-        class="flex flex-col gap-4"
+        class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer max-h-[82px]"
       >
-        <div
-          class="flex gap-2 text-sm"
-        >
-          <span
-            class="text-font-500 whitespace-nowrap"
-          >
-            Request Key
-          </span>
-
-          <span
-            class="text-font-400"
-          >
-            {{ shortenAddress(props.requestkey) }}
-          </span>
-        </div>
+        <IconStatus
+          :status="status"
+        />
 
         <div
-          class="flex gap-2 text-sm"
+          class="flex flex-col gap-4"
         >
-          <span
-            class="text-font-500 whitespace-nowrap"
+          <div
+            class="flex gap-2 text-sm"
           >
-            Chain
-          </span>
-
-          <span
-            class="text-font-400"
-          >
-            {{ props.chainid }}
-          </span>
-        </div>
-      </div>
-
-      <div
-        class="flex flex-col gap-4 mx-auto"
-      >
-        <div
-          class="flex gap-2 text-sm"
-        >
-          <span
-            class="text-font-500 whitespace-nowrap"
-          >
-            From
-          </span>
-
-          <span
-            class="text-font-400"
-          >
-            {{ shortenAddress(sender) }}
-          </span>
-        </div>
-
-        <div
-          class="flex gap-2 text-sm"
-        >
-          <span
-            class="text-font-500 whitespace-nowrap"
-          >
-            To
-          </span>
-
-          <span
-            class="text-font-400"
-          >
-            {{ shortenAddress(receiver) }}
-          </span>
-        </div>
-      </div>
-
-      <div
-        class="flex flex-col items-end gap-4 ml-auto"
-      >
-        <div
-          class="flex px-2 py-0.5 border border-gray-300 rounded"
-        >
-          <span
-            class="text-font-400 text-xs"
-          >
-            <template
-              v-if="transfers.length > 0"
+            <span
+              class="text-font-500 whitespace-nowrap"
             >
-              {{ `${transfers[0].amount}` }}
-            </template>
+              Request Key
+            </span>
 
-            <template
-              v-else
+            <span
+              class="text-font-400"
             >
-              {{ `${Number(gasTransaction.amount).toPrecision(2)} ${gasTransaction.modulename}`}}
-            </template>
-          </span>
+              {{ shortenAddress(props.requestkey) }}
+            </span>
+          </div>
+
+          <div
+            class="flex gap-2 text-sm"
+          >
+            <span
+              class="text-font-500 whitespace-nowrap"
+            >
+              Chain
+            </span>
+
+            <span
+              class="text-font-400"
+            >
+              {{ props.chainid }}
+            </span>
+          </div>
         </div>
 
         <div
-          class="flex gap-2"
+          class="flex flex-col gap-4 mx-auto"
         >
-          <span
-            class="text-font-400 text-sm"
+          <div
+            class="flex gap-2 text-sm"
           >
-            {{ format(new Date(props.createdAt), 'dd MMM y HH:mm:ss') }}
-          </span>
+            <span
+              class="text-font-500 whitespace-nowrap"
+            >
+              From
+            </span>
+
+            <span
+              class="text-font-400"
+            >
+              {{ shortenAddress(sender) }}
+            </span>
+          </div>
+
+          <div
+            class="flex gap-2 text-sm"
+          >
+            <span
+              class="text-font-500 whitespace-nowrap"
+            >
+              To
+            </span>
+
+            <span
+              class="text-font-400"
+            >
+              {{ shortenAddress(receiver) }}
+            </span>
+          </div>
+        </div>
+
+        <div
+          class="flex flex-col items-end gap-4 ml-auto"
+        >
+          <div
+            class="flex px-2 py-0.5 border border-gray-300 rounded"
+          >
+            <span
+              class="text-font-400 text-xs"
+            >
+              <template
+                v-if="transfers.length > 0"
+              >
+                {{ `${transfers[0].amount}` }}
+              </template>
+
+              <template
+                v-else
+              >
+                {{ `${Number(gasTransaction.amount).toPrecision(2)} ${gasTransaction.modulename}`}}
+              </template>
+            </span>
+          </div>
+
+          <div
+            class="flex gap-2"
+          >
+            <span
+              class="text-font-400 text-sm"
+            >
+              {{ format(new Date(props.createdAt), 'dd MMM y HH:mm:ss') }}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-  </NuxtLink>
+    </NuxtLink>
+  </div>
 </template>

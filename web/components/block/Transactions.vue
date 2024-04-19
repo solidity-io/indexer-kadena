@@ -84,8 +84,6 @@ const {
 const redirect = (transaction: any) => {
   navigateTo({ path: `/transactions/${transaction.nodeId}` })
 }
-
-console.log("Transactions", transactions.value)
 </script>
 
 <template>

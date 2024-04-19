@@ -66,8 +66,6 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
     id: route.params.hash,
   });
 
-  console.log('block', block)
-
   return block
 });
 </script>
