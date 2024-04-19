@@ -19,8 +19,8 @@ const query = gql`
       nodes {
         adjacents
         chainId
-        createdAt
         chainwebVersion
+        createdAt
         creationTime
         epochStart
         featureFlags
@@ -28,12 +28,15 @@ const query = gql`
         height
         id
         nodeId
-        parent
         nonce
+        parent
         payloadHash
         target
         updatedAt
         weight
+        transactionsByBlockId {
+          totalCount
+        }
       }
       pageInfo {
         endCursor
@@ -54,6 +57,12 @@ const {
   query,
   key: 'allBlocks'
 })
+
+const redirect = (block: any) => {
+  navigateTo({ path: `/blocks/${block.nodeId}` })
+}
+
+console.log('blocks', blocks.value)
 </script>
 
 <template>
@@ -72,27 +81,23 @@ const {
       class="grid grid-cols-4 gap-6"
     >
       <Card
-        float="+2,02%"
-        description="1,227,000"
+        :description="integer.format(blocks.totalCount)"
         label="Mined Blocks"
       />
 
       <Card
-        float="19.56%"
-        description="676.74 KDA"
-        label="Transactions per Block"
+        label="Todo"
+        description="-"
       />
 
       <Card
-        float="28.71%"
-        description="19.51 KDA"
-        label="Avg. Transaction Fee (24h)"
+        label="Todo"
+        description="-"
       />
 
       <Card
-        suffix="(Average)"
-        description="176,299"
-        label="Last Mined Block Height "
+        :description="integer.format(blocks.totalCount - 1)"
+        label="Last Mined Block Height"
       />
     </div>
 
@@ -113,11 +118,10 @@ const {
         :pending="pending"
         :rows="blocks.nodes"
         :columns="blocksTableColumns"
+        @rowClick="redirect"
       >
-        <template #todo>
-          <span>
-            - todo -
-          </span>
+        <template #transactions="{ row }">
+          {{ row.transactionsByBlockId.totalCount }}
         </template>
 
         <template #status="{ row }">

@@ -4,7 +4,8 @@ withDefaults(
     label?: string;
     float?: string,
     suffix?: string;
-    description?: string;
+    delta?: number;
+    description?: string | number;
   }>(),
   {
     label: '',
@@ -49,14 +50,14 @@ withDefaults(
       </div>
 
       <div
-        v-if="float"
+        v-if="delta"
         class="px-2 py-1 bg-gray-900 rounded"
       >
         <span
           class="text-xs block"
-          :class="float.includes('-') ? 'text-system-red' : 'text-system-green'"
+          :class="delta < 0 ? 'text-system-red' : 'text-system-green'"
         >
-          {{ float.replace('-', '') }}
+          {{ delta.toFixed(2) }}
         </span>
       </div>
     </div>

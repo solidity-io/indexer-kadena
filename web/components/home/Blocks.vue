@@ -16,7 +16,7 @@ const blocks = computed(() => {
       class="flex justify-between items-center"
     >
       <span
-        class="text-lg text-font-400 font-semibold	"
+        class="text-lg text-font-400 font-semibold"
       >
         Recent Blocks
       </span>

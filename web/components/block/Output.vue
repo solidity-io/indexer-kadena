@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// defineProps<{
-//   transaction: any
-// }>()
+defineProps<{
+  //
+}>()
 </script>
 
 <template>
@@ -13,13 +13,14 @@
   >
     <LabelValue
       label="Gas"
-      value="k:5d96a61871e582fb285a5b7fda79f1925bc0f68745f7a3a0ebea71d094f2718b"
+      value="-"
     />
 
     <LabelValue
       label="Result"
+      value="-"
     >
-      <template #value>
+      <!-- <template #value>
         <div
           class="flex items-center gap-2"
         >
@@ -31,27 +32,27 @@
             Write Succeeded
           </span>
         </div>
-      </template>
+      </template> -->
     </LabelValue>
 
     <LabelValue
+      value="-"
       label="Request Key"
-      value="IjZ0SDduU3ZEQnczVUpwekJT"
     />
 
     <LabelValue
+      value="-"
       label="Logs"
-      value="0ZrkuHRW8j_1uC0kY1Xu5BgIc11RsIxKfO4Eri1H-tQ"
     />
 
     <LabelValue
+      value="-"
       label="Metadata"
-      value="None"
     />
 
     <LabelValue
+      value="-"
       label="Transaction ID"
-      value="9902406"
     />
   </div>
 </template>

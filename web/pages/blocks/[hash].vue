@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TabPanel } from '@headlessui/vue'
+import { gql } from 'nuxt-graphql-request/utils';
 
 definePageMeta({
   layout: 'app',
@@ -10,8 +11,6 @@ useHead({
 })
 
 const data = reactive({
-  currentPage: 1,
-  totalPages: 15,
   tabs: [
     {
       key: 'overview',
@@ -31,6 +30,46 @@ const data = reactive({
     },
   ],
 })
+
+const query = gql`
+  query GetBlockById($id: ID!) {
+    block(nodeId: $id) {
+      adjacents
+      chainId
+      createdAt
+      chainwebVersion
+      epochStart
+      creationTime
+      featureFlags
+      hash
+      height
+      id
+      nodeId
+      nonce
+      target
+      parent
+      payloadHash
+      updatedAt
+      weight
+    }
+  }
+`
+
+const route = useRoute()
+
+const { $graphql } = useNuxtApp();
+
+const { data: block } = await useAsyncData('GetBlockById', async () => {
+  const {
+    block
+  } = await $graphql.default.request(query, {
+    id: route.params.hash,
+  });
+
+  console.log('block', block)
+
+  return block
+});
 </script>
 
 <template>
@@ -52,7 +91,9 @@ const data = reactive({
         rounded-2xl
       "
     >
-      <BlockDetails />
+      <BlockDetails
+        v-bind="block"
+      />
     </div>
 
     <div
@@ -66,19 +107,27 @@ const data = reactive({
         :tabs="data.tabs"
       >
         <TabPanel>
-          <BlockOverview />
+          <BlockOverview
+            v-bind="block"
+          />
         </TabPanel>
 
         <TabPanel>
-          <BlockPayload/>
+          <BlockPayload
+            v-bind="block"
+          />
         </TabPanel>
 
         <TabPanel>
-          <BlockOutput />
+          <BlockOutput
+            v-bind="block"
+          />
         </TabPanel>
 
         <TabPanel>
-          <BlockTransactions />
+          <BlockTransactions
+            v-bind="block"
+          />
         </TabPanel>
       </Tabs>
     </div>

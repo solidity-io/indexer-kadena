@@ -76,6 +76,20 @@ const query = gql`
   }
 `
 
+const { data: blockchain } = await useAsyncData('transactions-blockchain', async () => {
+  const [
+    chainDataRes,
+  ] = await Promise.all([
+    fetch('https://api.coingecko.com/api/v3/coins/categories/kadena-ecosystem?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
+  ])
+
+  const kadena = await chainDataRes.json()
+
+  return {
+    kadena,
+  };
+});
+
 const {
   page,
   pending,
@@ -88,8 +102,6 @@ const {
 const redirect = (transaction: any) => {
   navigateTo({ path: `/transactions/${transaction.nodeId}` })
 }
-
-console.log('transactions,', transactions.value)
 </script>
 
 <template>
@@ -108,27 +120,23 @@ console.log('transactions,', transactions.value)
       class="grid grid-cols-4 gap-6"
     >
       <Card
-        float="+2,02%"
-        description="1,227,000"
-        label="KadenaTransactions (24h)"
+        label="Market Capital"
+        :description="money.format(blockchain?.kadena.market_cap)"
       />
 
       <Card
-        float="19.56%"
-        description="676.74 KDA"
-        label="Network transactions fee (24h)"
+        label="Volume (24h)"
+        :description="money.format(blockchain?.kadena.volume_24h)"
       />
 
       <Card
-        float="28.71%"
-        description="19.51 KDA"
-        label="Avg. Transaction Fee (24h)"
+        description="-"
+        label="Todo"
       />
 
       <Card
-        suffix="(Average)"
-        description="176,299"
-        label="Transactions Pending (Last 1H)"
+        :description="transactions.totalCount ?? 0"
+        label="Total transactions (All time)"
       />
     </div>
 

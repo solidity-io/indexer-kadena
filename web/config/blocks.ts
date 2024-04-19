@@ -24,7 +24,7 @@ export const blocksTableColumns = [
   {
     cols: 3,
     center: true,
-    key: 'todo',
+    key: 'transactions',
     label: 'Transactions',
   },
   {
@@ -47,7 +47,7 @@ export const blockTransactionsTableColumns = [
   },
   {
     cols: 8,
-    key: 'requestKey',
+    key: 'requestkey',
     label: 'Request Key',
   },
   {

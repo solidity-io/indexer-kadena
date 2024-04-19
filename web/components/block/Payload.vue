@@ -1,50 +1,63 @@
 <script setup lang="ts">
-// defineProps<{
-//   transaction: any
-// }>()
+defineProps<{
+  payloadHash: string;
+  nonce: string;
+  weight: string;
+  target: string;
+  adjacents: string;
+  epochStart: string;
+  featureFlags: number;
+  chainwebVersion: string;
+}>()
 </script>
 
 <template>
-  <div
-    class="
-      gap-6
-      flex flex-col
-    "
-  >
-    <LabelValue
-      withCopy
-      label="Miner Account"
-      value="k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3"
-    />
-
-    <LabelValue
-      label="Miner Public Keys"
+  <div>
+    <div
+      class="
+        pb-6
+        gap-4
+        flex flex-col
+      "
     >
-      <template #value>
-        <HighlightValue>
-          ['e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3']
-        </HighlightValue>
-      </template>
-    </LabelValue>
+      <LabelValue
+        label="Miner Account"
+        value="-"
+      />
 
-    <LabelValue
-      label="Miner Predicate"
-      value="keys-all"
-    />
+      <LabelValue
+        label="Miner Public Keys"
+        value="-"
+      />
 
-    <LabelValue
-      label="Transactions Hash"
-      value="ksXr1ScafAUQB3CWqMk4k7xYkxihTEDHibRp2yoyXxQ"
-    />
+      <LabelValue
+        label="Miner Predicate"
+        value="-"
+      />
+    </div>
 
-    <LabelValue
-      label="Outputs Hash"
-      value="n1xkpzbZUyMhdYlxNgKTa_9nbhoShUuI61bHTxFl9Ww"
-    />
+    <div
+      class="
+        pt-6
+        gap-4
+        flex flex-col
+        border-t border-t-gray-300
+      "
+    >
+      <LabelValue
+        label="Transactions Hash"
+        value="-"
+      />
 
-    <LabelValue
-      label="Payload Hash"
-      value="7r6As0ugP6nYUigtvMno0BPH3Rj24c-FWsAjqQlHI3I"
-    />
+      <LabelValue
+        label="Outputs Hash"
+        value="-"
+      />
+
+      <LabelValue
+        label="Payload Hash"
+        :value="payloadHash"
+      />
+    </div>
   </div>
 </template>

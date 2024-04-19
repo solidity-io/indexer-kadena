@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import type { Route } from '~/config';
+interface BaseRoute {
+  path?: string;
+  tag: string;
+  label: string;
+}
 
-const props = defineProps<Route>()
+const props = defineProps<{
+  tag: string,
+  path?: string,
+  label: string,
+  type: 'group' | 'link',
+  subroutes?: BaseRoute[];
+}>()
 </script>
 
 <template>

@@ -7,7 +7,7 @@ const props = defineProps<{
   chainId: number,
   height: number,
   hash: string,
-  createdAt: string,
+  createdAt: any,
   transactionsByBlockId: any,
 }>()
 
