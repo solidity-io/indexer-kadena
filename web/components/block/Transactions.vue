@@ -96,7 +96,7 @@ const redirect = (transaction: any) => {
     <LabelValue
       withCopy
       label="Block Hash"
-      value="ghJ3vFyrqesnscMzMga7HtSrzEsAf93MCfYq63QaPUY"
+      :value="hash"
     />
 
     <div

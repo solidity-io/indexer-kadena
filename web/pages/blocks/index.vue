@@ -118,6 +118,10 @@ const redirect = (block: any) => {
         :columns="blocksTableColumns"
         @rowClick="redirect"
       >
+        <template #todo>
+          -
+        </template>
+
         <template #transactions="{ row }">
           {{ row.transactionsByBlockId.totalCount }}
         </template>
