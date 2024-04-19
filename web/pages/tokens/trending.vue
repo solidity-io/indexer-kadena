@@ -13,87 +13,17 @@ const {
   trendingTokensTableColumns
 } = useAppConfig()
 
-const rows = [
-  {
-    key: 'kadena',
-    name: 'kadena',
-    symbol: 'KDA',
-    icon: '/tokens/kadena.svg',
-    price: "$1.50",
-    float: 0.046,
-    volume: "$62,674,910,077.00",
-    dollar: "412,693.77 KDA",
-    market: "$104,291,713,432.00",
-    supply: "351,254.584 KDA"
-  },
-  {
-    key: 'kishu',
-    name: 'Kishu Ken',
-    symbol: 'KISHK',
-    icon: '/tokens/kishu.svg',
-    price: "$0.081685",
-    float: -0.094,
-    volume: "$2,088,186,491.00",
-    dollar: "560,765.984 KDA",
-    market: "$86,788,382,997.00",
-    supply: "267,757.887 KISHK"
-  },
-  {
-    name: 'KDLaunch',
-    symbol: 'KDL',
-    icon: '/tokens/launch.svg',
-    price: "$0.009603",
-    float: 0.092,
-    volume: "$134,027,024.00",
-    dollar: "$34,913,462,287.00",
-    market: "$86,788,382,997.00",
-    supply: "412,693.77 KDL"
-  },
-  {
-    name: 'KDSwap',
-    symbol: 'KDS',
-    icon: '/tokens/swap.svg',
-    price: "$0.006602",
-    float: 0.162,
-    volume: "$62,674,910,077.00",
-    dollar: "412,693.77 KDA",
-    market: "$104,291,713,432.00",
-    supply: "351,254.584 KDA"
-  },
-  {
-    name: 'Hypercent',
-    symbol: 'HYPE',
-    icon: '/tokens/hypercent.svg',
-    price: "$1.50",
-    float: 0.046,
-    volume: "$62,674,910,077.00",
-    dollar: "412,693.77 KDA",
-    market: "$104,291,713,432.00",
-    supply: "351,254.584 KDA"
-  },
-  {
-    name: 'Miners of Kadenia',
-    symbol: 'MOK',
-    icon: '/tokens/miners.svg',
-    price: "$1.50",
-    float: 0.046,
-    volume: "$62,674,910,077.00",
-    dollar: "412,693.77 KDA",
-    market: "$104,291,713,432.00",
-    supply: "351,254.584 KDA"
-  },
-  {
-    name: 'eckoDAO',
-    symbol: 'KDX',
-    icon: '/tokens/ecko-dao.svg',
-    price: "$1.50",
-    float: 0.046,
-    volume: "$62,674,910,077.00",
-    dollar: "412,693.77 KDA",
-    market: "$104,291,713,432.00",
-    supply: "351,254.584 KDA"
-  }
-]
+const { data: tokens, pending } = await useAsyncData('tokens-trending', async () => {
+  const [
+    tokensDataRes,
+  ] = await Promise.all([
+    fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=kadena-ecosystem&x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
+  ])
+
+  const tokens = await tokensDataRes.json()
+
+  return tokens;
+});
 
 const data = reactive({
   page: 1,
@@ -129,30 +59,43 @@ const data = reactive({
       </div>
 
       <Table
-        :class="data.pending && 'bg-white'"
-        :rows="rows"
+        :rows="tokens"
+        :pending="pending"
         :columns="trendingTokensTableColumns"
       >
-        <template #ranking>
-          1
+        <template #ranking="{ order }">
+          {{ order + 1 }}
         </template>
 
         <template #token="{ row }">
           <ColumnToken
             v-bind="row"
+            :icon="row.image"
           />
+        </template>
+
+        <template #price="{ row }">
+          ${{ integer.format(row.current_price) }}
         </template>
 
         <template #change="{ row }">
           <ColumnDelta
-            :delta="row.float"
+            :delta="row.price_change_percentage_24h"
           />
+        </template>
+
+        <template #marketCap="{ row }">
+          {{ money.format(row.market_cap) }}
+        </template>
+
+        <template #supply="{ row }">
+          {{ money.format(row.circulating_supply) }}
         </template>
 
         <template #volume="{ row }">
           <ColumnPrice
-            :amount="row.price"
-            :dollar="row.dollar"
+            :amount="money.format(row.total_volume)"
+            :dollar="`${integer.format(row.total_volume / row.current_price)} ${row.symbol}`"
           />
         </template>
       </Table>

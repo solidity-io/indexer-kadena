@@ -15,18 +15,18 @@ export const trendingTokensTableColumns = [
     label: 'Price'
   },
   {
-    cols: 2,
+    cols: 3,
     key: 'change',
     label: 'Change (%)',
   },
   {
     cols: 4,
     key: 'volume',
-    label: 'Volume (24)',
+    label: 'Volume (24h)',
   },
   {
-    cols: 4,
-    key: 'market',
+    cols: 3,
+    key: 'marketCap',
     label: 'Market Cap',
   },
 
@@ -40,7 +40,7 @@ export const trendingTokensTableColumns = [
 export const tokenTransfersTableColumns = [
   {
     cols: 2,
-    key: 'hash',
+    key: 'requestkey',
     label: 'Hash'
   },
   {

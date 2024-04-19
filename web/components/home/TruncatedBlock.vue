@@ -31,7 +31,7 @@ const status = computed((): 'success' | 'error' => {
       :to="`/blocks/${nodeId}`"
     >
       <div
-        class="flex items-center gap-4 py-3 max-h-[82px] border-b border-b-gray-300 hover:bg-gray-700 cursor-pointer"
+        class="flex items-center gap-4 py-3 max-h-[82px] border-b border-b-gray-300 cursor-pointer"
       >
         <IconStatus
           :status="status"

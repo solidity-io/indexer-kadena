@@ -165,24 +165,24 @@ const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
       >
         <HomeChartCard
           :label="data?.token.name + ' Price'"
-          :description="money.format(data?.token.market_data.current_price.usd)"
+          :description="moneyCompact.format(data?.token.market_data.current_price.usd)"
           :delta="data?.token.market_data.price_change_percentage_24h_in_currency.usd"
         />
 
         <HomeChartCard
           isDark
           label="Total Volume"
-          :description="money.format(data?.token.market_data.total_volume.usd)"
+          :description="moneyCompact.format(data?.token.market_data.total_volume.usd)"
         />
 
         <HomeChartCard
           label="Market Capital"
-          :description="money.format(data?.token.market_data.market_cap.usd)"
+          :description="moneyCompact.format(data?.token.market_data.market_cap.usd)"
         />
 
         <HomeChartCard
           label="Circulating Supply"
-          :description="money.format(data?.token.market_data.circulating_supply)"
+          :description="moneyCompact.format(data?.token.market_data.circulating_supply)"
         />
       </div>
 

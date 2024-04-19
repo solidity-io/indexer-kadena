@@ -1,13 +1,13 @@
 <script setup lang="ts">
 defineProps<{
-  amount: string,
-  dollar: string,
+  amount: string | number,
+  dollar: string | number,
 }>()
 </script>
 
 <template>
   <div
-    class="flex flex-col "
+    class="flex flex-col uppercase"
   >
     <span
       class="text-sm text-font-400"

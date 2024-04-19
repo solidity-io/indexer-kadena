@@ -1,14 +1,15 @@
 <script setup lang="ts">
 defineProps<{
-  delta: number,
+  delta?: number,
 }>()
 </script>
 
 <template>
   <span
-    class="text-sm"
+    v-if="delta"
+    class="text-sm font-semibold"
     :class="delta < 0 ? 'text-system-red' : 'text-system-green'"
   >
-   {{ delta * 100 }}%
+   {{ delta.toFixed(2) }}%
   </span>
 </template>

@@ -25,13 +25,30 @@ const data = reactive({
     },
   ],
 })
+
+
+const { data: token } = await useAsyncData('token-detail', async () => {
+  const [
+    tokenDataRes,
+  ] = await Promise.all([
+    fetch('https://api.coingecko.com/api/v3/coins/kadena?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
+  ])
+
+  const token = await tokenDataRes.json()
+
+  return token;
+});
+
+console.log('token', token.value)
 </script>
 
 <template>
   <div
     class="flex flex-col gap-6 pt-6"
   >
-    <TokenDetails />
+    <TokenDetails
+      v-bind="token"
+    />
 
     <div
       class="
@@ -57,15 +74,21 @@ const data = reactive({
         </template>
 
         <TabPanel>
-          <TokenTransfers />
+          <TokenTransfers
+            v-bind="token"
+          />
         </TabPanel>
 
         <TabPanel>
-          <TokenHolders />
+          <TokenHolders
+            v-bind="token"
+          />
         </TabPanel>
 
         <TabPanel>
-          <TokenInfo />
+          <TokenInfo
+            v-bind="token"
+          />
         </TabPanel>
       </Tabs>
     </div>

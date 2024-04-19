@@ -3,7 +3,7 @@ const props = withDefaults(
   defineProps<{
     rows: any[],
     columns: any[],
-    pending: boolean,
+    pending?: boolean,
   }>(),
   {
     pending: false,
@@ -61,7 +61,7 @@ const emit = defineEmits(['rowClick'])
         v-else
       >
         <div
-          v-for="row in rows"
+          v-for="(row, rowIndex) in rows"
           :key="row.requestKey"
           @click.prevent="emit('rowClick', row)"
           class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 border-b border-b-gray-300 justify-between hover:bg-gray-700"
@@ -70,12 +70,13 @@ const emit = defineEmits(['rowClick'])
             :key="index"
             v-for="(column, index) in props.columns"
             :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
-            class="text-font-400 flex items-center cursor-pointer"
+            class="text-font-400 flex items-center"
             :class="column.center && 'text-center justify-center'"
           >
             <slot
               :name="column.key"
               :row="row"
+              :order="rowIndex"
             >
               <span
                 class="text-font-400 text-sm truncate"

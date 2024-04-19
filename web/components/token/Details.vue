@@ -1,7 +1,11 @@
 <script setup lang="ts">
-const {
-  networks
-} = useAppConfig()
+defineProps<{
+  links: any;
+  image: any;
+  name: string;
+  symbol: string;
+  market_data: any;
+}>()
 </script>
 
 <template>
@@ -18,20 +22,20 @@ const {
       class="flex items-center gap-2"
     >
       <img
-        src="/tokens/kadena.svg"
+        :src="image.large"
         class="w-[34px] h-[34px]"
       />
 
       <span
         class="text-2xl font-semibold leading-[130%] text-font-400"
       >
-        Kadena
+        {{ name}}
       </span>
 
       <span
-        class="text-[20px] font-medium text-font-500"
+        class="uppercase text-[20px] font-medium text-font-500"
       >
-        KDA
+        {{ symbol }}
       </span>
 
       <IconVerified/>
@@ -52,23 +56,32 @@ const {
         </div>
 
         <LabelValue
-          value="1 KDA"
           label="Price"
-        />
+        >
+          <template
+            #value
+          >
+            <div
+              class="flex text-base gap-2"
+            >
+              1 KDA <span class="text-font-500">{{ money.format(market_data.current_price.usd) }}</span>
+            </div>
+          </template>
+        </LabelValue>
 
         <LabelValue
           label="Max Total Supply"
-          value="905,772,822"
+          :value="integer.format(market_data.max_supply)"
         />
 
         <LabelValue
           label="Holders"
-          value="4521530"
+          value="-"
         />
 
         <LabelValue
           label="Total Transfers"
-          value="228,852,342"
+          value="-"
         />
       </div>
 
@@ -84,33 +97,46 @@ const {
         </div>
 
         <LabelValue
-          value="rE-A7ijxto8VLJzuhp_iEXVCnAZD23luDEt9XOVgaiA"
+          value="-"
           label="Contract"
         />
 
         <LabelValue
           label="Decimals"
-          value="18"
+          value="-"
         />
 
         <LabelValue
           label="Website"
-          value="kadena.io"
+          :value="links.homepage[0]"
         />
 
         <LabelValue
-          label="Parent"
+          label="Community"
         >
           <template #value>
             <div
               class="flex items-center gap-4"
             >
               <Network
-                v-for="network in networks"
-                :key="network.to"
-                :to="network.to"
+                icon="github"
                 target="__blank"
-                :icon="network.icon"
+                :to="links.repos_url?.github[0]"
+                v-if="links.repos_url?.github[0]"
+              />
+
+              <Network
+                icon="github"
+                target="__blank"
+                :to="`https://t.me/${links.telegram_channel_identifier}`"
+                v-if="links.telegram_channel_identifier"
+              />
+
+              <Network
+                icon="twitter"
+                target="__blank"
+                :to="`https://x.com/${links.twitter_screen_name}`"
+                v-if="links.twitter_screen_name"
               />
             </div>
           </template>

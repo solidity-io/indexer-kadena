@@ -6,7 +6,7 @@ export const transactionTableColumns = [
   },
   {
     cols: 4,
-    key: 'requestkey',
+    key: 'requestKey',
     label: 'Request Key',
   },
   {

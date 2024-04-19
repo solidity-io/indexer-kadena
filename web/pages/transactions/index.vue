@@ -121,12 +121,12 @@ const redirect = (transaction: any) => {
     >
       <Card
         label="Market Capital"
-        :description="money.format(blockchain?.kadena.market_cap)"
+        :description="moneyCompact.format(blockchain?.kadena.market_cap)"
       />
 
       <Card
         label="Volume (24h)"
-        :description="money.format(blockchain?.kadena.volume_24h)"
+        :description="moneyCompact.format(blockchain?.kadena.volume_24h)"
       />
 
       <Card
@@ -157,11 +157,17 @@ const redirect = (transaction: any) => {
         :pending="pending"
         :rows="transactions.nodes"
         :columns="transactionTableColumns"
-        @rowClick="redirect"
       >
         <template #status="{ row }">
           <ColumnStatus
             :row="row"
+          />
+        </template>
+
+        <template #requestKey="{ row }">
+          <ColumnLink
+            :label="row.requestkey"
+            :to="`/transactions/${row.nodeId}`"
           />
         </template>
 
@@ -184,7 +190,10 @@ const redirect = (transaction: any) => {
         </template>
 
         <template #block="{ row }">
-          {{ row.blockByBlockId?.height ?? "null" }}
+          <ColumnLink
+            :to="`/blocks/${row.blockByBlockId?.height ?? 'null'}`"
+            :label="row.blockByBlockId?.height ?? 'null'"
+          />
         </template>
 
         <template #icon>

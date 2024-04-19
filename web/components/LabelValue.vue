@@ -15,7 +15,7 @@ defineProps<{
     ]"
   >
     <div
-      class="w-full max-w-[200px] h-max pt-[6px]"
+      class="w-full max-w-[200px] h-max"
     >
       <span
         class="text-font-500 text-sm font-medium block"

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { gql } from 'nuxt-graphql-request/utils';
+
 definePageMeta({
   layout: 'app',
 })
@@ -234,12 +236,52 @@ const rows = [
   }
 ]
 
-const data = reactive({
-  page: 1,
-  totalPages: 1,
-  pending: false,
-  totalCount: 20,
+
+const query = gql`
+  query GetTokenTransfers($first: Int, $offset: Int) {
+    allTransfers(condition: {tokenId: null}, offset: $offset, orderBy: ID_DESC, first: $first) {
+      nodes {
+        tokenId
+        updatedAt
+        transactionId
+        toAcct
+        requestkey
+        payloadHash
+        nodeId
+        modulehash
+        modulename
+        id
+        chainid
+        createdAt
+        fromAcct
+        amount
+        transactionByTransactionId {
+          nodeId
+        }
+      }
+      pageInfo {
+        startCursor
+        hasPreviousPage
+        endCursor
+        hasNextPage
+      }
+      totalCount
+    }
+  }
+`
+
+const {
+  page,
+  pending,
+  data: transfers,
+} = await usePaginate({
+  query,
+  key: 'allTransfers'
 })
+
+const redirect = (transfer: any) => {
+  navigateTo({ path: `/transactions/${transfer.transactionByTransactionId.nodeId}` })
+}
 </script>
 
 <template>
@@ -268,8 +310,9 @@ const data = reactive({
       </div>
 
       <Table
-        :class="data.pending && 'bg-white'"
-        :rows="rows"
+        :pending="pending"
+        @rowClick="redirect"
+        :rows="transfers.nodes"
         :columns="tokenTransfersTableColumns"
       >
         <template #method>
@@ -278,20 +321,21 @@ const data = reactive({
 
         <template #from="{ row }">
           <ColumnAddress
-            :value="row.from"
+            :value="row.fromAcct"
           />
         </template>
 
         <template #to="{ row }">
           <ColumnAddress
-            :value="row.to"
+            :value="row.toAcct"
           />
         </template>
 
         <template #token="{ row }">
-          <ColumnToken
+          <!-- <ColumnToken
             v-bind="row"
-          />
+          /> -->
+          -
         </template>
 
         <template #date="{ row }">
@@ -310,10 +354,11 @@ const data = reactive({
       </Table>
 
       <PaginateTable
-        :currentPage="data.page"
-        :totalItems="data.totalCount ?? 1"
-        :totalPages="data.totalPages"
-        @pageChange="data.page = Number($event)"
+        itemsLabel="Transfers"
+        :currentPage="page"
+        :totalItems="transfers?.totalCount ?? 1"
+        :totalPages="transfers?.totalPages"
+        @pageChange="page = Number($event)"
       />
     </div>
   </div>

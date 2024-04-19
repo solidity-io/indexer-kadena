@@ -14,5 +14,10 @@ import '@fontsource/roboto/latin.css'
 <style>
   body {
     background-color: #010101;
+    height: 100%
   }
+
+  html {
+    height: 100%;
+ }
 </style>

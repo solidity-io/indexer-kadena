@@ -38,7 +38,7 @@ const {
       :to="`/transactions/${nodeId}`"
     >
       <div
-        class="flex items-center gap-4 py-3 border-b border-b-gray-300 hover:opacity-[0.8] cursor-pointer max-h-[82px]"
+        class="flex items-center gap-4 py-3 border-b border-b-gray-300 cursor-pointer max-h-[82px]"
       >
         <IconStatus
           :status="status"

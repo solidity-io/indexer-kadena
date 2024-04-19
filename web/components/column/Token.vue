@@ -1,5 +1,6 @@
 <script setup lang="ts">
 defineProps<{
+  id: string,
   icon: string,
   name: string,
   symbol?: string,
@@ -7,32 +8,36 @@ defineProps<{
 </script>
 
 <template>
-  <div
-    class="flex items-center gap-2"
+  <NuxtLink
+    :to="`/tokens/${id}`"
   >
     <div
-      class="h-6 w-6 rounded shrink-0"
+      class="flex items-center gap-2"
     >
-      <img
-        :src="icon"
-      />
-    </div>
-
-    <div
-      class="flex gap-2 items-end"
-    >
-      <span
-        class="text-sm text-font-400 whitespace-nowrap"
+      <div
+        class="h-6 w-6 rounded shrink-0"
       >
-        {{ name }}
-      </span>
+        <img
+          :src="icon"
+        />
+      </div>
 
-      <span
-        v-if="symbol"
-        class="text-font-500 text-xs font-medium"
+      <div
+        class="flex gap-2 items-end uppercase"
       >
-        {{ symbol }}
-      </span>
+        <span
+          class="text-sm text-font-400 whitespace-nowrap"
+        >
+          {{ name }}
+        </span>
+
+        <span
+          v-if="symbol"
+          class="text-font-500 text-xs font-medium"
+        >
+          {{ symbol }}
+        </span>
+      </div>
     </div>
-  </div>
+  </NuxtLink>
 </template>
