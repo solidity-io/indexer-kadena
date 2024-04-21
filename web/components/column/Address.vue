@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  value: string
+  value: string,
 }>()
 
 function shortenAddress (
@@ -14,9 +14,8 @@ function shortenAddress (
 </script>
 
 <template>
-  <span
-    class="text-sm"
-  >
-    {{ shortenAddress(value, 8) }}
-  </span>
+  <ColumnLink
+    :to="`/account/${value}`"
+    :label="shortenAddress(value, 8)"
+  />
 </template>

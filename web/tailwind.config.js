@@ -49,6 +49,7 @@ export default {
 
         font: {
           400: '#FFFFFF',
+          450: '#B3B3B3',
           500: '#939393',
         },
 

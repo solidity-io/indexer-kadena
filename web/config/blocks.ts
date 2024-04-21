@@ -1,11 +1,11 @@
 export const blocksTableColumns = [
   {
-    cols: 4,
+    cols: 3,
     key: 'height',
     label: 'Block Height'
   },
   {
-    cols: 5,
+    cols: 6,
     key: 'hash',
     label: 'Hash',
   },

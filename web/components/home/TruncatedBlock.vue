@@ -26,103 +26,96 @@ const status = computed((): 'success' | 'error' => {
 </script>
 
 <template>
-  <div>
-    <NuxtLink
-      :to="`/blocks/${nodeId}`"
+  <div
+    class="flex items-center gap-4 py-3 max-h-[82px] border-b border-b-gray-300"
+  >
+    <IconStatus
+      :status="status"
+    />
+
+    <div
+      class="flex flex-col gap-4"
     >
       <div
-        class="flex items-center gap-4 py-3 max-h-[82px] border-b border-b-gray-300 cursor-pointer"
+        class="flex gap-2 text-sm"
       >
-        <IconStatus
-          :status="status"
+        <span
+          class="text-font-500 whitespace-nowrap"
+        >
+          Miner
+        </span>
+
+
+        <ColumnLink
+          label="-"
+          :to="`/account/${nodeId}`"
         />
-
-        <div
-          class="flex flex-col gap-4"
-        >
-          <div
-            class="flex gap-2 text-sm"
-          >
-            <span
-              class="text-font-500 whitespace-nowrap"
-            >
-              Hash
-            </span>
-
-            <span
-              class="text-font-400"
-            >
-              {{ shortenAddress(props.hash) }}
-            </span>
-          </div>
-
-          <div
-            class="flex gap-2 text-sm"
-          >
-            <span
-              class="text-font-500 whitespace-nowrap"
-            >
-              Chain
-            </span>
-
-            <span
-              class="text-font-400"
-            >
-              {{ props.chainId }}
-            </span>
-          </div>
-        </div>
-
-        <div
-          class="flex flex-col mb-auto mx-auto"
-        >
-          <div
-            class="flex gap-2 text-sm"
-          >
-            <span
-              class="text-font-500 whitespace-nowrap"
-            >
-              Block
-            </span>
-
-            <span
-              class="text-font-400"
-            >
-              {{ props.height }}
-            </span>
-          </div>
-        </div>
-
-        <div
-          class="flex flex-col items-end gap-4 ml-auto"
-        >
-          <div
-            class="flex gap-2 text-sm"
-          >
-            <span
-              class="text-font-500 whitespace-nowrap"
-            >
-              Transactions
-            </span>
-
-            <span
-              class="text-font-400"
-            >
-              {{ transactionsByBlockId.totalCount }}
-            </span>
-          </div>
-
-          <div
-            class="flex gap-2"
-          >
-            <span
-              class="text-font-400 text-sm"
-            >
-              {{ format(props.createdAt, 'dd MMM y HH:mm:ss') }}
-            </span>
-          </div>
-        </div>
       </div>
-    </NuxtLink>
+
+      <div
+        class="flex gap-2 text-sm"
+      >
+        <span
+          class="text-font-500 whitespace-nowrap"
+        >
+          Chain
+        </span>
+
+        <span
+          class="text-font-450"
+        >
+          {{ props.chainId }}
+        </span>
+      </div>
+    </div>
+
+    <div
+      class="flex flex-col mb-auto mx-auto"
+    >
+      <div
+        class="flex gap-2 text-sm"
+      >
+        <span
+          class="text-font-500 whitespace-nowrap"
+        >
+          Block
+        </span>
+
+        <ColumnLink
+          :label="props.height"
+          :to="`/blocks/${nodeId}`"
+        />
+      </div>
+    </div>
+
+    <div
+      class="flex flex-col items-end gap-4 ml-auto"
+    >
+      <div
+        class="flex gap-2 text-sm"
+      >
+        <span
+          class="text-font-500 whitespace-nowrap"
+        >
+          Transactions
+        </span>
+
+        <span
+          class="text-font-450"
+        >
+          {{ transactionsByBlockId.totalCount }}
+        </span>
+      </div>
+
+      <div
+        class="flex gap-2"
+      >
+        <span
+          class="text-font-450 text-sm"
+        >
+          {{ format(props.createdAt, 'dd MMM y HH:mm:ss') }}
+        </span>
+      </div>
+    </div>
   </div>
 </template>

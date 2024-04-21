@@ -23,7 +23,7 @@ defineProps<{
       </div>
 
       <div
-        class="flex gap-2 items-end uppercase"
+        class="flex gap-2 items-end"
       >
         <span
           class="text-sm text-font-400 whitespace-nowrap"
@@ -33,7 +33,7 @@ defineProps<{
 
         <span
           v-if="symbol"
-          class="text-font-500 text-xs font-medium"
+          class="text-font-500 text-xs font-medium uppercase"
         >
           {{ symbol }}
         </span>

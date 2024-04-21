@@ -57,10 +57,6 @@ const {
   query,
   key: 'allBlocks'
 })
-
-const redirect = (block: any) => {
-  navigateTo({ path: `/blocks/${block.nodeId}` })
-}
 </script>
 
 <template>
@@ -116,10 +112,16 @@ const redirect = (block: any) => {
         :pending="pending"
         :rows="blocks.nodes"
         :columns="blocksTableColumns"
-        @rowClick="redirect"
       >
         <template #todo>
           -
+        </template>
+
+        <template #height="{ row }">
+          <ColumnLink
+            :to="`/blocks/${row.height}`"
+            :label="row.height"
+          />
         </template>
 
         <template #transactions="{ row }">

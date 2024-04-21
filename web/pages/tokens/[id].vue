@@ -64,7 +64,7 @@ console.log('token', token.value)
           #button
         >
           <NuxtLink
-            to="/collection/1"
+            to="/collections/1"
           >
             <Button
               size="medium"

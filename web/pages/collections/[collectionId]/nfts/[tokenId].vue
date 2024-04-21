@@ -47,7 +47,7 @@ const data = reactive({
           #button
         >
           <NuxtLink
-            to="/collection/1"
+            to="/collections/1"
           >
             <Button
               size="medium"

@@ -6,11 +6,11 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Token Transfers'
+  title: 'NFT Transfers'
 })
 
 const {
-  tokenTransfersTableColumns
+  nftTransfersTableColumns
 } = useAppConfig()
 
 const query = gql`
@@ -64,7 +64,7 @@ const {
       <h1
         class="text-[28px] font-semibold leading-[150%] text-font-400"
       >
-        Token Transfers
+        NFT Transfers
       </h1>
     </div>
 
@@ -84,13 +84,13 @@ const {
       <Table
         :pending="pending"
         :rows="transfers.nodes"
-        :columns="tokenTransfersTableColumns"
+        :columns="nftTransfersTableColumns"
       >
         <template #method>
           <Chip />
         </template>
 
-        <template #requestkey="{ row }">
+        <template #hash="{ row }">
           <ColumnLink
             :label="row.requestkey"
             :to="`/transactions/${row.transactionByTransactionId.nodeId}`"
@@ -109,18 +109,17 @@ const {
           />
         </template>
 
-        <template #token="{ row }">
-          <ColumnToken
-            id="todo"
-            icon="/tokens/kadena.svg"
-            name="todo"
-            symbol="todo"
-          />
-        </template>
-
         <template #date="{ row }">
           <ColumnDate
             :row="row"
+          />
+        </template>
+
+        <template #item="{ row }">
+          <ColumnNft
+            name="To do"
+            image="/collection/bears.png"
+            collection="Todo"
           />
         </template>
 

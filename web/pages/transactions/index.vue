@@ -98,10 +98,6 @@ const {
   query,
   key: 'allTransactions'
 })
-
-const redirect = (transaction: any) => {
-  navigateTo({ path: `/transactions/${transaction.nodeId}` })
-}
 </script>
 
 <template>
@@ -131,7 +127,7 @@ const redirect = (transaction: any) => {
 
       <Card
         description="-"
-        label="Todo"
+        label="Transactions (24h)"
       />
 
       <Card

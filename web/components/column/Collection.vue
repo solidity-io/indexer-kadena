@@ -14,10 +14,9 @@ defineProps<{
       class="w-11 h-11 rounded"
     />
 
-    <span
-      class="text-sm text-font-400"
-    >
-      {{ name }}
-    </span>
+    <ColumnLink
+      to="/collections/kadena-bears"
+      :label="name"
+    />
   </div>
 </template>
