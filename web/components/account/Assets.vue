@@ -48,22 +48,30 @@ const assets = [
     <div
       class="p-6 rounded-2xl border border-gray-300"
     >
-      <Table
+      <TableRoot
         :rows="assets"
         :columns="assetsTableColumns"
       >
-        <template #asset="{ row }">
-          <ColumnToken
-            v-bind="row"
-          />
-        </template>
+        <template #row="{ row, columns, rowIndex }">
+          <TableRowExpansible
+            :row="row"
+            :columns="columns"
+            :rowIndex="rowIndex"
+          >
+            <template #asset="{ row }">
+              <ColumnToken
+                v-bind="row"
+              />
+            </template>
 
-        <template #distribution>
-          <IconArrow
-            class="mx-auto -rotate-90"
-          />
+            <template #distribution>
+              <IconArrow
+                class="mx-auto -rotate-90"
+              />
+            </template>
+          </TableRowExpansible>
         </template>
-      </Table>
+      </TableRoot>
 
       <PaginateTable
         itemsLabel="Tokens"

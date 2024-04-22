@@ -61,7 +61,7 @@ const {
 
 <template>
   <div
-    class="flex flex-col gap-6 pt-6"
+    class="flex flex-col gap-6"
   >
     <div>
       <h1

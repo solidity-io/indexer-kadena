@@ -11,6 +11,12 @@ const props = withDefaults(
   }
 )
 
+const slots = useSlots();
+
+const filteredSlots = computed(() => {
+  return Object.keys(slots).filter(name => !['default', 'row'].includes(name))
+})
+
 const emit = defineEmits(['rowClick'])
 </script>
 
@@ -41,21 +47,28 @@ const emit = defineEmits(['rowClick'])
         :columns="props.columns"
       />
 
-      <slot
-        name="row"
+      <template
+        v-else
       >
-        <TableRowDefault
-          v-for="(row, rowIndex) in rows"
-          :key="row.requestKey"
+        <slot
+          name="row"
           :row="row"
           :columns="columns"
           :rowIndex="rowIndex"
+          :key="row.requestKey"
+          v-for="(row, rowIndex) in rows"
         >
-          <template v-for="(_, name) in $slots" v-slot:[name]="slotData">
-            <slot :name="name" v-bind="slotData" />
-          </template>
-        </TableRowDefault>
-      </slot>
+          <TableRowDefault
+            :row="row"
+            :columns="columns"
+            :rowIndex="rowIndex"
+          >
+            <template v-for="name in filteredSlots" v-slot:[name]="slotData">
+              <slot :name="name" v-bind="slotData" />
+            </template>
+          </TableRowDefault>
+        </slot>
+      </template>
     </div>
   </div>
 </template>

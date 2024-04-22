@@ -4,10 +4,19 @@
   <div
     class="h-screen flex flex-col"
   >
-    <HeaderTopbar/>
+    <div
+      class="min-h-[72px] w-full bg-blue-400"
+    >
+      <HeaderTopbar/>
+    </div>
 
     <div
-      class="max-w-screen-bazk px-[60px] pt-[64px] mx-auto w-full pb-[38px] grow"
+      class="
+        w-full max-w-screen-bazk mx-auto grow
+        px-4 bazk:px-[60px]
+        pt-4 bazk:pt-6
+        pb-[60px] bazk:pb-[38px]
+      "
     >
       <slot />
     </div>
