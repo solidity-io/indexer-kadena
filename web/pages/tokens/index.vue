@@ -75,7 +75,7 @@ const data = reactive({
         </template>
 
         <template #price="{ row }">
-          ${{ integer.format(row.current_price) }}
+          ${{ integer.format(row?.current_price) }}
         </template>
 
         <template #change="{ row }">

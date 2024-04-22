@@ -64,7 +64,7 @@ defineProps<{
             <div
               class="flex text-base gap-2"
             >
-              1 KDA <span class="text-font-500">{{ money.format(market_data.current_price.usd) }}</span>
+              1 KDA <span class="text-font-500">{{ money.format(market_data?.current_price.usd) }}</span>
             </div>
           </template>
         </LabelValue>

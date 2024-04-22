@@ -149,7 +149,7 @@ const {
         </span>
       </div>
 
-      <Table
+      <TableRoot
         :pending="pending"
         :rows="transactions.nodes"
         :columns="transactionTableColumns"
@@ -199,7 +199,7 @@ const {
             <IconEye />
           </div>
         </template>
-      </Table>
+      </TableRoot>
 
       <PaginateTable
         :currentPage="page"
