@@ -17,13 +17,13 @@ withDefaults(
 
 <template>
   <div
-    class="p-6 flex flex-col gap-2.5 rounded-lg bg-gray-800"
+    class="p-4 bazk:p-6 flex flex-col gap-1 bazk:gap-2.5 rounded-lg bg-gray-800"
   >
     <div
       class="flex items-center justify-between gap-2"
     >
       <span
-        class="text-font-500 text-sm"
+        class="text-xs leading-[18px] text-font-500 bazk:text-sm"
       >
         {{ label }}
       </span>
@@ -33,17 +33,17 @@ withDefaults(
       class="flex items-center justify-between gap-2"
     >
       <div
-        class="flex items-center justify-between gap-2 text-font-400 flex items-end gap-1"
+        class="flex items-center justify-between text-font-400 flex items-end gap-1"
       >
         <span
-          class="text-2xl leading-[100%] font-[600]"
+          class="text-lg bazk:text-2xl leading-[100%] font-[600]"
         >
           {{ description }}
         </span>
 
         <span
           v-if="suffix"
-          class="text-[14px] font-[500]"
+          class="text-xs bazk:text-[14px] font-[500]"
         >
           {{ suffix }}
         </span>

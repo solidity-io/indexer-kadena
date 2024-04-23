@@ -102,7 +102,7 @@ const {
 
 <template>
   <div
-    class="flex flex-col gap-6"
+    class="flex flex-col gap-4 bazk:gap-6"
   >
     <div>
       <h1
@@ -113,7 +113,7 @@ const {
     </div>
 
     <div
-      class="grid grid-cols-4 gap-6"
+      class="grid gap-3 bazk:grid-cols-4 bazk:gap-6"
     >
       <Card
         label="Market Capital"

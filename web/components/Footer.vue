@@ -17,7 +17,7 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
       class="w-full max-w-screen-bazk mx-auto py-8 px-[60px] flex flex-col gap-6"
     >
       <div
-        class="flex justify-between gap-4"
+        class="flex justify-between gap-4 flex-wrap"
       >
         <div
           class="flex flex-col gap-2.5 max-w-[360px]"
@@ -48,7 +48,7 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
         </div>
 
         <div
-          class="flex gap-6"
+          class="flex flex-wrap gap-6"
         >
           <div
             class="flex flex-col min-w-[180px] gap-2"
