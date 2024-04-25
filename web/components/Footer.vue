@@ -28,14 +28,14 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
 
           <div>
             <span
-              class="text-sm text-font-500"
+              class="text-sm text-font-500 leading-[19.6px] block"
             >
               Kadscan is the leading blockchain explorer dedicated to the Kadena ecosystem. Powered by Kadena Protocol.
             </span>
           </div>
 
           <div
-            class="flex items-center gap-4"
+            class="flex items-center gap-4 pt-2 bazk:pt-0"
           >
             <Network
               v-for="network in networks"
@@ -51,10 +51,10 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
           class="flex justify-between w-full bazk:w-auto flex-wrap gap-3 bazk:gap-6"
         >
           <div
-            class="flex flex-col bazk:min-w-[180px] gap-2 grow"
+            class="flex flex-col bazk:min-w-[180px] gap-2 bazk:gap-3 grow"
           >
             <span
-              class="text-font-400"
+              class="text-font-400 text-lg bazk:text-base bazk:font-[400] font-semibold"
             >
               Overview
             </span>
@@ -71,11 +71,11 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
 
           <div
             :key="'footer-group-'+group.tag"
-            class="flex flex-col bazk:min-w-[180px] gap-2 grow"
+            class="flex flex-col bazk:min-w-[180px] gap-2 bazk:gap-3 grow"
             v-for="group of groupRoutes"
           >
             <span
-              class="text-font-400 text-lg bazk:text-base"
+              class="text-font-400 text-lg bazk:text-base bazk:font-[400] font-semibold"
             >
               {{ group.label }}
             </span>
