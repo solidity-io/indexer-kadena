@@ -5,7 +5,7 @@
     class="h-screen flex flex-col"
   >
     <div
-      class="min-h-[56px] bazk:min-h-[72px] w-full bg-blue-400"
+      class="w-full bg-blue-400"
     >
       <HeaderTopbar/>
     </div>

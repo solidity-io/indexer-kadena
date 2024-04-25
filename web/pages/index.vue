@@ -132,61 +132,43 @@ const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
 
 <template>
   <div
-    class="flex flex-col gap-10 pt-6"
+    class="flex flex-col gap-4 bazk:gap-10 bazk:pt-4"
   >
-    <div
-      class="flex gap-2 items-center justify-between bg-[linear-gradient(180deg,_#01D796_0%,_#009367_105.48%)] rounded-2xl py-[52px] px-[48px]"
-    >
-      <div
-        class="flex flex-col justify-between gap-6 w-full"
-      >
-        <h1
-          class="font-title text-font-400 text-[40px] font-[700] leading-[140%]"
-        >
-          Explore Kadena Blockchain
-        </h1>
+    <HomeHero />
 
-        <Search />
-      </div>
-
-      <div
-        class="bg-gray-800 rounded-xl w-full max-w-[420px] h-[132px]"
-      />
-    </div>
-
-    <div
-      class="rounded-2xl bg-gray-800 p-8 gap-6 grid grid-cols-2"
+    <Container
+      class="bazk:p-8 gap-4 bazk:gap-6 grid bazk:grid-cols-2"
     >
       <div
         class="
-          p-4 gap-4 flex-grow grid grid-cols-2 bg-gray-700 rounded-xl
+          p-3 bazk:p-4 gap-2 bazk:gap-4 flex-grow grid bazk:grid-cols-2 bg-gray-700 rounded-lg bazk:rounded-xl
         "
       >
-        <HomeChartCard
+        <HomeCard
           :label="data?.token.name + ' Price'"
           :description="moneyCompact.format(data?.token.market_data?.current_price.usd)"
           :delta="data?.token.market_data.price_change_percentage_24h_in_currency.usd"
         />
 
-        <HomeChartCard
+        <HomeCard
           isDark
           label="Total Volume"
           :description="moneyCompact.format(data?.token.market_data.total_volume.usd)"
         />
 
-        <HomeChartCard
+        <HomeCard
           label="Market Capital"
           :description="moneyCompact.format(data?.token.market_data.market_cap.usd)"
         />
 
-        <HomeChartCard
+        <HomeCard
           label="Circulating Supply"
           :description="moneyCompact.format(data?.token.market_data.circulating_supply)"
         />
       </div>
 
       <div
-        class="w-full h-full flex flex-col gap-6"
+        class="w-full h-full flex flex-col gap-3 bazk:gap-6"
       >
         <span
           class="text-font-400"
@@ -195,25 +177,39 @@ const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
         </span>
 
         <div
-          class="h-full"
+          class="h-full min-h-[216px]"
         >
           <Chart
             v-bind="data?.chartData"
           />
         </div>
       </div>
-    </div>
+    </Container>
 
     <div
-      class="grid grid-cols-2 gap-6"
+      class="grid bazk:grid-cols-2 gap-4 bazk:gap-6"
     >
-      <HomeTransactions
-        :data="data?.transactions"
-      />
+      <HomeList
+        label="Recent Transactions"
+        path="/transactions"
+      >
+        <HomeTransaction
+          v-bind="transaction"
+          :key="transaction.requestKey"
+          v-for="transaction in data?.transactions.nodes"
+        />
+      </HomeList>
 
-      <HomeBlocks
-        :data="data?.blocks"
-      />
+      <HomeList
+        label="Recent Blocks"
+        path="/blocks"
+      >
+        <HomeBlock
+          v-bind="block"
+          :key="block.hash"
+          v-for="block in data?.blocks.nodes"
+        />
+      </HomeList>
     </div>
   </div>
 </template>

@@ -14,16 +14,16 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
     class="w-full bg-gray-800"
   >
     <div
-      class="w-full max-w-screen-bazk mx-auto py-8 px-[60px] flex flex-col gap-6"
+      class="w-full max-w-screen-bazk mx-auto px-4 py-6 bazk:py-8 bazk:px-[60px] flex flex-col gap-6"
     >
       <div
         class="flex justify-between gap-4 flex-wrap"
       >
         <div
-          class="flex flex-col gap-2.5 max-w-[360px]"
+          class="flex flex-col gap-2 bazk:gap-2.5 max-w-[360px]"
         >
           <IconLogoColor
-            class="h-[42px]"
+            class="h-[38px] bazk:h-[42px] w-max"
           />
 
           <div>
@@ -48,10 +48,10 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
         </div>
 
         <div
-          class="flex flex-wrap gap-6"
+          class="flex justify-between w-full bazk:w-auto flex-wrap gap-3 bazk:gap-6"
         >
           <div
-            class="flex flex-col min-w-[180px] gap-2"
+            class="flex flex-col bazk:min-w-[180px] gap-2 grow"
           >
             <span
               class="text-font-400"
@@ -71,11 +71,11 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
 
           <div
             :key="'footer-group-'+group.tag"
-            class="flex flex-col min-w-[180px] gap-2"
+            class="flex flex-col bazk:min-w-[180px] gap-2 grow"
             v-for="group of groupRoutes"
           >
             <span
-              class="text-font-400"
+              class="text-font-400 text-lg bazk:text-base"
             >
               {{ group.label }}
             </span>

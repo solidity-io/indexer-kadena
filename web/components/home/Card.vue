@@ -19,13 +19,13 @@ withDefaults(
 <template>
   <div
     :class="isDark && 'bg-gray-800'"
-    class="p-6 flex flex-col gap-4 rounded-lg"
+    class="p-3 bazk:p-6 flex flex-col gap-3 bazk:gap-4 rounded-lg"
   >
     <div
-      class="flex items-center justify-between gap-2"
+      class="flex items-center justify-between gap-2 py-px min-h-[26px]"
     >
       <span
-        class="text-font-500 font-[500]"
+        class="text-sm bazk:text-base text-font-500 bazk:font-[500]"
       >
         {{ label }}
       </span>
@@ -48,7 +48,7 @@ withDefaults(
       class="text-font-400 flex items-end gap-1"
     >
       <span
-        class="text-2xl leading-[100%] font-[600]"
+        class="text-xl bazk:text-2xl bazk:leading-[100%] font-medium bazk:font-semibold"
       >
         {{ description }}
       </span>

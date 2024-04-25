@@ -33,10 +33,12 @@ const value = ref(searchItems[0])
   <div
     class="
       flex gap-2 items-center
-      w-full p-2 bg-gray-800 rounded-lg max-w-[700px]
+      w-full p-2 bg-gray-800 rounded-lg bazk:max-w-[700px]
     "
   >
-    <div>
+    <div
+      class="hidden bazk:block"
+    >
       <Select
         v-model="value"
         :items="searchItems"
@@ -45,7 +47,8 @@ const value = ref(searchItems[0])
 
     <input
       class="
-        px-2
+        px-1
+        bazk:px-2
         py-2
         text-sm
         bg-transparent
@@ -58,9 +61,11 @@ const value = ref(searchItems[0])
     />
 
     <div
-      class="flex items-center justify-center p-[6px] bg-gray-500 rounded-lg h-9 w-9 shrink-0"
+      class="mr-1 flex items-center justify-center p-[6px] bg-gray-500 rounded-lg h-8 w-8 bazk:h-9 bazk:w-9 shrink-0"
     >
-      <IconSearch />
+      <IconSearch
+        class="w-5 h-5"
+      />
     </div>
   </div>
 </template>
