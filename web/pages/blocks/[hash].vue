@@ -71,36 +71,18 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-6"
-  >
-    <div>
-      <h1
-        class="text-[28px] font-semibold leading-[150%] text-font-400"
-      >
-        Block Details
-      </h1>
-    </div>
+  <PageRoot>
+    <PageTitle>
+      Block Details
+    </PageTitle>
 
-    <div
-      class="
-        p-8
-        bg-gray-800
-        rounded-2xl
-      "
-    >
+    <PageContainer>
       <BlockDetails
         v-bind="block"
       />
-    </div>
+    </PageContainer>
 
-    <div
-      class="
-        p-8
-        bg-gray-800
-        rounded-2xl
-      "
-    >
+    <PageContainer>
       <Tabs
         :tabs="data.tabs"
       >
@@ -128,18 +110,6 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
           />
         </TabPanel>
       </Tabs>
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

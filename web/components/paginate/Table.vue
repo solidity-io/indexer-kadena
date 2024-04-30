@@ -28,7 +28,7 @@ const buttons = [
 
 <template>
   <div
-    class="flex items-center justify-between gap-4 pt-6"
+    class="flex flex-wrap items-center justify-between gap-3 bazk:gap-4 pt-4 bazk:pt-6"
   >
     <div>
       <span

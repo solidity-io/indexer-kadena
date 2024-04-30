@@ -24,18 +24,10 @@ const data = reactive({
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-6"
-  >
+  <PageRoot>
     <CollectionHeader />
 
-    <div
-      class="
-        p-8
-        bg-gray-800
-        rounded-2xl
-      "
-    >
+    <PageContainer>
       <Tabs
         :tabs="data.tabs"
       >
@@ -47,18 +39,6 @@ const data = reactive({
           <CollectionActivity />
         </TabPanel>
       </Tabs>
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

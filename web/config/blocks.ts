@@ -1,5 +1,11 @@
 export const blocksTableColumns = [
   {
+    isFixed: true,
+    cols: 1,
+    key: 'icon',
+    label: '',
+  },
+  {
     cols: 3,
     key: 'height',
     label: 'Block Height'
@@ -31,11 +37,6 @@ export const blocksTableColumns = [
     cols: 5,
     key: 'createdAt',
     label: 'Date',
-  },
-  {
-    cols: 1,
-    key: 'icon',
-    label: '',
   },
 ]
 

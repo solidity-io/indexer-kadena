@@ -3,11 +3,11 @@ const props = withDefaults(
   defineProps<{
     rows: any[],
     columns: any[],
+    title?: string,
     pending?: boolean,
   }>(),
   {
     pending: false,
-    //
   }
 )
 
@@ -23,52 +23,67 @@ const emit = defineEmits(['rowClick'])
 <template>
   <div>
     <div
-      class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2"
+      v-if="title"
+      class="pb-4 bazk:pb-6"
     >
-      <div
-        v-for="column in props.columns"
-        :key="column.key"
-        :class="column.center && 'text-center'"
-        :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
+      <span
+        class="text-font-400 text-lg leading-[100%] font-semibold tracking-[0.36px]"
       >
-        <span
-          class="text-font-500 text-xs font-semibold leading-[150%] h-[18px] block"
-        >
-          {{ column.label }}
-        </span>
-      </div>
+        {{ title }}
+      </span>
     </div>
 
     <div
-      class="border-t border-t-gray-300"
+      class="max-w-full overflow-auto w-full"
     >
-      <TablePending
-        v-if="pending"
-        :columns="props.columns"
-      />
-
-      <template
-        v-else
+      <div
+        class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 min-w-[1200px] bazk:min-w-[1272px]"
       >
-        <slot
-          name="row"
-          :row="row"
-          :columns="columns"
-          :rowIndex="rowIndex"
-          :key="row.requestKey"
-          v-for="(row, rowIndex) in rows"
+        <div
+          v-for="column in props.columns"
+          :key="column.key"
+          :class="[column.center && 'text-center', !!column.isFixed && 'sticky left-0 bg-gray-800']"
+          :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
         >
-          <TableRowDefault
+          <span
+            class="text-font-500 text-xs font-semibold leading-[150%] h-[18px] block"
+          >
+            {{ column.label }}
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="border-t border-t-gray-300 min-w-[1200px] bazk:min-w-[1272px] relative"
+      >
+        <TablePending
+          v-if="pending"
+          :columns="props.columns"
+        />
+
+        <template
+          v-else
+        >
+          <slot
+            name="row"
             :row="row"
             :columns="columns"
             :rowIndex="rowIndex"
+            :key="row.requestKey"
+            v-for="(row, rowIndex) in rows"
           >
-            <template v-for="name in filteredSlots" v-slot:[name]="slotData">
-              <slot :name="name" v-bind="slotData" />
-            </template>
-          </TableRowDefault>
-        </slot>
-      </template>
+            <TableRowDefault
+              :row="row"
+              :columns="columns"
+              :rowIndex="rowIndex"
+            >
+              <template v-for="name in filteredSlots" v-slot:[name]="slotData">
+                <slot :name="name" v-bind="slotData" />
+              </template>
+            </TableRowDefault>
+          </slot>
+        </template>
+      </div>
     </div>
   </div>
 </template>

@@ -38,25 +38,15 @@ const { data: token } = await useAsyncData('token-detail', async () => {
 
   return token;
 });
-
-console.log('token', token.value)
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-6"
-  >
+  <PageRoot>
     <TokenDetails
       v-bind="token"
     />
 
-    <div
-      class="
-        p-8
-        bg-gray-800
-        rounded-2xl
-      "
-    >
+    <PageContainer>
       <Tabs
         :tabs="data.tabs"
       >
@@ -91,18 +81,6 @@ console.log('token', token.value)
           />
         </TabPanel>
       </Tabs>
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

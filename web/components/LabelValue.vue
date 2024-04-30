@@ -9,24 +9,24 @@ defineProps<{
 
 <template>
   <div
-    class="flex gap-4"
+    class="flex gap-2 bazk:gap-4 flex-col bazk:flex-row"
     :class="[
-      col && 'flex-col !items-start'
+      col && 'flex-col items-start'
     ]"
   >
     <div
       class="w-full max-w-[200px] h-max"
     >
       <span
-        class="text-font-500 text-sm font-medium block"
+        class="text-font-500 text-xs bazk:text-sm font-medium block"
       >
         {{ label }}
       </span>
     </div>
 
     <div
-      :class="!value && 'flex-col'"
-      class="text-font-400 text-sm items-center flex gap-2"
+      :class="[!value && 'flex-col', value && 'items-center']"
+      class="text-font-400 text-sm fix flex gap-2 break-words"
     >
       <slot
         name="value"
@@ -49,3 +49,9 @@ defineProps<{
     </div>
   </div>
 </template>
+
+<style>
+.fix {
+  overflow-wrap:anywhere
+}
+</style>

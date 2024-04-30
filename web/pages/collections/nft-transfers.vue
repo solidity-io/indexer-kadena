@@ -57,31 +57,14 @@ const {
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-6"
-  >
-    <div>
-      <h1
-        class="text-[28px] font-semibold leading-[150%] text-font-400"
-      >
-        NFT Transfers
-      </h1>
-    </div>
+  <PageRoot>
+    <PageTitle>
+      NFT Transfers
+    </PageTitle>
 
-    <div
-      class="bg-gray-800 p-6 rounded-2xl"
-    >
-      <div
-        class="pb-6"
-      >
-        <span
-          class="text-font-400 text-lg leading-[100%] font-semibold tracking-[0.36px]"
-        >
-          Latest Transactions
-        </span>
-      </div>
-
-      <Table
+    <PageContainer>
+      <TableRoot
+        title="Latest Transactions"
         :pending="pending"
         :rows="transfers.nodes"
         :columns="nftTransfersTableColumns"
@@ -130,7 +113,7 @@ const {
             <IconEye />
           </div>
         </template>
-      </Table>
+      </TableRoot>
 
       <PaginateTable
         itemsLabel="Transfers"
@@ -139,18 +122,6 @@ const {
         :totalPages="transfers?.totalPages"
         @pageChange="page = Number($event)"
       />
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

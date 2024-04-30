@@ -8,8 +8,8 @@ withDefaults(
     itemsPerPage?: number;
   }>(),
   {
+    totalPages: 1,
     currentPage: 1,
-    totalPages: 10,
     itemsPerPage: 20,
     itemsLabel: 'Transactions',
   }

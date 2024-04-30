@@ -41,7 +41,7 @@ const click = () => {
     class="
       enabled:hover:bg-gray-500
       text-font-500 enabled:hover:text-kadscan-500
-      py-2 px-3 rounded-lg border border-gray-300 flex items-center justify-center
+      py-1 bazk:py-2 bazk:px-3 px-2 rounded bazk:rounded-lg border border-gray-300 flex items-center justify-center
     "
   >
     <IconChevron

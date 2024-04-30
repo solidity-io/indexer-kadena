@@ -245,31 +245,14 @@ const data = reactive({
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-6"
-  >
-    <div>
-      <h1
-        class="text-[28px] font-semibold leading-[150%] text-font-400"
-      >
-        NFT Collections
-      </h1>
-    </div>
+  <PageRoot>
+    <PageTitle>
+      NFT Collections
+    </PageTitle>
 
-    <div
-      class="bg-gray-800 p-6 rounded-2xl"
-    >
-      <div
-        class="pb-6"
-      >
-        <span
-          class="text-font-400 text-lg leading-[100%] font-semibold tracking-[0.36px]"
-        >
-          Trending Collections
-        </span>
-      </div>
-
-      <Table
+    <PageContainer>
+      <TableRoot
+        title="Trending Collections"
         :class="data.pending && 'bg-white'"
         :rows="rows"
         :columns="nftCollectionsTableColumns"
@@ -309,7 +292,7 @@ const data = reactive({
             <IconEye />
           </div>
         </template>
-      </Table>
+      </TableRoot>
 
       <PaginateTable
         :currentPage="data.page"
@@ -317,18 +300,6 @@ const data = reactive({
         :totalPages="data.totalPages"
         @pageChange="data.page = Number($event)"
       />
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

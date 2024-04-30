@@ -30,84 +30,19 @@ const data = reactive({
     },
   ],
 })
-
-// const query = gql`
-//   query GetTransactionById($id: ID!) {
-//     transaction(nodeId: $id) {
-//       chainid
-//       continuation
-//       code
-//       createdAt
-//       creationtime
-//       gas
-//       data
-//       gasprice
-//       gaslimit
-//       updatedAt
-//       txid
-//       step
-//       rollback
-//       ttl
-//       sender
-//       result
-//       proof
-//       requestkey
-//       payloadHash
-//       pactid
-//       numEvents
-//       nodeId
-//       nonce
-//       logs
-//       metadata
-//       id
-//     }
-//   }
-// `
-
-// const route = useRoute()
-
-// const { $graphql } = useNuxtApp();
-
-// const { data: transaction } = await useAsyncData('GetTransactionById', async () => {
-//   const {
-//     transaction
-//   } = await $graphql.default.request(query, {
-//     id: route.params.requestKey,
-//   });
-
-//   return transaction
-// });
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-6"
-  >
-    <div>
-      <h1
-        class="text-[28px] font-semibold leading-[150%] text-font-400"
-      >
-        Account Details
-      </h1>
-    </div>
+  <PageRoot>
+    <PageTitle>
+      Account Details
+    </PageTitle>
 
-    <div
-      class="
-        p-8
-        bg-gray-800
-        rounded-2xl
-      "
-    >
+    <PageContainer>
       <AccountDetails />
-    </div>
+    </PageContainer>
 
-    <div
-      class="
-        p-8
-        bg-gray-800
-        rounded-2xl
-      "
-    >
+    <PageContainer>
       <Tabs
         :tabs="data.tabs"
       >
@@ -127,18 +62,6 @@ const data = reactive({
           <AccountStatement />
         </TabPanel>
       </Tabs>
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

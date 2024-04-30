@@ -17,7 +17,7 @@ const emit = defineEmits(['rowClick'])
 <template>
   <div>
     <div
-      class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2"
+      class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-2 bazk:gap-4 px-3 bazk:px-4 py-2"
     >
       <div
         v-for="column in props.columns"
@@ -42,7 +42,7 @@ const emit = defineEmits(['rowClick'])
         <div
           v-for="row in 20"
           :key="`table-skeleton-row-${row}`"
-          class="grid grid-cols-[repeat(24,minmax(0,1fr))] px-4 py-2 gap-4 border-b border-b-gray-300 justify-between"
+          class="grid grid-cols-[repeat(24,minmax(0,1fr))] px-3 bazk:px-4 py-2 gap-2 bazk:gap-4 border-b border-b-gray-300 justify-between"
         >
           <div
             :key="index"
@@ -64,7 +64,7 @@ const emit = defineEmits(['rowClick'])
           v-for="(row, rowIndex) in rows"
           :key="row.requestKey"
           @click.prevent="emit('rowClick', row)"
-          class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 border-b border-b-gray-300 justify-between hover:bg-gray-700"
+          class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-2 bazk:gap-4 px-3 bazk:px-4 py-2 border-b border-b-gray-300 justify-between hover:bg-gray-700"
         >
           <div
             :key="index"

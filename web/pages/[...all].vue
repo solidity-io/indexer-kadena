@@ -50,16 +50,3 @@ useHead({
     </div>
   </div>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>
-<!-- background: linear-gradient(180deg, rgba(0, 245, 171, 0) 47%, rgba(0, 245, 171, 0.4) 100%); -->

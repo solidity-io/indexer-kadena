@@ -101,16 +101,10 @@ const {
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-4 bazk:gap-6"
-  >
-    <div>
-      <h1
-        class="text-[28px] font-semibold leading-[150%] text-font-400"
-      >
-        Transactions
-      </h1>
-    </div>
+  <PageRoot>
+    <PageTitle>
+      Last transactions
+    </PageTitle>
 
     <div
       class="grid gap-3 bazk:grid-cols-4 bazk:gap-6"
@@ -136,20 +130,9 @@ const {
       />
     </div>
 
-    <div
-      class="bg-gray-800 p-6 rounded-2xl"
-    >
-      <div
-        class="pb-6"
-      >
-        <span
-          class="text-font-400 text-lg leading-[100%] font-semibold tracking-[0.36px]"
-        >
-          Recent Transactions
-        </span>
-      </div>
-
+    <PageContainer>
       <TableRoot
+        title="Recent Transactions"
         :pending="pending"
         :rows="transactions.nodes"
         :columns="transactionTableColumns"
@@ -207,18 +190,6 @@ const {
         :totalPages="transactions.totalPages"
         @pageChange="page = Number($event)"
       />
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

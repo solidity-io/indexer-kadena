@@ -138,36 +138,18 @@ const formattedTransaction = useTransaction(transaction.value)
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-6"
-  >
-    <div>
-      <h1
-        class="text-[28px] font-semibold leading-[150%] text-font-400"
-      >
-        Transaction Details
-      </h1>
-    </div>
+  <PageRoot>
+    <PageTitle>
+      Transaction Details
+    </PageTitle>
 
-    <div
-      class="
-        p-8
-        bg-gray-800
-        rounded-2xl
-      "
-    >
+    <PageContainer>
       <TransactionDetails
         v-bind="formattedTransaction"
       />
-    </div>
+    </PageContainer>
 
-    <div
-      class="
-        p-8
-        bg-gray-800
-        rounded-2xl
-      "
-    >
+    <PageContainer>
       <Tabs
         :tabs="data.tabs"
       >
@@ -195,18 +177,6 @@ const formattedTransaction = useTransaction(transaction.value)
           />
         </TabPanel>
       </Tabs>
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

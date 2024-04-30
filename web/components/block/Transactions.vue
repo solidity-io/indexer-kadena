@@ -89,7 +89,8 @@ const redirect = (transaction: any) => {
 <template>
   <div
     class="
-      gap-6
+      gap-4
+      bazk:gap-6
       flex flex-col
     "
   >
@@ -100,9 +101,9 @@ const redirect = (transaction: any) => {
     />
 
     <div
-      class="p-6 rounded-2xl border border-gray-300"
+      class="bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
     >
-      <Table
+      <TableRoot
         :pending="pending"
         :rows="transactions.nodes"
         @rowClick="redirect"
@@ -140,13 +141,14 @@ const redirect = (transaction: any) => {
             <IconEye />
           </div>
         </template>
-      </Table>
+      </TableRoot>
 
       <PaginateTable
         :currentPage="page"
         :totalItems="transactions.totalCount ?? 1"
         :totalPages="transactions.totalPages"
         @pageChange="page = Number($event)"
+        class="p-3"
       />
     </div>
   </div>

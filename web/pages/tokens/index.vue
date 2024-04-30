@@ -34,33 +34,16 @@ const data = reactive({
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-6"
-  >
-    <div>
-      <h1
-        class="text-[28px] font-semibold leading-[150%] text-font-400"
-      >
-        Trending Tokens (KTS)
-      </h1>
-    </div>
+  <PageRoot>
+    <PageTitle>
+      Trending Tokens (KTS)
+    </PageTitle>
 
-    <div
-      class="bg-gray-800 p-6 rounded-2xl"
-    >
-      <div
-        class="pb-6"
-      >
-        <span
-          class="text-font-400 text-lg leading-[100%] font-semibold tracking-[0.36px]"
-        >
-          Trending Tokens
-        </span>
-      </div>
-
-      <Table
+    <PageContainer>
+      <TableRoot
         :rows="tokens"
         :pending="pending"
+        title="Trending Tokens"
         :columns="trendingTokensTableColumns"
       >
         <template #ranking="{ order }">
@@ -98,7 +81,7 @@ const data = reactive({
             :dollar="`${integer.format(row.total_volume / row.current_price)} ${row.symbol}`"
           />
         </template>
-      </Table>
+      </TableRoot>
 
       <PaginateTable
         :currentPage="data.page"
@@ -106,18 +89,6 @@ const data = reactive({
         :totalPages="data.totalPages"
         @pageChange="data.page = Number($event)"
       />
-    </div>
-  </div>
+    </PageContainer>
+  </PageRoot>
 </template>
-
-<style>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

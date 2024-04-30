@@ -17,9 +17,9 @@ provideUseId(() => useId())
   <div>
     <TabGroup>
       <div
-        class="flex justify-between gap-4"
+        class="flex justify-between gap-4 max-w-full overflow-auto"
       >
-        <TabList class="flex items-center gap-6">
+        <TabList class="flex items-center gap-4 bazk:gap-6">
           <Tab
             v-for="tab in tabs"
             as="template"
@@ -28,14 +28,14 @@ provideUseId(() => useId())
           >
             <button
               :class="[
-                'pb-[10px] px-3 outline-none box-border border-b border-b-[2px]',
+                'pb-[6px] bazk:pb-[10px] px-3 bazk:px-3 outline-none box-border border-b border-b-[2px] shrink-0',
                 selected
                   ? 'text-font-400  border-b-kadscan-500'
                   : 'text-font-500 border-b-transparent',
               ]"
             >
               <span
-                class="block leading-[22px]"
+                class="block text-sm leading-[19.6px] bazk:base bazk:leading-[22px]"
               >
                 {{ tab.label }}
               </span>
@@ -45,7 +45,7 @@ provideUseId(() => useId())
         <slot name="button" />
       </div>
 
-      <TabPanels class="pt-8">
+      <TabPanels class="pt-4 bazk:pt-8 w-full break-words">
         <slot />
       </TabPanels>
     </TabGroup>

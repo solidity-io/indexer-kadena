@@ -1,5 +1,11 @@
 export const transactionTableColumns = [
   {
+    isFixed: true,
+    cols: 1,
+    key: 'icon',
+    label: '',
+  },
+  {
     cols: 2,
     key: 'status',
     label: 'Status'
@@ -34,10 +40,5 @@ export const transactionTableColumns = [
     cols: 5,
     key: 'createdAt',
     label: 'Date',
-  },
-  {
-    cols: 1,
-    key: 'icon',
-    label: '',
   },
 ]
