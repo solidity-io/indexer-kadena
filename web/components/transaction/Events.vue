@@ -5,12 +5,7 @@ defineProps<{
 </script>
 
 <template>
-  <div
-    class="
-      gap-6
-      flex flex-col
-    "
-  >
+  <PageRoot>
     <LabelValue
       :key="id"
       :label="`${module }.${name}`"
@@ -24,5 +19,5 @@ defineProps<{
         />
       </template>
     </LabelValue>
-  </div>
+  </PageRoot>
 </template>

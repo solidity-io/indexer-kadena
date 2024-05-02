@@ -37,7 +37,7 @@ const emit = defineEmits(['rowClick'])
       class="max-w-full overflow-auto w-full"
     >
       <div
-        class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 min-w-[1200px] bazk:min-w-[1272px]"
+        class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 min-w-[1200px] bazk:min-w-full"
       >
         <div
           v-for="column in props.columns"
@@ -54,7 +54,7 @@ const emit = defineEmits(['rowClick'])
       </div>
 
       <div
-        class="border-t border-t-gray-300 min-w-[1200px] bazk:min-w-[1272px] relative"
+        class="border-t border-t-gray-300 min-w-[1200px] bazk:min-w-full relative"
       >
         <TablePending
           v-if="pending"

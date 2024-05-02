@@ -9,14 +9,8 @@ defineProps<{
 </script>
 
 <template>
-  <div>
-    <div
-      class="
-        gap-6
-        pb-6
-        flex flex-col
-      "
-    >
+  <Divide>
+    <DivideScroll>
       <LabelValue
         withCopy
         label="From"
@@ -33,16 +27,9 @@ defineProps<{
         label="Amount"
         value="2"
       />
-    </div>
+    </DivideScroll>
 
-    <div
-      class="
-        py-6
-        gap-6
-        flex flex-col
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         label="Transaction Fee"
         :value="`${gasTransaction.amount} KDA`"
@@ -53,28 +40,16 @@ defineProps<{
         label="Paid by"
         :value="gasTransaction.fromAcct"
       />
-    </div>
+    </DivideItem>
 
-    <div
-      class="
-        py-6
-        gap-6
-        flex flex-col
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         label="Gas Price"
         :value="`${metadata.gasPrice}`"
       />
-    </div>
+    </DivideItem>
 
-    <div
-      class="
-        pt-6
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         label="Code"
       >
@@ -84,6 +59,6 @@ defineProps<{
           </HighlightValue>
         </template>
       </LabelValue>
-    </div>
-  </div>
+    </DivideItem>
+  </Divide>
 </template>

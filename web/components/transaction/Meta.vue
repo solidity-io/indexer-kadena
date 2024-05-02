@@ -9,14 +9,8 @@ defineProps<{
 </script>
 
 <template>
-  <div>
-    <div
-      class="
-        pb-6
-        gap-6
-        flex flex-col
-      "
-    >
+  <Divide>
+    <DivideItem>
       <LabelValue
         withCopy
         label="Sender"
@@ -47,31 +41,17 @@ defineProps<{
         label="Creation Time"
         :value="createdAt"
       />
-    </div>
+    </DivideItem>
 
-    <div
-      class="
-        py-6
-        gap-6
-        flex flex-col
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         withCopy
         label="Public Key"
         :value="publicKey"
       />
-    </div>
+    </DivideItem>
 
-    <div
-      class="
-        pt-6
-        gap-6
-        flex flex-col
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         label="Nonce"
         :value="metadata.nonce"
@@ -84,6 +64,6 @@ defineProps<{
           <Code :value="JSON.parse(data)" />
         </template>
       </LabelValue>
-    </div>
-  </div>
+    </DivideItem>
+  </Divide>
 </template>

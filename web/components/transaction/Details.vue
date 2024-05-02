@@ -9,12 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div
-    class="
-      gap-6
-      flex flex-col
-    "
-  >
+  <PageRoot>
     <LabelValue
       withCopy
       label="Request Key"
@@ -47,5 +42,5 @@ defineProps<{
       label="Timestamp"
       :value="new Date(createdAt).toUTCString()"
     />
-  </div>
+  </PageRoot>
 </template>

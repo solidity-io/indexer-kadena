@@ -87,13 +87,7 @@ const redirect = (transaction: any) => {
 </script>
 
 <template>
-  <div
-    class="
-      gap-4
-      bazk:gap-6
-      flex flex-col
-    "
-  >
+  <PageRoot>
     <LabelValue
       withCopy
       label="Block Hash"
@@ -151,5 +145,5 @@ const redirect = (transaction: any) => {
         class="p-3"
       />
     </div>
-  </div>
+  </PageRoot>
 </template>

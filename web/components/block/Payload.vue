@@ -12,14 +12,8 @@ defineProps<{
 </script>
 
 <template>
-  <div>
-    <div
-      class="
-        pb-6
-        gap-4
-        flex flex-col
-      "
-    >
+  <Divide>
+    <DivideItem>
       <LabelValue
         label="Miner Account"
         value="-"
@@ -34,16 +28,9 @@ defineProps<{
         label="Miner Predicate"
         value="-"
       />
-    </div>
+    </DivideItem>
 
-    <div
-      class="
-        pt-6
-        gap-4
-        flex flex-col
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         label="Transactions Hash"
         value="-"
@@ -58,6 +45,6 @@ defineProps<{
         label="Payload Hash"
         :value="payloadHash"
       />
-    </div>
-  </div>
+    </DivideItem>
+  </Divide>
 </template>

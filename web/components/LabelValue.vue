@@ -9,16 +9,16 @@ defineProps<{
 
 <template>
   <div
-    class="flex gap-2 bazk:gap-4 flex-col bazk:flex-row"
+    class="flex gap-2 bazk:gap-4 flex-col bazk:flex-row bazk:items-center"
     :class="[
       col && 'flex-col items-start'
     ]"
   >
     <div
-      class="w-full max-w-[200px] h-max"
+      class="w-full max-w-[200px] h-full flex items-center"
     >
       <span
-        class="text-font-500 text-xs bazk:text-sm font-medium block"
+        class="text-font-500 text-xs bazk:text-sm font-medium"
       >
         {{ label }}
       </span>

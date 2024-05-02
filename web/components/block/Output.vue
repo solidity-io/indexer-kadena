@@ -5,12 +5,7 @@ defineProps<{
 </script>
 
 <template>
-  <div
-    class="
-      gap-6
-      flex flex-col
-    "
-  >
+  <PageRoot>
     <LabelValue
       label="Gas"
       value="-"
@@ -54,5 +49,5 @@ defineProps<{
       value="-"
       label="Transaction ID"
     />
-  </div>
+  </PageRoot>
 </template>

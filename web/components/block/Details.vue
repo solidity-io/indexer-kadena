@@ -9,12 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div
-    class="
-      gap-6
-      flex flex-col
-    "
-  >
+  <PageRoot>
     <LabelValue
       :value="height"
       label="Block Height"
@@ -40,5 +35,5 @@ defineProps<{
       label="POW Hash"
       value="-"
     />
-  </div>
+  </PageRoot>
 </template>

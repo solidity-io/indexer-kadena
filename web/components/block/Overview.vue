@@ -12,14 +12,8 @@ defineProps<{
 </script>
 
 <template>
-  <div>
-    <div
-      class="
-        pb-6
-        gap-4
-        flex flex-col
-      "
-    >
+  <Divide>
+    <DivideItem>
       <LabelValue
         label="Target"
         :value="target"
@@ -35,16 +29,9 @@ defineProps<{
         label="Total Fees"
         value="-"
       />
-    </div>
+    </DivideItem>
 
-    <div
-      class="
-        py-6
-        gap-4
-        flex flex-col
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         label="Nonce"
         :value="nonce"
@@ -64,16 +51,9 @@ defineProps<{
         label="Flags"
         value="-"
       />
-    </div>
+    </DivideItem>
 
-    <div
-      class="
-        pt-6
-        gap-4
-        flex flex-col
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         label="Chainweb Version"
         :value="chainwebVersion"
@@ -90,6 +70,6 @@ defineProps<{
           />
         </template>
       </LabelValue>
-    </div>
-  </div>
+    </DivideItem>
+  </Divide>
 </template>

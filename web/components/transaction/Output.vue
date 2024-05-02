@@ -8,14 +8,8 @@ defineProps<{
 </script>
 
 <template>
-  <div>
-    <div
-      class="
-        pb-6
-        gap-6
-        flex flex-col
-      "
-    >
+  <Divide>
+    <DivideItem>
       <LabelValue
         label="Transaction ID"
         :value="id"
@@ -51,16 +45,9 @@ defineProps<{
         label="Logs"
         :value="logs"
       />
-    </div>
+    </DivideItem>
 
-    <div
-      class="
-        pt-6
-        gap-6
-        flex flex-col
-        border-t border-t-gray-300
-      "
-    >
+    <DivideItem>
       <LabelValue
         label="Signatures"
       >
@@ -80,6 +67,6 @@ defineProps<{
           />
         </template>
       </LabelValue>
-    </div>
-  </div>
+    </DivideItem>
+  </Divide>
 </template>
