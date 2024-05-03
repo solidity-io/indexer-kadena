@@ -11,7 +11,7 @@ defineProps<{
     class="col-span-1 rounded-lg overflow-hidden border border-gray-500"
   >
     <div
-      class="max-w-full scale-1"
+      class="max-w-full scale-100 overflow-hidden"
     >
       <img
         :src="`/nft/${id}.webp`"
@@ -20,22 +20,22 @@ defineProps<{
     </div>
 
     <div
-      class="p-4 bg-gray-700 flex flex-col"
+      class="p-2 bazk:p-4 bg-gray-700 flex flex-col grow"
     >
       <span
-        class="text-sm text-font-500"
+        class="text-xs bazk:text-sm text-font-500"
       >
         {{ collection }}
       </span>
 
       <span
-        class="text-font-400"
+        class="text-sm bazk:text-base text-font-400"
       >
         {{ name }}
       </span>
 
       <span
-        class="pt-3 text-font-400"
+        class="text-sm bazk:text-base pt-3 text-font-400"
       >
         15.32 KDA
       </span>

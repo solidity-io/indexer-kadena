@@ -11,7 +11,7 @@ defineProps<{
   <div
     class="flex gap-2 bazk:gap-4 flex-col bazk:flex-row bazk:items-center"
     :class="[
-      col && 'flex-col items-start'
+      col && '!flex-col !items-start'
     ]"
   >
     <div

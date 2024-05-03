@@ -9,16 +9,16 @@ const {
     class="w-full flex flex-col rounded-2xl bg-gray-800 overflow-hidden"
   >
     <div
-      class="w-full"
+      class="w-full h-[280px] overflow-hidden flex items-center justify-center"
     >
       <img
         src="/collection/banner.webp"
-        class="w-full"
+        class="w-max max-w-[1320px]"
       />
     </div>
 
     <div
-      class="p-6 flex flex-col gap-8"
+      class="p-4 pt-2 bazk:p-6 flex flex-col gap-4 bazk:gap-8"
     >
       <div
         class="flex justify-between items-start gap-4"
@@ -27,25 +27,27 @@ const {
           class="flex flex-col gap-4 max-w-[464px]"
         >
           <div
-            class="flex gap-4 items-end max-h-[78px]"
+            class="
+              flex justify-end bazk:justify-start flex-col bazk:flex-row gap-4 bazk:items-end max-h-[58px] bazk:max-h-[78px]
+            "
           >
             <div
-              class="rounded-2xl overflow-hidden border border-[3px] border-gray-800"
+              class="rounded-2xl overflow-hidden border bazk:border-[3px] border-gray-800 shrink-0 w-max"
             >
               <img
                 src="/collection/profile.webp"
-                class="w-[180px] h-[180px]"
+                class="w-20 h-20 bazk:w-[180px] bazk:h-[180px]"
               />
             </div>
 
             <div
-              class="flex flex-col gap-3"
+              class="flex flex-col gap-2 bazk:gap-3"
             >
               <div
                 class="flex items-center gap-2"
               >
                 <span
-                  class="text-2xl	font-semibold block text-font-400"
+                  class="text-xl bazk:text-2xl font-medium bazk:font-semibold block text-font-400 leading-[28px] block"
                 >
                   MekaVerse
                 </span>
@@ -56,15 +58,17 @@ const {
               </div>
 
               <div
-                class="gap-2 rounded border border-gray-300 px-3 py-1.5 flex items-center"
+                class="w-max gap-2 rounded bg-gray-700 bazk:bg-transparent bazk:border bazk:border-gray-300 px-2 bazk:px-3 py-1 bazk:py-1.5 flex items-center"
               >
                 <span
-                  class="text-xs text-font-400 font-medium block"
+                  class="text-xs text-font-400 font-medium block leading-[18px]"
                 >
                   k:e7f7130f359fb1f8c87873...
                 </span>
 
-                <IconCopy />
+                <IconCopy
+                  class="w-4 h-4"
+                />
               </div>
             </div>
           </div>
@@ -79,7 +83,7 @@ const {
         </div>
 
         <div
-          class="flex h-auto gap-4"
+          class="hidden bazk:flex h-auto gap-4"
         >
           <Network
             v-for="network in networks"
@@ -92,7 +96,7 @@ const {
       </div>
 
       <div
-        class="grid grid-cols-6"
+        class="grid gap-3 bazk:gap-0 grid-cols-2 bazk:grid-cols-6"
       >
         <LabelValue
           col

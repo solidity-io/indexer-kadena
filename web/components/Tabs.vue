@@ -35,7 +35,7 @@ provideUseId(() => useId())
               ]"
             >
               <span
-                class="block text-sm leading-[19.6px] bazk:base bazk:leading-[22px]"
+                class="block text-sm leading-[19.6px] bazk:text-base bazk:leading-[22px]"
               >
                 {{ tab.label }}
               </span>
