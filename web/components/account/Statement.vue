@@ -63,66 +63,63 @@ const {
 
 <template>
   <div
-    class="
-      gap-6
-      flex flex-col
-    "
+    class="py-3 bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300 gap-4 flex flex-col"
   >
     <div
-      class="p-6 rounded-2xl border border-gray-300 gap-4 flex flex-col"
+      class="px-3 bazk:px-0"
     >
-      <div>
-        <DatePicker
-          v-model="data.date"
-        />
-      </div>
-
-      <Table
-        :pending="pending"
-        :rows="transactions.nodes"
-        :columns="statementTableColumns"
-      >
-        <template #createdAt="{ row }">
-          <ColumnDate
-            :row="row"
-          />
-        </template>
-
-        <template #description>
-          <!-- <ColumnAddress
-            value="TODO"
-          /> -->
-          <span>
-            - todo -
-          </span>
-        </template>
-
-        <template #amount>
-          <!-- <ColumnAddress
-            value="TODO"
-          /> -->
-          <span>
-            - todo -
-          </span>
-        </template>
-
-        <template #balance>
-          <!-- <ColumnAddress
-            value="TODO"
-          /> -->
-          <span>
-            - todo -
-          </span>
-        </template>
-      </Table>
-
-      <PaginateTable
-        itemsLabel="Transactions"
-        :currentPage="page"
-        :totalItems="transactions.totalCount ?? 1"
-        :totalPages="transactions.totalPages"
-        @pageChange="page = Number($event)"
+      <DatePicker
+        v-model="data.date"
+        class="relative z-[999]"
       />
     </div>
+
+    <TableRoot
+      :pending="pending"
+      :rows="transactions.nodes"
+      :columns="statementTableColumns"
+    >
+      <template #createdAt="{ row }">
+        <ColumnDate
+          :row="row"
+        />
+      </template>
+
+      <template #description>
+        <!-- <ColumnAddress
+          value="TODO"
+        /> -->
+        <span>
+          - todo -
+        </span>
+      </template>
+
+      <template #amount>
+        <!-- <ColumnAddress
+          value="TODO"
+        /> -->
+        <span>
+          - todo -
+        </span>
+      </template>
+
+      <template #balance>
+        <!-- <ColumnAddress
+          value="TODO"
+        /> -->
+        <span>
+          - todo -
+        </span>
+      </template>
+    </TableRoot>
+
+    <PaginateTable
+      itemsLabel="Transactions"
+      :currentPage="page"
+      class="px-3 bazk:px-0"
+      :totalItems="transactions.totalCount ?? 1"
+      :totalPages="transactions.totalPages"
+      @pageChange="page = Number($event)"
+    />
   </div>
 </template>

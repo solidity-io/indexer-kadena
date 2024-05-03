@@ -5,8 +5,9 @@
   <div>
     <div
       class="
-        gap-4
-        grid grid-cols-5
+        gap-2
+        bazk:gap-4
+        grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bazk:grid-cols-5
       "
     >
       <NftCard

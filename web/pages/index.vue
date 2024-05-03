@@ -107,6 +107,8 @@ const query = gql`
 `
 
 const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
+  console.log('Home: Ping')
+
   const [
     graphqlRes,
     tokenDataRes,

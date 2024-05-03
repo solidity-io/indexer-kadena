@@ -44,42 +44,40 @@ const assets = [
 </script>
 
 <template>
-  <div>
-    <div
-      class="p-6 rounded-2xl border border-gray-300"
+  <div
+    class="py-3 bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
+  >
+    <TableRoot
+      :rows="assets"
+      :columns="assetsTableColumns"
     >
-      <TableRoot
-        :rows="assets"
-        :columns="assetsTableColumns"
-      >
-        <template #row="{ row, columns, rowIndex }">
-          <TableRowExpansible
-            :row="row"
-            :columns="columns"
-            :rowIndex="rowIndex"
-          >
-            <template #asset="{ row }">
-              <ColumnToken
-                v-bind="row"
-              />
-            </template>
+      <template #row="{ row, columns, rowIndex }">
+        <TableRowExpansible
+          :row="row"
+          :columns="columns"
+          :rowIndex="rowIndex"
+        >
+          <template #asset="{ row }">
+            <ColumnToken
+              v-bind="row"
+            />
+          </template>
 
-            <template #distribution>
-              <IconArrow
-                class="mx-auto -rotate-90"
-              />
-            </template>
-          </TableRowExpansible>
-        </template>
-      </TableRoot>
+          <template #distribution>
+            <IconArrow
+              class="mx-auto -rotate-90"
+            />
+          </template>
+        </TableRowExpansible>
+      </template>
+    </TableRoot>
 
-      <PaginateTable
-        itemsLabel="Tokens"
-        :totalItems="180"
-        :currentPage="data.currentPage"
-        :totalPages="data.totalPages"
-        @pageChange="data.currentPage = $event"
-      />
-    </div>
+    <!-- <PaginateTable
+      itemsLabel="Tokens"
+      :totalItems="180"
+      :currentPage="data.currentPage"
+      :totalPages="data.totalPages"
+      @pageChange="data.currentPage = $event"
+    /> -->
   </div>
 </template>

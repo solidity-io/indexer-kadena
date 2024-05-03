@@ -59,72 +59,66 @@ const {
 
 <template>
   <div
-    class="
-      gap-6
-      flex flex-col
-    "
+    class="py-3 bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
   >
-    <div
-      class="p-6 rounded-2xl border border-gray-300"
+    <TableRoot
+      :pending="pending"
+      :rows="transactions.nodes"
+      :columns="transactionTableColumns"
     >
-      <Table
-        :pending="pending"
-        :rows="transactions.nodes"
-        :columns="transactionTableColumns"
-      >
-        <template #status="{ row }">
-          <ColumnStatus
-            :key="'status-' + row.requestkey"
-            :row="row"
-          />
-        </template>
+      <template #status="{ row }">
+        <ColumnStatus
+          :key="'status-' + row.requestkey"
+          :row="row"
+        />
+      </template>
 
-        <template #createdAt="{ row }">
-          <ColumnDate
-            :row="row"
-          />
-        </template>
+      <template #createdAt="{ row }">
+        <ColumnDate
+          :row="row"
+        />
+      </template>
 
-        <template #sender="{ row }">
-          <ColumnAddress
-            :value="row.sender"
-          />
-        </template>
+      <template #sender="{ row }">
+        <ColumnAddress
+          :value="row.sender"
+        />
+      </template>
 
-        <template #receiver>
-          <!-- <ColumnAddress
-            value="TODO"
-          /> -->
-          <span>
-            - todo -
-          </span>
-        </template>
+      <template #receiver>
+        <!-- <ColumnAddress
+          value="TODO"
+        /> -->
+        <span>
+          - todo -
+        </span>
+      </template>
 
-        <template #block>
-          <!-- <ColumnAddress
-            value="TODO"
-          /> -->
-          <span>
-            - todo -
-          </span>
-        </template>
+      <template #block>
+        <!-- <ColumnAddress
+          value="TODO"
+        /> -->
+        <span>
+          - todo -
+        </span>
+      </template>
 
-        <template #icon>
-          <div
-            class="flex items-center justify-center"
-          >
-            <IconEye />
-          </div>
-        </template>
-      </Table>
+      <template #icon>
+        <div
+          class="flex items-center justify-center"
+        >
+          <IconEye />
+        </div>
+      </template>
+    </TableRoot>
 
-      <PaginateTable
-        itemsLabel="Transactions"
-        :currentPage="page"
-        :totalItems="transactions.totalCount ?? 1"
-        :totalPages="transactions.totalPages"
-        @pageChange="page = Number($event)"
-      />
-    </div>
+    <PaginateTable
+      itemsLabel="Transactions"
+      :currentPage="page"
+      class="px-3 bazk:px-0"
+      :totalItems="transactions.totalCount ?? 1"
+      :totalPages="transactions.totalPages"
+      @pageChange="page = Number($event)"
+    />
   </div>
 </template>

@@ -2,12 +2,7 @@
 </script>
 
 <template>
-  <div
-    class="
-      gap-6
-      flex flex-col
-    "
-  >
+  <PageRoot>
     <LabelValue
       col
       withCopy
@@ -16,7 +11,7 @@
     />
 
     <div
-      class="grid grid-cols-4"
+      class="grid gap-4 bazk:gap-0 bazk:grid-cols-4"
     >
       <LabelValue
         col
@@ -42,5 +37,5 @@
         value="Sep-08-2022 14:18:01"
       />
     </div>
-  </div>
+  </PageRoot>
 </template>
