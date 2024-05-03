@@ -106,7 +106,7 @@ const query = gql`
   }
 `
 
-const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
+const { data, error } = await useAsyncData('GetLastBlockAndTransaction', async () => {
   console.log('Home: Ping')
 
   const [
@@ -129,6 +129,8 @@ const { data } = await useAsyncData('GetLastBlockAndTransaction', async () => {
     transactions: graphqlRes.allTransactions
   };
 });
+
+console.log('error', error.value)
 </script>
 
 <template>

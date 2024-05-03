@@ -15,7 +15,9 @@ const emit = defineEmits(['click'])
 </script>
 
 <template>
-  <Disclosure>
+  <Disclosure
+    as="div"
+  >
     <DisclosureButton
       @click.prevent="emit('click')"
       class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-3 border-b border-b-gray-300 justify-between hover:bg-gray-700 w-full"
