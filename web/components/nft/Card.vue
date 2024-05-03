@@ -11,7 +11,7 @@ defineProps<{
     class="col-span-1 rounded-lg overflow-hidden border border-gray-500"
   >
     <div
-      class="max-w-full scale-100 overflow-hidden"
+      class="max-w-full aspect-square overflow-hidden"
     >
       <img
         :src="`/nft/${id}.webp`"

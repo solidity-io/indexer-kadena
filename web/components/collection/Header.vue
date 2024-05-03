@@ -6,7 +6,7 @@ const {
 
 <template>
   <div
-    class="w-full flex flex-col rounded-2xl bg-gray-800 overflow-hidden"
+    class="w-full flex flex-col rounded-lg bazk:rounded-2xl bg-gray-800 overflow-hidden"
   >
     <div
       class="w-full h-[280px] overflow-hidden flex items-center justify-center"

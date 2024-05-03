@@ -6,38 +6,57 @@ const {
 
 <template>
   <div
-    class="rounded-2xl overflow-hidden bg-gray-800 flex"
+    class="rounded-lg bazk:rounded-2xl overflow-hidden bg-gray-800 flex flex-col bazk:flex-row"
   >
     <div
-      class="rounded-2xl overflow-hidden border border-[3px] border-gray-800 shrink-0"
+      class="
+        w-full
+        aspect-square
+        bazk:max-w-[560px]
+        bazk:rounded-2xl
+        overflow-hidden border border-[3px] border-gray-800 shrink-0 flex justify-center items-center"
     >
       <img
         src="/nft/1.webp"
-        class="w-[560px] h-[560px]"
+        class="aspect-square min-w-full bazk:min-w-[560px]"
       />
     </div>
 
     <div
-      class="p-8 flex flex-col gap-6 w-full"
+      class="p-4 bazk:p-8 flex flex-col gap-4 bazk:gap-6 w-full"
     >
       <div
-        class="flex flex-col gap-2"
+        class="grid gap-3"
       >
-        <span
-          class="text-font-500 font-medium block"
+        <div
+          class="grid gap-2"
         >
-          Hack a Collection
-        </span>
+          <span
+            class="text-font-500 font-medium block"
+          >
+            Hack a Collection
+          </span>
 
-        <span
-          class="text-[40px] font-semibold font-semibold block text-font-400"
+          <span
+            class="text-[40px] font-semibold font-semibold block text-font-400"
+          >
+            Meka #2341
+          </span>
+        </div>
+
+        <div
+          class="bazk:hidden"
         >
-          Meka #2341
-        </span>
+          <span
+            class="text-xs text-font-400 block max-w-[560px]"
+          >
+            A Skybreach Land Deed is not just a piece of paper, it's a gateway to a realm of possibilities. As the holder, you can build on the land, mine its hidden resources, embark on thrilling quests, and so much more. Uncover the magic at
+          </span>
+        </div>
       </div>
 
       <div
-        class="w-full flex gap-6"
+        class="w-full hidden bazk:flex gap-6"
       >
         <NftVolume
           label="Price"
@@ -53,7 +72,7 @@ const {
       </div>
 
       <div
-        class="flex flex-col gap-6"
+        class="grid gap-3 bazk:gap-6"
       >
         <LabelValue
           copy

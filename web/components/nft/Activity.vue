@@ -112,9 +112,9 @@ const data = reactive({
 
 <template>
   <div
-    class="border border-gray-300 rounded-2xl p-6"
+    class="py-3 bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
   >
-    <Table
+    <TableRoot
       :class="data.pending && 'bg-white'"
       :rows="rows"
       :columns="nftActivityTableColumns"
@@ -150,13 +150,13 @@ const data = reactive({
           <IconEye />
         </div>
       </template>
-    </Table>
+    </TableRoot>
 
-    <PaginateTable
+    <!-- <PaginateTable
       :currentPage="data.page"
       :totalItems="data.totalCount ?? 1"
       :totalPages="data.totalPages"
       @pageChange="data.page = Number($event)"
-    />
+    /> -->
   </div>
 </template>

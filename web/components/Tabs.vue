@@ -42,7 +42,7 @@ provideUseId(() => useId())
             </button>
           </Tab>
         </TabList>
-        <slot name="button" />
+        <!-- <slot name="button" /> -->
       </div>
 
       <TabPanels class="pt-4 bazk:pt-8 w-full break-words">

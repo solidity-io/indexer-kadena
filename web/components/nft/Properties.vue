@@ -4,7 +4,7 @@
 
 <template>
   <div
-    class="flex flex-col gap-6"
+    class="grid gap-3 bazk:gap-6"
   >
     <LabelValue
       label="Color"
