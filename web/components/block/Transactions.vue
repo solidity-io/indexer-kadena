@@ -95,7 +95,7 @@ const redirect = (transaction: any) => {
     />
 
     <div
-      class="bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
+      class="py-3 bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
     >
       <TableRoot
         :pending="pending"

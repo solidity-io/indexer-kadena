@@ -8,30 +8,28 @@ defineProps<{
 </script>
 
 <template>
-  <div
-    class="p-6 rounded-2xl border border-gray-300 flex flex-col gap-6"
-  >
+  <PageRoot>
     <div
       class="flex flex-col gap-4"
     >
       <span
-        class="text-xl font-semibold text-font-400"
+        class="bazk:text-xl bazk:font-semibold text-font-400"
       >
         Overview
       </span>
 
       <span
-        class="text-sm text-font-400"
+        class="text-xs bazk:text-sm text-font-400"
       >
         {{ description.en }}
       </span>
     </div>
 
     <div
-      class="flex flex-col gap-4"
+      class="flex flex-col gap-3 bazk:gap-4"
     >
       <span
-        class="text-xl font-semibold text-font-400"
+        class="bazk:text-xl bazk:font-semibold text-font-400"
       >
         Market
       </span>
@@ -61,6 +59,7 @@ defineProps<{
 
         <LabelValue
           label="Market Data Source"
+          class="w-max"
         >
           <template #value>
             <div
@@ -80,5 +79,5 @@ defineProps<{
         </LabelValue>
       </div>
     </div>
-  </div>
+  </PageRoot>
 </template>

@@ -9,15 +9,7 @@ defineProps<{
 </script>
 
 <template>
-  <div
-    class="
-      gap-6
-      flex flex-col
-      p-8
-      rounded-2xl
-      bg-gray-800
-    "
-  >
+  <PageRoot>
     <div
       class="flex items-center gap-2"
     >
@@ -42,10 +34,10 @@ defineProps<{
     </div>
 
     <div
-      class="grid grid-cols-2"
+      class="grid grid-cols-1 bazk:gap-4 bazk:grid-cols-2 divide-y divide-gray-300 bazk:divide-y-0"
     >
       <div
-        class="flex flex-col gap-4"
+        class="flex flex-col gap-4 pb-4 bazk:pb-0"
       >
         <div>
           <span
@@ -55,38 +47,42 @@ defineProps<{
           </span>
         </div>
 
-        <LabelValue
-          label="Price"
+        <div
+          class="grid grid-cols-2 bazk:grid-cols-1 gap-3 bazk:gap-4"
         >
-          <template
-            #value
+          <LabelValue
+            label="Price"
           >
-            <div
-              class="flex text-base gap-2"
+            <template
+              #value
             >
-              1 KDA <span class="text-font-500">{{ money.format(market_data?.current_price.usd) }}</span>
-            </div>
-          </template>
-        </LabelValue>
+              <div
+                class="flex text-base gap-2"
+              >
+                1 KDA <span class="text-font-500">{{ money.format(market_data?.current_price.usd) }}</span>
+              </div>
+            </template>
+          </LabelValue>
 
-        <LabelValue
-          label="Max Total Supply"
-          :value="integer.format(market_data.max_supply)"
-        />
+          <LabelValue
+            label="Max Total Supply"
+            :value="integer.format(market_data.max_supply)"
+          />
 
-        <LabelValue
-          label="Holders"
-          value="-"
-        />
+          <LabelValue
+            label="Holders"
+            value="-"
+          />
 
-        <LabelValue
-          label="Total Transfers"
-          value="-"
-        />
+          <LabelValue
+            label="Total Transfers"
+            value="-"
+          />
+        </div>
       </div>
 
       <div
-        class="flex flex-col gap-4"
+        class="flex flex-col gap-4 pt-4 bazk:pt-0"
       >
         <div>
           <span
@@ -96,52 +92,56 @@ defineProps<{
           </span>
         </div>
 
-        <LabelValue
-          value="-"
-          label="Contract"
-        />
-
-        <LabelValue
-          label="Decimals"
-          value="-"
-        />
-
-        <LabelValue
-          label="Website"
-          :value="links.homepage[0]"
-        />
-
-        <LabelValue
-          label="Community"
+        <div
+          class="grid grid-cols-2 bazk:grid-cols-1 gap-3 bazk:gap-4"
         >
-          <template #value>
-            <div
-              class="flex items-center gap-4"
-            >
-              <Network
-                icon="github"
-                target="__blank"
-                :to="links.repos_url?.github[0]"
-                v-if="links.repos_url?.github[0]"
-              />
+          <LabelValue
+            value="-"
+            label="Contract"
+          />
 
-              <Network
-                icon="github"
-                target="__blank"
-                :to="`https://t.me/${links.telegram_channel_identifier}`"
-                v-if="links.telegram_channel_identifier"
-              />
+          <LabelValue
+            label="Decimals"
+            value="-"
+          />
 
-              <Network
-                icon="twitter"
-                target="__blank"
-                :to="`https://x.com/${links.twitter_screen_name}`"
-                v-if="links.twitter_screen_name"
-              />
-            </div>
-          </template>
-        </LabelValue>
+          <LabelValue
+            label="Website"
+            :value="links.homepage[0]"
+          />
+
+          <LabelValue
+            label="Community"
+          >
+            <template #value>
+              <div
+                class="flex items-center gap-4"
+              >
+                <Network
+                  icon="github"
+                  target="__blank"
+                  :to="links.repos_url?.github[0]"
+                  v-if="links.repos_url?.github[0]"
+                />
+
+                <Network
+                  icon="github"
+                  target="__blank"
+                  :to="`https://t.me/${links.telegram_channel_identifier}`"
+                  v-if="links.telegram_channel_identifier"
+                />
+
+                <Network
+                  icon="twitter"
+                  target="__blank"
+                  :to="`https://x.com/${links.twitter_screen_name}`"
+                  v-if="links.twitter_screen_name"
+                />
+              </div>
+            </template>
+          </LabelValue>
+        </div>
       </div>
     </div>
-  </div>
+  </PageRoot>
 </template>

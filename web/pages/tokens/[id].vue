@@ -42,9 +42,11 @@ const { data: token } = await useAsyncData('token-detail', async () => {
 
 <template>
   <PageRoot>
-    <TokenDetails
-      v-bind="token"
-    />
+    <PageContainer>
+      <TokenDetails
+        v-bind="token"
+      />
+    </PageContainer>
 
     <PageContainer>
       <Tabs

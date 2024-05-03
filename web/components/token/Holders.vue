@@ -136,9 +136,9 @@ const data = reactive({
 
 <template>
   <div
-    class="bg-gray-800 p-6 rounded-2xl border border-gray-300"
+    class="py-3 bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
   >
-    <Table
+    <TableRoot
       :class="data.pending && 'bg-white'"
       :rows="rows"
       :columns="holdersTableColumns"
@@ -152,9 +152,10 @@ const data = reactive({
       <template #ranking>
         1
       </template>
-    </Table>
+    </TableRoot>
 
     <PaginateTable
+      class="px-3 bazk:px-0"
       :currentPage="data.page"
       :totalItems="data.totalCount ?? 1"
       :totalPages="data.totalPages"
