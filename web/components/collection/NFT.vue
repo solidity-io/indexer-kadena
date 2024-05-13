@@ -1,9 +1,13 @@
 <script setup lang="ts">
+defineProps<{
+  items?: any
+}>()
 </script>
 
 <template>
   <div>
     <div
+      v-if="items"
       class="
         gap-2
         bazk:gap-4
@@ -11,26 +15,16 @@
       "
     >
       <NftCard
-        v-for="n in 10"
-        :key="'nft-' + n"
-        :id="n + ''"
-        name="HC - Smoked  #823"
-        collection="Hack a Collection"
-      />
-
-      <NftCard
-        v-for="n in 10"
-        :key="'nft-' + n + 10"
-        :id="n + ''"
-        name="HC - Smoked  #823"
-        collection="Hack a Collection"
+        v-bind="item"
+        v-for="item in items"
+        :key="'nft:' + item.id"
       />
     </div>
 
     <PaginateTable
       itemsLabel="NFT's"
       :currentPage="1"
-      :totalItems="150"
+      :totalItems="2000"
       :totalPages="10"
     />
   </div>

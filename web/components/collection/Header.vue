@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const {
-  networks
+  networks,
+  blockchainTooltipData
 } = useAppConfig()
 </script>
 
@@ -49,7 +50,7 @@ const {
                 <span
                   class="text-xl bazk:text-2xl font-medium bazk:font-semibold block text-font-400 leading-[28px] block"
                 >
-                  MekaVerse
+                  Mock
                 </span>
 
                 <IconVerified
@@ -63,7 +64,7 @@ const {
                 <span
                   class="text-xs text-font-400 font-medium block leading-[18px]"
                 >
-                  k:e7f7130f359fb1f8c87873...
+                  k:00000000000000...
                 </span>
 
                 <IconCopy
@@ -77,7 +78,7 @@ const {
             <span
               class="text-xs text-font-400 block"
             >
-              A Skybreach Land Deed is not just a piece of paper, it's a gateway to a realm of possibilities. As the holder, you can build on the land, mine its hidden resources, embark on thrilling quests, and so much more. Uncover the magic at
+              Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
             </span>
           </div>
         </div>
@@ -100,38 +101,44 @@ const {
       >
         <LabelValue
           col
+          value="0"
           label="Total items"
-          value="731"
+          :description="blockchainTooltipData.nft.collection.totalItems"
         />
 
         <LabelValue
           col
+          value="0"
           label="Owners"
-          value="92"
+          :description="blockchainTooltipData.nft.collection.owners"
         />
 
         <LabelValue
           col
           label="For Sale"
-          value="132"
+          value="0"
+          :description="blockchainTooltipData.nft.collection.forSale"
         />
 
         <LabelValue
           col
           label="Floor Price"
-          value="161 KDA"
+          value="0.0 KDA"
+          :description="blockchainTooltipData.nft.collection.floorPrice"
         />
 
         <LabelValue
           col
           label="Average Price"
-          value="145 KDA"
+          value="0.0 KDA"
+          :description="blockchainTooltipData.nft.collection.averagePrice"
         />
 
         <LabelValue
           col
           label="Volume"
-          value="1347.5 KDA"
+          value="0.0 KDA"
+          :description="blockchainTooltipData.nft.collection.volume"
         />
       </div>
     </div>

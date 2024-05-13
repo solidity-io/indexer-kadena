@@ -21,6 +21,10 @@ const data = reactive({
     },
   ],
 })
+
+const {
+  mockCollectionNFTs,
+} = useAppConfig()
 </script>
 
 <template>
@@ -32,7 +36,9 @@ const data = reactive({
         :tabs="data.tabs"
       >
         <TabPanel>
-          <CollectionNFT />
+          <CollectionNFT
+            :items="mockCollectionNFTs"
+          />
         </TabPanel>
 
         <TabPanel>

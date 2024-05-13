@@ -4,6 +4,7 @@ defineProps<{
   value?: string | number;
   col?: boolean;
   withCopy?: boolean;
+  description?: string
 }>()
 </script>
 
@@ -15,8 +16,13 @@ defineProps<{
     ]"
   >
     <div
-      class="w-full max-w-[200px] h-full flex items-center"
+      class="w-full max-w-[200px] h-full flex items-center gap-2"
     >
+      <Tooltip
+        v-if="description"
+        :value="description"
+      />
+
       <span
         class="text-font-500 text-xs bazk:text-sm font-medium"
       >

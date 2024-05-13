@@ -2,6 +2,7 @@
 defineProps<{
   id: string,
   name: string,
+  image: string,
   collection: string,
 }>()
 </script>
@@ -14,7 +15,7 @@ defineProps<{
       class="max-w-full aspect-square overflow-hidden"
     >
       <img
-        :src="`/nft/${id}.webp`"
+        :src="image"
         class="w-full"
       />
     </div>
@@ -37,7 +38,7 @@ defineProps<{
       <span
         class="text-sm bazk:text-base pt-3 text-font-400"
       >
-        15.32 KDA
+        0.0 KDA
       </span>
     </div>
   </div>
