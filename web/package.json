@@ -18,6 +18,7 @@
     "autoprefixer": "^10.4.19",
     "chart.js": "^4.4.2",
     "chartjs-plugin-gradient": "^0.6.1",
+    "convert-array-to-csv": "^2.0.0",
     "date-fns": "^3.6.0",
     "graphql": "^16.8.1",
     "graphql-request": "^6.1.0",

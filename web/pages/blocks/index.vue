@@ -20,6 +20,7 @@ const query = gql`
         adjacents
         chainId
         chainwebVersion
+        coinbase
         createdAt
         creationTime
         epochStart
@@ -28,12 +29,15 @@ const query = gql`
         height
         id
         nodeId
+        minerData
         nonce
+        outputsHash
         parent
         payloadHash
         target
         updatedAt
         weight
+        transactionsHash
         transactionsByBlockId {
           totalCount
         }
@@ -57,6 +61,8 @@ const {
   query,
   key: 'allBlocks'
 })
+
+console.log("blocks", blocks.value)
 </script>
 
 <template>

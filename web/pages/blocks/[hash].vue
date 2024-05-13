@@ -36,21 +36,25 @@ const query = gql`
     block(nodeId: $id) {
       adjacents
       chainId
-      createdAt
       chainwebVersion
-      epochStart
+      coinbase
+      createdAt
       creationTime
+      epochStart
       featureFlags
       hash
       height
       id
       nodeId
+      minerData
       nonce
-      target
+      outputsHash
       parent
       payloadHash
+      target
       updatedAt
       weight
+      transactionsHash
     }
   }
 `
