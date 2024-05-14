@@ -12,92 +12,38 @@ useHead({
 const { $graphql } = useNuxtApp();
 
 const query = gql`
-query GetLastBlockAndTransaction {
-  allTransactions(last: 5) {
+  query GetLastBlockAndTransaction {
+    allTransactions(last: 5) {
       nodes {
         chainId
-        code
         createdAt
-        continuation
-        creationtime
-        data
-        gas
-        gaslimit
-        gasprice
         id
         metadata
-        logs
-        nonce
         nodeId
         numEvents
-        pactid
-        payloadHash
-        proof
         requestkey
         result
-        sender
-        rollback
-        step
-        ttl
-        txid
-        updatedAt
-        eventsByTransactionId {
-          nodes {
-            chainId
-            createdAt
-            id
-            module
-            name
-            modulehash
-            nodeId
-            params
-            paramtext
-            payloadHash
-            qualname
-            requestkey
-            transactionId
-            updatedAt
-          }
-        }
         transfersByTransactionId {
           nodes {
             amount
-            chainId
-            createdAt
             fromAcct
-            modulehash
-            id
-            nodeId
             modulename
-            requestkey
-            payloadHash
             toAcct
             tokenId
-            transactionId
-            updatedAt
           }
         }
       }
     }
     allBlocks(last: 5) {
       nodes {
-        adjacents
         chainId
-        chainwebVersion
+        parent
         createdAt
-        creationTime
-        epochStart
-        featureFlags
         hash
         height
         id
         nodeId
-        nonce
-        parent
-        payloadHash
-        target
-        updatedAt
-        weight
+        minerData
         transactionsByBlockId {
           totalCount
         }
@@ -197,11 +143,11 @@ console.log('error', error.value)
         label="Recent Transactions"
         path="/transactions"
       >
-          <HomeTransaction
-            v-bind="transaction"
-            :key="transaction.requestKey"
-            v-for="transaction in data?.transactions?.nodes"
-          />
+        <HomeTransaction
+          v-bind="transaction"
+          :key="transaction.requestKey"
+          v-for="transaction in data?.transactions?.nodes"
+        />
       </HomeList>
 
       <HomeList

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
+import { useBlockMiner } from '~/composables/transactions';
 
 const props = defineProps<{
   parent: string,
@@ -8,21 +9,15 @@ const props = defineProps<{
   height: number,
   hash: string,
   createdAt: any,
+  minerData: string,
   transactionsByBlockId: any,
 }>()
-
-function shortenAddress (
-  address: string,
-  chars = 5
-): string {
-  return `${address.slice(0, chars)}...${address.slice(
-    -chars
-  )}`
-}
 
 const status = computed((): 'success' | 'error' => {
   return props.parent ? 'success' : 'error'
 })
+
+const miner = useBlockMiner(props.minerData)
 </script>
 
 <template>
@@ -38,7 +33,7 @@ const status = computed((): 'success' | 'error' => {
     >
       <Value
         isLink
-        value="k:HLb_zg....bKYXWU"
+        :value="shortenAddress(miner.account)"
         label="Miner"
         :to="`/account/${nodeId}`"
         class="w-full"

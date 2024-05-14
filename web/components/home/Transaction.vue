@@ -4,32 +4,15 @@ import { format } from 'date-fns'
 const props = defineProps<{
   nodeId: string,
   result: string,
-  chainid: number,
+  chainId: number,
   createdAt: string,
   requestkey: string,
   transfersByTransactionId: any
 }>()
 
-const shortenAddress = (
-  address: string,
-  chars = 5
-): string => {
-  if (!address) {
-    return ''
-  }
+const status = useTransactionStatus(props.result)
 
-  return `${address.slice(0, chars)}...${address.slice(
-    -chars
-  )}`
-}
-
-const {
-  sender,
-  status,
-  receiver,
-  transfers,
-  gasTransaction,
-} = useTransaction(props)
+const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
 </script>
 
 <template>
@@ -46,13 +29,13 @@ const {
       <Value
         isLink
         label="Request Key"
-        :to="`/transactions/${nodeId}`"
+        :to="`/transactions/${props.nodeId}`"
         :value="shortenAddress(props.requestkey)"
       />
 
       <Value
         label="Chain"
-        :value="props.chainid"
+        :value="props.chainId"
       />
     </div>
 
@@ -62,15 +45,15 @@ const {
       <Value
         isLink
         label="From"
-        :to="`/account/${sender}`"
-        :value="shortenAddress(sender)"
+        :to="`/account/${lastTransfer.fromAcct}`"
+        :value="shortenAddress(lastTransfer.fromAcct)"
       />
 
       <Value
         isLink
         label="To"
-        :to="`/account/${receiver}`"
-        :value="shortenAddress(receiver)"
+        :to="`/account/${lastTransfer.toAcct}`"
+        :value="shortenAddress(lastTransfer.toAcct)"
       />
     </div>
 
@@ -83,17 +66,7 @@ const {
         <span
           class="text-font-450 text-xs"
         >
-          <template
-            v-if="transfers.length > 0"
-          >
-            {{ `${transfers[0].amount}` }}
-          </template>
-
-          <template
-            v-else
-          >
-            {{ `${Number(gasTransaction.amount).toPrecision(2)} ${gasTransaction.modulename}`}}
-          </template>
+          {{ `${Number(lastTransfer.amount).toPrecision(2)} ${lastTransfer.modulename}`}}
         </span>
       </div>
 

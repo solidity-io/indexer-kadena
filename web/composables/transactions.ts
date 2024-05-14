@@ -1,18 +1,3 @@
-// import { computed } from 'vue'
-
-// const shortenAddress = (
-//   address: string,
-//   chars = 5
-// ): string => {
-//   if (!address) {
-//     return ''
-//   }
-
-//   return `${address.slice(0, chars)}...${address.slice(
-//     -chars
-//   )}`
-// }
-
 export const useTransaction = (props: any): any => {
   const nodeLength = props.transfersByTransactionId.nodes.length || 0
 
@@ -63,3 +48,15 @@ export const useTransaction = (props: any): any => {
     },
   }
 }
+
+export const useLatestTransfer = (transfers: any[]) => {
+  const nodeLength = transfers.length || 0
+
+  const transferIndex = Math.max(nodeLength - 1, 0)
+
+  return transfers[transferIndex]
+}
+
+export const useTransactionStatus = (result: string) => result.includes('\"status\":\"success\"') ? 'success' : 'error'
+
+export const useBlockMiner = (minerData: string) => JSON.parse(minerData)
