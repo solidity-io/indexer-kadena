@@ -12,10 +12,10 @@ useHead({
 const { $graphql } = useNuxtApp();
 
 const query = gql`
-  query GetLastBlockAndTransaction {
-    allTransactions(last: 5) {
+query GetLastBlockAndTransaction {
+  allTransactions(last: 5) {
       nodes {
-        chainid
+        chainId
         code
         createdAt
         continuation
@@ -43,7 +43,7 @@ const query = gql`
         updatedAt
         eventsByTransactionId {
           nodes {
-            chainid
+            chainId
             createdAt
             id
             module
@@ -62,7 +62,7 @@ const query = gql`
         transfersByTransactionId {
           nodes {
             amount
-            chainid
+            chainId
             createdAt
             fromAcct
             modulehash
@@ -190,6 +190,7 @@ console.log('error', error.value)
     </Container>
 
     <div
+      v-if="!error"
       class="grid bazk:grid-cols-2 gap-4 bazk:gap-6"
     >
       <HomeList

@@ -24,7 +24,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // // Numbers
-      // GA_ID: process.env.GTM_TAG,
+      API_URL: process.env.API_URL,
     },
   },
 
