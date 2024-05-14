@@ -17,7 +17,7 @@ const {
         overflow-hidden border border-[3px] border-gray-800 shrink-0 flex justify-center items-center"
     >
       <img
-        src="/nft/1.webp"
+        src="/nft/mock.webp"
         class="aspect-square min-w-full bazk:min-w-[560px]"
       />
     </div>
