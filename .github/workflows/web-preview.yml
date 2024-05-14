@@ -2,7 +2,7 @@ name: Preview
 on:
   pull_request:
     paths:
-      - 'web/**'
+      - './web/**'
 
 jobs:
   frontend_dev_deploy:
