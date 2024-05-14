@@ -196,11 +196,11 @@ console.log('error', error.value)
         label="Recent Transactions"
         path="/transactions"
       >
-        <HomeTransaction
-          v-bind="transaction"
-          :key="transaction.requestKey"
-          v-for="transaction in data?.transactions.nodes"
-        />
+          <HomeTransaction
+            v-bind="transaction"
+            :key="transaction.requestKey"
+            v-for="transaction in data?.transactions?.nodes"
+          />
       </HomeList>
 
       <HomeList
@@ -210,7 +210,7 @@ console.log('error', error.value)
         <HomeBlock
           v-bind="block"
           :key="block.hash"
-          v-for="block in data?.blocks.nodes"
+          v-for="block in data?.blocks?.nodes"
         />
       </HomeList>
     </div>

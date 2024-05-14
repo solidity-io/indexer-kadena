@@ -21,6 +21,13 @@ export default defineNuxtConfig({
     "cross-fetch": "cross-fetch/dist/browser-ponyfill.js",
   },
 
+  runtimeConfig: {
+    public: {
+      // // Numbers
+      // GA_ID: process.env.GTM_TAG,
+    },
+  },
+
   graphql: {
     /**
      * An Object of your GraphQL clients
@@ -30,7 +37,7 @@ export default defineNuxtConfig({
         /**
          * The client endpoint url
          */
-        endpoint: 'https://h5pmt2ioxe.execute-api.us-east-1.amazonaws.com/',
+        endpoint: process.env.API_URL || 'localhost:3000',
 
         options: {
           method: 'POST', // Default to `POST`
