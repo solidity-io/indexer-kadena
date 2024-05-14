@@ -1,5 +1,8 @@
 name: Preview
-on: pull_request
+on:
+  pull_request:
+    paths:
+      - 'web/**'
 
 jobs:
   frontend_dev_deploy:
@@ -33,11 +36,12 @@ jobs:
       - name: Build Project Artifacts
         env:
           NITRO_PRESET: vercel
-        run: vercel build
+        run: vercel build --prod
 
       - name: Deploy Project Artifacts to Vercel
         run: >
           vercel
           deploy
+          --prod
           --prebuilt
           --token=${{ secrets.VERCEL_TOKEN }}
