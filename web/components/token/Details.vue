@@ -6,6 +6,10 @@ defineProps<{
   symbol: string;
   market_data: any;
 }>()
+
+const {
+  blockchainTooltipData
+} = useAppConfig()
 </script>
 
 <template>
@@ -52,6 +56,7 @@ defineProps<{
         >
           <LabelValue
             label="Price"
+            :description="blockchainTooltipData.tokenDetails.overview.price"
           >
             <template
               #value
@@ -67,16 +72,19 @@ defineProps<{
           <LabelValue
             label="Max Total Supply"
             :value="integer.format(market_data.max_supply)"
+            :description="blockchainTooltipData.tokenDetails.overview.maxTotalSupply"
           />
 
           <LabelValue
+            value="-"
             label="Holders"
-            value="-"
+            :description="blockchainTooltipData.tokenDetails.overview.holders"
           />
 
           <LabelValue
-            label="Total Transfers"
             value="-"
+            label="Total Transfers"
+            :description="blockchainTooltipData.tokenDetails.overview.totalTransfers"
           />
         </div>
       </div>
@@ -98,16 +106,19 @@ defineProps<{
           <LabelValue
             value="-"
             label="Contract"
+            :description="blockchainTooltipData.tokenDetails.summary.contract"
           />
 
           <LabelValue
             label="Decimals"
             value="-"
+            :description="blockchainTooltipData.tokenDetails.summary.decimals"
           />
 
           <LabelValue
             label="Website"
             :value="links.homepage[0]"
+            :description="blockchainTooltipData.tokenDetails.summary.website"
           />
 
           <LabelValue

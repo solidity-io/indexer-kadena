@@ -42,7 +42,8 @@ const emit = defineEmits(['rowClick'])
         <div
           v-for="column in props.columns"
           :key="column.key"
-          :class="[column.center && 'text-center', !!column.isFixed && 'sticky left-0 bg-gray-800']"
+          class="flex items-center gap-1"
+          :class="[column.center && 'justify-center', !!column.isFixed && 'sticky left-0 bg-gray-800']"
           :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
         >
           <span
@@ -50,6 +51,8 @@ const emit = defineEmits(['rowClick'])
           >
             {{ column.label }}
           </span>
+
+          <Tooltip />
         </div>
       </div>
 

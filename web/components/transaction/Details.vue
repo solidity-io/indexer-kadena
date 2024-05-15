@@ -1,11 +1,17 @@
 <script setup lang="ts">
-defineProps<{
-  status: string;
-  metadata: any;
-  requestKey: string;
-  blockId: string | number | null;
+const props = defineProps<{
+  result: string;
+  blockId: number;
+  chainId: string;
+  requestkey: string;
   createdAt: string | number;
 }>()
+
+const status = useTransactionStatus(props.result)
+
+const {
+  blockchainTooltipData
+} = useAppConfig()
 </script>
 
 <template>
@@ -13,11 +19,13 @@ defineProps<{
     <LabelValue
       withCopy
       label="Request Key"
-      :value="requestKey"
+      :value="requestkey"
+      :description="blockchainTooltipData.transactionDetails.requestKey"
     />
 
     <LabelValue
       label="Status"
+      :description="blockchainTooltipData.transactionDetails.status"
     >
       <template
         #value
@@ -30,17 +38,20 @@ defineProps<{
 
     <LabelValue
       label="Chain"
-      :value="String(metadata.chainId)"
+      :value="String(chainId)"
+      :description="blockchainTooltipData.transactionDetails.chain"
     />
 
     <LabelValue
       label="Block Height"
-      :value="String(blockId)"
+      :value="blockId"
+      :description="blockchainTooltipData.transactionDetails.blockHeight"
     />
 
     <LabelValue
       label="Timestamp"
       :value="new Date(createdAt).toUTCString()"
+      :description="blockchainTooltipData.transactionDetails.timestamp"
     />
   </PageRoot>
 </template>

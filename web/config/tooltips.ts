@@ -5,43 +5,41 @@ export const blockchainTooltipData = {
     chain: "Specifies the blockchain network on which the transaction occurred.",
     from: "The sender or origin address of the transaction.",
     to: "The recipient or destination address of the transaction.",
-    transactionDetails: {
-      headInformations: {
-        requestKey: "A unique identifier assigned to the transaction request.",
-        status: "The current status or outcome of the transaction.",
-        chain: "The blockchain network on which the transaction occurred.",
-        blockHeight: "The numerical position of the block in the blockchain where the transaction is recorded.",
-        timestamp: "The date and time at which the transaction was validated.",
-      },
-      tabOverview: {
-        from: "The address or account from which the transaction originated.",
-        to: "The address or account to which the transaction was sent.",
-        amount: "The quantity of tokens or cryptocurrency transferred in the transaction.",
-        transactionFee: "The fee paid for processing the transaction.",
-        paidBy: "The entity responsible for paying the transaction fee.",
-        gasPrice: "The cost per unit of gas used in the transaction.",
-        code: "Additional information or code associated with the transaction.",
-      },
-      tabMeta: {
-        sender: "The entity or account initiating the transaction.",
-        chain: "The blockchain network on which the transaction occurred.",
-        gasLimit: "The maximum amount of gas allowed for the transaction.",
-        ttl: "Time to Live, indicating the duration for which the transaction remains valid.",
-        creationTime: "The timestamp indicating when the transaction was created.",
-        publicKey: "The public key associated with the transaction.",
-        nonce: "A sequential number assigned to each transaction initiated by an account.",
-        data: "Additional data or information included with the transaction.",
-      },
-      tabTransactionOutput: {
-        transactionId: "The unique identifier assigned to the transaction.",
-        result: "The outcome or status of the transaction.",
-        logs: "Additional information or logs generated during the transaction.",
-        signatures: "Digital signatures associated with the transaction.",
-        continuation: "Any continuation or follow-up actions related to the transaction.",
-      },
-      tabEvents: {
-        coinTransfer: "This event signifies a transfer of cryptocurrency or tokens.",
-      },
+  },
+  transactionDetails: {
+    requestKey: "A unique identifier assigned to the transaction request.",
+    status: "The current status or outcome of the transaction.",
+    chain: "The blockchain network on which the transaction occurred.",
+    blockHeight: "The numerical position of the block in the blockchain where the transaction is recorded.",
+    timestamp: "The date and time at which the transaction was validated.",
+    tabOverview: {
+      from: "The address or account from which the transaction originated.",
+      to: "The address or account to which the transaction was sent.",
+      amount: "The quantity of tokens or cryptocurrency transferred in the transaction.",
+      transactionFee: "The fee paid for processing the transaction.",
+      paidBy: "The entity responsible for paying the transaction fee.",
+      gasPrice: "The cost per unit of gas used in the transaction.",
+      code: "Additional information or code associated with the transaction.",
+    },
+    tabMeta: {
+      sender: "The entity or account initiating the transaction.",
+      chain: "The blockchain network on which the transaction occurred.",
+      gasLimit: "The maximum amount of gas allowed for the transaction.",
+      ttl: "Time to Live, indicating the duration for which the transaction remains valid.",
+      creationTime: "The timestamp indicating when the transaction was created.",
+      publicKey: "The public key associated with the transaction.",
+      nonce: "A sequential number assigned to each transaction initiated by an account.",
+      data: "Additional data or information included with the transaction.",
+    },
+    tabTransactionOutput: {
+      transactionId: "The unique identifier assigned to the transaction.",
+      result: "The outcome or status of the transaction.",
+      logs: "Additional information or logs generated during the transaction.",
+      signatures: "Digital signatures associated with the transaction.",
+      continuation: "Any continuation or follow-up actions related to the transaction.",
+    },
+    tabEvents: {
+      coinTransfer: "This event signifies a transfer of cryptocurrency or tokens.",
     },
   },
   blocks: {
@@ -91,14 +89,12 @@ export const blockchainTooltipData = {
       },
     },
   },
-  accountDetails: {
-    headInformations: {
-      account: "The account identifier or address associated with the account.",
-      balance: "The current balance of the account.",
-      assets: "The total number of assets held in the account.",
-      transactions: "The total number of transactions associated with the account.",
-      createdAt: "The date and time when the account was created.",
-    },
+  account: {
+    address: "The account identifier or address associated with the account.",
+    balance: "The current balance of the account.",
+    assets: "The total number of assets held in the account.",
+    transactions: "The total number of transactions associated with the account.",
+    createdAt: "The date and time when the account was created.",
     tabAssets: {
       asset: "The name or identifier of the asset held in the account.",
       symbol: "The symbol or abbreviation representing the asset.",
@@ -184,35 +180,33 @@ export const blockchainTooltipData = {
     amount: "The quantity or amount of tokens transferred in the transaction.",
   },
   tokenDetails: {
-    headInformations: {
-      overview: {
-        price: "Current price of the token.",
-        maxTotalSupply: "Maximum total supply of the token.",
-        holders: "Total number of token holders.",
-        totalTransfers: "Total number of transfers involving the token.",
-      },
-      profileSummary: {
-        contract: "Address of the token smart contract.",
-        decimals: "Number of decimal places used for the token.",
-        website: "Official website of the token project.",
-      },
-      tabTransfers: {
-        hash: "Unique identifier for the token transfer transaction.",
-        blockHeight: "The block number in which the transaction occurred.",
-        method: "Type or method of token transfer (e.g., 'transfer' or 'approve').",
-        from: "Address from which the tokens were transferred.",
-        to: "Address to which the tokens were transferred.",
-      },
-      tabHolders: {
-        quantity: "Quantity of tokens held by the holder.",
-        valueUSD: "Value of the tokens held by the holder in USD.",
-        percentage: "Percentage of total tokens held by the holder.",
-      },
-      tabInformation: {
-        marketCapitalization: "Total market capitalization of the token.",
-        volume24H: "Total trading volume of the token in the last 24 hours.",
-        circulatingSupply: "Total circulating supply of the token.",
-      },
+    overview: {
+      price: "Current price of the token.",
+      maxTotalSupply: "Maximum total supply of the token.",
+      holders: "Total number of token holders.",
+      totalTransfers: "Total number of transfers involving the token.",
+    },
+    summary: {
+      contract: "Address of the token smart contract.",
+      decimals: "Number of decimal places used for the token.",
+      website: "Official website of the token project.",
+    },
+    tabTransfers: {
+      hash: "Unique identifier for the token transfer transaction.",
+      blockHeight: "The block number in which the transaction occurred.",
+      method: "Type or method of token transfer (e.g., 'transfer' or 'approve').",
+      from: "Address from which the tokens were transferred.",
+      to: "Address to which the tokens were transferred.",
+    },
+    tabHolders: {
+      quantity: "Quantity of tokens held by the holder.",
+      valueUSD: "Value of the tokens held by the holder in USD.",
+      percentage: "Percentage of total tokens held by the holder.",
+    },
+    tabInformation: {
+      marketCapitalization: "Total market capitalization of the token.",
+      volume24H: "Total trading volume of the token in the last 24 hours.",
+      circulatingSupply: "Total circulating supply of the token.",
     },
   },
 };

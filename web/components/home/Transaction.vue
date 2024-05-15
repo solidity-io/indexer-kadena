@@ -45,15 +45,15 @@ const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
       <Value
         isLink
         label="From"
-        :to="`/account/${lastTransfer.fromAcct}`"
-        :value="shortenAddress(lastTransfer.fromAcct)"
+        :to="`/account/${lastTransfer?.fromAcct}`"
+        :value="shortenAddress(lastTransfer?.fromAcct)"
       />
 
       <Value
         isLink
         label="To"
-        :to="`/account/${lastTransfer.toAcct}`"
-        :value="shortenAddress(lastTransfer.toAcct)"
+        :to="`/account/${lastTransfer?.toAcct}`"
+        :value="shortenAddress(lastTransfer?.toAcct)"
       />
     </div>
 
@@ -66,7 +66,7 @@ const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
         <span
           class="text-font-450 text-xs"
         >
-          {{ `${Number(lastTransfer.amount).toPrecision(2)} ${lastTransfer.modulename}`}}
+          {{ `${Number(lastTransfer?.amount).toPrecision(2)} ${lastTransfer?.modulename}`}}
         </span>
       </div>
 

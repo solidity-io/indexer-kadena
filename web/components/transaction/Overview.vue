@@ -6,6 +6,10 @@ defineProps<{
   receiver: string;
   continuation: string;
 }>()
+
+const {
+  blockchainTooltipData
+} = useAppConfig()
 </script>
 
 <template>

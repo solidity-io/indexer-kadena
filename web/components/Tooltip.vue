@@ -11,7 +11,7 @@ withDefaults(
 
 <template>
   <div
-    class="group"
+    class="group cursor-pointer"
     v-tooltip="value || ''"
   >
     <IconInformation

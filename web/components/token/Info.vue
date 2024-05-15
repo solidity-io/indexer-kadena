@@ -5,6 +5,10 @@ defineProps<{
   description: any;
   market_data: any;
 }>()
+
+const {
+  blockchainTooltipData
+} = useAppConfig()
 </script>
 
 <template>
@@ -40,15 +44,18 @@ defineProps<{
         <LabelValue
           label="Market Capitalization"
           :value="moneyCompact.format(market_data.market_cap.usd)"
+          :description="blockchainTooltipData.tokenDetails.tabInformation.marketCapitalization"
         />
 
         <LabelValue
           label="Volume (24H)"
           :value="moneyCompact.format(market_data.total_volume.usd)"
+          :description="blockchainTooltipData.tokenDetails.tabInformation.volume24H"
         />
 
         <LabelValue
           label="Circulating supply"
+          :description="blockchainTooltipData.tokenDetails.tabInformation.circulatingSupply"
         >
           <template #value>
             <span class="uppercase">
@@ -59,18 +66,18 @@ defineProps<{
 
         <LabelValue
           label="Market Data Source"
-          class="w-max"
+          class="w-max bazk:w-auto"
         >
           <template #value>
             <div
-              class="flex items-center px-2 py-1 gap-1 rounded bg-gray-600"
+              class="flex items-center px-2 py-1 gap-1 rounded bg-gray-600 shrink-0"
             >
               <IconCoinGecko
-                class="w-4 h-4"
+                class="w-4 h-4 shrink-0"
               />
 
               <span
-                class="text-xs font-medium leading-[150%]"
+                class="text-xs font-medium leading-[150%] shrink-0"
               >
                 CoinGecko
               </span>
