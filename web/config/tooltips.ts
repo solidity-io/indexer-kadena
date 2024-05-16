@@ -6,13 +6,13 @@ export const blockchainTooltipData = {
     from: "The sender or origin address of the transaction.",
     to: "The recipient or destination address of the transaction.",
   },
-  transactionDetails: {
+  transaction: {
     requestKey: "A unique identifier assigned to the transaction request.",
     status: "The current status or outcome of the transaction.",
     chain: "The blockchain network on which the transaction occurred.",
     blockHeight: "The numerical position of the block in the blockchain where the transaction is recorded.",
     timestamp: "The date and time at which the transaction was validated.",
-    tabOverview: {
+    overview: {
       from: "The address or account from which the transaction originated.",
       to: "The address or account to which the transaction was sent.",
       amount: "The quantity of tokens or cryptocurrency transferred in the transaction.",
@@ -21,7 +21,7 @@ export const blockchainTooltipData = {
       gasPrice: "The cost per unit of gas used in the transaction.",
       code: "Additional information or code associated with the transaction.",
     },
-    tabMeta: {
+    meta: {
       sender: "The entity or account initiating the transaction.",
       chain: "The blockchain network on which the transaction occurred.",
       gasLimit: "The maximum amount of gas allowed for the transaction.",
@@ -31,14 +31,14 @@ export const blockchainTooltipData = {
       nonce: "A sequential number assigned to each transaction initiated by an account.",
       data: "Additional data or information included with the transaction.",
     },
-    tabTransactionOutput: {
+    output: {
       transactionId: "The unique identifier assigned to the transaction.",
       result: "The outcome or status of the transaction.",
       logs: "Additional information or logs generated during the transaction.",
       signatures: "Digital signatures associated with the transaction.",
       continuation: "Any continuation or follow-up actions related to the transaction.",
     },
-    tabEvents: {
+    events: {
       coinTransfer: "This event signifies a transfer of cryptocurrency or tokens.",
     },
   },

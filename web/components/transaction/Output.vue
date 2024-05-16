@@ -1,10 +1,17 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   logs: string;
+  sigs: string;
   result: string;
   id: string | number;
   continuation: string;
 }>()
+
+const {
+  blockchainTooltipData
+} = useAppConfig()
+
+const sigs = useTransactionSigs(props.sigs)
 </script>
 
 <template>
@@ -13,16 +20,18 @@ defineProps<{
       <LabelValue
         label="Transaction ID"
         :value="id"
+        :description="blockchainTooltipData.transaction.output.transactionId"
       />
 
       <LabelValue
         label="Result"
+        :description="blockchainTooltipData.transaction.output.result"
       >
         <template #value>
           <div
             class="flex flex-col gap-4"
           >
-            <div
+            <!-- <div
               class="flex items-center gap-2"
             >
               <IconSuccess class="h-6 w-6" />
@@ -32,7 +41,7 @@ defineProps<{
               >
                 Write Succeeded
               </span>
-            </div>
+            </div> -->
 
             <Code
               :value="result"
@@ -43,23 +52,30 @@ defineProps<{
 
       <LabelValue
         label="Logs"
-        :value="logs"
+        :value="JSON.parse(logs)"
+        :description="blockchainTooltipData.transaction.output.logs"
       />
     </DivideItem>
 
     <DivideItem>
       <LabelValue
         label="Signatures"
+        v-for="{ sig } in sigs"
+        :key="sig"
+        :description="blockchainTooltipData.transaction.output.signatures"
       >
         <template #value>
           <HighlightValue>
-            -
+            {{ sig }}
           </HighlightValue>
         </template>
       </LabelValue>
+    </DivideItem>
 
+    <DivideItem>
       <LabelValue
         label="Continuation"
+        :description="blockchainTooltipData.transaction.output.continuation"
       >
         <template #value>
           <Code

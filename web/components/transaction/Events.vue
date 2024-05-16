@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-  events: any
+  eventsByTransactionId: any
 }>()
 </script>
 
@@ -9,7 +9,7 @@ defineProps<{
     <LabelValue
       :key="id"
       :label="`${module }.${name}`"
-      v-for="{ id, module, name, params } in events"
+      v-for="{ id, module, name, params } in eventsByTransactionId.nodes"
     >
       <template #value>
         <Code

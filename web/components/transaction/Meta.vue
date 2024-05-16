@@ -1,11 +1,20 @@
 <script setup lang="ts">
-defineProps<{
-  code: string;
-  data: string;
-  metadata: any;
-  publicKey: string;
-  createdAt: string;
+const props = defineProps<{
+  ttl: string,
+  data: string,
+  code: string,
+  nonce: string,
+  sender: string,
+  chainId: number,
+  gaslimit: string,
+  createdAt: string,
 }>()
+
+const {
+  blockchainTooltipData
+} = useAppConfig()
+
+const pubkey = useTransactionPubkey(props.data)
 </script>
 
 <template>
@@ -14,32 +23,32 @@ defineProps<{
       <LabelValue
         withCopy
         label="Sender"
-        :value="metadata.sender"
+        :value="sender"
+        :description="blockchainTooltipData.transaction.meta.sender"
       />
 
       <LabelValue
         label="Chain"
-        :value="metadata.chainId + ''"
-      />
-
-      <LabelValue
-        label="Gas Price"
-        :value="metadata.gasPrice + ''"
+        :value="String(chainId)"
+        :description="blockchainTooltipData.transaction.meta.chain"
       />
 
       <LabelValue
         label="Gas limit"
-        :value="metadata.gasLimit + ''"
+        :value="gaslimit"
+        :description="blockchainTooltipData.transaction.meta.gasLimit"
       />
 
       <LabelValue
         label="TTL"
-        :value="metadata.ttl + ''"
+        :value="ttl"
+        :description="blockchainTooltipData.transaction.meta.ttl"
       />
 
       <LabelValue
         label="Creation Time"
         :value="createdAt"
+        :description="blockchainTooltipData.transaction.meta.creationTime"
       />
     </DivideItem>
 
@@ -47,18 +56,21 @@ defineProps<{
       <LabelValue
         withCopy
         label="Public Key"
-        :value="publicKey"
+        :value="pubkey"
+        :description="blockchainTooltipData.transaction.meta.publicKey"
       />
     </DivideItem>
 
     <DivideItem>
       <LabelValue
         label="Nonce"
-        :value="metadata.nonce"
+        :value="nonce"
+        :description="blockchainTooltipData.transaction.meta.nonce"
       />
 
       <LabelValue
         label="Data"
+        :description="blockchainTooltipData.transaction.meta.data"
       >
         <template #value>
           <Code :value="JSON.parse(data)" />

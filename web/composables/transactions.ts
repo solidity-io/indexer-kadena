@@ -42,21 +42,25 @@ export const useTransaction = (props: any): any => {
       gas: props.gas,
       nonce: props.nonce,
       sender: props.sender,
-      chainId: props.chainid,
+      chainId: props.chainId,
       gasLimit: props.gaslimit,
       gasPrice: props.gasprice,
     },
   }
 }
 
-export const useLatestTransfer = (transfers: any[]) => {
-  const nodeLength = transfers.length || 0
-
-  const transferIndex = Math.max(nodeLength - 1, 0)
-
-  return transfers[transferIndex]
-}
-
 export const useTransactionStatus = (result: string) => result.includes('\"status\":\"success\"') ? 'success' : 'error'
 
-export const useBlockMiner = (minerData: string) => JSON.parse(minerData)
+export const useTransactionPubkey = (data: string) => {
+  if (!data) {
+    return null
+  }
+
+  const parsedData = JSON.parse(data || '{}')
+
+  const [ first ] = parsedData.keyset?.keys || parsedData.ks?.keys
+
+  return first
+}
+
+export const useTransactionSigs = (sigs: string) => JSON.parse(sigs)

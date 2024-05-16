@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // import { gql } from 'nuxt-graphql-request/utils';
 import { TabPanel } from '@headlessui/vue'
+import { convertArrayToCSV } from 'convert-array-to-csv'
 
 definePageMeta({
   layout: 'app',
@@ -30,6 +31,31 @@ const data = reactive({
     },
   ],
 })
+
+// TODO: Check this approach, better if move that to a backend
+// const download = () => {
+//   try {
+//     const csv = convertArrayToCSV(data.tabs)
+
+//     console.log('csv', csv)
+
+//     const url = window.URL.createObjectURL(new Blob([csv]));
+
+//     const link = document.createElement('a');
+
+//     link.href = url;
+
+//     link.setAttribute('download', 'dados.csv');
+
+//     document.body.appendChild(link);
+
+//     link.click();
+
+//     document.body.removeChild(link);
+//   } catch (error) {
+//   console.error("Erro ao exportar CSV:", error);
+//   }
+// }
 </script>
 
 <template>

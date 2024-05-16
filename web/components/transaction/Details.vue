@@ -2,9 +2,9 @@
 const props = defineProps<{
   result: string;
   blockId: number;
-  chainId: string;
+  chainId: number;
+  createdAt: string;
   requestkey: string;
-  createdAt: string | number;
 }>()
 
 const status = useTransactionStatus(props.result)
@@ -20,12 +20,12 @@ const {
       withCopy
       label="Request Key"
       :value="requestkey"
-      :description="blockchainTooltipData.transactionDetails.requestKey"
+      :description="blockchainTooltipData.transaction.requestKey"
     />
 
     <LabelValue
       label="Status"
-      :description="blockchainTooltipData.transactionDetails.status"
+      :description="blockchainTooltipData.transaction.status"
     >
       <template
         #value
@@ -39,19 +39,19 @@ const {
     <LabelValue
       label="Chain"
       :value="String(chainId)"
-      :description="blockchainTooltipData.transactionDetails.chain"
+      :description="blockchainTooltipData.transaction.chain"
     />
 
     <LabelValue
       label="Block Height"
       :value="blockId"
-      :description="blockchainTooltipData.transactionDetails.blockHeight"
+      :description="blockchainTooltipData.transaction.blockHeight"
     />
 
     <LabelValue
       label="Timestamp"
       :value="new Date(createdAt).toUTCString()"
-      :description="blockchainTooltipData.transactionDetails.timestamp"
+      :description="blockchainTooltipData.transaction.timestamp"
     />
   </PageRoot>
 </template>

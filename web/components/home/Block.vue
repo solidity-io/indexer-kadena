@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
-import { useBlockMiner } from '~/composables/transactions';
 
 const props = defineProps<{
   parent: string,
@@ -35,7 +34,7 @@ const miner = useBlockMiner(props.minerData)
         isLink
         :value="shortenAddress(miner.account)"
         label="Miner"
-        :to="`/account/${nodeId}`"
+        :to="`/account/${miner.account}`"
         class="w-full"
       />
 

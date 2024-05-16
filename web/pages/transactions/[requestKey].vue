@@ -34,7 +34,7 @@ const data = reactive({
 const query = gql`
   query GetTransactionById($id: ID!) {
     transaction(nodeId: $id) {
-      chainid
+      chainId
       continuation
       code
       createdAt
@@ -49,6 +49,7 @@ const query = gql`
       rollback
       ttl
       sender
+      sigs
       result
       proof
       requestkey
@@ -63,7 +64,6 @@ const query = gql`
       blockId
       blockByBlockId {
         adjacents
-        chainId
         createdAt
         chainwebVersion
         epochStart
@@ -95,7 +95,6 @@ const query = gql`
           name
           createdAt
           id
-          chainid
         }
       }
       transfersByTransactionId {
@@ -111,7 +110,6 @@ const query = gql`
           modulehash
           id
           createdAt
-          chainid
           amount
           fromAcct
         }
@@ -133,8 +131,6 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
 
   return transaction
 });
-
-const formattedTransaction = useTransaction(transaction.value)
 </script>
 
 <template>
@@ -145,7 +141,7 @@ const formattedTransaction = useTransaction(transaction.value)
 
     <PageContainer>
       <TransactionDetails
-        v-bind="formattedTransaction"
+        v-bind="transaction"
       />
     </PageContainer>
 
@@ -155,25 +151,25 @@ const formattedTransaction = useTransaction(transaction.value)
       >
         <TabPanel>
           <TransactionOverview
-            v-bind="formattedTransaction"
+            v-bind="transaction"
           />
         </TabPanel>
 
         <TabPanel>
           <TransactionMeta
-            v-bind="formattedTransaction"
+            v-bind="transaction"
           />
         </TabPanel>
 
         <TabPanel>
           <TransactionOutput
-            v-bind="formattedTransaction"
+            v-bind="transaction"
           />
         </TabPanel>
 
         <TabPanel>
           <TransactionEvents
-            v-bind="formattedTransaction"
+            v-bind="transaction"
           />
         </TabPanel>
       </Tabs>
