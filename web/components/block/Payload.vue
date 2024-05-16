@@ -1,14 +1,16 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   payloadHash: string;
-  nonce: string;
-  weight: string;
-  target: string;
-  adjacents: string;
-  epochStart: string;
-  featureFlags: number;
-  chainwebVersion: string;
+  minerData: string;
+  outputsHash: string
+  transactionsHash: string
 }>()
+
+const {
+  blockchainTooltipData
+} = useAppConfig()
+
+const minerData = useBlockMiner(props.minerData)
 </script>
 
 <template>
@@ -16,34 +18,40 @@ defineProps<{
     <DivideItem>
       <LabelValue
         label="Miner Account"
-        value="-"
+        :value="minerData.account"
+        :description="blockchainTooltipData.block.payload.minerAccount"
       />
 
       <LabelValue
         label="Miner Public Keys"
-        value="-"
+        :value="JSON.stringify(minerData['public-keys'])"
+        :description="blockchainTooltipData.block.payload.minerPublicKeys"
       />
 
       <LabelValue
         label="Miner Predicate"
-        value="-"
+        :value="minerData.predicate"
+        :description="blockchainTooltipData.block.payload.minerPredicate"
       />
     </DivideItem>
 
     <DivideItem>
       <LabelValue
         label="Transactions Hash"
-        value="-"
+        :value="transactionsHash"
+        :description="blockchainTooltipData.block.payload.transactionsHash"
       />
 
       <LabelValue
         label="Outputs Hash"
-        value="-"
+        :value="outputsHash"
+        :description="blockchainTooltipData.block.payload.outputsHash"
       />
 
       <LabelValue
         label="Payload Hash"
         :value="payloadHash"
+        :description="blockchainTooltipData.block.payload.payloadHash"
       />
     </DivideItem>
   </Divide>

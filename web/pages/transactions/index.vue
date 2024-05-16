@@ -17,7 +17,7 @@ const query = gql`
   query GetTransactions($first: Int, $offset: Int) {
     allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
       nodes {
-        chainid
+        chainId
         code
         createdAt
         continuation
@@ -46,7 +46,6 @@ const query = gql`
         transfersByTransactionId {
           nodes {
             amount
-            chainid
             createdAt
             fromAcct
             id

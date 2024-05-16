@@ -41,6 +41,10 @@ const query = gql`
       createdAt
       creationTime
       epochStart
+      minerData
+      coinbase
+      outputsHash
+      transactionsHash
       featureFlags
       hash
       height
@@ -72,6 +76,8 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
 
   return block
 });
+
+console.log('block', block.value)
 </script>
 
 <template>

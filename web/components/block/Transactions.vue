@@ -6,6 +6,7 @@ defineProps<{
   nodeId: string;
 }>()
 const {
+  blockchainTooltipData,
   blockTransactionsTableColumns
 } = useAppConfig()
 
@@ -13,53 +14,10 @@ const query = gql`
   query GetTransactions($first: Int, $offset: Int) {
     allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
       nodes {
-        chainid
         code
-        createdAt
-        continuation
-        creationtime
-        data
-        gas
-        gaslimit
-        gasprice
-        id
-        metadata
-        logs
-        nonce
-        nodeId
-        numEvents
-        pactid
-        payloadHash
-        proof
-        requestkey
         result
-        sender
-        rollback
-        step
-        ttl
-        txid
-        updatedAt
-        transfersByTransactionId {
-          nodes {
-            amount
-            chainid
-            createdAt
-            fromAcct
-            id
-            modulehash
-            nodeId
-            modulename
-            payloadHash
-            requestkey
-            toAcct
-            tokenId
-            transactionId
-            updatedAt
-          }
-        }
-        blockByBlockId {
-          height
-        }
+        nodeId
+        requestkey
       }
       pageInfo {
         endCursor
@@ -92,6 +50,7 @@ const redirect = (transaction: any) => {
       withCopy
       label="Block Hash"
       :value="hash"
+      :description="blockchainTooltipData.block.transactions.blockHash"
     />
 
     <div
