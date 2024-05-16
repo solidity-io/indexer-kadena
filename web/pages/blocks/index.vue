@@ -108,7 +108,7 @@ console.log("blocks", blocks.value)
 
         <template #height="{ row }">
           <ColumnLink
-            :to="`/blocks/${row.height}`"
+            :to="`/blocks/${row.nodeId}`"
             :label="row.height"
           />
         </template>

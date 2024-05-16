@@ -23,7 +23,7 @@ const {
 
     <LabelValue
       label="Chain"
-      :value="chainId"
+      :value="chainId + ''"
       :description="blockchainTooltipData.block.chain"
     />
 
