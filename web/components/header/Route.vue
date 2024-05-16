@@ -65,7 +65,7 @@ const props = defineProps<{
               px-2
               pb-3
               pt-2
-              bazk:absolute right-0 top-[calc(100%+16px)] border-t-[2px] border-t-kadscan-500 bg-gray-700 rounded-b-lg w-[240px]
+              lg:absolute right-0 top-[calc(100%+16px)] border-t-[2px] border-t-kadscan-500 bg-gray-700 rounded-b-lg w-[240px]
             "
           >
             <div

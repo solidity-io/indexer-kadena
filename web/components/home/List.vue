@@ -12,10 +12,10 @@ const transactions = computed(() => {
 <template>
   <Container>
     <div
-      class="flex justify-between items-center pb-2 bazk:pb-4 border-b border-b-gray-300"
+      class="flex justify-between items-center pb-2 lg:pb-4 border-b border-b-gray-300"
     >
       <span
-        class="text-lg text-font-400 font-semibold leading-[26px] block bazk:leading-[25.2px]"
+        class="text-lg text-font-400 font-semibold leading-[26px] block lg:leading-[25.2px]"
       >
         {{ label }}
       </span>
@@ -27,13 +27,13 @@ const transactions = computed(() => {
         <Button
           label="View All"
           size="medium"
-          class="hidden bazk:flex"
+          class="hidden lg:flex"
         />
 
         <Button
           label="View All"
           size="small"
-          class="bazk:hidden"
+          class="lg:hidden"
         />
       </NuxtLink>
     </div>

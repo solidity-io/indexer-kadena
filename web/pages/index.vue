@@ -79,16 +79,16 @@ console.log('error', error.value)
 
 <template>
   <div
-    class="flex flex-col gap-4 bazk:gap-10 bazk:pt-4"
+    class="flex flex-col gap-4 lg:gap-10 lg:pt-4"
   >
     <HomeHero />
 
     <Container
-      class="bazk:p-8 gap-4 bazk:gap-6 grid bazk:grid-cols-2"
+      class="lg:!p-8 gap-4 lg:gap-6 grid lg:grid-cols-2"
     >
       <div
         class="
-          p-3 bazk:p-4 gap-2 bazk:gap-4 flex-grow grid bazk:grid-cols-2 bg-gray-700 rounded-lg bazk:rounded-xl
+          p-3 lg:p-4 gap-2 lg:gap-4 flex-grow grid lg:grid-cols-2 bg-gray-700 rounded-lg lg:rounded-xl
         "
       >
         <HomeCard
@@ -115,7 +115,7 @@ console.log('error', error.value)
       </div>
 
       <div
-        class="w-full h-full flex flex-col gap-3 bazk:gap-6"
+        class="w-full h-full flex flex-col gap-3 lg:gap-6"
       >
         <span
           class="text-font-400"
@@ -124,7 +124,7 @@ console.log('error', error.value)
         </span>
 
         <div
-          class="h-full min-h-[216px]"
+          class="h-full max-h-[216px]"
         >
           <Chart
             v-bind="data?.chartData"
@@ -135,7 +135,7 @@ console.log('error', error.value)
 
     <div
       v-if="!error"
-      class="grid bazk:grid-cols-2 gap-4 bazk:gap-6"
+      class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
       <HomeList
         label="Recent Transactions"

@@ -15,7 +15,7 @@ withDefaults(
 
 <template>
   <div
-    class="grow flex flex-col bazk:flex-row gap-2 text-sm"
+    class="grow flex flex-col xl:flex-row gap-2 text-sm"
   >
     <span
       v-if="label"

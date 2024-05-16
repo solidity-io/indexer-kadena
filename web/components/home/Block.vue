@@ -21,21 +21,22 @@ const miner = useBlockMiner(props.minerData)
 
 <template>
   <div
-    class="flex flex-wrap items-center gap-3 bazk:gap-4 py-3 bazk:max-h-[82px] border-b border-b-gray-300"
+    class="flex flex-wrap items-center gap-3 xl:gap-4 py-3 lg:h-[111px] xl:max-h-[82px] border-b border-b-gray-300"
   >
     <IconStatus
       :status="status"
+      class="mb-auto xl:mb-0"
     />
 
     <div
-      class="flex bazk:flex-col gap-4"
+      class="flex xl:flex-col gap-4 mb-auto xl:mb-0"
     >
       <Value
         isLink
         :value="shortenAddress(miner.account)"
         label="Miner"
         :to="`/account/${miner.account}`"
-        class="w-full"
+        class="xl:w-full "
       />
 
       <Value
@@ -56,7 +57,7 @@ const miner = useBlockMiner(props.minerData)
     </div>
 
     <div
-      class="flex flex-col flex-wrap gap-3 bazk:gap-4 ml-auto grow"
+      class="flex flex-col flex-wrap gap-3 xl:gap-4 ml-auto grow"
     >
       <Value
         label="Transactions"

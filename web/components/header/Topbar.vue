@@ -18,19 +18,19 @@ provideUseId(() => useId())
     class="w-full flex flex-col items-center justify-center bg-gray-800 z-[10]"
   >
     <div
-      class="w-full max-w-screen-bazk py-3 bazk:py-4 px-4 bazk:px-[60px] flex justify-between"
+      class="w-full max-w-screen-bazk py-3 lg:py-4 px-4 lg:px-[15px] xl:px-[30px] bazk:px-[60px] flex justify-between"
     >
       <NuxtLink
         to="/"
         class="flex items-center"
       >
         <IconLogoWhite
-          class="h-7 bazk:h-8 w-max"
+          class="h-7 lg:h-8"
         />
       </NuxtLink>
 
       <div
-        class="hidden bazk:flex items-center justify-center gap-2"
+        class="hidden lg:flex items-center justify-center gap-2"
       >
         <HeaderRoute
           :key="route.tag + i"
@@ -40,7 +40,7 @@ provideUseId(() => useId())
       </div>
 
       <DisclosureButton
-        class="bazk:hidden h-8 w-8 rounded p-1 bg-gray-700"
+        class="lg:hidden h-8 w-8 rounded p-1 bg-gray-700"
       >
         <IconMenu
           v-if="!open"
@@ -63,7 +63,7 @@ provideUseId(() => useId())
       leave-to-class="transform scale-95 opacity-0"
     >
       <DisclosurePanel
-        class="flex bazk:hidden w-full gap-2 flex-col pt-1 pb-3 px-4"
+        class="flex lg:hidden w-full gap-2 flex-col pt-1 pb-3 px-4"
       >
         <HeaderRouteMobile
           :key="route.tag + i + '-mobile'"

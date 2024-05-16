@@ -17,14 +17,14 @@ const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
 
 <template>
   <div
-    class="flex flex-wrap items-center gap-3 bazk:gap-4 py-3 border-b border-b-gray-300 bazk:max-h-[82px]"
+    class="flex flex-wrap items-center gap-3 xl:gap-4 py-3 border-b border-b-gray-300 xl:max-h-[82px]"
   >
     <IconStatus
       :status="status"
     />
 
     <div
-      class="flex bazk:flex-col gap-4 grow"
+      class="flex xl:flex-col gap-4 grow"
     >
       <Value
         isLink
@@ -40,7 +40,7 @@ const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
     </div>
 
     <div
-      class="flex bazk:flex-col gap-4 bazk:mx-auto grow"
+      class="flex xl:flex-col gap-4 xl:mx-auto grow"
     >
       <Value
         isLink
@@ -58,7 +58,7 @@ const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
     </div>
 
     <div
-      class="flex flex-row-reverse justify-between w-full bazk:w-auto bazk:justify-start bazk:flex-col items-end gap-4 bazk:ml-auto"
+      class="flex flex-row-reverse justify-between w-full xl:w-auto xl:justify-start xl:flex-col items-end gap-4 xl:ml-auto"
     >
       <div
         class="flex px-2 py-1 border border-gray-300 rounded"
