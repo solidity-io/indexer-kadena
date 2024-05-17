@@ -1,3 +1,5 @@
+import { blockchainTooltipData } from "./tooltips"
+
 export const transactionTableColumns = [
   {
     isFixed: true,
@@ -8,37 +10,44 @@ export const transactionTableColumns = [
   {
     cols: 2,
     key: 'status',
-    label: 'Status'
+    label: 'Status',
+    description: blockchainTooltipData.transaction.status
   },
   {
-    cols: 4,
+    cols: 3,
     key: 'requestKey',
     label: 'Request Key',
+    description: blockchainTooltipData.transaction.requestKey
   },
   {
     cols: 2,
     center: true,
-    key: 'chainid',
+    key: 'chainId',
     label: 'Chain',
+    description: blockchainTooltipData.transaction.chain
   },
   {
-    cols: 2,
+    cols: 3,
     key: 'block',
     label: 'Block Height',
+    description: blockchainTooltipData.transaction.blockHeight
   },
   {
     cols: 4,
     key: 'sender',
     label: 'From',
+    description: blockchainTooltipData.transaction.overview.from
   },
   {
     cols: 4,
     key: 'receiver',
     label: 'To',
+    description: blockchainTooltipData.transaction.overview.to
   },
   {
     cols: 5,
     key: 'createdAt',
     label: 'Date',
+    description: blockchainTooltipData.transaction.meta.creationTime
   },
 ]

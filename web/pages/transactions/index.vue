@@ -75,19 +75,19 @@ const query = gql`
   }
 `
 
-const { data: blockchain } = await useAsyncData('transactions-blockchain', async () => {
-  const [
-    chainDataRes,
-  ] = await Promise.all([
-    fetch('https://api.coingecko.com/api/v3/coins/categories/kadena-ecosystem?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
-  ])
+// const { data: blockchain } = await useAsyncData('transactions-blockchain', async () => {
+//   const [
+//     chainDataRes,
+//   ] = await Promise.all([
+//     fetch('https://api.coingecko.com/api/v3/coins/categories/kadena-ecosystem?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
+//   ])
 
-  const kadena = await chainDataRes.json()
+//   const kadena = await chainDataRes.json()
 
-  return {
-    kadena,
-  };
-});
+//   return {
+//     kadena,
+//   };
+// });
 
 const {
   page,
@@ -102,10 +102,10 @@ const {
 <template>
   <PageRoot>
     <PageTitle>
-      Last transactions
+      Transactions
     </PageTitle>
 
-    <div
+    <!-- <div
       class="grid gap-3 bazk:grid-cols-4 bazk:gap-6"
     >
       <Card
@@ -127,7 +127,7 @@ const {
         :description="transactions.totalCount ?? 0"
         label="Total transactions (All time)"
       />
-    </div>
+    </div> -->
 
     <PageContainer>
       <TableRoot

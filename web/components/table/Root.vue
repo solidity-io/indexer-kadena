@@ -52,7 +52,10 @@ const emit = defineEmits(['rowClick'])
             {{ column.label }}
           </span>
 
-          <Tooltip />
+          <Tooltip
+            :value="column.description"
+            v-if="column.description"
+          />
         </div>
       </div>
 

@@ -3,13 +3,15 @@ const props = defineProps<{
   row: any
 }>()
 
-const {
-  receiver
-} = useTransaction(props.row)
+
+const lastTransfer = useLatestTransfer(props.row.transfersByTransactionId.nodes)
+// const {
+//   receiver
+// } = useTransaction(props.row)
 </script>
 
 <template>
   <ColumnAddress
-    :value="receiver"
+    :value="lastTransfer.toAcct"
   />
 </template>

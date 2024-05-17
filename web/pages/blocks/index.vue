@@ -17,27 +17,14 @@ const query = gql`
   query GetBlocks($first: Int, $offset: Int) {
     allBlocks(offset: $offset, orderBy: ID_DESC, first: $first) {
       nodes {
-        adjacents
         chainId
-        chainwebVersion
         coinbase
         createdAt
-        creationTime
-        epochStart
-        featureFlags
         hash
         height
         id
         nodeId
         minerData
-        nonce
-        outputsHash
-        parent
-        payloadHash
-        target
-        updatedAt
-        weight
-        transactionsHash
         transactionsByBlockId {
           totalCount
         }
@@ -71,7 +58,7 @@ console.log("blocks", blocks.value)
       Blocks
     </PageTitle>
 
-    <div
+    <!-- <div
       class="grid gap-3 bazk:grid-cols-4 bazk:gap-6"
     >
       <Card
@@ -93,7 +80,7 @@ console.log("blocks", blocks.value)
         :description="integer.format(blocks.totalCount - 1)"
         label="Last Mined Block Height"
       />
-    </div>
+    </div> -->
 
     <PageContainer>
       <TableRoot
@@ -102,8 +89,10 @@ console.log("blocks", blocks.value)
         title="Recent Blocks"
         :columns="blocksTableColumns"
       >
-        <template #todo>
-          -
+        <template #fees="{ row }">
+          <ColumnBlockFees
+            v-bind="row"
+          />
         </template>
 
         <template #height="{ row }">

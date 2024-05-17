@@ -82,11 +82,9 @@ export const blockchainTooltipData = {
     },
     transactions: {
       blockHash: "The hash of the block containing the transaction.",
-      tableColumns: {
-        status: "The status of the transaction. Indicates whether the transaction is confirmed, pending, or failed.",
-        requestKey: "The unique request key associated with the transaction. It is used to uniquely identify the transaction on the blockchain.",
-        code: "The code or type of transaction executed. It may include information about the type of transaction, such as fund transfer, smart contract execution, among others.",
-      },
+      status: "The status of the transaction. Indicates whether the transaction is confirmed, pending, or failed.",
+      requestKey: "The unique request key associated with the transaction. It is used to uniquely identify the transaction on the blockchain.",
+      code: "The code or type of transaction executed. It may include information about the type of transaction, such as fund transfer, smart contract execution, among others.",
     },
   },
   account: {
@@ -118,16 +116,16 @@ export const blockchainTooltipData = {
       runningBalance: "The updated balance of the account after the transaction.",
     },
   },
+  trendingCollections: {
+    volume: "The total trading volume of the collection over the specified time period.",
+    volumeChange: "The percentage change in trading volume compared to the previous period.",
+    floorPrice: "The lowest price at which an NFT from this collection is currently listed for sale.",
+    owners: "The total number of unique owners or holders of NFTs from this collection.",
+    transfers: "The total number of transfers or transactions involving NFTs from this collection.",
+    totalAssets: "The total number of NFTs or assets within this collection.",
+  },
   nft: {
-    trendingCollections: {
-      volume: "The total trading volume of the collection over the specified time period.",
-      volumeChange: "The percentage change in trading volume compared to the previous period.",
-      floorPrice: "The lowest price at which an NFT from this collection is currently listed for sale.",
-      owners: "The total number of unique owners or holders of NFTs from this collection.",
-      transfers: "The total number of transfers or transactions involving NFTs from this collection.",
-      totalAssets: "The total number of NFTs or assets within this collection.",
-    },
-    transactions: {
+    transfers: {
       hash: "The unique identifier for the transaction involving the NFT.",
       method: "The method or action performed in the transaction, such as transfer or mint.",
       from: "The address or entity from which the NFT was transferred or originated.",
@@ -146,31 +144,29 @@ export const blockchainTooltipData = {
         to: "The address or entity receiving the transferred NFTs.",
       },
     },
-    details: {
-      headInformations: {
-        account: "The account identifier or address associated with the account.",
-        price: "The current price of the NFT in the marketplace.",
-        floorPrice: "The minimum price set for the NFT in the marketplace.",
-        owner: "The current owner of the NFT.",
-        creator: "The creator or original issuer of the NFT.",
-        timestamp: "The date and time when the NFT was created or last modified.",
-        marketplace: "The platform or marketplace where the NFT is listed for sale or auction.",
-      },
-      tabActivity: {
-        account: "The account identifier or address associated with the account.",
-        hash: "A unique identifier for each transaction involving the NFT.",
-        from: "The address or entity initiating the transfer of the NFT.",
-        to: "The address or entity receiving the transferred NFT.",
-      },
+  },
+  nftDetails: {
+    headInformations: {
+      account: "The account identifier or address associated with the account.",
+      price: "The current price of the NFT in the marketplace.",
+      floorPrice: "The minimum price set for the NFT in the marketplace.",
+      owner: "The current owner of the NFT.",
+      creator: "The creator or original issuer of the NFT.",
+      timestamp: "The date and time when the NFT was created or last modified.",
+      marketplace: "The platform or marketplace where the NFT is listed for sale or auction.",
+    },
+    activity: {
+      account: "The account identifier or address associated with the account.",
+      hash: "A unique identifier for each transaction involving the NFT.",
+      from: "The address or entity initiating the transfer of the NFT.",
+      to: "The address or entity receiving the transferred NFT.",
     },
   },
   trendingTokens: {
-    kts: {
-      change: "The percentage change in the token's price over a specific period, typically the last 24 hours.",
-      volume: "The total trading volume of the token over the past 24 hours.",
-      marketCap: "The total market capitalization of the token, calculated by multiplying the current price by the circulating supply.",
-      circulatingSupply: "The total number of tokens currently in circulation and available for trading.",
-    },
+    change: "The percentage change in the token's price over a specific period, typically the last 24 hours.",
+    volume: "The total trading volume of the token over the past 24 hours.",
+    marketCap: "The total market capitalization of the token, calculated by multiplying the current price by the circulating supply.",
+    circulatingSupply: "The total number of tokens currently in circulation and available for trading.",
   },
   tokenTransfers: {
     hash: "A unique identifier for the token transfer transaction.",
@@ -191,19 +187,19 @@ export const blockchainTooltipData = {
       decimals: "Number of decimal places used for the token.",
       website: "Official website of the token project.",
     },
-    tabTransfers: {
+    transfers: {
       hash: "Unique identifier for the token transfer transaction.",
       blockHeight: "The block number in which the transaction occurred.",
       method: "Type or method of token transfer (e.g., 'transfer' or 'approve').",
       from: "Address from which the tokens were transferred.",
       to: "Address to which the tokens were transferred.",
     },
-    tabHolders: {
+    holders: {
       quantity: "Quantity of tokens held by the holder.",
       valueUSD: "Value of the tokens held by the holder in USD.",
       percentage: "Percentage of total tokens held by the holder.",
     },
-    tabInformation: {
+    information: {
       marketCapitalization: "Total market capitalization of the token.",
       volume24H: "Total trading volume of the token in the last 24 hours.",
       circulatingSupply: "Total circulating supply of the token.",

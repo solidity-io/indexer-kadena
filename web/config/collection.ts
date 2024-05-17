@@ -1,33 +1,41 @@
+import { blockchainTooltipData } from "./tooltips"
+
 export const collectionActivityTableColumns = [
   {
     cols: 4,
     key: 'item',
     label: 'Item',
+    description: blockchainTooltipData.block.blockHeight
   },
   {
     cols: 2,
     key: 'price',
     label: 'Price',
+    description: blockchainTooltipData.block.blockHeight
   },
   {
     cols: 4,
     key: 'hash',
-    label: 'Hash'
+    label: 'Hash',
+    description: blockchainTooltipData.block.blockHeight
   },
   {
     cols: 4,
     key: 'from',
     label: 'From',
+    description: blockchainTooltipData.block.blockHeight
   },
   {
     cols: 4,
     key: 'to',
     label: 'To',
+    description: blockchainTooltipData.block.blockHeight
   },
   {
     cols: 5,
     key: 'date',
     label: 'Date',
+    description: blockchainTooltipData.block.blockHeight
   },
 
   {
