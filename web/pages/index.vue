@@ -13,7 +13,7 @@ const { $graphql } = useNuxtApp();
 
 const query = gql`
   query GetLastBlockAndTransaction {
-    allTransactions(last: 5) {
+    allTransactions(first: 5) {
       nodes {
         chainId
         createdAt
@@ -34,7 +34,7 @@ const query = gql`
         }
       }
     }
-    allBlocks(last: 5) {
+    allBlocks(first: 5) {
       nodes {
         chainId
         parent
@@ -133,7 +133,7 @@ console.log('error', error.value)
       </div>
     </Container>
 
-    <div
+    <!-- <div
       v-if="!error"
       class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
@@ -158,6 +158,6 @@ console.log('error', error.value)
           v-for="block in data?.blocks?.nodes"
         />
       </HomeList>
-    </div>
+    </div> -->
   </div>
 </template>
