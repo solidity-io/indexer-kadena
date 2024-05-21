@@ -54,11 +54,11 @@ const query = gql`
 
 const { data, error } = await useAsyncData('GetLastBlockAndTransaction', async () => {
   const [
-    graphqlRes,
+    // graphqlRes,
     tokenDataRes,
     tokenChartDataRes,
   ] = await Promise.all([
-    $graphql.default.request(query),
+    // $graphql.default.request(query),
     fetch('https://api.coingecko.com/api/v3/coins/kadena?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
     fetch('https://api.coingecko.com/api/v3/coins/kadena/market_chart?vs_currency=usd&days=14&interval=daily&x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
   ])
@@ -69,8 +69,8 @@ const { data, error } = await useAsyncData('GetLastBlockAndTransaction', async (
   return {
     token,
     chartData,
-    blocks: graphqlRes.allBlocks,
-    transactions: graphqlRes.allTransactions
+    // blocks: graphqlRes.allBlocks,
+    // transactions: graphqlRes.allTransactions
   };
 });
 
