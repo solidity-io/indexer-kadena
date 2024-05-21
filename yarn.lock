@@ -3396,6 +3396,11 @@
     hookable "^5.5.3"
     unhead "1.9.4"
 
+"@venegrad/vue3-click-outside@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@venegrad/vue3-click-outside/-/vue3-click-outside-1.0.1.tgz#96e41e101b1b1ed5d2861d2582fda965fe080840"
+  integrity sha512-dat7ZANLDGP3Pud6WHZ+6WOuxfkb1OT7hzvXjxDQgCNXJ2DaWpV/WoT3ePnF36m+apUrNTXGevxGzrPfG5H/yA==
+
 "@vercel/nft@^0.26.4":
   version "0.26.4"
   resolved "https://registry.yarnpkg.com/@vercel/nft/-/nft-0.26.4.tgz#d7e8ebb91567d25240e8cb996152ea77392cea7f"
