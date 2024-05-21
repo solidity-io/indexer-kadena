@@ -23,6 +23,8 @@ const query = gql`
         numEvents
         requestkey
         result
+        sender
+        gas
       }
     }
     allBlocks(last: 5) {
@@ -34,6 +36,7 @@ const query = gql`
         height
         id
         nodeId
+        coinbase
         minerData
       }
     }
@@ -50,8 +53,6 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
     fetch('https://api.coingecko.com/api/v3/coins/kadena?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
     fetch('https://api.coingecko.com/api/v3/coins/kadena/market_chart?vs_currency=usd&days=14&interval=daily&x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
   ])
-
-  console.log('apiRes', apiRes)
 
   const token = await tokenDataRes.json()
   const chartData = await tokenChartDataRes.json()

@@ -1,6 +1,6 @@
 export const shortenAddress = (
   address: string,
-  chars = 5
+  chars = 4
 ): string => {
   if (!address) {
     return ''

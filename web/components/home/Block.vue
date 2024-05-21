@@ -9,6 +9,7 @@ const props = defineProps<{
   hash: string,
   createdAt: any,
   minerData: string,
+  coinbase: string,
   // transactionsByBlockId: any,
 }>()
 
@@ -17,6 +18,8 @@ const status = computed((): 'success' | 'error' => {
 })
 
 const miner = useBlockMiner(props.minerData)
+
+const coinbase = useBlockMiner(props.coinbase)
 </script>
 
 <template>
@@ -29,7 +32,7 @@ const miner = useBlockMiner(props.minerData)
     />
 
     <div
-      class="flex xl:flex-col gap-4 mb-auto xl:mb-0"
+      class="flex xl:flex-col gap-4 grow xl:min-w-[150px]"
     >
       <Value
         isLink
@@ -46,7 +49,7 @@ const miner = useBlockMiner(props.minerData)
     </div>
 
     <div
-      class="flex mb-auto mx-auto grow"
+      class="flex xl:flex-col gap-4 xl:mx-auto grow"
     >
       <Value
         isLink
@@ -54,10 +57,15 @@ const miner = useBlockMiner(props.minerData)
         :value="props.height"
         :to="`/blocks/${nodeId}`"
       />
+
+      <Value
+        label="Total Fees"
+        :value="coinbase.events[0].params[2].toFixed(4) + ' KDA'"
+      />
     </div>
 
     <div
-      class="flex flex-col flex-wrap gap-3 xl:gap-4 ml-auto grow"
+      class="flex flex-row-reverse justify-between w-full xl:w-auto xl:justify-start xl:flex-col items-end gap-4 xl:ml-auto"
     >
       <!-- <Value
         label="Transactions"
