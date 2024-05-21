@@ -44,16 +44,16 @@ const query = gql`
         id
         nodeId
         minerData
+        transactionsByBlockId {
+          totalCount
+        }
       }
     }
   }
 `
 
-const { data: graphqlData, pending } = useAsyncData('graphql-home', () =>
+const { data: graphqlData, pending, error: graphqlError } = useLazyAsyncData('graphql-home', () =>
   $graphql.default.request(query),
-  {
-    lazy: true
-  }
 );
 
 const { data, error } = await useAsyncData('GetChartData', async () => {
@@ -133,8 +133,8 @@ console.log('graphqlData', graphqlData.value)
       </div>
     </Container>
 
-    <!-- <div
-      v-if="!error"
+    <div
+      v-if="!graphqlError && !pending"
       class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
       <HomeList
@@ -144,7 +144,7 @@ console.log('graphqlData', graphqlData.value)
         <HomeTransaction
           v-bind="transaction"
           :key="transaction.requestKey"
-          v-for="transaction in data?.transactions?.nodes"
+          v-for="transaction in graphqlData?.allTransactions?.nodes"
         />
       </HomeList>
 
@@ -155,9 +155,9 @@ console.log('graphqlData', graphqlData.value)
         <HomeBlock
           v-bind="block"
           :key="block.hash"
-          v-for="block in data?.blocks?.nodes"
+          v-for="block in graphqlData?.allBlocks?.nodes"
         />
       </HomeList>
-    </div> -->
+    </div>
   </div>
 </template>
