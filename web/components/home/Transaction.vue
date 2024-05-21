@@ -7,12 +7,12 @@ const props = defineProps<{
   chainId: number,
   createdAt: string,
   requestkey: string,
-  transfersByTransactionId: any
+  // transfersByTransactionId: any
 }>()
 
 const status = useTransactionStatus(props.result)
 
-const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
+// const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
 </script>
 
 <template>
@@ -42,7 +42,7 @@ const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
     <div
       class="flex xl:flex-col gap-4 xl:mx-auto grow"
     >
-      <Value
+      <!-- <Value
         isLink
         label="From"
         :to="`/account/${lastTransfer?.fromAcct}`"
@@ -54,7 +54,7 @@ const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
         label="To"
         :to="`/account/${lastTransfer?.toAcct}`"
         :value="shortenAddress(lastTransfer?.toAcct)"
-      />
+      /> -->
     </div>
 
     <div
@@ -66,7 +66,7 @@ const lastTransfer = useLatestTransfer(props.transfersByTransactionId.nodes)
         <span
           class="text-font-450 text-xs"
         >
-          {{ `${Number(lastTransfer?.amount).toPrecision(2)} ${lastTransfer?.modulename}`}}
+          <!-- {{ `${Number(lastTransfer?.amount).toPrecision(2)} ${lastTransfer?.modulename}`}} -->
         </span>
       </div>
 

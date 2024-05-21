@@ -9,7 +9,7 @@ const props = defineProps<{
   hash: string,
   createdAt: any,
   minerData: string,
-  transactionsByBlockId: any,
+  // transactionsByBlockId: any,
 }>()
 
 const status = computed((): 'success' | 'error' => {
@@ -59,10 +59,10 @@ const miner = useBlockMiner(props.minerData)
     <div
       class="flex flex-col flex-wrap gap-3 xl:gap-4 ml-auto grow"
     >
-      <Value
+      <!-- <Value
         label="Transactions"
         :value="transactionsByBlockId.totalCount"
-      />
+      /> -->
 
       <Value
         :value="format(props.createdAt, 'dd MMM y HH:mm:ss')"

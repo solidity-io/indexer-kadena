@@ -23,15 +23,6 @@ const query = gql`
         numEvents
         requestkey
         result
-        transfersByTransactionId {
-          nodes {
-            amount
-            fromAcct
-            modulename
-            toAcct
-            tokenId
-          }
-        }
       }
     }
     allBlocks(last: 5) {
@@ -44,26 +35,23 @@ const query = gql`
         id
         nodeId
         minerData
-        transactionsByBlockId {
-          totalCount
-        }
       }
     }
   }
 `
 
-const { data: graphqlData, pending, error: graphqlError } = useLazyAsyncData('graphql-home', () =>
-  $graphql.default.request(query),
-);
-
 const { data, error } = await useAsyncData('GetChartData', async () => {
   const [
+    apiRes,
     tokenDataRes,
     tokenChartDataRes,
   ] = await Promise.all([
+    $graphql.default.request(query),
     fetch('https://api.coingecko.com/api/v3/coins/kadena?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
     fetch('https://api.coingecko.com/api/v3/coins/kadena/market_chart?vs_currency=usd&days=14&interval=daily&x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
   ])
+
+  console.log('apiRes', apiRes)
 
   const token = await tokenDataRes.json()
   const chartData = await tokenChartDataRes.json()
@@ -71,10 +59,9 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
   return {
     token,
     chartData,
+    ...apiRes
   };
 });
-
-console.log('graphqlData', graphqlData.value)
 </script>
 
 <template>
@@ -134,7 +121,7 @@ console.log('graphqlData', graphqlData.value)
     </Container>
 
     <div
-      v-if="!graphqlError && !pending"
+      v-if="!error"
       class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
       <HomeList
@@ -144,7 +131,7 @@ console.log('graphqlData', graphqlData.value)
         <HomeTransaction
           v-bind="transaction"
           :key="transaction.requestKey"
-          v-for="transaction in graphqlData?.allTransactions?.nodes"
+          v-for="transaction in data?.allTransactions?.nodes"
         />
       </HomeList>
 
@@ -155,7 +142,7 @@ console.log('graphqlData', graphqlData.value)
         <HomeBlock
           v-bind="block"
           :key="block.hash"
-          v-for="block in graphqlData?.allBlocks?.nodes"
+          v-for="block in data?.allBlocks?.nodes"
         />
       </HomeList>
     </div>
