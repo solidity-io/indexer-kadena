@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   ],
 
   build: {
-    transpile: ['nuxt-graphql-request'],
+    transpile: ['nuxt-graphql-request', '@venegrad/vue3-click-outside'],
   },
 
   alias: {
