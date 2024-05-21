@@ -13,7 +13,7 @@ const { $graphql } = useNuxtApp();
 
 const query = gql`
   query GetLastBlockAndTransaction {
-    allTransactions(first: 5) {
+    allTransactions(last: 5) {
       nodes {
         chainId
         createdAt
@@ -34,7 +34,7 @@ const query = gql`
         }
       }
     }
-    allBlocks(first: 5) {
+    allBlocks(last: 5) {
       nodes {
         chainId
         parent
@@ -44,21 +44,23 @@ const query = gql`
         id
         nodeId
         minerData
-        transactionsByBlockId {
-          totalCount
-        }
       }
     }
   }
 `
 
-const { data, error } = await useAsyncData('GetLastBlockAndTransaction', async () => {
+const { data: graphqlData, pending } = useAsyncData('graphql-home', () =>
+  $graphql.default.request(query),
+  {
+    lazy: true
+  }
+);
+
+const { data, error } = await useAsyncData('GetChartData', async () => {
   const [
-    // graphqlRes,
     tokenDataRes,
     tokenChartDataRes,
   ] = await Promise.all([
-    // $graphql.default.request(query),
     fetch('https://api.coingecko.com/api/v3/coins/kadena?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
     fetch('https://api.coingecko.com/api/v3/coins/kadena/market_chart?vs_currency=usd&days=14&interval=daily&x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
   ])
@@ -69,12 +71,10 @@ const { data, error } = await useAsyncData('GetLastBlockAndTransaction', async (
   return {
     token,
     chartData,
-    // blocks: graphqlRes.allBlocks,
-    // transactions: graphqlRes.allTransactions
   };
 });
 
-console.log('error', error.value)
+console.log('graphqlData', graphqlData.value)
 </script>
 
 <template>
