@@ -19,7 +19,7 @@
         Explore Kadena Blockchain
       </h1>
 
-      <Search />
+      <SearchInput />
     </div>
 
     <div

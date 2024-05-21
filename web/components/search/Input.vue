@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
 import { gql } from 'nuxt-graphql-request/utils';
 import { debounce } from 'chart.js/helpers';
 
@@ -9,6 +8,8 @@ const getBlocksQuery = gql`
       nodes {
         id
         hash
+        parent
+        chainId
         nodeId
         height
       }
@@ -16,6 +17,8 @@ const getBlocksQuery = gql`
     allTransactions(last: 4, filter: {or: {requestkey: {includes: $hash}}}) {
       nodes {
         id
+        result
+        chainId
         nodeId
         requestkey
       }
@@ -59,10 +62,6 @@ const isEmpty = computed(() => {
 })
 
 const search = debounce(async (value: string[]) => {
-  // if (data.loading) {
-  //   return
-  // }
-
   if (!value[0]) {
     data.searched = null
 
@@ -81,25 +80,27 @@ const search = debounce(async (value: string[]) => {
   }
 }, 500)
 
-const cleanup = () => {
-  // data.query = ''
-  // data.searched = null
-  console.log('kekw')
+const close = () => {
   data.open = false
+}
+
+const cleanup = () => {
+  data.query = ''
+  data.searched = null
+  close()
 }
 </script>
 
 <template>
   <div
-    class="relative"
-    v-outside="cleanup"
+    class="relative bazk:max-w-[700px]"
+    v-outside="close"
   >
     <div
-      @click.prevent="data.open = true"
-      :class="[data.open && 'border-kadscan-500']"
+      :class="[data.open && '!border-kadscan-500']"
       class="
         flex gap-2 items-center
-        w-full p-2 bg-gray-800 rounded-lg bazk:max-w-[700px] border border-transparent
+        w-full p-2 bg-gray-800 rounded-lg border border-transparent
       "
     >
       <div
@@ -108,6 +109,7 @@ const cleanup = () => {
         <Select
           v-model="data.filter"
           :items="data.filters"
+          @update:model-value="search(data.query as any)"
         />
       </div>
 
@@ -123,15 +125,23 @@ const cleanup = () => {
           text-font-400
           placeholder:text-font-500
         "
+        @click.prevent="data.open = true"
         v-model="data.query"
         @input="search(($event.target as any).value)"
         placeholder="Search by Address / Token / Block"
       />
 
       <div
-        class="mr-1 flex items-center justify-center p-[6px] bg-gray-500 rounded-lg h-8 w-8 bazk:h-9 bazk:w-9 shrink-0"
+        @click="cleanup()"
+        class="mr-1 flex items-center justify-center p-[6px] bg-gray-500 rounded-lg h-8 w-8 bazk:h-9 bazk:w-9 shrink-0 cursor-pointer"
       >
+        <IconSearchClose
+          class="w-5 h-5"
+          v-if="data.open"
+        />
+
         <IconSearch
+          v-else
           class="w-5 h-5"
         />
       </div>
@@ -139,7 +149,7 @@ const cleanup = () => {
 
     <div
       v-if="data.open"
-      class="absolute top-full mt-2 w-full max-w-[700px] bg-gray-700 rounded-lg p-4 gap-4 flex flex-col border border-gray-300 max-h-[344px] overflow-auto scrollbar-custom"
+      class="absolute top-full mt-2 w-full max-w-[580px] right-0 bg-gray-700 rounded-lg p-4 gap-4 flex flex-col border border-gray-300 max-h-[344px] overflow-auto scrollbar-custom"
     >
       <div
         v-if="data.loading"
@@ -152,7 +162,7 @@ const cleanup = () => {
         class="text-white text-sm"
         v-else-if="isEmpty"
       >
-        Nothing found.
+        No results found.
       </span>
 
       <template
@@ -172,18 +182,12 @@ const cleanup = () => {
             </span>
           </div>
 
-          <div
+          <SearchBlock
+            v-bind="block"
             class="py-3 border-b border-gray-300"
             :key="'block:'+block.id"
             v-for="block in data.searched?.allBlocks?.nodes"
-          >
-            <NuxtLink
-              class="text-white text-sm"
-              :to="`/blocks/${block.nodeId}`"
-            >
-              {{ block.hash }}
-            </NuxtLink>
-          </div>
+          />
         </div>
 
         <div
@@ -200,18 +204,12 @@ const cleanup = () => {
             </span>
           </div>
 
-          <div
+          <SearchTransaction
+            v-bind="transaction"
             class="py-3 border-b border-gray-300"
-            :key="'block:'+transaction.id"
+            :key="'transaction:'+transaction.id"
             v-for="transaction in data.searched?.allTransactions?.nodes"
-          >
-            <NuxtLink
-              class="text-white text-sm"
-              :to="`/transactions/${transaction.nodeId}`"
-            >
-              {{ transaction.requestkey }}
-            </NuxtLink>
-          </div>
+          />
         </div>
       </template>
     </div>
