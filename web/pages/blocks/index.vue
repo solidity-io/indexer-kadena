@@ -25,9 +25,6 @@ const query = gql`
         id
         nodeId
         minerData
-        transactionsByBlockId {
-          totalCount
-        }
       }
       pageInfo {
         endCursor
@@ -95,6 +92,14 @@ console.log("blocks", blocks.value)
           />
         </template>
 
+        <template #hash="{ row }">
+          <span
+            class="max-w-[200px] block truncate"
+          >
+            {{ row.hash }}
+          </span>
+        </template>
+
         <template #height="{ row }">
           <ColumnLink
             :to="`/blocks/${row.nodeId}`"
@@ -102,8 +107,10 @@ console.log("blocks", blocks.value)
           />
         </template>
 
-        <template #transactions="{ row }">
-          {{ row.transactionsByBlockId.totalCount }}
+        <template #miner="{ row }">
+          <ColumnMiner
+            :minerData="row.minerData"
+          />
         </template>
 
         <template #status="{ row }">
