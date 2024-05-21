@@ -44,9 +44,6 @@ const query = gql`
         id
         nodeId
         minerData
-        transactionsByBlockId {
-          totalCount
-        }
       }
     }
   }
