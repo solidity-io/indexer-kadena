@@ -28,6 +28,7 @@ const query = gql`
         gasprice
         id
         metadata
+        blockId
         logs
         nonce
         nodeId
@@ -43,26 +44,6 @@ const query = gql`
         ttl
         txid
         updatedAt
-        transfersByTransactionId {
-          nodes {
-            amount
-            createdAt
-            fromAcct
-            id
-            modulehash
-            nodeId
-            modulename
-            payloadHash
-            requestkey
-            toAcct
-            tokenId
-            transactionId
-            updatedAt
-          }
-        }
-        blockByBlockId {
-          height
-        }
       }
       pageInfo {
         endCursor
@@ -160,17 +141,17 @@ const {
             :value="row.sender"
           />
         </template>
-
+<!--
         <template #receiver="{ row }">
           <ColumnTxReceiver
             :row="row"
           />
-        </template>
+        </template> -->
 
         <template #block="{ row }">
           <ColumnLink
-            :to="`/blocks/${row.blockByBlockId?.height ?? 'null'}`"
-            :label="row.blockByBlockId?.height ?? 'null'"
+            :to="`/blocks/${row.blockId ?? 'null'}`"
+            :label="row.blockId ?? 'null'"
           />
         </template>
 

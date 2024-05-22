@@ -14,10 +14,21 @@ export const transactionTableColumns = [
     description: blockchainTooltipData.transaction.status
   },
   {
-    cols: 3,
+    cols: 6,
     key: 'requestKey',
     label: 'Request Key',
     description: blockchainTooltipData.transaction.requestKey
+  },
+  {
+    cols: 3,
+    key: 'sender',
+    label: 'Sender',
+    description: blockchainTooltipData.transaction.overview.from
+  },
+  {
+    cols: 2,
+    key: 'gas',
+    label: 'Gas',
   },
   {
     cols: 2,
@@ -28,22 +39,17 @@ export const transactionTableColumns = [
   },
   {
     cols: 3,
+    center: true,
     key: 'block',
     label: 'Block Height',
     description: blockchainTooltipData.transaction.blockHeight
   },
-  {
-    cols: 4,
-    key: 'sender',
-    label: 'From',
-    description: blockchainTooltipData.transaction.overview.from
-  },
-  {
-    cols: 4,
-    key: 'receiver',
-    label: 'To',
-    description: blockchainTooltipData.transaction.overview.to
-  },
+  // {
+  //   cols: 4,
+  //   key: 'receiver',
+  //   label: 'To',
+  //   description: blockchainTooltipData.transaction.overview.to
+  // },
   {
     cols: 5,
     key: 'createdAt',

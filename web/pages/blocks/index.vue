@@ -45,8 +45,6 @@ const {
   query,
   key: 'allBlocks'
 })
-
-console.log("blocks", blocks.value)
 </script>
 
 <template>
