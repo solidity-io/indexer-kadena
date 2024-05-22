@@ -29,6 +29,7 @@ export const transactionTableColumns = [
     cols: 2,
     key: 'gas',
     label: 'Gas',
+    center: true,
   },
   {
     cols: 2,
