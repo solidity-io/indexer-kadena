@@ -76,8 +76,6 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
 
   return block
 });
-
-console.log('block', block.value)
 </script>
 
 <template>

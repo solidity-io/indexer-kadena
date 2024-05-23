@@ -37,8 +37,6 @@ const data = reactive({
 //   try {
 //     const csv = convertArrayToCSV(data.tabs)
 
-//     console.log('csv', csv)
-
 //     const url = window.URL.createObjectURL(new Blob([csv]));
 
 //     const link = document.createElement('a');

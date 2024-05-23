@@ -5,9 +5,6 @@ const props = defineProps<{
 
 
 const lastTransfer = useLatestTransfer(props.row.transfersByTransactionId.nodes)
-// const {
-//   receiver
-// } = useTransaction(props.row)
 </script>
 
 <template>

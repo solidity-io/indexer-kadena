@@ -5,5 +5,3 @@ export const useLatestTransfer = (transfers: any[]) => {
 
   return transfers[transferIndex]
 }
-
-export const useTransactionGas = (transfers: any []) => transfers[0]
