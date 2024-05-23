@@ -6,7 +6,7 @@ export interface EventAttributes {
   id: number;
   transactionId: number;
   payloadHash: string;
-  chainid: number;
+  chainId: number;
   module: string;
   modulehash: string;
   name: string;
@@ -20,7 +20,7 @@ class Event extends Model<EventAttributes> implements EventAttributes {
   declare id: number;
   declare transactionId: number;
   declare payloadHash: string;
-  declare chainid: number;
+  declare chainId: number;
   declare module: string;
   declare modulehash: string;
   declare name: string;
@@ -35,7 +35,7 @@ Event.init(
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     transactionId: { type: DataTypes.INTEGER, allowNull: true },
     payloadHash: { type: DataTypes.STRING, allowNull: false },
-    chainid: { type: DataTypes.INTEGER, allowNull: false },
+    chainId: { type: DataTypes.INTEGER, allowNull: false },
     module: { type: DataTypes.STRING, allowNull: false },
     modulehash: { type: DataTypes.STRING, allowNull: false },
     name: { type: DataTypes.STRING, allowNull: false },

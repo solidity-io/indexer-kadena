@@ -1,4 +1,5 @@
 import Block, { BlockAttributes } from "../models/block";
+import { Transaction } from "sequelize";
 
 export class BlockService {
   /**
@@ -7,18 +8,24 @@ export class BlockService {
    * Otherwise, it creates a new block entry.
    *
    * @param blockData The block data to save or update.
+   * @param transaction An optional transaction to use for this operation.
    * @returns A Promise containing the block data as saved in the database
    * and a boolean indicating whether a new block was created (true) or an existing block was updated (false).
    */
-  async save(blockData: BlockAttributes): Promise<[BlockAttributes, boolean]> {
+  async save(
+    blockData: BlockAttributes,
+    transaction?: Transaction
+  ): Promise<[BlockAttributes, boolean]> {
     try {
       const parsedData = {
         ...blockData,
-        creationTime: BigInt(blockData.creationTime),
-        epochStart: BigInt(blockData.epochStart),
+        creationtime: blockData.creationTime
+          ? BigInt(blockData.creationTime)
+          : null,
+        epochStart: blockData.epochStart ? BigInt(blockData.epochStart) : null,
       };
 
-      const [block, created] = await Block.upsert(parsedData);
+      const [block, created] = await Block.upsert(parsedData, { transaction });
       return [block.toJSON(), created as boolean];
     } catch (error) {
       console.error("Error saving block to database:", error);
@@ -60,6 +67,14 @@ export class BlockService {
       console.error("Error listing blocks:", error);
       throw error;
     }
+  }
+
+  async findBlockByPayloadHash(
+    payloadHash: string
+  ): Promise<BlockAttributes | null> {
+    return await Block.findOne({
+      where: { payloadHash: payloadHash },
+    });
   }
 }
 

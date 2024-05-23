@@ -1,18 +1,11 @@
 import axios from "axios";
-import {
-  saveHeader,
-  savePayload,
-  listS3Objects,
-  readAndParseS3Object,
-} from "./s3Service";
+import { saveHeader, listS3Objects, readAndParseS3Object } from "./s3Service";
 import { getDecoded, delay, splitIntoChunks } from "../utils/helpers";
-import { blockService } from "./blockService";
 import { transactionService } from "./transactionService";
 import { eventService } from "./eventService";
 import { syncStatusService } from "./syncStatusService";
 import { syncErrorService } from "./syncErrorService";
 import { transferService } from "./transferService";
-import { balanceService } from "./balanceService";
 import { register } from "../server/metrics";
 import { Histogram } from "prom-client";
 import https from "https";
@@ -24,12 +17,11 @@ import {
   SOURCE_STREAMING,
 } from "../models/syncStatus";
 import { getRequiredEnvString, getRequiredEnvNumber } from "../utils/helpers";
-import { BlockAttributes } from "../models/block";
+import Block, { BlockAttributes } from "../models/block";
 import { TransactionAttributes } from "../models/transaction";
 import { EventAttributes } from "../models/event";
 import { TransferAttributes } from "../models/transfer";
-import { BalanceAttributes } from "../models/balance";
-import { sequelize } from "../config/database";
+import Contract, { ContractAttributes } from "../models/contract";
 import { Transaction } from "sequelize";
 
 const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
@@ -216,44 +208,6 @@ export async function processS3HeadersDaemon(network: string) {
 }
 
 /**
- * Continuously processes S3 payloads for a specific network as a background task (daemon).
- * Similar to `processS3HeadersDaemon`, it runs in a loop, checking and processing new payloads,
- * ensuring the application's data remains current with the blockchain state until a shutdown signal is received.
- *
- * @param network The identifier for the blockchain network (e.g., 'mainnet01').
- */
-export async function processS3PayloadsDaemon(network: string) {
-  console.log("Daemon: Starting to process payloads...");
-
-  const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "5000", 10);
-
-  process.on("SIGINT", () => shutdownSignal.trigger());
-  process.on("SIGTERM", () => shutdownSignal.trigger());
-
-  while (!shutdownSignal.isTriggered) {
-    try {
-      await processS3Payloads(network);
-      console.log(
-        `Daemon: Waiting for ${
-          sleepInterval / 1000
-        } seconds before the next iteration...`
-      );
-      await delay(sleepInterval);
-    } catch (error) {
-      console.error("Daemon: Error occurred in processS3Payloads -", error);
-      console.log(
-        `Daemon: Attempting to restart after waiting ${
-          sleepInterval / 1000
-        } seconds...`
-      );
-      await delay(sleepInterval);
-    }
-  }
-
-  console.log("Daemon: Shutting down gracefully.");
-}
-
-/**
  * Processes header keys for each chain within a specified network in a round-robin fashion.
  * It processes a set number of keys for each chain and removes the chain from the processing
  * list once there are no more keys to process. This ensures an even distribution of processing
@@ -296,46 +250,6 @@ export async function processS3Headers(network: string) {
 }
 
 /**
- * Processes a batch of S3 payloads for a given network. It fetches the list of S3 object keys based on synchronization status,
- * reads, parses, and processes each payload to extract and save transaction and event data into the database.
- *
- * @param network The identifier for the blockchain network (e.g., 'mainnet01').
- */
-export async function processS3Payloads(network: string) {
-  console.log("Starting processing payloads...");
-
-  const chains = await syncStatusService.getChains(network);
-  const lastKeysProcessed = new Map<number, number>();
-
-  const MAX_KEYS = 20;
-  const MAX_ITERATIONS = 5;
-
-  while (chains.length > 0) {
-    let remainingChains = [];
-    for (const chainId of chains) {
-      const prefix = `${network}/chains/${chainId}/payloads/`;
-      const totalKeysProcessed = await processKeys(
-        network,
-        chainId,
-        prefix,
-        processPayloadKey,
-        MAX_KEYS,
-        MAX_ITERATIONS
-      );
-
-      lastKeysProcessed.set(chainId, totalKeysProcessed);
-
-      if (totalKeysProcessed > 0) {
-        remainingChains.push(chainId);
-      }
-    }
-    chains.splice(0, chains.length, ...remainingChains);
-  }
-
-  console.log("Finished processing payloads.");
-}
-
-/**
  * Processes a single S3 payload key, extracting transaction and event information from the payload data.
  * It parses the payload to save transaction attributes and related events into the database.
  *
@@ -343,62 +257,69 @@ export async function processS3Payloads(network: string) {
  * @param prefix The S3 object prefix used to locate blockchain data.
  * @param key The specific S3 object key pointing to the payload data to be processed.
  */
-async function processPayloadKey(network: string, prefix: string, key: string) {
-  const payloadData = await readAndParseS3Object(key);
+async function processPayloadKey(
+  network: string,
+  block: BlockAttributes,
+  payloadData: any,
+  options?: Transaction
+) {
   const TRANSACTION_INDEX = 0;
   const RECEIPT_INDEX = 1;
 
-  for (const transactionArray of payloadData) {
+  const payloadHash = payloadData.payloadHash;
+  const transactions = payloadData.transactions || [];
+
+  if (transactions.length > 0) {
+    console.log("transactions.length", transactions.length);
+  }
+
+  for (const transactionArray of transactions) {
     const transactionInfo = transactionArray[TRANSACTION_INDEX];
     const receiptInfo = transactionArray[RECEIPT_INDEX];
 
+    let sigsData = transactionInfo.sigs;
     let cmdData;
     try {
       cmdData = JSON.parse(transactionInfo.cmd);
-
-      console.log;
     } catch (error) {
-      console.error(`Error parsing cmd JSON for key ${key}: ${error}`);
+      console.error(
+        `Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`
+      );
     }
 
     const eventsData = receiptInfo.events || [];
-    const payloadHash = key.split("/").pop()?.split(".")[0] || "";
     const transactionAttributes = {
+      blockId: block.id,
       payloadHash: payloadHash,
-
       code: cmdData.payload.exec ? cmdData.payload.exec.code : null,
       data: cmdData.payload.exec ? cmdData.payload.exec.data : null,
-
-      chainid: cmdData.meta.chainId,
-      creationtime: cmdData.meta.creationtime
-        ? BigInt(cmdData.meta.creationtime)
-        : null,
-      gaslimit: cmdData.meta.gaslimit ? BigInt(cmdData.meta.gaslimit) : null,
-      gasprice: cmdData.meta.gasprice ? BigInt(cmdData.meta.gasprice) : null,
-
+      chainId: cmdData.meta.chainId,
+      creationtime: cmdData.meta.creationTime,
+      gaslimit: cmdData.meta.gasLimit,
+      gasprice: cmdData.meta.gasPrice,
+      hash: transactionInfo.hash,
       nonce: cmdData.nonce || "",
       continuation: receiptInfo.continuation || "",
-      gas: BigInt(receiptInfo.gas || null),
+      gas: receiptInfo.gas,
       result: receiptInfo.result || null,
       logs: receiptInfo.logs || null,
-      metadata: receiptInfo.metadata || null,
+      metadata: receiptInfo.metaData || null,
       num_events: eventsData ? eventsData.length : 0,
       requestkey: receiptInfo.reqKey,
       rollback: receiptInfo.result
         ? receiptInfo.result.status != "success"
         : true,
-
       sender: cmdData.meta.sender || null,
-
+      sigs: sigsData,
       step: receiptInfo.step || null,
-      ttl: cmdData.meta.ttl ? BigInt(cmdData.meta.ttl) : null,
+      ttl: cmdData.meta.ttl,
       txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
     } as TransactionAttributes;
 
     const eventsAttributes = eventsData.map((eventData: any) => {
       return {
         payloadHash: payloadHash,
-        chainid: transactionAttributes.chainid,
+        chainId: transactionAttributes.chainId,
         module: eventData.module.namespace
           ? `${eventData.module.namespace}.${eventData.module.name}`
           : eventData.module.name,
@@ -414,6 +335,7 @@ async function processPayloadKey(network: string, prefix: string, key: string) {
     }) as EventAttributes[];
 
     const transfersCoinAttributes = getCoinTransfers(
+      network,
       eventsData,
       payloadHash,
       transactionAttributes,
@@ -421,6 +343,8 @@ async function processPayloadKey(network: string, prefix: string, key: string) {
     );
 
     const transfersNftAttributes = getNftTransfers(
+      network,
+      transactionAttributes.chainId,
       eventsData,
       payloadHash,
       transactionAttributes,
@@ -430,21 +354,24 @@ async function processPayloadKey(network: string, prefix: string, key: string) {
     const transfersAttributes = [
       transfersCoinAttributes,
       transfersNftAttributes,
-    ].flat();
+    ]
+      .flat()
+      .filter((transfer) => transfer.amount !== undefined);
 
     try {
       let transactionInstance = await transactionService.save(
-        transactionAttributes
+        transactionAttributes,
+        options
       );
 
-      let transactionId = transactionInstance[0].id;
+      let transactionId = transactionInstance.id;
 
       const eventsWithTransactionId = eventsAttributes.map((event) => ({
         ...event,
         transactionId: transactionId,
       })) as EventAttributes[];
 
-      await eventService.saveMany(eventsWithTransactionId);
+      await eventService.saveMany(eventsWithTransactionId, options);
 
       const transfersWithTransactionId = transfersAttributes.map(
         (transfer) => ({
@@ -453,13 +380,7 @@ async function processPayloadKey(network: string, prefix: string, key: string) {
         })
       ) as TransferAttributes[];
 
-      await transferService.saveMany(transfersWithTransactionId);
-
-      await updateBalances(
-        network,
-        transactionAttributes.chainid,
-        transfersAttributes
-      );
+      await transferService.saveMany(transfersWithTransactionId, options);
     } catch (error) {
       console.error(`Error saving transaction to the database: ${error}`);
     }
@@ -477,6 +398,8 @@ async function processPayloadKey(network: string, prefix: string, key: string) {
  * @returns An array of transfer attributes specifically for NFT transfers.
  */
 function getNftTransfers(
+  network: string,
+  chainId: number,
   eventsData: any,
   payloadHash: string | undefined,
   transactionAttributes: TransactionAttributes,
@@ -495,30 +418,151 @@ function getNftTransfers(
 
   const transfersNftAttributes = eventsData
     .filter(transferNftSignature)
-    .map((eventData: any) => {
+    .map(async (eventData: any) => {
       const params = eventData.params;
       const tokenId = params[0];
       const from_acct = params[1];
       const to_acct = params[2];
       const amount = params[3];
 
+      const modulename = eventData.module.namespace
+        ? `${eventData.module.namespace}.${eventData.module.name}`
+        : eventData.module.name;
+
       console.log("Token ID:", tokenId);
+
+      const manifestData = await getManifest(
+        network,
+        chainId,
+        modulename,
+        tokenId
+      );
+      let contractId;
+      if (manifestData) {
+        console.log("Manifest URI found for token ID:", tokenId);
+
+        const contractData = {
+          network: network,
+          chainId: chainId,
+          module: modulename,
+          type: "poly-fungible",
+          metadata: manifestData,
+          tokenId: tokenId,
+        } as ContractAttributes;
+
+        const existingContract = await Contract.findOne({
+          where: {
+            network: contractData.network,
+            chainId: contractData.chainId,
+            module: contractData.module,
+            tokenId: tokenId,
+          },
+        });
+
+        if (!existingContract) {
+          const newContract = await Contract.create(contractData);
+          contractId = newContract.id;
+          console.log("Contract created:", newContract);
+        } else {
+          contractId = existingContract.id;
+          console.log("Contract already exists:", existingContract);
+        }
+
+        console.log("Contract ID:", contractId);
+
+        console.log("Manifest Data:", manifestData);
+      } else {
+        console.log("No manifest URI found for token ID:", tokenId);
+      }
 
       return {
         amount: amount,
         payloadHash: payloadHash,
-        chainid: transactionAttributes.chainid,
+        chainId: transactionAttributes.chainId,
         from_acct: from_acct,
         modulehash: eventData.moduleHash,
-        modulename: eventData.module.namespace
-          ? `${eventData.module.namespace}.${eventData.module.name}`
-          : eventData.module.name,
+        modulename: modulename,
         requestkey: receiptInfo.reqKey,
         to_acct: to_acct,
+        network: network,
         tokenId: tokenId,
+        type: "poly-fungible",
+        contractId: contractId,
       } as TransferAttributes;
     }) as TransferAttributes[];
   return transfersNftAttributes;
+}
+
+async function getManifest(
+  network: string,
+  chainId: number,
+  module: string,
+  tokenId: string
+): Promise<any> {
+  const now = new Date();
+
+  const createBody = (hash: string = ""): string =>
+    `{"cmd":"{\\"signers\\":[],\\"meta\\":{\\"creationTime\\":${now.getTime()},\\"ttl\\":600,\\"chainId\\":\\"${chainId}\\",\\"gasPrice\\":1.0e-8,\\"gasLimit\\":2500,\\"sender\\":\\"sender00\\"},\\"nonce\\":\\"CW:${now.toUTCString()}\\",\\"networkId\\":\\"${network}\\",\\"payload\\":{\\"exec\\":{\\"code\\":\\"(${module}.get-manifest \\\\\\"${tokenId}\\\\\\")\\",\\"data\\":{}}}}","hash":"${hash}","sigs":[]}`;
+
+  console.log("----------------------> createBody", createBody());
+
+  const { textResponse } = await callLocal(network, chainId, createBody());
+
+  const hashFromResponse = textResponse?.split(" ").splice(-1, 1)[0];
+
+  console.log("----------------------> hashFromResponse", hashFromResponse);
+
+  const { jsonResponse } = await callLocal(
+    network,
+    chainId,
+    createBody(hashFromResponse)
+  );
+
+  const manifest = jsonResponse?.result.data;
+
+  console.log("----------------------> manifest", manifest);
+
+  if (manifest !== undefined) {
+    return manifest;
+  } else {
+    console.log(`Error fetching manifest for token ID ${tokenId}`);
+  }
+}
+
+async function callLocal(
+  network: string,
+  chainId: number,
+  body: string
+): Promise<{
+  textResponse: string | undefined;
+  jsonResponse: { result: { data: any } } | undefined;
+  response: Response;
+}> {
+  const response = await fetch(
+    `https://api.chainweb.com/chainweb/0.0/${network}/chain/${chainId}/pact/api/v1/local?signatureVerification=false`,
+    {
+      headers: {
+        accept: "application/json;charset=utf-8, application/json",
+        "cache-control": "no-cache",
+        "content-type": "application/json;charset=utf-8",
+        pragma: "no-cache",
+      },
+      body,
+      method: "POST",
+    }
+  );
+
+  let jsonResponse;
+  let textResponse;
+
+  try {
+    jsonResponse = (await response.clone().json()) as {
+      result: { data: any };
+    };
+  } catch (e) {
+    textResponse = await response.text();
+  }
+  return { textResponse, jsonResponse, response };
 }
 
 /**
@@ -532,6 +576,7 @@ function getNftTransfers(
  * @returns An array of transfer attributes specifically for coin transfers.
  */
 function getCoinTransfers(
+  network: string,
   eventsData: any,
   payloadHash: string,
   transactionAttributes: TransactionAttributes,
@@ -557,82 +602,19 @@ function getCoinTransfers(
       return {
         amount: amount,
         payloadHash: payloadHash,
-        chainid: transactionAttributes.chainid,
+        chainId: transactionAttributes.chainId,
         from_acct: from_acct,
         modulehash: eventData.moduleHash,
         modulename: eventData.module.namespace
           ? `${eventData.module.namespace}.${eventData.module.name}`
           : eventData.module.name,
         requestkey: receiptInfo.reqKey,
+        network: network,
         to_acct: to_acct,
+        type: "fungible",
       } as TransferAttributes;
     }) as TransferAttributes[];
   return transfersCoinAttributes;
-}
-
-/**
- * Updates the balances for accounts involved in the transfers. It adjusts sender and recipient balances in the database,
- * creating new balance records if necessary, or updating existing ones based on the transfer details.
- *
- * @param network The blockchain network identifier.
- * @param chainId The specific chain ID within the network.
- * @param transfers An array of transfer attributes detailing each transfer's sender, recipient, and amount.
- */
-async function updateBalances(
-  network: string,
-  chainId: number,
-  transfers: TransferAttributes[]
-) {
-  for (const transfer of transfers) {
-    let senderBalance = await balanceService.findByAccountAndChainId(
-      transfer.from_acct,
-      chainId,
-      transfer.modulename,
-      network,
-      transfer.tokenId
-    );
-    const amountInSmallestUnit = BigInt(Math.round(transfer.amount * 1e18));
-
-    if (senderBalance) {
-      senderBalance.balance =
-        BigInt(senderBalance.balance) - amountInSmallestUnit;
-    } else {
-      senderBalance = {
-        account: transfer.from_acct,
-        balance: amountInSmallestUnit,
-        chainId: chainId,
-        tokenId: transfer.tokenId,
-        module: transfer.modulename,
-        qualname: transfer.modulename,
-        network: network,
-      } as BalanceAttributes;
-    }
-
-    await balanceService.saveOrUpdate(senderBalance);
-
-    let recipientBalance = await balanceService.findByAccountAndChainId(
-      transfer.to_acct,
-      chainId,
-      transfer.modulename,
-      network,
-      transfer.tokenId
-    );
-    if (recipientBalance) {
-      recipientBalance.balance =
-        BigInt(recipientBalance.balance) + amountInSmallestUnit;
-    } else {
-      recipientBalance = {
-        account: transfer.to_acct,
-        balance: amountInSmallestUnit,
-        chainId: chainId,
-        tokenId: transfer.tokenId,
-        module: transfer.modulename,
-        qualname: transfer.modulename,
-        network: network,
-      } as BalanceAttributes;
-    }
-    await balanceService.saveOrUpdate(recipientBalance);
-  }
 }
 
 /**
@@ -656,6 +638,7 @@ async function updateBalances(
  * @returns {Promise<void>} A promise that resolves when the key has been successfully processed,
  *                          including reading, parsing, saving the block data, and updating the sync status.
  */
+
 async function processHeaderKey(network: string, prefix: string, key: string) {
   const parsedData = await readAndParseS3Object(key);
 
@@ -664,28 +647,40 @@ async function processHeaderKey(network: string, prefix: string, key: string) {
     return;
   }
 
-  let baseData = parsedData.header;
-  if (!baseData) {
-    baseData = parsedData;
+  let headerData = parsedData.header;
+  if (!headerData) {
+    headerData = parsedData;
   }
 
-  const blockAttribute = {
-    nonce: baseData.nonce,
-    creationTime: baseData.creationTime,
-    parent: baseData.parent,
-    adjacents: baseData.adjacents,
-    target: baseData.target,
-    payloadHash: baseData.payloadHash,
-    chainId: baseData.chainId,
-    weight: baseData.weight,
-    height: baseData.height,
-    chainwebVersion: baseData.chainwebVersion,
-    epochStart: baseData.epochStart,
-    featureFlags: baseData.featureFlags,
-    hash: baseData.hash,
-  } as BlockAttributes;
+  const payloadData = parsedData.payload;
 
-  await blockService.save(blockAttribute);
+  try {
+    let blockAttribute = {
+      nonce: headerData.nonce,
+      creationTime: headerData.creationTime,
+      parent: headerData.parent,
+      adjacents: headerData.adjacents,
+      target: headerData.target,
+      payloadHash: headerData.payloadHash,
+      chainId: headerData.chainId,
+      weight: headerData.weight,
+      height: headerData.height,
+      chainwebVersion: headerData.chainwebVersion,
+      epochStart: headerData.epochStart,
+      featureFlags: headerData.featureFlags,
+      hash: headerData.hash,
+      minerData: payloadData.minerData,
+      transactionsHash: payloadData.transactionsHash,
+      outputsHash: payloadData.outputsHash,
+      coinbase: payloadData.coinbase,
+    } as BlockAttributes;
+
+    const createdBlock = await Block.create(blockAttribute);
+
+    await processPayloadKey(network, createdBlock, payloadData);
+  } catch (error) {
+    console.error(`Error saving block to the database: ${error}`);
+  }
 }
 
 /**
@@ -730,11 +725,15 @@ export async function startStreaming(network: string): Promise<void> {
 
           const payloadHash = blockData.header.payloadHash;
 
-          await saveHeader(network, chainId, height, blockData);
-
-          fetchPayloadWithRetry(network, chainId, height, height, [
+          await fetchAndSavePayloadWithRetry(
+            network,
+            chainId,
+            height,
             payloadHash,
-          ]);
+            blockData
+          );
+
+          // console.log("++++++++++++++++++++++ blockData", blockData);
 
           await syncStatusService.save({
             chainId: chainId,
@@ -759,6 +758,37 @@ export async function startStreaming(network: string): Promise<void> {
   });
 
   req.end();
+}
+
+async function fetchAndSavePayloadWithRetry(
+  network: string,
+  chainId: any,
+  height: any,
+  payloadHash: any,
+  blockData: any
+) {
+  const payload = await fetchPayloadWithRetry(
+    network,
+    chainId,
+    height,
+    height,
+    [payloadHash]
+  );
+
+  if (payload.length === 0) {
+    // console.log("payload", payload);
+    console.error("No payload found for height and chain:", {
+      height,
+      chainId,
+      blockData,
+    });
+
+    return;
+  }
+
+  blockData.payload = payload[0];
+
+  await saveHeader(network, chainId, height, blockData);
 }
 
 /**
@@ -1010,19 +1040,15 @@ async function fetchHeadersWithRetry(
     console.log(`Fetched ${items.length} headers for chainId ${chainId}`);
 
     await Promise.all(
-      items.map((header: any) =>
-        saveHeader(network, chainId, header.height, header)
-      )
-    );
-
-    const payloadHashes = items.map((header: any) => header.payloadHash);
-
-    await fetchPayloadWithRetry(
-      network,
-      chainId,
-      maxHeight,
-      minHeight,
-      payloadHashes
+      items.map(async (header: any) => {
+        await fetchAndSavePayloadWithRetry(
+          network,
+          chainId,
+          maxHeight,
+          minHeight,
+          [header.payloadHash]
+        );
+      })
     );
 
     await syncStatusService.save({
@@ -1087,7 +1113,7 @@ async function fetchPayloadWithRetry(
   toHeight: number,
   payloadHashes: string[],
   attempt = 1
-): Promise<void> {
+): Promise<any> {
   const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
 
   console.log("Fetching payloads from:", endpoint);
@@ -1101,7 +1127,13 @@ async function fetchPayloadWithRetry(
 
     const payloads = response.data;
 
-    await processPayloads(network, chainId, payloads);
+    if (payloads.length === 0) {
+      console.log("payloads", payloads);
+      console.log("payloadHashes", payloadHashes);
+      throw new Error("No payloads found");
+    }
+
+    return await processPayloads(payloads);
   } catch (error) {
     if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
       console.log(
@@ -1111,7 +1143,7 @@ async function fetchPayloadWithRetry(
       );
       console.log("Error fetching payload:", error);
       await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
-      await fetchPayloadWithRetry(
+      return await fetchPayloadWithRetry(
         network,
         chainId,
         fromHeight,
@@ -1147,11 +1179,7 @@ async function fetchPayloadWithRetry(
  * @param payloads An array of payload objects to be processed.
  * @returns A Promise that resolves when all payloads have been processed.
  */
-async function processPayloads(
-  network: string,
-  chainId: number,
-  payloads: any[]
-): Promise<void> {
+async function processPayloads(payloads: any[]): Promise<any[]> {
   const saveOperations = payloads.map(async (payload) => {
     const transactions = payload.transactions;
     // console.log("Number of transactions:", transactions.length);
@@ -1159,10 +1187,25 @@ async function processPayloads(
       transaction[0] = getDecoded(transaction[0]);
       transaction[1] = getDecoded(transaction[1]);
     });
-    return savePayload(network, chainId, payload.payloadHash, transactions);
+
+    const minerData = getDecoded(payload.minerData);
+    const transactionsHash = payload.transactionsHash;
+    const outputsHash = payload.outputsHash;
+    const coinbase = getDecoded(payload.coinbase);
+
+    const payloadData = {
+      transactions: transactions,
+      minerData: minerData,
+      transactionsHash: transactionsHash,
+      outputsHash: outputsHash,
+      payloadHash: payload.payloadHash,
+      coinbase: coinbase,
+    };
+
+    return payloadData;
   });
 
-  await Promise.all(saveOperations);
+  return await Promise.all(saveOperations);
 }
 
 /**
