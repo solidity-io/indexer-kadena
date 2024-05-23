@@ -40,7 +40,7 @@ Balance.init(
       allowNull: false,
     },
     balance: {
-      type: DataTypes.DECIMAL(50, 0),
+      type: DataTypes.DECIMAL,
       allowNull: false,
       defaultValue: 0,
     },

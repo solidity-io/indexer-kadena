@@ -1,0 +1,47 @@
+import { Model, DataTypes } from "sequelize";
+import { sequelize } from "../config/database";
+
+export interface ContractAttributes {
+  id: number;
+  network: string;
+  chainId: number;
+  type: string;
+  module: string;
+  metadata: object;
+  tokenId: string;
+}
+
+class Contract extends Model<ContractAttributes> implements ContractAttributes {
+  declare id: number;
+  declare network: string;
+  declare chainId: number;
+  declare type: string; // fungible, poly-fungible
+  declare module: string;
+  declare metadata: object;
+  declare tokenId: string;
+}
+
+Contract.init(
+  {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    network: { type: DataTypes.STRING, allowNull: false },
+    chainId: { type: DataTypes.INTEGER, allowNull: false },
+    type: { type: DataTypes.STRING, allowNull: false },
+    module: { type: DataTypes.STRING, allowNull: false },
+    metadata: { type: DataTypes.JSON, allowNull: true },
+    tokenId: { type: DataTypes.STRING, allowNull: false },
+  },
+  {
+    sequelize,
+    modelName: "Contract",
+    indexes: [
+      {
+        unique: true,
+        fields: ["network", "chainId", "module", "tokenId"],
+        name: "contract_unique_constraint",
+      },
+    ],
+  }
+);
+
+export default Contract;

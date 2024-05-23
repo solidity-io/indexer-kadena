@@ -1,4 +1,5 @@
-import Transaction, { TransactionAttributes } from "../models/transaction";
+import TransactionModel, { TransactionAttributes } from "../models/transaction";
+import { Transaction } from "sequelize";
 
 export class TransactionService {
   /**
@@ -11,15 +12,18 @@ export class TransactionService {
    * and a boolean indicating whether a new transaction was created (true) or an existing transaction was updated (false).
    */
   async save(
-    transactionData: TransactionAttributes
-  ): Promise<[TransactionAttributes, boolean]> {
+    transactionData: TransactionAttributes,
+    options?: Transaction
+  ): Promise<TransactionAttributes> {
     try {
       const parsedData = {
         ...transactionData,
       };
 
-      const [transaction, created] = await Transaction.upsert(parsedData);
-      return [transaction.toJSON(), created as boolean];
+      const tx = await TransactionModel.create(parsedData, {
+        transaction: options,
+      });
+      return tx.toJSON();
     } catch (error) {
       console.error("Error saving transaction to database:", error);
       throw error;

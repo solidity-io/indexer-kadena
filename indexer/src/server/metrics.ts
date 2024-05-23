@@ -4,6 +4,14 @@ import { postgraphile } from "postgraphile";
 import { getRequiredEnvString } from "../utils/helpers";
 import path from "path";
 import cors from "cors";
+import ConnectionFilterPlugin from "postgraphile-plugin-connection-filter";
+import { blockQueryPlugin } from "../models/block";
+import {
+  transactionByRequestKeyQueryPlugin,
+  transactionsByBlockIdQueryPlugin,
+} from "../models/transaction";
+import { transfersByTypeQueryPlugin } from "../models/transfer";
+import { Pool } from "pg";
 
 const register = new Registry();
 
@@ -18,6 +26,10 @@ const DB_HOST = getRequiredEnvString("DB_HOST");
 const SSL_CERT_PATH = path.resolve(__dirname, "../config/global-bundle.pem");
 const DB_CONNECTION = `postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}?ssl=true&&sslrootcert=${SSL_CERT_PATH}`;
 const SCHEMAS: Array<string> = ["public"];
+
+const rootPgPool = new Pool({
+  connectionString: DB_CONNECTION,
+});
 
 app.use(cors());
 
@@ -36,6 +48,18 @@ app.use(
     watchPg: true,
     graphiql: true,
     enhanceGraphiql: true,
+    appendPlugins: [
+      ConnectionFilterPlugin,
+      blockQueryPlugin,
+      transactionsByBlockIdQueryPlugin,
+      transactionByRequestKeyQueryPlugin,
+      transfersByTypeQueryPlugin,
+    ],
+    async additionalGraphQLContextFromRequest(req, res) {
+      return {
+        rootPgPool,
+      };
+    },
   })
 );
 

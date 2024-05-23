@@ -84,7 +84,8 @@ export async function savePayload(
   payloadHash: string,
   data: any
 ) {
-  const objectKey = `${network}/chains/${chainId}/payloads/${payloadHash}.json`;
+  const timestamp = new Date().getTime();
+  const objectKey = `${network}/chains/${chainId}/payloads/${timestamp}-${payloadHash}.json`;
   const jsonData = JSON.stringify(data);
 
   try {

@@ -4,7 +4,6 @@ import {
   startRetryErrors,
   startMissingBlocks,
   processS3HeadersDaemon,
-  processS3PayloadsDaemon,
   startMissingBlocksDaemon,
 } from "./services/syncService";
 import dotenv from "dotenv";
@@ -18,7 +17,6 @@ program
   .option("-r, --retry", "Start retrying failed blocks")
   .option("-m, --missing", "Process missing blocks")
   .option("-h, --headers", "Process headers from s3 bucket to database")
-  .option("-p, --payloads", "Process payloads from s3 bucket to database")
   .option(
     "-run, --run",
     "Continuous process of streaming, headers, payloads and missing blocks from node to s3 bucket and from s3 bucket to database"
@@ -51,13 +49,9 @@ async function main() {
       await startMissingBlocksDaemon(SYNC_NETWORK);
     } else if (options.headers) {
       await processS3HeadersDaemon(SYNC_NETWORK);
-    } else if (options.payloads) {
-      await processS3PayloadsDaemon(SYNC_NETWORK);
     } else if (options.run) {
       startStreaming(SYNC_NETWORK);
       processS3HeadersDaemon(SYNC_NETWORK);
-      processS3PayloadsDaemon(SYNC_NETWORK);
-      // startMissingBlocksDaemon(SYNC_NETWORK);
     } else {
       console.log("No specific task requested.");
     }

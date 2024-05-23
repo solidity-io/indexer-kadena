@@ -1,4 +1,5 @@
 import Balance, { BalanceAttributes } from "../models/balance";
+import { Transaction } from "sequelize";
 
 export class BalanceService {
   /**
@@ -11,7 +12,8 @@ export class BalanceService {
    * and a boolean indicating whether a new balance was created (true) or an existing balance was updated (false).
    */
   async saveOrUpdate(
-    balanceData: BalanceAttributes
+    balanceData: BalanceAttributes,
+    options?: { transaction?: Transaction }
   ): Promise<[BalanceAttributes, boolean]> {
     const { network, chainId, qualname, account, tokenId } = balanceData;
     try {
@@ -19,13 +21,24 @@ export class BalanceService {
         ? { network, chainId, qualname, account, tokenId }
         : { network, chainId, qualname, account };
 
-      const existingBalance = await Balance.findOne({ where: whereClause });
+      console.log("whereClause", whereClause);
+
+      const existingBalance = await Balance.findOne({
+        where: whereClause,
+        transaction: options?.transaction,
+      });
 
       if (existingBalance) {
-        await existingBalance.update(balanceData);
+        console.log("updating balance", existingBalance.toJSON());
+        await existingBalance.update(balanceData, {
+          transaction: options?.transaction,
+        });
         return [existingBalance.toJSON() as BalanceAttributes, false];
       } else {
-        const newBalance = await Balance.create(balanceData);
+        console.log("creating balance", balanceData);
+        const newBalance = await Balance.create(balanceData, {
+          transaction: options?.transaction,
+        });
         return [newBalance.toJSON() as BalanceAttributes, true];
       }
     } catch (error) {
@@ -49,14 +62,19 @@ export class BalanceService {
     chainId: number,
     qualname: string,
     network: string,
-    tokenId?: string
+    tokenId?: string,
+    options?: { lock?: any; transaction?: Transaction }
   ): Promise<BalanceAttributes | null> {
     try {
       const whereClause = tokenId
         ? { network, chainId, account, qualname, tokenId }
         : { network, chainId, account, qualname };
 
-      const balance = await Balance.findOne({ where: whereClause });
+      const balance = await Balance.findOne({
+        where: whereClause,
+        lock: options?.lock,
+        transaction: options?.transaction,
+      });
 
       return balance ? (balance.toJSON() as BalanceAttributes) : null;
     } catch (error) {

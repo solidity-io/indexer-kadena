@@ -1,4 +1,4 @@
-import { BulkCreateOptions } from "sequelize";
+import { Transaction, BulkCreateOptions } from "sequelize";
 import Transfer, { TransferAttributes } from "../models/transfer";
 
 export class TransferService {
@@ -38,10 +38,12 @@ export class TransferService {
    */
   async saveMany(
     transfersData: TransferAttributes[],
-    options?: BulkCreateOptions
+    options?: Transaction
   ): Promise<void> {
     try {
-      await Transfer.bulkCreate(transfersData, options);
+      await Transfer.bulkCreate(transfersData, {
+        transaction: options,
+      });
     } catch (error) {
       console.error("Error saving transfers to database:", error);
       throw error;
