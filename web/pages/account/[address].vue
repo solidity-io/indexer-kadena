@@ -33,27 +33,27 @@ const data = reactive({
 })
 
 // TODO: Check this approach, better if move that to a backend
-// const download = () => {
-//   try {
-//     const csv = convertArrayToCSV(data.tabs)
+const download = () => {
+  try {
+    const csv = convertArrayToCSV(data.tabs)
 
-//     const url = window.URL.createObjectURL(new Blob([csv]));
+    const url = window.URL.createObjectURL(new Blob([csv]));
 
-//     const link = document.createElement('a');
+    const link = document.createElement('a');
 
-//     link.href = url;
+    link.href = url;
 
-//     link.setAttribute('download', 'dados.csv');
+    link.setAttribute('download', 'dados.csv');
 
-//     document.body.appendChild(link);
+    document.body.appendChild(link);
 
-//     link.click();
+    link.click();
 
-//     document.body.removeChild(link);
-//   } catch (error) {
-//   console.error("Erro ao exportar CSV:", error);
-//   }
-// }
+    document.body.removeChild(link);
+  } catch (error) {
+  console.error("Erro ao exportar CSV:", error);
+  }
+}
 </script>
 
 <template>
