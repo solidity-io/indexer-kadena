@@ -26,18 +26,14 @@ const data = reactive({
   ],
 })
 
+const { $coingecko } = useNuxtApp();
 
-const { data: token } = await useAsyncData('token-detail', async () => {
-  const [
-    tokenDataRes,
-  ] = await Promise.all([
-    fetch('https://api.coingecko.com/api/v3/coins/kadena?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
-  ])
-
-  const token = await tokenDataRes.json()
-
-  return token;
-});
+const { data: token } = await useAsyncData('tokens-trending', async () =>
+  $coingecko.request('coins/kadena', {
+    vs_currency: 'usd',
+    category: 'kadena-ecosystem',
+  })
+);
 </script>
 
 <template>

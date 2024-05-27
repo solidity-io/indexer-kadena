@@ -1,6 +1,8 @@
 export default defineNuxtPlugin(async () => {
-  const apiKey = useRuntimeConfig().public.CG_KEY;
-  const baseUrl = useRuntimeConfig().public.CG_URL;
+  const {
+    CG_KEY: apiKey,
+    CG_URL: baseUrl,
+  } = useRuntimeConfig().public;
 
   const request = async (endpoint: string, params = {}) => {
     const url = new URL(`${baseUrl}/${endpoint}`) as any;

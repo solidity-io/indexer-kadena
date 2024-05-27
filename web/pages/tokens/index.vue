@@ -13,17 +13,14 @@ const {
   trendingTokensTableColumns
 } = useAppConfig()
 
-const { data: tokens, pending } = await useAsyncData('tokens-trending', async () => {
-  const [
-    tokensDataRes,
-  ] = await Promise.all([
-    fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=kadena-ecosystem&x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
-  ])
+const { $coingecko } = useNuxtApp();
 
-  const tokens = await tokensDataRes.json()
-
-  return tokens;
-});
+const { data: tokens, pending } = await useAsyncData('tokens-trending', async () =>
+  $coingecko.request('coins/markets', {
+    vs_currency: 'usd',
+    category: 'kadena-ecosystem',
+  })
+);
 
 const data = reactive({
   page: 1,
