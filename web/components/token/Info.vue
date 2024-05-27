@@ -44,18 +44,18 @@ const {
         <LabelValue
           label="Market Capitalization"
           :value="moneyCompact.format(market_data.market_cap.usd)"
-          :description="blockchainTooltipData.tokenDetails.tabInformation.marketCapitalization"
+          :description="blockchainTooltipData.tokenDetails.information.marketCapitalization"
         />
 
         <LabelValue
           label="Volume (24H)"
           :value="moneyCompact.format(market_data.total_volume.usd)"
-          :description="blockchainTooltipData.tokenDetails.tabInformation.volume24H"
+          :description="blockchainTooltipData.tokenDetails.information.volume24H"
         />
 
         <LabelValue
           label="Circulating supply"
-          :description="blockchainTooltipData.tokenDetails.tabInformation.circulatingSupply"
+          :description="blockchainTooltipData.tokenDetails.information.circulatingSupply"
         >
           <template #value>
             <span class="uppercase">
