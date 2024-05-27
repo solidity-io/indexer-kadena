@@ -9,7 +9,7 @@ useHead({
   title: 'Kadscan'
 })
 
-const { $graphql } = useNuxtApp();
+const { $graphql, $coingecko } = useNuxtApp();
 
 const query = gql`
   query GetLastBlockAndTransaction {
@@ -46,16 +46,17 @@ const query = gql`
 const { data, error } = await useAsyncData('GetChartData', async () => {
   const [
     apiRes,
-    tokenDataRes,
-    tokenChartDataRes,
+    token,
+    chartData,
   ] = await Promise.all([
     $graphql.default.request(query),
-    fetch('https://api.coingecko.com/api/v3/coins/kadena?x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
-    fetch('https://api.coingecko.com/api/v3/coins/kadena/market_chart?vs_currency=usd&days=14&interval=daily&x_cg_api_key=CG-tDrQaTrnzMSUR3NbMVb6EPyC'),
+    $coingecko.request('coins/kadena'),
+    $coingecko.request('coins/kadena/market_chart', {
+      days: 14,
+      interval: 'daily',
+      vs_currency: 'usd',
+    })
   ])
-
-  const token = await tokenDataRes.json()
-  const chartData = await tokenChartDataRes.json()
 
   return {
     token,

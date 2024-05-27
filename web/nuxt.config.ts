@@ -24,6 +24,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // // Numbers
+      CG_KEY: process.env.CG_KEY,
       API_URL: process.env.API_URL,
     },
   },
