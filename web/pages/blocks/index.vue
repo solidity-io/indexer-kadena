@@ -94,13 +94,13 @@ const {
           <span
             class="max-w-[200px] block truncate"
           >
-            {{ row.hash }}
+          que porra {{ row.hash }}
           </span>
         </template>
 
         <template #height="{ row }">
           <ColumnLink
-            :to="`/blocks/${row.nodeId}`"
+            :to="`/blocks/${row.height}`"
             :label="row.height"
           />
         </template>

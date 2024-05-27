@@ -32,8 +32,8 @@ const data = reactive({
 })
 
 const query = gql`
-  query GetBlockById($id: ID!) {
-    block(nodeId: $id) {
+  query GetBlockById($height: Int!) {
+    blockByHeight(height: $height) {
       adjacents
       chainId
       chainwebVersion
@@ -49,7 +49,6 @@ const query = gql`
       hash
       height
       id
-      nodeId
       minerData
       nonce
       outputsHash
@@ -69,13 +68,15 @@ const { $graphql } = useNuxtApp();
 
 const { data: block } = await useAsyncData('GetBlockById', async () => {
   const {
-    block
+    blockByHeight
   } = await $graphql.default.request(query, {
-    id: route.params.hash,
+    height: Number(route.params.height),
   });
 
-  return block
+  return blockByHeight
 });
+
+console.log('fucking block', block.value.hash)
 </script>
 
 <template>

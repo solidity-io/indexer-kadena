@@ -34,8 +34,6 @@ const { data: token } = await useAsyncData('tokens-trending', async () =>
     category: 'kadena-ecosystem',
   })
 );
-
-console.log('token', token.value)
 </script>
 
 <template>
