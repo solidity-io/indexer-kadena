@@ -8,6 +8,7 @@ jobs:
   frontend_dev_deploy:
     runs-on: ubuntu-latest
     env:
+      CG_KEY: ${{ vars.CG_KEY }}
       API_URL: ${{ vars.API_URL }}
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
