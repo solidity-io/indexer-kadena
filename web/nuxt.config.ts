@@ -23,8 +23,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      // // Numbers
       CG_KEY: process.env.CG_KEY,
+      CG_URL: process.env.CG_URL || "https://api.coingecko.com/api/v3",
       API_URL: process.env.API_URL,
     },
   },

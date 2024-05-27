@@ -1,7 +1,6 @@
-export default defineNuxtPlugin(async (nuxtApp) => {
-  const baseUrl = 'https://api.coingecko.com/api/v3';
-
+export default defineNuxtPlugin(async () => {
   const apiKey = useRuntimeConfig().public.CG_KEY;
+  const baseUrl = useRuntimeConfig().public.CG_URL;
 
   const request = async (endpoint: string, params = {}) => {
     const url = new URL(`${baseUrl}/${endpoint}`) as any;
