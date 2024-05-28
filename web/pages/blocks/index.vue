@@ -92,9 +92,9 @@ const {
 
         <template #hash="{ row }">
           <span
-            class="max-w-[200px] block truncate"
+            class="max-w-[200px] text-font-450 text-sm block truncate"
           >
-          que porra {{ row.hash }}
+            {{ row.hash }}
           </span>
         </template>
 
