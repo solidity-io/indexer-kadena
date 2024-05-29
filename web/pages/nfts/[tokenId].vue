@@ -60,9 +60,6 @@ const { data: nft } = await useAsyncData('GetNftById', async () => {
 
   return contract
 });
-
-console.log('nft', nft.value)
-console.log('metadata', JSON.parse(nft.value.metadata))
 </script>
 
 <template>

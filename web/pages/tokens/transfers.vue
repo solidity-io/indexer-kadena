@@ -27,7 +27,7 @@ const query = gql`
         modulehash
         modulename
         id
-        chainid
+        chainId
         createdAt
         fromAcct
         amount

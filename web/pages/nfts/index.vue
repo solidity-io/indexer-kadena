@@ -1,123 +1,127 @@
 <script setup lang="ts">
-// import { gql } from 'nuxt-graphql-request/utils';
-import { TabPanel } from '@headlessui/vue'
-import { convertArrayToCSV } from 'convert-array-to-csv'
+import { gql } from 'nuxt-graphql-request/utils';
 
 definePageMeta({
   layout: 'app',
 })
 
 useHead({
-  title: 'Account Details'
+  title: 'NFT Transfers'
 })
 
-const data = reactive({
-  tabs: [
-    {
-      key: 'assets',
-      label: 'Assets',
-    },
-    {
-      key: 'nft',
-      label: 'NFT',
-    },
-    {
-      key: 'transactions',
-      label: 'Transactions',
-    },
-    {
-      key: 'statement',
-      label: 'Account Statement',
-    },
-  ],
-})
+const {
+  nftTransfersTableColumns
+} = useAppConfig()
 
 const query = gql`
-  query GetNftById($id: ID!) {
-    contract(nodeId: $id) {
-      chainId
-      createdAt
-      id
-      metadata
-      module
-      network
-      nodeId
-      precision
-      tokenId
-      updatedAt
-      type
+  query GetTokenTransfers($first: Int, $offset: Int) {
+    allTransfers(condition: {tokenId: null}, offset: $offset, orderBy: ID_DESC, first: $first) {
+      nodes {
+        tokenId
+        updatedAt
+        transactionId
+        toAcct
+        requestkey
+        payloadHash
+        nodeId
+        modulehash
+        modulename
+        id
+        chainId
+        createdAt
+        fromAcct
+        amount
+        transactionByTransactionId {
+          nodeId
+        }
+      }
+      pageInfo {
+        startCursor
+        hasPreviousPage
+        endCursor
+        hasNextPage
+      }
+      totalCount
     }
   }
 `
 
-const { $graphql } = useNuxtApp();
-
-const { data: nft } = await useAsyncData('GetNftById', async () => {
-  const {
-    nft
-  } = await $graphql.default.request(query, {
-    id: route.params.tokenId,
-  });
-
-  return nft
-});
-
-console.log('nft', nft.value)
-
-// TODO: Check this approach, better if move that to a backend
-// const download = () => {
-//   try {
-//     const csv = convertArrayToCSV(data.tabs)
-
-//     const url = window.URL.createObjectURL(new Blob([csv]));
-
-//     const link = document.createElement('a');
-
-//     link.href = url;
-
-//     link.setAttribute('download', 'dados.csv');
-
-//     document.body.appendChild(link);
-
-//     link.click();
-
-//     document.body.removeChild(link);
-//   } catch (error) {
-//   console.error("Erro ao exportar CSV:", error);
-//   }
-// }
+const {
+  page,
+  pending,
+  data: transfers,
+} = await usePaginate({
+  query,
+  key: 'allTransfers'
+})
 </script>
 
 <template>
   <PageRoot>
     <PageTitle>
-      Account Details
+      NFT Transfers
     </PageTitle>
 
     <PageContainer>
-      <AccountDetails />
-    </PageContainer>
-
-    <PageContainer>
-      <Tabs
-        :tabs="data.tabs"
+      <TableRoot
+        title="Latest Transactions"
+        :pending="pending"
+        :rows="transfers.nodes"
+        :columns="nftTransfersTableColumns"
       >
-        <TabPanel>
-          <AccountAssets />
-        </TabPanel>
+        <template #method>
+          <Chip />
+        </template>
 
-        <TabPanel>
-          <AccountNFT />
-        </TabPanel>
+        <template #hash="{ row }">
+          <ColumnLink
+            :label="row.requestkey"
+            :to="`/transactions/${row.transactionByTransactionId.nodeId}`"
+          />
+        </template>
 
-        <TabPanel>
-          <AccountTransactions />
-        </TabPanel>
+        <template #from="{ row }">
+          <ColumnAddress
+            :value="row.fromAcct"
+          />
+        </template>
 
-        <TabPanel>
-          <AccountStatement />
-        </TabPanel>
-      </Tabs>
+        <template #to="{ row }">
+          <ColumnAddress
+            :value="row.toAcct"
+          />
+        </template>
+
+        <template #date="{ row }">
+          <ColumnDate
+            :row="row"
+          />
+        </template>
+
+        <template #item="{ row }">
+          <ColumnNft
+            name="To do"
+            image="/collection/bears.png"
+            collection="Todo"
+          />
+        </template>
+
+        <template #icon>
+          <div
+            class="flex items-center justify-center"
+          >
+            <IconEye />
+          </div>
+        </template>
+      </TableRoot>
+
+      <PaginateTable
+        itemsLabel="Transfers"
+        :currentPage="page"
+        :totalItems="transfers?.totalCount ?? 1"
+        :totalPages="transfers?.totalPages"
+        @pageChange="page = Number($event)"
+      />
     </PageContainer>
   </PageRoot>
 </template>

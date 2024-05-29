@@ -4,6 +4,7 @@ export interface BaseRoute {
   path?: string;
   tag: string;
   label: string;
+  disabled?: boolean
 }
 
 export interface LinkRoute extends BaseRoute{
@@ -60,13 +61,14 @@ export const routes: Route[] = [
     type: 'group',
     tag: 'route:nft',
     subroutes: [
+      // {
+      //   disabled: true,
+      //   path: '/collections',
+      //   tag: 'route:collections',
+      //   label: 'NFT Trending Collections',
+      // },
       {
-        path: '/collections',
-        tag: 'route:collections',
-        label: 'NFT Trending Collections',
-      },
-      {
-        path: '/collections/nft-transfers',
+        path: '/nfts',
         label: 'NFT Transfers',
         tag: 'route:collections:nfts',
       }
