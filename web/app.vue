@@ -14,12 +14,24 @@ import '@fontsource/roboto/latin.css'
 <style>
   body {
     background-color: #010101;
-    height: 100%
+    height: 100%;
+
   }
 
   html {
     height: 100%;
- }
+  }
+
+  body::-webkit-scrollbar {
+    -webkit-appearance: none !important;
+    width: 7px !important;
+  }
+
+  body::-webkit-scrollbar-thumb {
+    border-radius: 20px !important;
+    background-color: #525454 !important;
+    -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, 0.836) !important;
+  }
 
  .scrollbar-custom::-webkit-scrollbar {
     -webkit-appearance: none !important;
