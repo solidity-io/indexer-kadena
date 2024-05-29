@@ -25,7 +25,7 @@ const {
     >
       <video
         autoplay muted loop
-        class="aspect-square min-w-full !max-w-[560px]"
+        class="aspect-square min-w-full !max-w-[560px] bg-gray-200 pulse w-full"
         v-if="nftMetadata.datum.assetUrl.match(/\.(mp4|webm|ogg)$/i)"
       >
         <source :src="nftMetadata.datum.assetUrl" />
