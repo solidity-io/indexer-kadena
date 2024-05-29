@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { gql } from 'nuxt-graphql-request/utils';
 import { TabPanel } from '@headlessui/vue'
 
 definePageMeta({
@@ -12,24 +13,63 @@ useHead({
 const data = reactive({
   tabs: [
     {
-      key: 'activity',
-      label: 'Activity',
-    },
-    {
       key: 'properties',
       label: 'Properties',
     },
     {
+      disabled: true,
+      key: 'activity',
+      label: 'Activity',
+    },
+    {
       key: 'more',
+      disabled: true,
       label: 'More from this Collection',
     },
   ],
 })
+
+const query = gql`
+  query GetNftById($id: ID!) {
+    contract(nodeId: $id) {
+      chainId
+      createdAt
+      id
+      metadata
+      module
+      network
+      nodeId
+      precision
+      tokenId
+      updatedAt
+      type
+    }
+  }
+`
+
+const route = useRoute()
+
+const { $graphql } = useNuxtApp();
+
+const { data: nft } = await useAsyncData('GetNftById', async () => {
+  const {
+    contract
+  } = await $graphql.default.request(query, {
+    id: route.params.tokenId,
+  });
+
+  return contract
+});
+
+console.log('nft', nft.value)
+console.log('metadata', JSON.parse(nft.value.metadata))
 </script>
 
 <template>
   <PageRoot>
-    <NftDetails />
+    <NftDetails
+      v-bind="nft"
+    />
 
     <PageContainer>
       <Tabs
@@ -49,11 +89,13 @@ const data = reactive({
         </template>
 
         <TabPanel>
-          <NftActivity />
+          <NftProperties
+            v-bind="nft"
+          />
         </TabPanel>
 
         <TabPanel>
-          <NftProperties />
+          <NftActivity />
         </TabPanel>
 
         <TabPanel>

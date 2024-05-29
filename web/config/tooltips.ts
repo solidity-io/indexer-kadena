@@ -146,15 +146,13 @@ export const blockchainTooltipData = {
     },
   },
   nftDetails: {
-    headInformations: {
-      account: "The account identifier or address associated with the account.",
-      price: "The current price of the NFT in the marketplace.",
-      floorPrice: "The minimum price set for the NFT in the marketplace.",
-      owner: "The current owner of the NFT.",
-      creator: "The creator or original issuer of the NFT.",
-      timestamp: "The date and time when the NFT was created or last modified.",
-      marketplace: "The platform or marketplace where the NFT is listed for sale or auction.",
-    },
+    account: "The account identifier or address associated with the account.",
+    price: "The current price of the NFT in the marketplace.",
+    floorPrice: "The minimum price set for the NFT in the marketplace.",
+    owner: "The current owner of the NFT.",
+    creator: "The creator or original issuer of the NFT.",
+    timestamp: "The date and time when the NFT was created or last modified.",
+    marketplace: "The platform or marketplace where the NFT is listed for sale or auction.",
     activity: {
       account: "The account identifier or address associated with the account.",
       hash: "A unique identifier for each transaction involving the NFT.",

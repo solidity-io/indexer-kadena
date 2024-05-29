@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
   <div
-    class="flex gap-2 bazk:gap-4 flex-col bazk:flex-row bazk:items-center"
+    class="flex gap-2 md:gap-4 flex-col md:flex-row lg:items-center"
     :class="[
       col && '!flex-col !items-start'
     ]"
@@ -24,7 +24,7 @@ defineProps<{
       />
 
       <span
-        class="text-font-500 text-xs bazk:text-sm font-medium"
+        class="text-font-500 text-xs md:text-sm font-medium"
       >
         {{ label }}
       </span>

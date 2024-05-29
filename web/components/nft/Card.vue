@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 defineProps<{
   id: string,
-  name: string,
-  image: string,
-  collection: string,
+  name?: string,
+  image?: string,
+  collection?: string,
 }>()
 </script>
 
@@ -35,11 +35,11 @@ defineProps<{
         {{ name }}
       </span>
 
-      <span
+      <!-- <span
         class="text-sm bazk:text-base pt-3 text-font-400"
       >
         0.0 KDA
-      </span>
+      </span> -->
     </div>
   </div>
 </template>
