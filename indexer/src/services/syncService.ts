@@ -188,16 +188,14 @@ export async function processS3HeadersDaemon(network: string) {
     try {
       await processS3Headers(network);
       console.log(
-        `Daemon: Waiting for ${
-          sleepInterval / 1000
+        `Daemon: Waiting for ${sleepInterval / 1000
         } seconds before the next iteration...`
       );
       await delay(sleepInterval);
     } catch (error) {
       console.error("Daemon: Error occurred in processS3Headers -", error);
       console.log(
-        `Daemon: Attempting to restart after waiting ${
-          sleepInterval / 1000
+        `Daemon: Attempting to restart after waiting ${sleepInterval / 1000
         } seconds...`
       );
       await delay(sleepInterval);
@@ -439,38 +437,7 @@ function getNftTransfers(
       );
       let contractId;
       if (manifestData) {
-        console.log("Manifest URI found for token ID:", tokenId);
-
-        const contractData = {
-          network: network,
-          chainId: chainId,
-          module: modulename,
-          type: "poly-fungible",
-          metadata: manifestData,
-          tokenId: tokenId,
-        } as ContractAttributes;
-
-        const existingContract = await Contract.findOne({
-          where: {
-            network: contractData.network,
-            chainId: contractData.chainId,
-            module: contractData.module,
-            tokenId: tokenId,
-          },
-        });
-
-        if (!existingContract) {
-          const newContract = await Contract.create(contractData);
-          contractId = newContract.id;
-          console.log("Contract created:", newContract);
-        } else {
-          contractId = existingContract.id;
-          console.log("Contract already exists:", existingContract);
-        }
-
-        console.log("Contract ID:", contractId);
-
-        console.log("Manifest Data:", manifestData);
+        contractId = await saveContract(network, chainId, modulename, contractId, "poly-fungible", tokenId, manifestData);
       } else {
         console.log("No manifest URI found for token ID:", tokenId);
       }
@@ -485,12 +452,71 @@ function getNftTransfers(
         requestkey: receiptInfo.reqKey,
         to_acct: to_acct,
         network: network,
+        hasTokenId: true,
         tokenId: tokenId,
         type: "poly-fungible",
         contractId: contractId,
       } as TransferAttributes;
     }) as TransferAttributes[];
   return transfersNftAttributes;
+}
+
+async function saveContract(network: string, chainId: number, modulename: any, contractId: any, type: string, tokenId?: any, manifestData?: any, precision?: number) {
+  const contractData = {
+    network: network,
+    chainId: chainId,
+    module: modulename,
+    type: type,
+    metadata: manifestData,
+    tokenId: tokenId,
+    precision: precision,
+  } as ContractAttributes;
+
+  const existingContract = await Contract.findOne({
+    where: {
+      network: contractData.network,
+      chainId: contractData.chainId,
+      module: contractData.module,
+      tokenId: tokenId,
+    },
+  });
+
+  if (!existingContract) {
+    const newContract = await Contract.create(contractData);
+    contractId = newContract.id;
+  } else {
+    contractId = existingContract.id;
+  }
+  return contractId;
+}
+
+async function getPrecision(
+  network: string,
+  chainId: number,
+  module: string
+): Promise<number | undefined> {
+  const now = new Date();
+
+  const createBody = (hash: string = ""): string =>
+    `{"cmd":"{\\"signers\\":[],\\"meta\\":{\\"creationTime\\":${now.getTime()},\\"ttl\\":600,\\"chainId\\":\\"${chainId}\\",\\"gasPrice\\":1.0e-8,\\"gasLimit\\":2500,\\"sender\\":\\"sender00\\"},\\"nonce\\":\\"CW:${now.toUTCString()}\\",\\"networkId\\":\\"${network}\\",\\"payload\\":{\\"exec\\":{\\"code\\":\\"(${module}.precision)\\",\\"data\\":{}}}}","hash":"${hash}","sigs":[]}`;
+
+  const { textResponse } = await callLocal(network, chainId, createBody());
+
+  const hashFromResponse = textResponse?.split(" ").splice(-1, 1)[0];
+
+  const { jsonResponse } = await callLocal(
+    network,
+    chainId,
+    createBody(hashFromResponse)
+  );
+
+  const precision = jsonResponse?.result.data;
+
+  if (precision !== undefined) {
+    return precision;
+  } else {
+    console.log(`Error fetching precision for module ${module}`);
+  }
 }
 
 async function getManifest(
@@ -504,13 +530,9 @@ async function getManifest(
   const createBody = (hash: string = ""): string =>
     `{"cmd":"{\\"signers\\":[],\\"meta\\":{\\"creationTime\\":${now.getTime()},\\"ttl\\":600,\\"chainId\\":\\"${chainId}\\",\\"gasPrice\\":1.0e-8,\\"gasLimit\\":2500,\\"sender\\":\\"sender00\\"},\\"nonce\\":\\"CW:${now.toUTCString()}\\",\\"networkId\\":\\"${network}\\",\\"payload\\":{\\"exec\\":{\\"code\\":\\"(${module}.get-manifest \\\\\\"${tokenId}\\\\\\")\\",\\"data\\":{}}}}","hash":"${hash}","sigs":[]}`;
 
-  console.log("----------------------> createBody", createBody());
-
   const { textResponse } = await callLocal(network, chainId, createBody());
 
   const hashFromResponse = textResponse?.split(" ").splice(-1, 1)[0];
-
-  console.log("----------------------> hashFromResponse", hashFromResponse);
 
   const { jsonResponse } = await callLocal(
     network,
@@ -519,8 +541,6 @@ async function getManifest(
   );
 
   const manifest = jsonResponse?.result.data;
-
-  console.log("----------------------> manifest", manifest);
 
   if (manifest !== undefined) {
     return manifest;
@@ -594,7 +614,25 @@ function getCoinTransfers(
 
   const transfersCoinAttributes = eventsData
     .filter(transferCoinSignature)
-    .map((eventData: any) => {
+    .map(async (eventData: any) => {
+      const modulename = eventData.module.namespace
+      ? `${eventData.module.namespace}.${eventData.module.name}`
+      : eventData.module.name;
+      const chainId = transactionAttributes.chainId;
+
+      const precisionData = await getPrecision(
+        network,
+        chainId,
+        modulename
+      );
+
+      let contractId;
+      if (precisionData) {
+        contractId = await saveContract(network, chainId, modulename, contractId, "fungible", null, null, precisionData);
+      } else {
+        console.log("No precision found for module:", modulename);
+      }
+      
       const params = eventData.params;
       const from_acct = params[0];
       const to_acct = params[1];
@@ -611,6 +649,7 @@ function getCoinTransfers(
         requestkey: receiptInfo.reqKey,
         network: network,
         to_acct: to_acct,
+        hasTokenId: false,
         type: "fungible",
       } as TransferAttributes;
     }) as TransferAttributes[];
@@ -732,8 +771,6 @@ export async function startStreaming(network: string): Promise<void> {
             payloadHash,
             blockData
           );
-
-          // console.log("++++++++++++++++++++++ blockData", blockData);
 
           await syncStatusService.save({
             chainId: chainId,
@@ -918,16 +955,14 @@ export async function startMissingBlocksDaemon(network: string) {
     try {
       await startMissingBlocks(network);
       console.log(
-        `Daemon: Waiting for ${
-          sleepInterval / 1000
+        `Daemon: Waiting for ${sleepInterval / 1000
         } seconds before the next iteration...`
       );
       await delay(sleepInterval);
     } catch (error) {
       console.error("Daemon: Error occurred in startMissingBlocks -", error);
       console.log(
-        `Daemon: Attempting to restart after waiting ${
-          sleepInterval / 1000
+        `Daemon: Attempting to restart after waiting ${sleepInterval / 1000
         } seconds...`
       );
       await delay(sleepInterval);
@@ -1063,8 +1098,7 @@ async function fetchHeadersWithRetry(
     console.error(`Error fetching headers: ${error}`);
     if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
       console.log(
-        `Retrying fetch headers... Attempt ${
-          attempt + 1
+        `Retrying fetch headers... Attempt ${attempt + 1
         } of ${SYNC_ATTEMPTS_MAX_RETRY}`
       );
       await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
@@ -1137,8 +1171,7 @@ async function fetchPayloadWithRetry(
   } catch (error) {
     if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
       console.log(
-        `Retrying... Attempt ${
-          attempt + 1
+        `Retrying... Attempt ${attempt + 1
         } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
       );
       console.log("Error fetching payload:", error);
