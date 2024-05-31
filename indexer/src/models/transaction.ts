@@ -34,8 +34,7 @@ export interface TransactionAttributes {
 
 class Transaction
   extends Model<TransactionAttributes>
-  implements TransactionAttributes
-{
+  implements TransactionAttributes {
   declare id: number;
   declare blockId: number;
   declare result: object;
@@ -118,7 +117,12 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
     return {
       typeDefs: gql`
         extend type Query {
-          transactionByRequestKey(requestkey: String!): Transaction
+          transactionByRequestKey(requestkey: String!, eventLimit: Int): TransactionWithEvents
+        }
+
+        type TransactionWithEvents {
+          transaction: Transaction
+          events: [Event]
         }
       `,
       resolvers: {
@@ -129,13 +133,32 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
             context,
             resolveInfo
           ) => {
-            const { requestkey } = args;
+            const { requestkey, eventLimit } = args;
             const { rootPgPool } = context;
-            const { rows } = await rootPgPool.query(
+
+            const { rows: transactions } = await rootPgPool.query(
               `SELECT * FROM public."Transactions" WHERE requestkey = $1`,
               [requestkey]
             );
-            return rows[0];
+
+            if (transactions.length === 0) {
+              return null;
+            }
+
+            const transaction = transactions[0];
+            const limitClause = eventLimit ? `LIMIT $2` : '';
+            const queryParams = eventLimit ? [transaction.id, eventLimit] : [transaction.id];
+            const { rows: events } = await rootPgPool.query(
+              `SELECT * FROM public."Events" WHERE "transactionId" = $1 ${limitClause}`,
+              queryParams
+            );
+
+            transaction.numEvents = events.length;
+
+            return {
+              transaction,
+              events
+            };
           },
         },
       },

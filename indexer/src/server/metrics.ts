@@ -45,6 +45,10 @@ app.get("/metrics", async (req, res) => {
 
 app.use(
   postgraphile(DB_CONNECTION, SCHEMAS, {
+    graphileBuildOptions: {
+      connectionFilterAllowNullInput : true,
+      connectionFilterAllowEmptyObjectInput : true,
+    },
     watchPg: true,
     graphiql: true,
     enhanceGraphiql: true,
@@ -54,6 +58,7 @@ app.use(
       transactionsByBlockIdQueryPlugin,
       transactionByRequestKeyQueryPlugin,
       transfersByTypeQueryPlugin,
+      
     ],
     async additionalGraphQLContextFromRequest(req, res) {
       return {

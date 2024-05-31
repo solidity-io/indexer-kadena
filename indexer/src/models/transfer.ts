@@ -17,6 +17,7 @@ export interface TransferAttributes {
   requestkey: string;
   to_acct: string;
   network: string;
+  hasTokenId: boolean;
   tokenId?: string;
   contractId?: number;
 }
@@ -34,6 +35,7 @@ class Transfer extends Model<TransferAttributes> implements TransferAttributes {
   declare requestkey: string;
   declare to_acct: string;
   declare network: string;
+  declare hasTokenId: boolean;
   declare tokenId?: string;
   declare contractId?: number;
 }
@@ -52,6 +54,7 @@ Transfer.init(
     requestkey: { type: DataTypes.STRING, allowNull: false },
     to_acct: { type: DataTypes.STRING, allowNull: false },
     network: { type: DataTypes.STRING, allowNull: false },
+    hasTokenId: { type: DataTypes.BOOLEAN, allowNull: true },
     tokenId: { type: DataTypes.STRING, allowNull: true },
     contractId: { type: DataTypes.INTEGER, allowNull: true },
   },

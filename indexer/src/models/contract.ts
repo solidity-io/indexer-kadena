@@ -9,6 +9,7 @@ export interface ContractAttributes {
   module: string;
   metadata: object;
   tokenId: string;
+  precision: number;
 }
 
 class Contract extends Model<ContractAttributes> implements ContractAttributes {
@@ -19,6 +20,7 @@ class Contract extends Model<ContractAttributes> implements ContractAttributes {
   declare module: string;
   declare metadata: object;
   declare tokenId: string;
+  declare precision: number;
 }
 
 Contract.init(
@@ -29,7 +31,8 @@ Contract.init(
     type: { type: DataTypes.STRING, allowNull: false },
     module: { type: DataTypes.STRING, allowNull: false },
     metadata: { type: DataTypes.JSON, allowNull: true },
-    tokenId: { type: DataTypes.STRING, allowNull: false },
+    tokenId: { type: DataTypes.STRING, allowNull: true },
+    precision: { type: DataTypes.INTEGER, allowNull: true },
   },
   {
     sequelize,
