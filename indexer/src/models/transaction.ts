@@ -117,12 +117,13 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
     return {
       typeDefs: gql`
         extend type Query {
-          transactionByRequestKey(requestkey: String!, eventLimit: Int): TransactionWithEvents
+          transactionByRequestKey(requestkey: String!, eventLimit: Int, transferLimit: Int): TransactionData
         }
 
-        type TransactionWithEvents {
+        type TransactionData {
           transaction: Transaction
           events: [Event]
+          transfers: [Transfer]
         }
       `,
       resolvers: {
@@ -133,7 +134,7 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
             context,
             resolveInfo
           ) => {
-            const { requestkey, eventLimit } = args;
+            const { requestkey, eventLimit, transferLimit } = args;
             const { rootPgPool } = context;
 
             const { rows: transactions } = await rootPgPool.query(
@@ -146,18 +147,32 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
             }
 
             const transaction = transactions[0];
-            const limitClause = eventLimit ? `LIMIT $2` : '';
-            const queryParams = eventLimit ? [transaction.id, eventLimit] : [transaction.id];
+
+            const eventLimitClause = eventLimit ? `LIMIT $2` : '';
+            const eventQueryParams = eventLimit ? [transaction.id, eventLimit] : [transaction.id];
             const { rows: events } = await rootPgPool.query(
-              `SELECT * FROM public."Events" WHERE "transactionId" = $1 ${limitClause}`,
-              queryParams
+              `SELECT * FROM public."Events" WHERE "transactionId" = $1 ${eventLimitClause}`,
+              eventQueryParams
             );
+
+            const transferLimitClause = transferLimit ? `LIMIT $2` : '';
+            const transferQueryParams = transferLimit ? [transaction.id, transferLimit] : [transaction.id];
+            const { rows: transfers } = await rootPgPool.query(
+              `SELECT * FROM public."Transfers" WHERE "transactionId" = $1 ${transferLimitClause}`,
+              transferQueryParams,
+            );
+
+            transfers.forEach((transfer: any) => {
+              transfer.toAcct = transfer.to_acct;
+              transfer.fromAcct = transfer.from_acct;
+            });
 
             transaction.numEvents = events.length;
 
             return {
               transaction,
-              events
+              events,
+              transfers,
             };
           },
         },
