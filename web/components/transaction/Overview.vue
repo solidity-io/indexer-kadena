@@ -21,6 +21,7 @@ const {
   <Divide>
     <DivideScroll
       class="max-h-[360px]"
+      v-if="transfersByTransactionId?.nodes?.lenght > 0"
     >
       <div
         class="grid gap-2"

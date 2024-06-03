@@ -2,12 +2,6 @@ import { blockchainTooltipData } from "./tooltips"
 
 export const transactionTableColumns = [
   {
-    isFixed: true,
-    cols: 1,
-    key: 'icon',
-    label: '',
-  },
-  {
     cols: 2,
     key: 'status',
     label: 'Status',
@@ -56,5 +50,11 @@ export const transactionTableColumns = [
     key: 'createdAt',
     label: 'Date',
     description: blockchainTooltipData.transaction.meta.creationTime
+  },
+  {
+    isFixed: true,
+    cols: 1,
+    key: 'icon',
+    label: '',
   },
 ]

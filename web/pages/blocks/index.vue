@@ -77,7 +77,7 @@ const {
       />
     </div> -->
 
-    <PageContainer>
+    <TableContainer>
       <TableRoot
         :pending="pending"
         :rows="blocks.nodes"
@@ -140,6 +140,6 @@ const {
         :totalPages="blocks.totalPages"
         @pageChange="page = Number($event)"
       />
-    </PageContainer>
+    </TableContainer>
   </PageRoot>
 </template>

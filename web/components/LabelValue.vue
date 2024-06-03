@@ -10,9 +10,10 @@ defineProps<{
 
 <template>
   <div
-    class="flex gap-2 md:gap-4 flex-col md:flex-row lg:items-center"
+    class="flex gap-2 md:gap-4 flex-col md:flex-row"
     :class="[
-      col && '!flex-col !items-start'
+      col && '!flex-col !items-start',
+      value && 'lg:items-center'
     ]"
   >
     <div

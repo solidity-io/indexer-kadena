@@ -75,8 +75,6 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
 
   return blockByHeight
 });
-
-console.log('fucking block', block.value.hash)
 </script>
 
 <template>

@@ -3,7 +3,6 @@ import { gql } from 'nuxt-graphql-request/utils';
 
 defineProps<{
   hash: string;
-  nodeId: string;
 }>()
 const {
   blockchainTooltipData,
@@ -30,14 +29,30 @@ const query = gql`
   }
 `
 
-const {
-  page,
-  pending,
-  data: transactions,
-} = await usePaginate({
-  query,
-  key: 'allTransactions'
+const data = reactive({
+  page: 1,
+  limit: 20
 })
+
+const { $graphql } = useNuxtApp();
+
+const key = 'allTransactions'
+
+const { data: transactions, pending } = useAsyncData(key, async () => {
+  const res = await $graphql.default.request(query, {
+    first: data.limit,
+    offset: (data.page - 1) * 20,
+  });
+
+  const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)
+
+  return {
+    ...res[key],
+    totalPages
+  };
+}, {
+  watch: [() => data.page]
+});
 
 const redirect = (transaction: any) => {
   navigateTo({ path: `/transactions/${transaction.nodeId}` })
@@ -58,7 +73,7 @@ const redirect = (transaction: any) => {
     >
       <TableRoot
         :pending="pending"
-        :rows="transactions.nodes"
+        :rows="transactions?.nodes ?? []"
         @rowClick="redirect"
         :columns="blockTransactionsTableColumns"
       >
@@ -97,10 +112,10 @@ const redirect = (transaction: any) => {
       </TableRoot>
 
       <PaginateTable
-        :currentPage="page"
-        :totalItems="transactions.totalCount ?? 1"
-        :totalPages="transactions.totalPages"
-        @pageChange="page = Number($event)"
+        :currentPage="data.page"
+        :totalItems="transactions?.totalCount ?? 1"
+        :totalPages="transactions?.totalPages"
+        @pageChange="data.page = Number($event)"
         class="p-3"
       />
     </div>

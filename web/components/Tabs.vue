@@ -14,9 +14,7 @@ provideUseId(() => useId())
 </script>
 
 <template>
-  <div
-    class="p-0 lg:p-2"
-  >
+  <div>
     <TabGroup>
       <div
         class="flex justify-between gap-4 max-w-full overflow-auto"

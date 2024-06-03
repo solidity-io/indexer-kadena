@@ -96,7 +96,7 @@ const {
       />
     </div> -->
 
-    <PageContainer>
+    <TableContainer>
       <TableRoot
         title="Recent Transactions"
         :pending="pending"
@@ -156,6 +156,6 @@ const {
         :totalPages="transactions.totalPages"
         @pageChange="page = Number($event)"
       />
-    </PageContainer>
+    </TableContainer>
   </PageRoot>
 </template>

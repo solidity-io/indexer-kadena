@@ -59,7 +59,7 @@ const coinbase = useBlockMiner(props.coinbase)
       />
 
       <Value
-        label="Total Fees"
+        label="Fees"
         :value="coinbase.events[0].params[2].toFixed(4) + ' KDA'"
       />
     </div>
