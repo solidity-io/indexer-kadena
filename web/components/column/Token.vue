@@ -1,10 +1,16 @@
 <script setup lang="ts">
-defineProps<{
-  id: string,
-  icon: string,
-  name: string,
-  symbol?: string,
-}>()
+withDefaults(
+  defineProps<{
+    id: string,
+    icon: string,
+    name: string,
+    symbol?: string,
+    withSymbol?: boolean,
+  }>(),
+  {
+    withSymbol: true
+  }
+)
 </script>
 
 <template>
@@ -32,7 +38,7 @@ defineProps<{
         </span>
 
         <span
-          v-if="symbol"
+          v-if="symbol && withSymbol"
           class="text-font-500 text-xs font-medium uppercase"
         >
           {{ symbol }}

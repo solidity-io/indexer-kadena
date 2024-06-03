@@ -33,7 +33,7 @@ const data = reactive({
 <template>
   <PageRoot>
     <PageTitle>
-      Trending Tokens (KTS)
+      Trending Tokens
     </PageTitle>
 
     <PageContainer>

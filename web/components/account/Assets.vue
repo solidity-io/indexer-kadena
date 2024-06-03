@@ -1,46 +1,18 @@
 <script setup lang="ts">
+defineProps<{
+  address: string,
+  balances: any[]
+}>()
+
 const {
-  assetsTableColumns
+  assetsTableColumns,
+  assetsTableSubColumns
 } = useAppConfig()
 
-const data = reactive({
-  currentPage: 1,
-  totalPages: 15,
-})
-
-const assets = [
-  {
-    isUp: true,
-    key: 'kadena',
-    name: 'kadena',
-    symbol: 'KDA',
-    icon: '/tokens/kadena.svg',
-    quantity: '25255.368749816492',
-    price: '$1.740',
-    float: '19.56%',
-    value: '$43944.342'
-  },
-  {
-    isUp: false,
-    key: 'kaddex',
-    name: 'KAddex',
-    symbol: 'KDX',
-    icon: '/tokens/kaddex.svg',
-    quantity: '199.454',
-    price: '$1.310',
-    float: '2,10%',
-    value: '$24841.689'
-  },
-  {
-    name: 'Crankk',
-    symbol: 'CRKK',
-    icon: '/tokens/crankk.svg',
-    quantity: '198.877893',
-    price: null,
-    float: null,
-    value: null
-  }
-]
+// const data = reactive({
+//   currentPage: 1,
+//   totalPages: 15,
+// })
 </script>
 
 <template>
@@ -48,7 +20,7 @@ const assets = [
     class="py-3 bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
   >
     <TableRoot
-      :rows="assets"
+      :rows="balances"
       :columns="assetsTableColumns"
     >
       <template #row="{ row, columns, rowIndex }">
@@ -56,11 +28,38 @@ const assets = [
           :row="row"
           :columns="columns"
           :rowIndex="rowIndex"
+          :subColumns="assetsTableSubColumns"
         >
           <template #asset="{ row }">
             <ColumnToken
               v-bind="row"
+              :withSymbol="false"
+              :icon="row.image"
             />
+          </template>
+
+          <template #symbol="{ row }">
+            <span
+              class="uppercase"
+            >
+              {{ row.symbol }}
+            </span>
+          </template>
+
+          <template #price="{ row }">
+            <span
+              class="uppercase"
+            >
+              0
+            </span>
+          </template>
+
+          <template #value="{ row }">
+            <span
+              class="uppercase"
+            >
+              0
+            </span>
           </template>
 
           <template #distribution>

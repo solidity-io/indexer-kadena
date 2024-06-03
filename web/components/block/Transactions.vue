@@ -4,6 +4,7 @@ import { gql } from 'nuxt-graphql-request/utils';
 defineProps<{
   hash: string;
 }>()
+
 const {
   blockchainTooltipData,
   blockTransactionsTableColumns
@@ -53,10 +54,6 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
 }, {
   watch: [() => data.page]
 });
-
-const redirect = (transaction: any) => {
-  navigateTo({ path: `/transactions/${transaction.nodeId}` })
-}
 </script>
 
 <template>
@@ -74,7 +71,6 @@ const redirect = (transaction: any) => {
       <TableRoot
         :pending="pending"
         :rows="transactions?.nodes ?? []"
-        @rowClick="redirect"
         :columns="blockTransactionsTableColumns"
       >
         <template #status="{ row }">

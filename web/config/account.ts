@@ -16,7 +16,7 @@ export const assetsTableColumns = [
   },
   {
     cols: 6,
-    key: 'quantity',
+    key: 'balance',
     label: 'Quantity',
     description: blockchainTooltipData.account.tabAssets.quantity
   },
@@ -37,6 +37,21 @@ export const assetsTableColumns = [
     center: true,
     key: 'distribution',
     label: 'Distribution',
+  },
+]
+
+export const assetsTableSubColumns = [
+  {
+    key: 'chainId',
+    label: 'Chain',
+  },
+  {
+    key: 'balance',
+    label: 'Quantity',
+  },
+  {
+    key: 'value',
+    label: 'Value',
   },
 ]
 
