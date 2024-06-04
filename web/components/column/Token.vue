@@ -1,9 +1,9 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    id: string,
-    icon: string,
-    name: string,
+    id?: string,
+    icon?: string,
+    name?: string,
     symbol?: string,
     withSymbol?: boolean,
   }>(),
@@ -24,7 +24,13 @@ withDefaults(
         class="h-6 w-6 rounded shrink-0"
       >
         <img
+          v-if="icon"
           :src="icon"
+        />
+
+        <div
+          v-else
+          class="w-full h-full bg-gray-300 rounded"
         />
       </div>
 

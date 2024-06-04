@@ -22,7 +22,7 @@ const emit = defineEmits(['click'])
   >
     <DisclosureButton
       @click.prevent="emit('click')"
-      class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-3 justify-between w-full"
+      class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-3 justify-between w-full items-center"
     >
       <div
         :key="index"
