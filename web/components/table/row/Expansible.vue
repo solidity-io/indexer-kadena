@@ -18,6 +18,7 @@ const emit = defineEmits(['click'])
 <template>
   <Disclosure
     as="div"
+    v-slot="{ open }"
     class="border-b border-b-gray-300"
   >
     <DisclosureButton
@@ -33,6 +34,7 @@ const emit = defineEmits(['click'])
       >
         <slot
           :row="row"
+          :open="open"
           :name="column.key"
           :order="rowIndex"
         >
@@ -54,7 +56,7 @@ const emit = defineEmits(['click'])
       leave-to-class="transform scale-95 opacity-0"
     >
       <DisclosurePanel
-        class="text-font-400 rounded-lg bg-gray-700 p-4 m-4"
+        class="text-font-400 rounded-lg bg-gray-700 p-4 mx-4 mb-4 mt-2"
       >
         <div
           class="grid grid-cols-3 pb-4 border-b border-b-gray-300"

@@ -1,7 +1,16 @@
 <script setup lang="ts">
+const props = defineProps<{
+  address: string,
+  balances: any
+}>()
+
 const {
   blockchainTooltipData
 } = useAppConfig()
+
+const kdaBalance = props.balances.find(({ module }: any) => module === 'coin')
+
+console.log('kdaBalance', kdaBalance)
 </script>
 
 <template>
@@ -10,8 +19,8 @@ const {
       col
       withCopy
       label="Account"
+      :value="address"
       :description="blockchainTooltipData.account.address"
-      value="k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3"
     />
 
     <div
@@ -20,30 +29,30 @@ const {
       <LabelValue
         col
         label="Balance"
-        value="3044.34 KDA"
+        :value="`${kdaBalance.balance} KDA`"
         :description="blockchainTooltipData.account.balance"
       />
 
       <LabelValue
         col
         label="Assets"
-        value="3"
+        :value="balances.length"
         :description="blockchainTooltipData.account.assets"
       />
 
-      <LabelValue
+      <!-- <LabelValue
         col
         label="Transactions"
         value="25716773"
         :description="blockchainTooltipData.account.transactions"
-      />
+      /> -->
 
-      <LabelValue
+      <!-- <LabelValue
         col
         label="Created at"
         value="Sep-08-2022 14:18:01"
         :description="blockchainTooltipData.account.createdAt"
-      />
+      /> -->
     </div>
   </PageRoot>
 </template>

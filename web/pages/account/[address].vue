@@ -38,10 +38,14 @@ const data = reactive({
   ],
 })
 
+/**
+ * The API needs to be changed so that tokens can be computed using pagination,
+ * for needs to get all the balances
+ */
 const query = gql`
   query GetBalanceByAccount($account: String!) {
     allBalances(
-      condition: {account: $account}
+      condition: {tokenId: null, account: $account}
     ) {
       nodes {
         account
@@ -68,7 +72,7 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
     prices,
   ] = await Promise.all([
     $graphql.default.request(query, {
-      // "k:faca5ae889fcbd144c908ba4757df4ee496aa849c52d6f30b5bf9e8a51ee3d81",
+      // "k:84acac0b72e81e617ee417a55b16cdaa9cbcd3ff8fffd1296cb09376a7916d40",
       account: address,
     }),
     $coingecko.request('coins/markets', {
@@ -78,10 +82,10 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
   ])
 
   const {
-    allBalances
+    allBalances,
   } = apiRes
 
-  return  transformRawBalances({ allBalances, prices})
+  return transformRawBalances({ allBalances, prices})
 });
 
 // const balances = transformRawBalances(apiData?.value)

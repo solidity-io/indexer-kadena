@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   address: string,
-  balances: any[]
+  balances: any
 }>()
 
 const {
@@ -61,12 +61,14 @@ const {
             {{ row.current_price ? money.format(row.balance * row.current_price) : '-' }}
           </template>
 
-          <template #distribution>
+          <template #distribution="{ open }">
             <div
+              :class="[open && 'bg-gray-500']"
               class="w-8 h-8 group hover:bg-gray-500 rounded grid items-center justify-center"
             >
               <IconArrow
-                class="mx-auto -rotate-90 group-hover:text-kadscan-500"
+                :class="[open && 'rotate-90 text-kadscan-500']"
+                class="mx-auto -rotate-90 group-hover:text-kadscan-500 transition"
               />
             </div>
           </template>

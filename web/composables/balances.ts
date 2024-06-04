@@ -40,7 +40,7 @@ export const transformRawBalances = ({
       return prev
     }, {})
 
-  return Object.values(balancesObj).sort((a, b) => {
+  return Object.values(balancesObj).sort((a: any, b: any) => {
     return (b.current_price || 0) - (a.current_price || 0)
   })
 }
