@@ -18,18 +18,17 @@ const emit = defineEmits(['click'])
 <template>
   <Disclosure
     as="div"
-    v-slot="{ open }"
+    class="border-b border-b-gray-300"
   >
     <DisclosureButton
       @click.prevent="emit('click')"
       class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-3 justify-between w-full"
-      :class="[!open && 'border-b border-b-gray-300 hover:bg-gray-700']"
     >
       <div
         :key="index"
         v-for="(column, index) in columns"
         :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
-        class="text-font-450 flex items-center"
+        class="text-font-400 flex items-center"
         :class="column.center && 'text-center justify-center'"
       >
         <slot
@@ -55,7 +54,7 @@ const emit = defineEmits(['click'])
       leave-to-class="transform scale-95 opacity-0"
     >
       <DisclosurePanel
-        class="text-gray-500 rounded-lg bg-gray-700 p-4 mx-4"
+        class="text-font-400 rounded-lg bg-gray-700 p-4 m-4"
       >
         <div
           class="grid grid-cols-3 pb-4 border-b border-b-gray-300"
@@ -66,7 +65,7 @@ const emit = defineEmits(['click'])
             class="text-center"
           >
             <span
-              class="text-font-500 text-xs truncate font-semibold"
+              class="text-font-500 text-xs truncate font-semibold leading-[18px] block"
             >
               {{ column.label }}
             </span>
@@ -81,7 +80,7 @@ const emit = defineEmits(['click'])
           <div
             :key="`subcol:${index}`"
             v-for="(column, index) in subColumns"
-            class="text-font-450 flex items-center justify-center text-center"
+            class="text-font-400 flex items-center justify-center text-center"
           >
             <slot
               :row="balance"

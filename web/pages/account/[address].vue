@@ -38,7 +38,6 @@ const data = reactive({
   ],
 })
 
-// k:5adb16663073280acf63bc2a4bf477ad1391736dcd6217b094926862c72d15c9
 const query = gql`
   query GetBalanceByAccount($account: String!) {
     allBalances(
@@ -61,23 +60,31 @@ const query = gql`
   }
 `
 
+const { $graphql, $coingecko } = useNuxtApp();
 
-const { $graphql } = useNuxtApp();
+const { data: balances } = await useAsyncData('allBalances', async () => {
+  const [
+    apiRes,
+    prices,
+  ] = await Promise.all([
+    $graphql.default.request(query, {
+      // "k:faca5ae889fcbd144c908ba4757df4ee496aa849c52d6f30b5bf9e8a51ee3d81",
+      account: address,
+    }),
+    $coingecko.request('coins/markets', {
+      vs_currency: 'usd',
+      category: 'kadena-ecosystem',
+    })
+  ])
 
-const { data: rawBalances } = await useAsyncData('allBalances', async () => {
   const {
     allBalances
-  } = await $graphql.default.request(query, {
-    // account: "k:5adb16663073280acf63bc2a4bf477ad1391736dcd6217b094926862c72d15c9",
-    account: address,
-  });
+  } = apiRes
 
-  return allBalances
+  return  transformRawBalances({ allBalances, prices})
 });
 
-const balances = formatBalances(rawBalances.value.nodes)
-
-console.log('balances', balances)
+// const balances = transformRawBalances(apiData?.value)
 // TODO: Check this approach, better if move that to a backend
 // const download = () => {
 //   try {
@@ -100,8 +107,6 @@ console.log('balances', balances)
 //   console.error("Erro ao exportar CSV:", error);
 //   }
 // }
-
-console.log('address', address)
 </script>
 
 <template>

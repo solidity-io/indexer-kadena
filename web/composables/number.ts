@@ -16,3 +16,18 @@ export const moneyCompact = new Intl.NumberFormat('en-US', {
 export const integer = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 0,
 })
+
+export const customMoney = (value: any) => {
+  const integerDigits = value === 0 ? 1 : Math.floor(Math.log10(Math.abs(value))) + 1;
+
+  const fractionDigits = integerDigits < 1 ? 2 - integerDigits : 2;
+
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  });
+
+  return formatter.format(value);
+}

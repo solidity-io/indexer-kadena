@@ -1,45 +1,171 @@
 export const unknownToken = {
   image: '',
-  symbol: '-',
+  symbol: 'ukn',
   id: 'unknown',
   name: 'unknown',
 }
 
-export const tokens = {
-  coin: {
-    id: 'kadena',
-    symbol: 'kda',
-    name: 'Kadena',
-    image: 'https://coin-images.coingecko.com/coins/images/3693/large/800_x_800.png?1704378151'
+export const staticTokens = [
+  {
+    name: "ARKD",
+    symbol: "ARKD",
+    code: "arkade.token",
+    logoUrl: "https://swap.ecko.finance/images/crypto/ark.png",
   },
-  kaddex: {
-    id: 'kaddex',
-    symbol: 'kdx',
-    name: 'eckoDAO',
-    image: 'https://coin-images.coingecko.com/coins/images/27325/large/kdx.png?1696526373'
+  {
+    code: "coin",
+    symbol: "KDA",
+    name: "Kadena Coin",
+    logoUrl: "https://swap.ecko.finance/images/crypto/kda-crypto.svg",
   },
-  kdlaunch: {
-    id: 'kdlaunch',
-    symbol: 'kdl',
-    name: 'KDLaunch',
-    image: 'https://coin-images.coingecko.com/coins/images/26969/large/kdl-logo.png?1696526024',
+  {
+    name: "KAYC",
+    symbol: "KAYC",
+    code: "free.KAYC",
+    logoUrl: "https://swap.ecko.finance/images/crypto/kayc.svg",
   },
-  kdswap: {
-    id: 'kdswap',
-    symbol: 'kds',
-    name: 'KDSwap',
-    image: 'https://coin-images.coingecko.com/coins/images/26970/large/kds.png?1696526024',
+  {
+    name: null,
+    symbol: null,
+    logoUrl: null,
+    code: "free.anedak",
   },
-  kishk: {
-    id: 'kishu-ken',
-    symbol: 'kishk',
-    name: 'Kishu Ken',
-    image: 'https://coin-images.coingecko.com/coins/images/26967/large/kishu.jpeg?1712302309',
+  {
+    name: null,
+    symbol: null,
+    logoUrl: null,
+    code: "free.babena",
   },
-  mok: {
-    id: 'miners-of-kadenia',
-    symbol: 'mok',
-    name: 'Miners of Kadenia',
-    image: 'https://coin-images.coingecko.com/coins/images/27004/large/Mok-100_100-72dpi.png?1696526057',
+  {
+    symbol: "BKA",
+    name: "Backalley",
+    code: "free.backalley",
+    logoUrl: "https://swap.ecko.finance/images/crypto/bka.svg",
+  },
+  {
+    name: "CRNA",
+    symbol: "CRNA",
+    code: "free.corona-token",
+    logoUrl: "https://swap.ecko.finance/images/crypto/corona.svg",
+  },
+  {
+    name: "CRKK",
+    symbol: "CRKK",
+    code: "free.crankk01",
+    logoUrl: "https://swap.ecko.finance/images/crypto/crankk.png",
+  },
+  {
+    name: "CFLY",
+    symbol: "CFLY",
+    code: "free.cyberfly_token",
+    logoUrl: "https://swap.ecko.finance/images/crypto/cfly.svg",
+  },
+  {
+    name: "DOC",
+    symbol: "DOC",
+    code: "free.docu",
+    logoUrl: "https://swap.ecko.finance/images/crypto/docushield.svg",
+  },
+  {
+    name: "FINUX",
+    symbol: "FINUX",
+    code: "free.finux",
+    logoUrl: "https://swap.ecko.finance/images/crypto/finux.png",
+  },
+  {
+    symbol: "JDE",
+    name: "Jodie",
+    code: "free.jodie-token",
+    logoUrl: "https://swap.ecko.finance/images/crypto/jodie.svg",
+  },
+  {
+    name: "Kapy",
+    symbol: "KAPY",
+    code: "free.kapybara-token",
+    logoUrl: "https://swap.ecko.finance/images/crypto/kapy.svg",
+  },
+  {
+    symbol: "KISHK",
+    name: "Kishu Ken",
+    code: "free.kishu-ken",
+    logoUrl: "https://swap.ecko.finance/images/crypto/kishk.svg",
+  },
+  {
+    name: null,
+    symbol: null,
+    logoUrl: null,
+    code: "free.kpepe",
+  },
+  {
+    name: "MAGA",
+    symbol: "MAGA",
+    code: "free.maga",
+    logoUrl: "https://swap.ecko.finance/images/crypto/maga.png",
+  },
+  {
+    name: null,
+    symbol: null,
+    logoUrl: null,
+    code: "free.wiza",
+  },
+  {
+    name: "Hype",
+    symbol: "HYPE",
+    code: "hypercent.prod-hype-coin",
+    logoUrl: "https://swap.ecko.finance/images/crypto/hypercent-crypto.svg",
+  },
+  {
+    symbol: "KDX",
+    name: "Kaddex",
+    code: "kaddex.kdx",
+    logoUrl: "https://swap.ecko.finance/images/crypto/kaddex-crypto.svg",
+  },
+  {
+    symbol: "KDS",
+    name: "KDSwap",
+    code: "kdlaunch.kdswap-token",
+    logoUrl: "https://swap.ecko.finance/images/crypto/kds.svg",
+  },
+  {
+    symbol: "KDL",
+    name: "KDLaunch",
+    code: "kdlaunch.token",
+    logoUrl: "https://swap.ecko.finance/images/crypto/kdl.svg",
+  },
+  {
+    name: "Mok",
+    symbol: "MOK",
+    code: "mok.token",
+    logoUrl: "https://swap.ecko.finance/images/crypto/mok.svg",
+  },
+  {
+    code: "n_582fed11af00dc626812cd7890bb88e72067f28c.bro",
+    logoUrl: "https://swap.ecko.finance/images/crypto/bro.png",
+    name: "BRO",
+    symbol: "BRO",
+  },
+  {
+    name: "zUSD",
+    symbol: "zUSD",
+    code: "n_b742b4e9c600892af545afb408326e82a6c0c6ed.zUSD",
+    logoUrl: "https://swap.ecko.finance/images/crypto/zUSD.svg",
+  },
+  {
+    name: null,
+    symbol: null,
+    logoUrl: null,
+    code: "n_c5a4b8c52f0866d66bc55864998a37cc089db47c.KEKW",
+  },
+  {
+    name: "HERON",
+    symbol: "HERON",
+    code: "n_e309f0fa7cf3a13f93a8da5325cdad32790d2070.heron",
+    logoUrl: "https://swap.ecko.finance/images/crypto/heron.png",
+  },
+  {
+    name: "Flux",
+    symbol: "FLUX",
+    code: "runonflux.flux",
+    logoUrl: "https://swap.ecko.finance/images/crypto/flux-crypto.svg",
   }
-};
+]

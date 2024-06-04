@@ -1,24 +1,24 @@
 <script setup lang="ts">
 defineProps<{
-  amount: string,
-  currency: string,
+  amount: string | number,
+  dollar: string | number,
 }>()
 </script>
 
 <template>
-  <span
-    class="text-sm"
+  <div
+    class="flex flex-col uppercase"
   >
     <span
-      class="text-font-400"
+      class="text-sm text-font-400"
     >
       {{ amount  }}
     </span>
 
     <span
-      class="text-font-500"
+      class="text-xs text-font-500 font-semibold leading-[150%] block"
     >
-      {{ currency }}
+      {{ dollar }}
     </span>
-  </span>
+  </div>
 </template>

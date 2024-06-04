@@ -73,7 +73,7 @@ const data = reactive({
         </template>
 
         <template #volume="{ row }">
-          <ColumnPrice
+          <ColumnVolume
             :amount="money.format(row.total_volume)"
             :dollar="`${integer.format(row.total_volume / row.current_price)} ${row.symbol}`"
           />

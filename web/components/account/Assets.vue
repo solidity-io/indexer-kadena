@@ -47,25 +47,28 @@ const {
           </template>
 
           <template #price="{ row }">
-            <span
-              class="uppercase"
-            >
-              0
-            </span>
+            <ColumnPrice
+              :label="row.current_price"
+              :delta="row.price_change_percentage_24h"
+            />
+          </template>
+
+          <template #balance="{ row }">
+            {{ integer.format(row.balance) }}
           </template>
 
           <template #value="{ row }">
-            <span
-              class="uppercase"
-            >
-              0
-            </span>
+            {{ row.current_price ? money.format(row.balance * row.current_price) : '-' }}
           </template>
 
           <template #distribution>
-            <IconArrow
-              class="mx-auto -rotate-90"
-            />
+            <div
+              class="w-8 h-8 group hover:bg-gray-500 rounded grid items-center justify-center"
+            >
+              <IconArrow
+                class="mx-auto -rotate-90 group-hover:text-kadscan-500"
+              />
+            </div>
           </template>
         </TableRowExpansible>
       </template>
