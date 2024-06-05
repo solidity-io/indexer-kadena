@@ -9,6 +9,7 @@ export interface BalanceAttributes {
   module: string;
   qualname: string;
   tokenId: string;
+  hasTokenId: boolean;
   network: string;
 }
 
@@ -20,6 +21,7 @@ class Balance extends Model<BalanceAttributes> implements BalanceAttributes {
   public module!: string;
   public qualname!: string;
   public tokenId!: string;
+  public hasTokenId!: boolean;
   public network!: string;
 }
 
@@ -55,6 +57,11 @@ Balance.init(
     tokenId: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    hasTokenId: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
     network: {
       type: DataTypes.STRING,
