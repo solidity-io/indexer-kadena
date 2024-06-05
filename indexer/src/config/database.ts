@@ -45,46 +45,74 @@ export async function initializeDatabase(): Promise<void> {
 
     // Create the update_balances function
     await sequelize.query(`
-    CREATE OR REPLACE FUNCTION update_balances() RETURNS TRIGGER AS $$
-    DECLARE
-        sender_balance numeric;
-        recipient_balance numeric;
-    BEGIN
-        -- Update sender balance
-        SELECT "balance" INTO sender_balance
-        FROM public."Balances"
-        WHERE "account" = NEW.from_acct AND "chainId" = NEW."chainId" AND "qualname" = NEW.modulename AND "network" = NEW.network AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId"
-        FOR UPDATE;
-    
-        IF FOUND THEN
-            UPDATE public."Balances"
-            SET balance = sender_balance - NEW.amount
-            WHERE "account" = NEW.from_acct AND "chainId" = NEW."chainId" AND "qualname" = NEW.modulename AND "network" = NEW.network AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
-        ELSE
-            INSERT INTO public."Balances" (account, "chainId", balance, module, qualname, "tokenId", network, "createdAt", "updatedAt", "hasTokenId")
-            VALUES (NEW.from_acct, NEW."chainId", -NEW.amount, NEW.modulename, NEW.modulename, NEW."tokenId", NEW.network, NEW."createdAt", NEW."updatedAt", 
-            CASE WHEN NEW."tokenId" IS NOT NULL THEN true ELSE false END);
-        END IF;
-    
-        -- Update recipient balance
-        SELECT balance INTO recipient_balance
-        FROM public."Balances"
-        WHERE "account" = NEW.to_acct AND "chainId" = NEW."chainId" AND "qualname" = NEW.modulename AND "network" = NEW.network AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId"
-        FOR UPDATE;
-    
-        IF FOUND THEN
-            UPDATE public."Balances"
-            SET balance = recipient_balance + NEW.amount
-            WHERE "account" = NEW.to_acct AND "chainId" = NEW."chainId" AND "qualname" = NEW.modulename AND "network" = NEW.network AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
-        ELSE
-            INSERT INTO public."Balances" (account, "chainId", balance, module, qualname, "tokenId", network, "createdAt", "updatedAt", "hasTokenId")
-            VALUES (NEW.to_acct, NEW."chainId", NEW.amount, NEW.modulename, NEW.modulename, NEW."tokenId", NEW.network, NEW."createdAt", NEW."updatedAt", 
-            CASE WHEN NEW."tokenId" IS NOT NULL THEN true ELSE false END);
-        END IF;
-    
-        RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
+  CREATE OR REPLACE FUNCTION update_balances() RETURNS TRIGGER AS $$
+  DECLARE
+      sender_balance numeric;
+      recipient_balance numeric;
+      contract_id int4;
+  BEGIN
+      -- Retrieve contractId
+      SELECT id INTO contract_id
+      FROM public."Contract"
+      WHERE "network" = NEW.network
+        AND "chainId" = NEW."chainId"
+        AND "module" = NEW.modulename
+        AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId"
+      LIMIT 1;
+
+      -- Update sender balance
+      SELECT "balance" INTO sender_balance
+      FROM public."Balances"
+      WHERE "account" = NEW.from_acct
+        AND "chainId" = NEW."chainId"
+        AND "qualname" = NEW.modulename
+        AND "network" = NEW.network
+        AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId"
+      FOR UPDATE;
+
+      IF FOUND THEN
+          UPDATE public."Balances"
+          SET balance = sender_balance - NEW.amount,
+              "contractId" = contract_id
+          WHERE "account" = NEW.from_acct
+            AND "chainId" = NEW."chainId"
+            AND "qualname" = NEW.modulename
+            AND "network" = NEW.network
+            AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
+      ELSE
+          INSERT INTO public."Balances" (account, "chainId", balance, module, qualname, "tokenId", network, "createdAt", "updatedAt", "hasTokenId", "contractId")
+          VALUES (NEW.from_acct, NEW."chainId", -NEW.amount, NEW.modulename, NEW.modulename, NEW."tokenId", NEW.network, NEW."createdAt", NEW."updatedAt", 
+          CASE WHEN NEW."tokenId" IS NOT NULL THEN true ELSE false END, contract_id);
+      END IF;
+
+      -- Update recipient balance
+      SELECT balance INTO recipient_balance
+      FROM public."Balances"
+      WHERE "account" = NEW.to_acct
+        AND "chainId" = NEW."chainId"
+        AND "qualname" = NEW.modulename
+        AND "network" = NEW.network
+        AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId"
+      FOR UPDATE;
+
+      IF FOUND THEN
+          UPDATE public."Balances"
+          SET balance = recipient_balance + NEW.amount,
+              "contractId" = contract_id
+          WHERE "account" = NEW.to_acct
+            AND "chainId" = NEW."chainId"
+            AND "qualname" = NEW.modulename
+            AND "network" = NEW.network
+            AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
+      ELSE
+          INSERT INTO public."Balances" (account, "chainId", balance, module, qualname, "tokenId", network, "createdAt", "updatedAt", "hasTokenId", "contractId")
+          VALUES (NEW.to_acct, NEW."chainId", NEW.amount, NEW.modulename, NEW.modulename, NEW."tokenId", NEW.network, NEW."createdAt", NEW."updatedAt", 
+          CASE WHEN NEW."tokenId" IS NOT NULL THEN true ELSE false END, contract_id);
+      END IF;
+
+      RETURN NEW;
+  END;
+  $$ LANGUAGE plpgsql;
 `);
 
     // Create the trigger
@@ -106,9 +134,10 @@ EXECUTE FUNCTION update_balances();
     qualname varchar(255) NOT NULL,
     "tokenId" varchar(255) NULL,
     network varchar(255) NOT NULL,
+    "hasTokenId" boolean DEFAULT false NOT NULL,
+    "contractId" int4 NULL,
     "createdAt" timestamptz NOT NULL,
     "updatedAt" timestamptz NOT NULL,
-    "hasTokenId" boolean DEFAULT false NOT NULL,
     CONSTRAINT "Balances_pkey" PRIMARY KEY (id)
   );
   

@@ -11,6 +11,7 @@ export interface BalanceAttributes {
   tokenId: string;
   hasTokenId: boolean;
   network: string;
+  contractId: number;
 }
 
 class Balance extends Model<BalanceAttributes> implements BalanceAttributes {
@@ -23,6 +24,7 @@ class Balance extends Model<BalanceAttributes> implements BalanceAttributes {
   public tokenId!: string;
   public hasTokenId!: boolean;
   public network!: string;
+  public contractId!: number;
 }
 
 Balance.init(
@@ -66,6 +68,10 @@ Balance.init(
     network: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    contractId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
   },
   {
