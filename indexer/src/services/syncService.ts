@@ -374,6 +374,8 @@ async function processPayloadKey(
       const transfersWithTransactionId = transfersAttributes.map(
         (transfer) => ({
           ...transfer,
+          tokenId: transfer.tokenId,
+          contractId: transfer.contractId,
           transactionId: transactionId,
         })
       ) as TransferAttributes[];
@@ -616,8 +618,8 @@ function getCoinTransfers(
     .filter(transferCoinSignature)
     .map(async (eventData: any) => {
       const modulename = eventData.module.namespace
-      ? `${eventData.module.namespace}.${eventData.module.name}`
-      : eventData.module.name;
+        ? `${eventData.module.namespace}.${eventData.module.name}`
+        : eventData.module.name;
       const chainId = transactionAttributes.chainId;
 
       const precisionData = await getPrecision(
@@ -632,7 +634,7 @@ function getCoinTransfers(
       } else {
         console.log("No precision found for module:", modulename);
       }
-      
+
       const params = eventData.params;
       const from_acct = params[0];
       const to_acct = params[1];
@@ -647,10 +649,12 @@ function getCoinTransfers(
           ? `${eventData.module.namespace}.${eventData.module.name}`
           : eventData.module.name,
         requestkey: receiptInfo.reqKey,
-        network: network,
         to_acct: to_acct,
+        network: network,
         hasTokenId: false,
+        tokenId: undefined,
         type: "fungible",
+        contractId: undefined,
       } as TransferAttributes;
     }) as TransferAttributes[];
   return transfersCoinAttributes;
