@@ -75,17 +75,17 @@ export const blockQueryPlugin = makeExtendSchemaPlugin((build) => {
   return {
     typeDefs: gql`
       extend type Query {
-        blockByHeight(height: Int!): Block
+        blockByHeight(height: Int!, chainId: Int!): Block
       }
     `,
     resolvers: {
       Query: {
         blockByHeight: async (_query, args, context, resolveInfo) => {
-          const { height } = args;
+          const { height, chainId } = args;
           const { rootPgPool } = context;
           const { rows } = await rootPgPool.query(
-            `SELECT * FROM public."Blocks" WHERE height = $1`,
-            [height]
+            `SELECT * FROM public."Blocks" WHERE height = $1 AND "chainId" = $2`,
+            [height, chainId]
           );
           return rows[0];
         },
