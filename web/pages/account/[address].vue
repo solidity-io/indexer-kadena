@@ -31,10 +31,10 @@ const data = reactive({
       key: 'transactions',
       label: 'Transactions',
     },
-    {
-      key: 'statement',
-      label: 'Account Statement',
-    },
+    // {
+    //   key: 'statement',
+    //   label: 'Account Statement',
+    // },
   ],
 })
 
@@ -145,9 +145,9 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
           <AccountTransactions />
         </TabPanel>
 
-        <TabPanel>
+        <!-- <TabPanel>
           <AccountStatement />
-        </TabPanel>
+        </TabPanel> -->
       </Tabs>
     </PageContainer>
   </PageRoot>
