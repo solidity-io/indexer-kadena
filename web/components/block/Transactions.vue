@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { gql } from 'nuxt-graphql-request/utils';
 
-defineProps<{
+const props = defineProps<{
   hash: string;
+  id: number,
+  chainId: number,
 }>()
 
 const {
@@ -11,8 +13,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $offset: Int) {
-    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetTransactions($first: Int, $offset: Int, $blockId: Int, $chainId: Int) {
+    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first, condition: {blockId: $blockId, chainId: $chainId}) {
       nodes {
         code
         result
@@ -43,6 +45,8 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
   const res = await $graphql.default.request(query, {
     first: data.limit,
     offset: (data.page - 1) * 20,
+    blockId: Number(props.id),
+    chainId: Number(props.chainId)
   });
 
   const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)

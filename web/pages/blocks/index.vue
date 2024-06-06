@@ -100,7 +100,7 @@ const {
 
         <template #height="{ row }">
           <ColumnLink
-            :to="`/blocks/${row.chainId}/${row.height}`"
+            :to="`/blocks/chain/${row.chainId}/height/${row.height}`"
             :label="row.height"
           />
         </template>

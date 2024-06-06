@@ -55,7 +55,7 @@ const coinbase = useBlockMiner(props.coinbase)
         isLink
         label="Block"
         :value="props.height"
-        :to="`/blocks/${props.height}`"
+        :to="`/blocks/chain/${props.chainId}/height/${props.height}`"
       />
 
       <Value
