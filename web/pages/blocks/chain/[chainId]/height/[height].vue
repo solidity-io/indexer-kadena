@@ -32,8 +32,8 @@ const data = reactive({
 })
 
 const query = gql`
-  query GetBlockById($height: Int!) {
-    blockByHeight(height: $height) {
+  query GetBlockById($chainId: Int!, $height: Int!) {
+    blockByHeight(chainId: $chainId, height: $height) {
       adjacents
       chainId
       chainwebVersion
@@ -71,6 +71,7 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
     blockByHeight
   } = await $graphql.default.request(query, {
     height: Number(route.params.height),
+    chainId: Number(route.params.chainId)
   });
 
   return blockByHeight
