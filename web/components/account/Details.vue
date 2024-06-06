@@ -9,8 +9,6 @@ const {
 } = useAppConfig()
 
 const kdaBalance = props.balances.find(({ module }: any) => module === 'coin')
-
-console.log('kdaBalance', kdaBalance)
 </script>
 
 <template>

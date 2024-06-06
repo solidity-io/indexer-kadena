@@ -14,8 +14,13 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTokenTransfers($first: Int, $offset: Int) {
-    allTransfers(condition: {tokenId: null}, offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetNftTransfers($first: Int, $offset: Int) {
+    allTransfers(
+      condition: {hasTokenId: true}
+      offset: $offset
+      orderBy: ID_DESC
+      first: $first
+    ) {
       nodes {
         tokenId
         updatedAt
@@ -33,6 +38,10 @@ const query = gql`
         amount
         transactionByTransactionId {
           nodeId
+        }
+        contractByContractId {
+          metadata
+          id
         }
       }
       pageInfo {
