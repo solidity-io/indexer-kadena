@@ -1,4 +1,59 @@
 <script setup lang="ts">
+import { gql } from 'nuxt-graphql-request/utils';
+
+defineProps<{
+  hash: string;
+}>()
+
+const {
+  blockchainTooltipData,
+  blockTransactionsTableColumns
+} = useAppConfig()
+
+const query = gql`
+  query GetTransactions($first: Int, $offset: Int) {
+    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
+      nodes {
+        code
+        result
+        nodeId
+        requestkey
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+        hasPreviousPage
+        startCursor
+      }
+      totalCount
+    }
+  }
+`
+
+const data = reactive({
+  page: 1,
+  limit: 20
+})
+
+const { $graphql } = useNuxtApp();
+
+const key = 'allTransactions'
+
+const { data: transactions, pending } = useAsyncData(key, async () => {
+  const res = await $graphql.default.request(query, {
+    first: data.limit,
+    offset: (data.page - 1) * 20,
+  });
+
+  const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)
+
+  return {
+    ...res[key],
+    totalPages
+  };
+}, {
+  watch: [() => data.page]
+});
 </script>
 
 <template>
