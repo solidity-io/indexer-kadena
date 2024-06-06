@@ -121,7 +121,7 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
 
     <PageContainer>
       <AccountDetails
-        :address="address"
+        :address="address + ''"
         :balances="balances"
       />
     </PageContainer>
@@ -142,7 +142,9 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
         </TabPanel>
 
         <TabPanel>
-          <AccountTransactions />
+          <AccountTransactions
+            :address="address + ''"
+          />
         </TabPanel>
 
         <!-- <TabPanel>

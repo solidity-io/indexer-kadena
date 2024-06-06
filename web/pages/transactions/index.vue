@@ -127,12 +127,6 @@ const {
             :value="row.sender"
           />
         </template>
-<!--
-        <template #receiver="{ row }">
-          <ColumnTxReceiver
-            :row="row"
-          />
-        </template> -->
 
         <template #block="{ row }">
           <ColumnLink
