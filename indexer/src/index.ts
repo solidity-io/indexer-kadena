@@ -1,15 +1,16 @@
 import {
-  startStreaming,
   startBackFill,
   startRetryErrors,
-  startMissingBlocks,
-  processS3HeadersDaemon,
   startMissingBlocksDaemon,
 } from "./services/syncService";
+
 import dotenv from "dotenv";
 import { program } from "commander";
 import { initializeDatabase } from "./config/database";
 import { getRequiredEnvString } from "./utils/helpers";
+
+import { startStreaming } from "./services/sync/streaming";
+import { processS3HeadersDaemon } from "./services/sync/header";
 
 program
   .option("-s, --streaming", "Start streaming blockchain data")
