@@ -32,9 +32,9 @@ export function getNftTransfers(
     typeof eventData.params[2] == "string" &&
     typeof eventData.params[3] == "number";
 
-  const transfersNftAttributes = eventsData
+  const transferPromises = eventsData
     .filter(transferNftSignature)
-    .map(async (eventData: any) => {
+    .map(async (eventData: any): Promise<TransferAttributes> => {
       const params = eventData.params;
       const tokenId = params[0];
       const from_acct = params[1];
@@ -76,7 +76,7 @@ export function getNftTransfers(
         contractId: contractId,
       } as TransferAttributes;
     }) as TransferAttributes[];
-  return transfersNftAttributes;
+  return Promise.all(transferPromises);
 }
 
 /**
@@ -106,9 +106,9 @@ export function getCoinTransfers(
     typeof eventData.params[1] == "string" &&
     typeof eventData.params[2] == "number";
 
-  const transfersCoinAttributes = eventsData
+  const transferPromises = eventsData
     .filter(transferCoinSignature)
-    .map(async (eventData: any) => {
+    .map(async (eventData: any): Promise<TransferAttributes> => {
       const modulename = eventData.module.namespace
         ? `${eventData.module.namespace}.${eventData.module.name}`
         : eventData.module.name;
@@ -149,5 +149,5 @@ export function getCoinTransfers(
         contractId: undefined,
       } as TransferAttributes;
     }) as TransferAttributes[];
-  return transfersCoinAttributes;
+  return Promise.all(transferPromises);
 }

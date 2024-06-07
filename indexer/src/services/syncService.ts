@@ -209,7 +209,7 @@ export async function processPayloadKey(
       } as EventAttributes;
     }) as EventAttributes[];
 
-    const transfersCoinAttributes = getCoinTransfers(
+    const transfersCoinAttributes = await getCoinTransfers(
       network,
       eventsData,
       payloadHash,
@@ -217,7 +217,7 @@ export async function processPayloadKey(
       receiptInfo
     );
 
-    const transfersNftAttributes = getNftTransfers(
+    const transfersNftAttributes = await getNftTransfers(
       network,
       transactionAttributes.chainId,
       eventsData,
@@ -225,6 +225,9 @@ export async function processPayloadKey(
       transactionAttributes,
       receiptInfo
     );
+
+    console.log("transfersCoinAttributes -->", transfersCoinAttributes);
+    console.log("transfersNftAttributes -->", transfersNftAttributes);
 
     const transfersAttributes = [
       transfersCoinAttributes,
@@ -245,6 +248,8 @@ export async function processPayloadKey(
         ...event,
         transactionId: transactionId,
       })) as EventAttributes[];
+
+      console.log("eventsWithTransactionId -->", eventsWithTransactionId);
 
       await eventService.saveMany(eventsWithTransactionId, options);
 

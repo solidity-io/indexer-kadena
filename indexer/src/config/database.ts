@@ -53,7 +53,7 @@ export async function initializeDatabase(): Promise<void> {
   BEGIN
       -- Retrieve contractId
       SELECT id INTO contract_id
-      FROM public."Contract"
+      FROM public."Contracts"
       WHERE "network" = NEW.network
         AND "chainId" = NEW."chainId"
         AND "module" = NEW.modulename
