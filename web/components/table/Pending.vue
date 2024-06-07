@@ -17,7 +17,7 @@ defineProps<{
       :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
     >
       <div
-        class="bg-blue-400 h-[20px] bg-gray-200 rounded pulse w-full"
+        class="h-[20px] bg-gray-200 rounded pulse w-full"
       />
     </div>
   </div>

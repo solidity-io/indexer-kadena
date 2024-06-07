@@ -1,22 +1,39 @@
 <script lang="ts" setup>
-defineProps<{
-  text: string
-}>()
+withDefaults(
+  defineProps<{
+    image: string,
+    title: string,
+    description: string,
+  }>(),
+  {
+    image: '/empty/nft.png'
+  }
+)
 </script>
 
 <template>
   <div
-    class="w-full py-60 gap-6 flex flex-col items-center justify-center"
+    class="w-full h-[430px] gap-6 flex flex-col items-center justify-center"
   >
     <img
-      src="/empty/table.png"
+      :src="image"
       class="w-[190px] h-[190px]"
     />
 
-    <span
-      class="text-lg font-medium text-font-400"
+    <div
+      class="text-center flex flex-col gap-2"
     >
-      {{ text }}
-    </span>
+      <span
+        class="text-lg font-medium text-font-400"
+      >
+        {{ title }}
+      </span>
+
+      <span
+        class="text-font-500"
+      >
+        {{ description }}
+      </span>
+    </div>
   </div>
 </template>

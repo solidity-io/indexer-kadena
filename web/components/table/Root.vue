@@ -37,6 +37,7 @@ const emit = defineEmits(['rowClick'])
       class="max-w-full overflow-auto w-full"
     >
       <div
+        v-if="!pending && rows?.length > 0"
         class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 min-w-[1200px] bazk:min-w-full"
       >
         <div
@@ -60,12 +61,21 @@ const emit = defineEmits(['rowClick'])
       </div>
 
       <div
-        class="border-t border-t-gray-300 min-w-[1200px] bazk:min-w-full relative"
+        :class="!pending && rows?.length > 0 && 'border-t border-t-gray-300 min-w-[1200px]'"
+        class="bazk:min-w-full relative"
       >
         <TablePending
           v-if="pending"
           :columns="props.columns"
         />
+
+        <div
+          v-else-if="!pending && rows?.length === 0"
+        >
+          <slot
+            name="empty"
+          />
+        </div>
 
         <template
           v-else
@@ -90,6 +100,14 @@ const emit = defineEmits(['rowClick'])
           </slot>
         </template>
       </div>
+    </div>
+
+    <div
+      v-if="!pending && rows?.length > 0"
+    >
+      <slot
+        name="footer"
+      />
     </div>
   </div>
 </template>

@@ -84,6 +84,16 @@ const {
         title="Recent Blocks"
         :columns="blocksTableColumns"
       >
+        <template
+          #empty
+        >
+          <EmptyTable
+            image="/empty/txs.png"
+            title="No recent blocks found yet"
+            description="We couldn't find any recent blocks"
+          />
+        </template>
+
         <template #fees="{ row }">
           <ColumnBlockFees
             v-bind="row"
@@ -131,15 +141,19 @@ const {
             <IconEye />
           </div>
         </template>
-      </TableRoot>
 
-      <PaginateTable
-        itemsLabel="Blocks"
-        :currentPage="page"
-        :totalItems="blocks.totalCount ?? 1"
-        :totalPages="blocks.totalPages"
-        @pageChange="page = Number($event)"
-      />
+        <template
+          #footer
+        >
+          <PaginateTable
+            itemsLabel="Blocks"
+            :currentPage="page"
+            :totalItems="blocks.totalCount ?? 1"
+            :totalPages="blocks.totalPages"
+            @pageChange="page = Number($event)"
+          />
+        </template>
+      </TableRoot>
     </TableContainer>
   </PageRoot>
 </template>

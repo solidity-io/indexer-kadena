@@ -142,14 +142,28 @@ const {
             <IconEye />
           </div>
         </template>
-      </TableRoot>
 
-      <PaginateTable
-        :currentPage="page"
-        :totalItems="transactions.totalCount ?? 1"
-        :totalPages="transactions.totalPages"
-        @pageChange="page = Number($event)"
-      />
+        <template
+          #empty
+        >
+          <EmptyTable
+            image="/empty/txs.png"
+            title="No transactions found yet"
+            description="We couldn't find any recent transactions"
+          />
+        </template>
+
+        <template
+          #footer
+        >
+          <PaginateTable
+            :currentPage="page"
+            :totalItems="transactions.totalCount ?? 1"
+            :totalPages="transactions.totalPages"
+            @pageChange="page = Number($event)"
+          />
+        </template>
+      </TableRoot>
     </TableContainer>
   </PageRoot>
 </template>
