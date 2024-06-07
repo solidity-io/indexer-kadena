@@ -32,7 +32,7 @@ const props = defineProps<{
       v-else
     >
       <Popover
-        v-slot="{ open }"
+        v-slot="{ open, close }"
         class="relative"
         inheritAttrs
       >
@@ -72,6 +72,7 @@ const props = defineProps<{
               class="flex flex-col gap-2"
             >
               <NuxtLink
+                @click="close"
                 :to="subroute.path"
                 :key="subroute.tag"
                 class="p-3 text-sm text-font-400 hover:text-kadscan-500"
