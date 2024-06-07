@@ -64,10 +64,13 @@ const emit = defineEmits(['rowClick'])
         :class="!pending && rows?.length > 0 && 'border-t border-t-gray-300 min-w-[1200px]'"
         class="bazk:min-w-full relative"
       >
-        <TablePending
+        <div
           v-if="pending"
-          :columns="props.columns"
-        />
+        >
+          <TablePending
+            :columns="props.columns"
+          />
+        </div>
 
         <div
           v-else-if="!pending && rows?.length === 0"

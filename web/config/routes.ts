@@ -23,12 +23,6 @@ export type Route = LinkRoute | GroupRoute;
 export const routes: Route[] = [
   {
     type: 'link',
-    path: '/',
-    label: 'Home',
-    tag: 'route:home',
-  },
-  {
-    type: 'link',
     path: '/blocks',
     label: 'Blocks',
     tag: 'route:blockchains',

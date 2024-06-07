@@ -21,13 +21,6 @@ const { data: tokens, pending } = await useAsyncData('tokens-trending', async ()
     category: 'kadena-ecosystem',
   })
 );
-
-const data = reactive({
-  page: 1,
-  totalPages: 1,
-  pending: false,
-  totalCount: 20,
-})
 </script>
 
 <template>
@@ -38,7 +31,7 @@ const data = reactive({
 
     <PageContainer>
       <TableRoot
-        :rows="tokens"
+        :rows="tokens ?? []"
         :pending="pending"
         title="Trending Tokens"
         :columns="trendingTokensTableColumns"
@@ -88,17 +81,6 @@ const data = reactive({
             description="We couldn't find any trending tokens"
           />
         </template>
-
-        <!-- <template
-          #footer
-        >
-          <PaginateTable
-            :currentPage="data.page"
-            :totalItems="data.totalCount ?? 1"
-            :totalPages="data.totalPages"
-            @pageChange="data.page = Number($event)"
-          />
-        </template> -->
       </TableRoot>
     </PageContainer>
   </PageRoot>
