@@ -74,6 +74,16 @@ const {
           </template>
         </TableRowExpansible>
       </template>
+
+      <template
+        #empty
+      >
+        <EmptyTable
+          image="/empty/txs.png"
+          title="No assets found for this account"
+          description="We couldn't find any assets for this account"
+        />
+      </template>
     </TableRoot>
 
     <!-- <PaginateTable

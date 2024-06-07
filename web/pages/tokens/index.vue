@@ -78,14 +78,28 @@ const data = reactive({
             :dollar="`${integer.format(row.total_volume / row.current_price)} ${row.symbol}`"
           />
         </template>
-      </TableRoot>
 
-      <PaginateTable
-        :currentPage="data.page"
-        :totalItems="data.totalCount ?? 1"
-        :totalPages="data.totalPages"
-        @pageChange="data.page = Number($event)"
-      />
+        <template
+          #empty
+        >
+          <EmptyTable
+            image="/empty/txs.png"
+            title="No trending tokens found yet"
+            description="We couldn't find any trending tokens"
+          />
+        </template>
+
+        <!-- <template
+          #footer
+        >
+          <PaginateTable
+            :currentPage="data.page"
+            :totalItems="data.totalCount ?? 1"
+            :totalPages="data.totalPages"
+            @pageChange="data.page = Number($event)"
+          />
+        </template> -->
+      </TableRoot>
     </PageContainer>
   </PageRoot>
 </template>

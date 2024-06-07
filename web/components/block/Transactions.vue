@@ -109,15 +109,29 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
             <IconEye />
           </div>
         </template>
-      </TableRoot>
 
-      <PaginateTable
-        :currentPage="data.page"
-        :totalItems="transactions?.totalCount ?? 1"
-        :totalPages="transactions?.totalPages"
-        @pageChange="data.page = Number($event)"
-        class="p-3"
-      />
+        <template
+          #empty
+        >
+          <EmptyTable
+            image="/empty/txs.png"
+            title="No transactions found yet"
+            description="We couldn't find any recent transactions"
+          />
+        </template>
+
+        <template
+          #footer
+        >
+          <PaginateTable
+            :currentPage="data.page"
+            :totalItems="transactions?.totalCount ?? 1"
+            :totalPages="transactions?.totalPages"
+            @pageChange="data.page = Number($event)"
+            class="p-3"
+          />
+        </template>
+      </TableRoot>
     </div>
   </PageRoot>
 </template>

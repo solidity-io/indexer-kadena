@@ -27,14 +27,14 @@ const kdaBalance = props.balances.find(({ module }: any) => module === 'coin')
       <LabelValue
         col
         label="Balance"
-        :value="`${kdaBalance.balance} KDA`"
+        :value="`${kdaBalance?.balance || 0} KDA`"
         :description="blockchainTooltipData.account.balance"
       />
 
       <LabelValue
         col
         label="Assets"
-        :value="balances.length"
+        :value="balances.length || '0'"
         :description="blockchainTooltipData.account.assets"
       />
 
