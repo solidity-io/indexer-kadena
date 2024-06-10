@@ -107,7 +107,6 @@ export async function processKeys(
   return totalKeysProcessed;
 }
 
-
 /**
  * Initiates the process of synchronizing blockchain data from a specific point, either from the latest block cut or from the
  * last recorded synchronization status for each chain.

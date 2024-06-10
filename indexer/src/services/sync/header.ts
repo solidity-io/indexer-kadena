@@ -136,7 +136,7 @@ export async function fetchHeadersWithRetry(
 export async function processS3HeadersDaemon(network: string) {
   console.log("Daemon: Starting to process headers...");
 
-  const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "5000", 10);
+  const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "15000", 10);
 
   process.on("SIGINT", () => shutdownSignal.trigger());
   process.on("SIGTERM", () => shutdownSignal.trigger());

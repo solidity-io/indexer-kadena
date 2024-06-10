@@ -10,6 +10,7 @@ import { getRequiredEnvNumber } from "../utils/helpers";
 const SYNC_FETCH_INTERVAL_IN_BLOCKS_FILLING = getRequiredEnvNumber(
   "SYNC_FETCH_INTERVAL_IN_BLOCKS"
 );
+
 const SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING = 1;
 
 /**
