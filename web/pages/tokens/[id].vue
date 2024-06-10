@@ -15,10 +15,10 @@ const data = reactive({
       key: 'transfers',
       label: 'Transfers',
     },
-    {
-      key: 'holders',
-      label: 'Holders',
-    },
+    // {
+    //   key: 'holders',
+    //   label: 'Holders',
+    // },
     {
       key: 'info',
       label: 'Info',
@@ -67,11 +67,11 @@ const { data: token } = await useAsyncData('tokens-trending', async () =>
           />
         </TabPanel>
 
-        <TabPanel>
+        <!-- <TabPanel>
           <TokenHolders
             v-bind="token"
           />
-        </TabPanel>
+        </TabPanel> -->
 
         <TabPanel>
           <TokenInfo

@@ -75,17 +75,17 @@ const {
             :description="blockchainTooltipData.tokenDetails.overview.maxTotalSupply"
           />
 
-          <LabelValue
+          <!-- <LabelValue
             value="-"
             label="Holders"
             :description="blockchainTooltipData.tokenDetails.overview.holders"
-          />
+          /> -->
 
-          <LabelValue
+          <!-- <LabelValue
             value="-"
             label="Total Transfers"
             :description="blockchainTooltipData.tokenDetails.overview.totalTransfers"
-          />
+          /> -->
         </div>
       </div>
 
@@ -105,7 +105,7 @@ const {
         >
           <LabelValue
             value="-"
-            label="Contract"
+            label="Module"
             :description="blockchainTooltipData.tokenDetails.summary.contract"
           />
 
@@ -115,13 +115,13 @@ const {
             :description="blockchainTooltipData.tokenDetails.summary.decimals"
           />
 
-          <LabelValue
+          <!-- <LabelValue
             label="Website"
             :value="links.homepage[0]"
             :description="blockchainTooltipData.tokenDetails.summary.website"
-          />
+          /> -->
 
-          <LabelValue
+          <!-- <LabelValue
             label="Community"
           >
             <template #value>
@@ -150,7 +150,7 @@ const {
                 />
               </div>
             </template>
-          </LabelValue>
+          </LabelValue> -->
         </div>
       </div>
     </div>
