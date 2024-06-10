@@ -40,8 +40,10 @@ const query = gql`
           nodeId
         }
         contractByContractId {
+          nodeId
           metadata
-          id
+          module
+          tokenId
         }
       }
       pageInfo {
@@ -112,6 +114,7 @@ const {
             name="To do"
             image="/collection/bears.png"
             collection="Todo"
+            v-bind="row.contractByContractId"
           />
         </template>
 

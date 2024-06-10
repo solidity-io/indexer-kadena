@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   code: string;
   nodeId: string,
   result: string,
@@ -21,7 +21,7 @@ const {
   <Divide>
     <DivideScroll
       class="max-h-[360px]"
-      v-if="transfersByTransactionId?.nodes?.lenght > 0"
+      v-if="transfersByTransactionId?.nodes?.length > 0"
     >
       <div
         class="grid gap-2"
@@ -42,10 +42,14 @@ const {
           :description="blockchainTooltipData.transaction.overview.to"
         />
 
-        <LabelValue
-          label="Amount"
-          :value="`${transfer.amount} ${transfer.modulename}`"
-          :description="blockchainTooltipData.transaction.overview.amount"
+        <TransactionNFT
+          v-bind="transfer.contractByContractId"
+          v-if="transfer.contractByContractId"
+        />
+
+        <TransactionToken
+          v-else
+          v-bind="transfer"
         />
       </div>
     </DivideScroll>

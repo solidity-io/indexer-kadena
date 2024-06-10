@@ -1,38 +1,60 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   image: string,
   name: string,
   collection: string,
+  nodeId?: string,
+  metadata?: string,
 }>()
+
+const nftMetadata = useNftMetadata(props.metadata)
 </script>
 
 <template>
   <NuxtLink
-    :to="`/collections/1/nfts/1`"
+    :to="`/nfts/${props.nodeId}`"
+    class="w-full"
   >
     <div
-      class="flex items-center justify-center gap-4"
+      class="flex items-center gap-4 w-full"
     >
-      <div>
+      <div
+        class="shrink-0"
+      >
+        <div
+          v-if="nftMetadata.isUnknown"
+          class="w-11 h-11 rounded bg-gray-200"
+        />
+
+        <video
+          autoplay muted loop
+          class="w-11 h-11 rounded bg-gray-200 pulse"
+          v-else-if="nftMetadata.assetUrl?.match(/\.(mp4|webm|ogg)$/i)"
+        >
+          <source :src="nftMetadata.assetUrl || nftMetadata.thumbnailUrl" />
+        </video>
+
         <img
-          :src="image"
-          class="w-11 h-11 rounded"
+          v-else
+          :src="nftMetadata.assetUrl || nftMetadata.thumbnailUrl"
+          class="w-11 h-11 rounded bg-gray-200"
         />
       </div>
 
       <div
-        class="flex flex-col gap-1"
+        class="flex flex-col gap-1 max-w-full break-words"
       >
         <span
-          class="text-sm text-font-400"
+          class="text-sm text-font-400 line-clamp-2"
         >
-          {{ name }}
+          {{ nftMetadata?.name }}
         </span>
 
         <span
+          v-if="!nftMetadata.isUnknown"
           class="text-xs font-medium text-font-500 block leading-[150%]"
         >
-          {{ collection }}
+          <!-- {{ nftMetadata?.description }} -->
         </span>
       </div>
     </div>

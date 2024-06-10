@@ -1,3 +1,10 @@
+export const unknownNft = {
+  image: '',
+  symbol: 'ukn',
+  id: 'unknown',
+  name: 'unknown',
+}
+
 export const unknownToken = {
   image: '',
   symbol: 'ukn',

@@ -21,19 +21,19 @@ const {
         aspect-square
         md:max-w-[560px]
         md:rounded-2xl
-        overflow-hidden border border-[3px] border-gray-800 shrink-1 flex justify-center items-center"
+        overflow-hidden border-[3px] border-gray-800 shrink-1 flex justify-center items-center"
     >
       <video
         autoplay muted loop
         class="aspect-square min-w-full !max-w-[560px] bg-gray-200 pulse w-full"
-        v-if="nftMetadata.datum.assetUrl.match(/\.(mp4|webm|ogg)$/i)"
+        v-if="nftMetadata.assetUrl.match(/\.(mp4|webm|ogg)$/i)"
       >
-        <source :src="nftMetadata.datum.assetUrl" />
+        <source :src="nftMetadata.assetUrl" />
       </video>
 
       <img
         v-else
-        :src="nftMetadata.datum.assetUrl"
+        :src="nftMetadata.assetUrl"
         class="aspect-square min-w-full bazk:min-w-[560px]"
       />
     </div>
@@ -50,13 +50,13 @@ const {
           <span
             class="text-font-500 font-medium block"
           >
-            {{  nftMetadata.datum.artistName }}
+            {{  nftMetadata.artistName }}
           </span>
 
           <span
-            class="text-[20px] md:text-[30px] lg:text-[40px] font-semibold font-semibold block text-font-400 max-w-[500px]"
+            class="text-[20px] md:text-[30px] lg:text-[40px] font-semibold block text-font-400 max-w-[500px]"
           >
-            {{ nftMetadata.datum.title }}
+            {{ nftMetadata.title }}
           </span>
         </div>
       </div>

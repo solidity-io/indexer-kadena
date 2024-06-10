@@ -112,6 +112,12 @@ const query = gql`
           createdAt
           amount
           fromAcct
+          contractByContractId {
+            nodeId
+            metadata
+            module
+            tokenId
+          }
         }
       }
     }
