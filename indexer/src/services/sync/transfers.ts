@@ -1,7 +1,7 @@
 import { TransactionAttributes } from "../../models/transaction";
 import { TransferAttributes } from "../../models/transfer";
-import { getManifest, getPrecision, } from "../../utils/pact";
-import { saveContract } from "../syncService";
+import { getPrecision, } from "../../utils/pact";
+import { saveContract, syncContract } from "./contract";
 
 /**
  * Filters and processes NFT transfer events from a payload's event data. It identifies NFT transfer events based on
@@ -47,18 +47,7 @@ export function getNftTransfers(
 
       console.log("Token ID:", tokenId);
 
-      const manifestData = await getManifest(
-        network,
-        chainId,
-        modulename,
-        tokenId
-      );
-      let contractId;
-      if (manifestData) {
-        contractId = await saveContract(network, chainId, modulename, contractId, "poly-fungible", tokenId, manifestData);
-      } else {
-        console.log("No manifest URI found for token ID:", tokenId);
-      }
+      let contractId = await syncContract(network, chainId, modulename, tokenId);
 
       return {
         amount: amount,

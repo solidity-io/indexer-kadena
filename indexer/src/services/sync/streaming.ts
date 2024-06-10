@@ -1,5 +1,5 @@
 import https from "https";
-import { fetchAndSavePayloadWithRetry } from "../syncService";
+import { fetchAndSavePayloadWithRetry } from "./payload";
 import { syncStatusService } from "../syncStatusService";
 import { SOURCE_STREAMING } from "../../models/syncStatus";
 
