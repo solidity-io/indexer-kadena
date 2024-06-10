@@ -4,13 +4,14 @@ import { SOURCE_API, SOURCE_BACKFILL } from "../../models/syncStatus";
 import { createSignal, delay, getRequiredEnvNumber, getRequiredEnvString } from "../../utils/helpers";
 import { readAndParseS3Object } from "../s3Service";
 import { syncErrorService } from "../syncErrorService";
-import { fetchAndSavePayloadWithRetry, processKeys, processPayloadKey } from "../syncService";
+import { processKeys, } from "../syncService";
+import { fetchAndSavePayloadWithRetry, processPayloadKey } from "./payload";
 import { syncStatusService } from "../syncStatusService";
 import { register } from "../../server/metrics";
 import { Histogram } from "prom-client";
+import { fetchHeaders } from "./fetch";
 
 const shutdownSignal = createSignal();
-const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
 const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
 const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber("SYNC_ATTEMPTS_INTERVAL_IN_MS");
 
@@ -57,9 +58,6 @@ export async function fetchHeadersWithRetry(
   maxHeight: number,
   attempt: number = 1
 ): Promise<void> {
-  const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/header?minheight=${minHeight}&maxheight=${maxHeight}`;
-
-  console.log("Fetching headers from:", endpoint);
   const end = metrics.syncDuration.startTimer({
     network: network,
     chainId: chainId.toString(),
@@ -68,11 +66,7 @@ export async function fetchHeadersWithRetry(
     type: "headers",
   });
   try {
-    const response = await axios.get(endpoint, {
-      headers: { Accept: "application/json;blockheader-encoding=object" },
-    });
-
-    const items = response.data.items;
+    const items = await fetchHeaders(network, chainId, minHeight, maxHeight);
 
     console.log(`Fetched ${items.length} headers for chainId ${chainId}`);
 
@@ -118,7 +112,6 @@ export async function fetchHeadersWithRetry(
         fromHeight: maxHeight,
         toHeight: minHeight,
         data: error,
-        endpoint: endpoint,
         source: SOURCE_API,
       } as any);
 

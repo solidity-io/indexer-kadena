@@ -1,16 +1,11 @@
-import axios from "axios";
 import "dotenv/config";
 
-import { saveHeader, listS3Objects } from "./s3Service";
-import { getDecoded, delay, splitIntoChunks, getRequiredEnvString, getRequiredEnvNumber, createSignal } from "../utils/helpers";
-import { transactionService } from "./transactionService";
-import { eventService } from "./eventService";
+import { listS3Objects } from "./s3Service";
+import { delay, splitIntoChunks, getRequiredEnvNumber, createSignal } from "../utils/helpers";
 import { syncStatusService } from "./syncStatusService";
 import { syncErrorService } from "./syncErrorService";
-import { transferService } from "./transferService";
 import { fetchHeadersWithRetry } from "./sync/header"
 import { fetchCut, FetchCutResult } from "./sync/fetch"
-import { getCoinTransfers, getNftTransfers } from "./sync/transfers"
 
 import {
   SOURCE_S3,
@@ -18,25 +13,13 @@ import {
   SOURCE_BACKFILL,
   SOURCE_STREAMING,
 } from "../models/syncStatus";
-import { BlockAttributes } from "../models/block";
-import { TransactionAttributes } from "../models/transaction";
-import { EventAttributes } from "../models/event";
-import { TransferAttributes } from "../models/transfer";
-import Contract, { ContractAttributes } from "../models/contract";
-import { Transaction } from "sequelize";
-import { getPrecision } from "../utils/pact";
 
-const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
 const SYNC_MIN_HEIGHT = getRequiredEnvNumber("SYNC_MIN_HEIGHT");
 const SYNC_FETCH_INTERVAL_IN_BLOCKS = getRequiredEnvNumber(
   "SYNC_FETCH_INTERVAL_IN_BLOCKS"
 );
 const SYNC_TIME_BETWEEN_REQUESTS_IN_MS = getRequiredEnvNumber(
   "SYNC_TIME_BETWEEN_REQUESTS_IN_MS"
-);
-const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
-const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
-  "SYNC_ATTEMPTS_INTERVAL_IN_MS"
 );
 
 const shutdownSignal = createSignal();
@@ -124,213 +107,6 @@ export async function processKeys(
   return totalKeysProcessed;
 }
 
-/**
- * Processes a single S3 payload key, extracting transaction and event information from the payload data.
- * It parses the payload to save transaction attributes and related events into the database.
- *
- * @param network The blockchain network identifier.
- * @param prefix The S3 object prefix used to locate blockchain data.
- * @param key The specific S3 object key pointing to the payload data to be processed.
- */
-export async function processPayloadKey(
-  network: string,
-  block: BlockAttributes,
-  payloadData: any,
-  options?: Transaction
-) {
-  const TRANSACTION_INDEX = 0;
-  const RECEIPT_INDEX = 1;
-
-  const payloadHash = payloadData.payloadHash;
-  const transactions = payloadData.transactions || [];
-
-  if (transactions.length > 0) {
-    console.log("transactions.length", transactions.length);
-  }
-
-  for (const transactionArray of transactions) {
-    const transactionInfo = transactionArray[TRANSACTION_INDEX];
-    const receiptInfo = transactionArray[RECEIPT_INDEX];
-
-    let sigsData = transactionInfo.sigs;
-    let cmdData;
-    try {
-      cmdData = JSON.parse(transactionInfo.cmd);
-    } catch (error) {
-      console.error(
-        `Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`
-      );
-    }
-
-    const eventsData = receiptInfo.events || [];
-    const transactionAttributes = {
-      blockId: block.id,
-      payloadHash: payloadHash,
-      code: cmdData.payload.exec ? cmdData.payload.exec.code : null,
-      data: cmdData.payload.exec ? cmdData.payload.exec.data : null,
-      chainId: cmdData.meta.chainId,
-      creationtime: cmdData.meta.creationTime,
-      gaslimit: cmdData.meta.gasLimit,
-      gasprice: cmdData.meta.gasPrice,
-      hash: transactionInfo.hash,
-      nonce: cmdData.nonce || "",
-      continuation: receiptInfo.continuation || "",
-      gas: receiptInfo.gas,
-      result: receiptInfo.result || null,
-      logs: receiptInfo.logs || null,
-      metadata: receiptInfo.metaData || null,
-      num_events: eventsData ? eventsData.length : 0,
-      requestkey: receiptInfo.reqKey,
-      rollback: receiptInfo.result
-        ? receiptInfo.result.status != "success"
-        : true,
-      sender: cmdData.meta.sender || null,
-      sigs: sigsData,
-      step: receiptInfo.step || null,
-      ttl: cmdData.meta.ttl,
-      txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
-    } as TransactionAttributes;
-
-    const eventsAttributes = eventsData.map((eventData: any) => {
-      return {
-        payloadHash: payloadHash,
-        chainId: transactionAttributes.chainId,
-        module: eventData.module.namespace
-          ? `${eventData.module.namespace}.${eventData.module.name}`
-          : eventData.module.name,
-        modulehash: eventData.moduleHash,
-        name: eventData.name,
-        params: eventData.params,
-        paramtext: eventData.params,
-        qualname: eventData.module.namespace
-          ? `${eventData.module.namespace}.${eventData.module.name}`
-          : eventData.module.name,
-        requestkey: receiptInfo.reqKey,
-      } as EventAttributes;
-    }) as EventAttributes[];
-
-    const transfersCoinAttributes = await getCoinTransfers(
-      network,
-      eventsData,
-      payloadHash,
-      transactionAttributes,
-      receiptInfo
-    );
-
-    const transfersNftAttributes = await getNftTransfers(
-      network,
-      transactionAttributes.chainId,
-      eventsData,
-      payloadHash,
-      transactionAttributes,
-      receiptInfo
-    );
-
-    console.log("transfersCoinAttributes -->", transfersCoinAttributes);
-    console.log("transfersNftAttributes -->", transfersNftAttributes);
-
-    const transfersAttributes = [
-      transfersCoinAttributes,
-      transfersNftAttributes,
-    ]
-      .flat()
-      .filter((transfer) => transfer.amount !== undefined);
-
-    try {
-      let transactionInstance = await transactionService.save(
-        transactionAttributes,
-        options
-      );
-
-      let transactionId = transactionInstance.id;
-
-      const eventsWithTransactionId = eventsAttributes.map((event) => ({
-        ...event,
-        transactionId: transactionId,
-      })) as EventAttributes[];
-
-      console.log("eventsWithTransactionId -->", eventsWithTransactionId);
-
-      await eventService.saveMany(eventsWithTransactionId, options);
-
-      const transfersWithTransactionId = transfersAttributes.map(
-        (transfer) => ({
-          ...transfer,
-          tokenId: transfer.tokenId,
-          contractId: transfer.contractId,
-          transactionId: transactionId,
-        })
-      ) as TransferAttributes[];
-
-      await transferService.saveMany(transfersWithTransactionId, options);
-    } catch (error) {
-      console.error(`Error saving transaction to the database: ${error}`);
-    }
-  }
-}
-
-export async function saveContract(network: string, chainId: number, modulename: any, contractId: any, type: string, tokenId?: any, manifestData?: any, precision?: number) {
-  const contractData = {
-    network: network,
-    chainId: chainId,
-    module: modulename,
-    type: type,
-    metadata: manifestData,
-    tokenId: tokenId,
-    precision: precision,
-  } as ContractAttributes;
-
-  const existingContract = await Contract.findOne({
-    where: {
-      network: contractData.network,
-      chainId: contractData.chainId,
-      module: contractData.module,
-      tokenId: tokenId,
-    },
-  });
-
-  if (!existingContract) {
-    const newContract = await Contract.create(contractData);
-    contractId = newContract.id;
-  } else {
-    contractId = existingContract.id;
-  }
-  return contractId;
-}
-
-
-
-
-export async function fetchAndSavePayloadWithRetry(
-  network: string,
-  chainId: any,
-  height: any,
-  payloadHash: any,
-  blockData: any
-) {
-  const payload = await fetchPayloadWithRetry(
-    network,
-    chainId,
-    height,
-    height,
-    [payloadHash]
-  );
-
-  if (payload.length === 0) {
-    // console.log("payload", payload);
-    console.error("No payload found for height and chain:", {
-      height,
-      chainId,
-      blockData,
-    });
-
-    return;
-  }
-
-  blockData.payload = payload[0];
-
-  await saveHeader(network, chainId, height, blockData);
-}
 
 /**
  * Initiates the process of synchronizing blockchain data from a specific point, either from the latest block cut or from the
@@ -514,118 +290,6 @@ export async function startMissingBlocks(network: string) {
   }
 
   console.info("Missing blocks processing complete.");
-}
-
-
-
-/**
- * Attempts to fetch payload data for a given block with retries.
- *
- * @param network The network to fetch payload from (e.g., "mainnet01").
- * @param chainId The ID of the chain to fetch payload for.
- * @param height The height of the block to fetch payload for.
- * @param payloadHash The hash of the payload to fetch.
- * @param attempt The current retry attempt.
- */
-async function fetchPayloadWithRetry(
-  network: string,
-  chainId: number,
-  fromHeight: number,
-  toHeight: number,
-  payloadHashes: string[],
-  attempt = 1
-): Promise<any> {
-  const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
-
-  console.log("Fetching payloads from:", endpoint);
-  try {
-    const response = (await axios.post(endpoint, payloadHashes, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    })) as any;
-
-    const payloads = response.data;
-
-    if (payloads.length === 0) {
-      console.log("payloads", payloads);
-      console.log("payloadHashes", payloadHashes);
-      throw new Error("No payloads found");
-    }
-
-    return await processPayloads(payloads);
-  } catch (error) {
-    if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
-      console.log(
-        `Retrying... Attempt ${attempt + 1
-        } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
-      );
-      console.log("Error fetching payload:", error);
-      await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
-      return await fetchPayloadWithRetry(
-        network,
-        chainId,
-        fromHeight,
-        toHeight,
-        payloadHashes,
-        attempt + 1
-      );
-    } else {
-      await syncErrorService.save({
-        network: network,
-        chainId: chainId,
-        fromHeight: fromHeight,
-        toHeight: toHeight,
-        data: error,
-        endpoint: endpoint,
-        source: SOURCE_API,
-      } as any);
-
-      console.log(
-        "Max retry attempts reached. Unable to fetch transactions for",
-        { network, chainId, fromHeight, toHeight }
-      );
-    }
-  }
-}
-
-/**
- * Processes an array of payloads for a specific blockchain network and chain ID.
- * Each payload typically includes transaction data that needs to be decoded and then saved.
- *
- * @param network The blockchain network identifier (e.g., "mainnet01").
- * @param chainId The specific chain ID within the blockchain network.
- * @param payloads An array of payload objects to be processed.
- * @returns A Promise that resolves when all payloads have been processed.
- */
-async function processPayloads(payloads: any[]): Promise<any[]> {
-  const saveOperations = payloads.map(async (payload) => {
-    const transactions = payload.transactions;
-    // console.log("Number of transactions:", transactions.length);
-    transactions.forEach((transaction: any) => {
-      transaction[0] = getDecoded(transaction[0]);
-      transaction[1] = getDecoded(transaction[1]);
-    });
-
-    const minerData = getDecoded(payload.minerData);
-    const transactionsHash = payload.transactionsHash;
-    const outputsHash = payload.outputsHash;
-    const coinbase = getDecoded(payload.coinbase);
-
-    const payloadData = {
-      transactions: transactions,
-      minerData: minerData,
-      transactionsHash: transactionsHash,
-      outputsHash: outputsHash,
-      payloadHash: payload.payloadHash,
-      coinbase: coinbase,
-    };
-
-    return payloadData;
-  });
-
-  return await Promise.all(saveOperations);
 }
 
 /**
