@@ -123,7 +123,12 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
         type TransactionData {
           transaction: Transaction
           events: [Event]
-          transfers: [Transfer]
+          transfers: [TransferData]
+        }
+
+        type TransferData  {
+          transfer: Transfer
+          contract: Contract
         }
       `,
       resolvers: {
@@ -162,19 +167,34 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
               transferQueryParams,
             );
 
-            transfers.forEach((transfer: any) => {
-              transfer.toAcct = transfer.to_acct;
-              transfer.fromAcct = transfer.from_acct;
+            const transferDataPromises = transfers.map(async (transfer: any) => {
+              let contract = null;
+              transfer.to_acct = transfer.to_acct;
+              transfer.from_acct = transfer.from_acct;
+              if (transfer.contractId) {
+                const { rows: contracts } = await rootPgPool.query(
+                  `SELECT * FROM public."Contracts" WHERE id = $1`,
+                  [transfer.contractId]
+                );
+                contract = contracts.length > 0 ? contracts[0] : null;
+              }
+
+              return {
+                transfer,
+                contract,
+              };
             });
+
+            const transferData = await Promise.all(transferDataPromises);
 
             transaction.numEvents = events.length;
 
             return {
               transaction,
               events,
-              transfers,
+              transfers: transferData,
             };
-          },
+          }
         },
       },
     };
