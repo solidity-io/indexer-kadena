@@ -6,70 +6,134 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Trending Tokens (KTS)'
+  title: 'Token Transfers'
 })
 
 const {
-  trendingTokensTableColumns
+  tokenTransfersTableColumns
 } = useAppConfig()
 
-const { $coingecko } = useNuxtApp();
+const query = gql`
+  query GetTokenTransfers($first: Int, $offset: Int) {
+    allTransfers(condition: {tokenId: null}, offset: $offset, orderBy: ID_DESC, first: $first) {
+      nodes {
+        tokenId
+        updatedAt
+        transactionId
+        toAcct
+        requestkey
+        payloadHash
+        nodeId
+        modulehash
+        modulename
+        id
+        chainId
+        createdAt
+        fromAcct
+        amount
+        transactionByTransactionId {
+          nodeId
+        }
+      }
+      pageInfo {
+        startCursor
+        hasPreviousPage
+        endCursor
+        hasNextPage
+      }
+      totalCount
+    }
+  }
+`
 
-const { data: tokens, pending } = await useAsyncData('tokens-trending', async () =>
-  $coingecko.request('coins/markets', {
-    vs_currency: 'usd',
-    category: 'kadena-ecosystem',
-  })
-);
+const key = 'allTransfers'
+
+const { $graphql } = useNuxtApp();
+
+const page = ref(1)
+const limit = ref(20)
+
+const { data: transfers, pending } = await useAsyncData(key, async () => {
+  const res = await $graphql.default.request(query, {
+    first: limit.value,
+    offset: (page.value - 1) * 20,
+  });
+
+  const transfers = res[key]
+
+  const totalPages = Math.max(Math.ceil(transfers.totalCount / limit.value), 1)
+
+  return {
+    totalPages,
+    pageInfo: transfers.pageInfo,
+    nodes: transfers.nodes.map((transfer: any) => {
+      const metadata = staticTokens.find(({ module }) => module === transfer.modulename) || unknownToken
+
+      return {
+        ...transfer,
+        metadata,
+      }
+    }),
+  };
+}, {
+  watch: [page]
+});
 </script>
 
 <template>
   <PageRoot>
     <PageTitle>
-      Trending Tokens
+      Token Transfers
     </PageTitle>
 
     <PageContainer>
       <TableRoot
-        :rows="tokens ?? []"
+        title="Latest Transactions"
         :pending="pending"
-        title="Trending Tokens"
-        :columns="trendingTokensTableColumns"
+        :rows="transfers.nodes"
+        :columns="tokenTransfersTableColumns"
       >
-        <template #ranking="{ order }">
-          {{ order + 1 }}
+        <template #method>
+          <Chip />
+        </template>
+
+        <template #requestkey="{ row }">
+          <ColumnLink
+            :label="row.requestkey"
+            :to="`/transactions/${row.transactionByTransactionId.nodeId}`"
+          />
+        </template>
+
+        <template #from="{ row }">
+          <ColumnAddress
+            :value="row.fromAcct"
+          />
+        </template>
+
+        <template #to="{ row }">
+          <ColumnAddress
+            :value="row.toAcct"
+          />
         </template>
 
         <template #token="{ row }">
           <ColumnToken
-            v-bind="row"
-            :icon="row.image"
+            v-bind="row.metadata"
           />
         </template>
 
-        <template #price="{ row }">
-          ${{ integer.format(row?.current_price) }}
-        </template>
-
-        <template #change="{ row }">
-          <ColumnDelta
-            :delta="row.price_change_percentage_24h"
+        <template #date="{ row }">
+          <ColumnDate
+            :row="row"
           />
         </template>
 
-        <template #marketCap="{ row }">
-          {{ money.format(row.market_cap) }}
-        </template>
-
-        <template #supply="{ row }">
-          {{ money.format(row.circulating_supply) }}
-        </template>
-
-        <template #volume="{ row }">
-          <ColumnVolume
-            :amount="money.format(row.total_volume)"
-            :dollar="`${integer.format(row.total_volume / row.current_price)} ${row.symbol}`"
-          />
+        <template #icon>
+          <div
+            class="flex items-center justify-center"
+          >
+            <IconEye />
+          </div>
         </template>
 
         <template
@@ -77,8 +141,20 @@ const { data: tokens, pending } = await useAsyncData('tokens-trending', async ()
         >
           <EmptyTable
             image="/empty/txs.png"
-            title="No trending tokens found yet"
+            title="No latest token transactions found yet"
             description="We couldn't find any trending tokens"
+          />
+        </template>
+
+        <template
+          #footer
+        >
+          <PaginateTable
+            itemsLabel="Transfers"
+            :currentPage="page"
+            :totalItems="transfers?.totalCount ?? 1"
+            :totalPages="transfers?.totalPages"
+            @pageChange="page = Number($event)"
           />
         </template>
       </TableRoot>

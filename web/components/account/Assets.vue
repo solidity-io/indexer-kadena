@@ -32,9 +32,8 @@ const {
         >
           <template #asset="{ row }">
             <ColumnToken
-              v-bind="row"
+              v-bind="row.metadata"
               :withSymbol="false"
-              :icon="row.image"
             />
           </template>
 

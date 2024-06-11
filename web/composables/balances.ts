@@ -1,4 +1,4 @@
-import { unknownToken } from '../constants/tokens'
+import { unknownToken, staticTokens } from '../constants/tokens'
 
 export const transformRawBalances = ({
   prices,
@@ -18,11 +18,14 @@ export const transformRawBalances = ({
 
       const formatedModule = current.module === 'coin' ? 'kadena' : current.module
 
-      const etl = prices?.find(({ id }: any) => formatedModule.includes(id)) || unknownToken
+      const metadata = staticTokens.find(({ module }) => current.module === module)  || unknownToken
+
+      const etl = prices?.find(({ id }: any) => formatedModule.includes(id))
 
       if (!prev[module]) {
         prev[module] = {
           module,
+          metadata,
           balance: 0,
           balances: [],
 

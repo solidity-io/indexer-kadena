@@ -106,7 +106,7 @@ const emit = defineEmits(['rowClick'])
     </div>
 
     <div
-      v-if="!pending && rows?.length > 0"
+      v-if="rows?.length > 0"
     >
       <slot
         name="footer"

@@ -1,6 +1,6 @@
 <template>
   <DivideItem
-    class="!gap-2 bazk:!gap-4 overflow-auto"
+    class="!gap-2 bazk:!gap-8 overflow-auto scrollbar-custom"
   >
     <slot />
   </DivideItem>

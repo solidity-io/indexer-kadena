@@ -24,7 +24,7 @@ export const staticTokens = [
     module: "coin",
     symbol: "KDA",
     coingeckoId: "",
-    name: "Kadena Coin",
+    name: "Kadena",
     icon: "https://swap.ecko.finance/images/crypto/kda-crypto.svg",
   },
   {

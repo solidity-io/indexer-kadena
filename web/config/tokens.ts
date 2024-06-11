@@ -75,12 +75,12 @@ export const tokenTransfersTableColumns = [
     description: blockchainTooltipData.tokenTransfers.amount
   },
   {
-    cols: 3,
+    cols: 4,
     key: 'token',
     label: 'Token',
   },
   {
-    cols: 5,
+    cols: 4,
     key: 'date',
     label: 'Date',
   },
