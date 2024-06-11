@@ -49,7 +49,7 @@ const { data: tokens, pending } = await useAsyncData('tokens-trending', async ()
 
         <template #price="{ row }">
           <span
-            class="text-sm"
+            class="text-sm text-font-400"
           >
             {{ customMoney(row?.current_price) }}
           </span>

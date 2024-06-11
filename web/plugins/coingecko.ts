@@ -7,10 +7,14 @@ export default defineNuxtPlugin(async () => {
   const request = async (endpoint: string, params = {}) => {
     const url = new URL(`${baseUrl}/${endpoint}`) as any;
 
-    url.search = new URLSearchParams({ ...params, 'x_cg_api_key': apiKey });
+    url.search = new URLSearchParams({ ...params });
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          'x-cg-demo-api-key': apiKey
+        }
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
