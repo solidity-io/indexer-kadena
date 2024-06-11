@@ -40,14 +40,14 @@ export const routes: Route[] = [
     subroutes: [
       {
         path: '/tokens',
-        label: 'Trending tokens',
-        tag: 'route:tokens',
+        label: 'Token Transfers',
+        tag: 'route:token',
       },
       {
-        path: '/tokens/transfers',
-        label: 'Token Transfers',
-        tag: 'route:token:transfers',
-      }
+        path: '/tokens/trending',
+        label: 'Trending tokens',
+        tag: 'route:tokens:trending',
+      },
     ]
   },
   {

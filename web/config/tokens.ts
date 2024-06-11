@@ -7,17 +7,19 @@ export const trendingTokensTableColumns = [
     label: '#',
   },
   {
-    cols: 6,
+    cols: 5,
     key: 'token',
     label: 'Token',
   },
   {
-    cols: 4,
+    cols: 3,
+    center: true,
     key: 'price',
     label: 'Price',
   },
   {
-    cols: 3,
+    cols: 5,
+    center: true,
     key: 'change',
     label: 'Change (%)',
     description: blockchainTooltipData.trendingTokens.change
@@ -51,7 +53,7 @@ export const tokenTransfersTableColumns = [
   },
   {
     center: true,
-    cols: 2,
+    cols: 3,
     key: 'method',
     label: 'Method',
     description: blockchainTooltipData.tokenTransfers.method
@@ -69,18 +71,18 @@ export const tokenTransfersTableColumns = [
     description: blockchainTooltipData.tokenTransfers.to
   },
   {
-    cols: 3,
+    cols: 2,
     key: 'amount',
     label: 'Amount',
     description: blockchainTooltipData.tokenTransfers.amount
   },
   {
-    cols: 4,
+    cols: 3,
     key: 'token',
     label: 'Token',
   },
   {
-    cols: 4,
+    cols: 5,
     key: 'date',
     label: 'Date',
   },

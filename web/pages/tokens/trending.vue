@@ -48,7 +48,11 @@ const { data: tokens, pending } = await useAsyncData('tokens-trending', async ()
         </template>
 
         <template #price="{ row }">
-          ${{ integer.format(row?.current_price) }}
+          <span
+            class="text-sm"
+          >
+            {{ customMoney(row?.current_price) }}
+          </span>
         </template>
 
         <template #change="{ row }">
@@ -58,11 +62,19 @@ const { data: tokens, pending } = await useAsyncData('tokens-trending', async ()
         </template>
 
         <template #marketCap="{ row }">
-          {{ money.format(row.market_cap) }}
+          <span
+            class="text-sm"
+          >
+            {{ money.format(row.market_cap) }}
+          </span>
         </template>
 
         <template #supply="{ row }">
-          {{ money.format(row.circulating_supply) }}
+          <span
+            class="text-sm"
+          >
+            {{ money.format(row.circulating_supply) }}
+          </span>
         </template>
 
         <template #volume="{ row }">

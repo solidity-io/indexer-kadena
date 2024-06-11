@@ -6,10 +6,9 @@ defineProps<{
 
 <template>
   <span
-    v-if="delta"
     class="text-sm font-semibold"
-    :class="delta < 0 ? 'text-system-red' : 'text-system-green'"
+    :class="(delta || 0) <= 0 ? 'text-system-red' : 'text-system-green'"
   >
-   {{ delta.toFixed(2) }}%
+   {{ delta ? delta.toFixed(2) : '0' }}%
   </span>
 </template>
