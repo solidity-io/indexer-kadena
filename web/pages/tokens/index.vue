@@ -88,9 +88,9 @@ const { data: transfers, pending } = await useAsyncData(key, async () => {
 
     <PageContainer>
       <TableRoot
-        title="Latest Transactions"
         :pending="pending"
-        :rows="transfers.nodes"
+        title="Latest Transactions"
+        :rows="transfers?.nodes || []"
         :columns="tokenTransfersTableColumns"
       >
         <template #method>

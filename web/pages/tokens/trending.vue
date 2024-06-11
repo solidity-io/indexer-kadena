@@ -16,7 +16,7 @@ const {
 const { $coingecko } = useNuxtApp();
 
 const { data: tokens, pending } = await useAsyncData('tokens-trending', async () =>
-  $coingecko.request('coins/markets', {
+  await $coingecko.request('coins/markets', {
     vs_currency: 'usd',
     category: 'kadena-ecosystem',
   })
@@ -63,7 +63,7 @@ const { data: tokens, pending } = await useAsyncData('tokens-trending', async ()
 
         <template #marketCap="{ row }">
           <span
-            class="text-sm"
+            class="text-sm text-font-400"
           >
             {{ money.format(row.market_cap) }}
           </span>
@@ -71,7 +71,7 @@ const { data: tokens, pending } = await useAsyncData('tokens-trending', async ()
 
         <template #supply="{ row }">
           <span
-            class="text-sm"
+            class="text-sm text-font-400"
           >
             {{ money.format(row.circulating_supply) }}
           </span>

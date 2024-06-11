@@ -23,10 +23,9 @@ const {
       </span>
 
       <span
+        v-html="description.en"
         class="text-xs bazk:text-sm text-font-400"
-      >
-        {{ description.en }}
-      </span>
+      />
     </div>
 
     <div

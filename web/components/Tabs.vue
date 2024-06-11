@@ -3,7 +3,7 @@ import { provideUseId, TabGroup, TabList, Tab, TabPanels } from '@headlessui/vue
 
 withDefaults(
   defineProps<{
-    tabs: any[],
+    tabs: any,
   }>(),
   {
     tabs: []

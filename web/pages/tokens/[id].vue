@@ -12,6 +12,10 @@ useHead({
 const data = reactive({
   tabs: [
     {
+      key: 'info',
+      label: 'Info',
+    },
+    {
       key: 'transfers',
       label: 'Transfers',
     },
@@ -19,17 +23,15 @@ const data = reactive({
     //   key: 'holders',
     //   label: 'Holders',
     // },
-    {
-      key: 'info',
-      label: 'Info',
-    },
   ],
 })
 
+const route = useRoute()
+
 const { $coingecko } = useNuxtApp();
 
-const { data: token } = await useAsyncData('tokens-trending', async () =>
-  $coingecko.request('coins/kadena', {
+const { data: token } = await useAsyncData('token-trending', async () =>
+  await $coingecko.request(`coins/${route.params.id}`, {
     vs_currency: 'usd',
     category: 'kadena-ecosystem',
   })
@@ -48,7 +50,7 @@ const { data: token } = await useAsyncData('tokens-trending', async () =>
       <Tabs
         :tabs="data.tabs"
       >
-        <template
+        <!-- <template
           #button
         >
           <NuxtLink
@@ -59,11 +61,16 @@ const { data: token } = await useAsyncData('tokens-trending', async () =>
               label="View full collection"
             />
           </NuxtLink>
-        </template>
+        </template> -->
+
+        <TabPanel>
+          <TokenInfo
+            v-bind="token"
+          />
+        </TabPanel>
 
         <TabPanel>
           <TokenTransfers
-            v-bind="token"
           />
         </TabPanel>
 
@@ -72,12 +79,6 @@ const { data: token } = await useAsyncData('tokens-trending', async () =>
             v-bind="token"
           />
         </TabPanel> -->
-
-        <TabPanel>
-          <TokenInfo
-            v-bind="token"
-          />
-        </TabPanel>
       </Tabs>
     </PageContainer>
   </PageRoot>
