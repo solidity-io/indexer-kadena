@@ -92,12 +92,13 @@ const {
           />
         </template>
 
-        <template #token>
+        <template #token="{ row }">
           <ColumnToken
             id="todo"
             icon="/tokens/kadena.svg"
             name="todo"
             symbol="todo"
+            v-bind="row"
           />
         </template>
 
