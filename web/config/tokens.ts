@@ -96,16 +96,10 @@ export const tokenTransfersTableColumns = [
 
 export const tokenDetailTransferTableColumns = [
   {
-    cols: 2,
-    key: 'hash',
-    label: 'Hash',
+    cols: 5,
+    key: 'requestKey',
+    label: 'Request Key',
     description: blockchainTooltipData.tokenDetails.transfers.hash
-  },
-  {
-    cols: 3,
-    key: 'block',
-    label: 'Block Height',
-    description: blockchainTooltipData.tokenDetails.transfers.blockHeight
   },
   {
     center: true,
@@ -127,20 +121,14 @@ export const tokenDetailTransferTableColumns = [
     description: blockchainTooltipData.tokenDetails.transfers.to
   },
   {
-    cols: 3,
+    cols: 4,
     key: 'amount',
-    label: 'Quantity',
+    label: 'Amount',
   },
   {
     cols: 5,
     key: 'date',
     label: 'Date',
-  },
-  {
-    cols: 1,
-    center: true,
-    key: 'icon',
-    label: '',
   },
 ]
 

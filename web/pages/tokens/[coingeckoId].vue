@@ -31,11 +31,13 @@ const route = useRoute()
 const { $coingecko } = useNuxtApp();
 
 const { data: token } = await useAsyncData('token-trending', async () =>
-  await $coingecko.request(`coins/${route.params.id}`, {
+  await $coingecko.request(`coins/${route.params.coingeckoId}`, {
     vs_currency: 'usd',
     category: 'kadena-ecosystem',
   })
 );
+
+console.log('token', token.value)
 </script>
 
 <template>
@@ -71,6 +73,7 @@ const { data: token } = await useAsyncData('token-trending', async () =>
 
         <TabPanel>
           <TokenTransfers
+            :modulename="token.contract_address"
           />
         </TabPanel>
 

@@ -23,7 +23,7 @@ const {
       </span>
 
       <span
-        v-html="description.en"
+        v-text="description.en"
         class="text-xs bazk:text-sm text-font-400"
       />
     </div>
@@ -42,7 +42,7 @@ const {
       >
         <LabelValue
           label="Market Capitalization"
-          :value="moneyCompact.format(market_data.market_cap.usd)"
+          :value="customMoney(market_data.market_cap.usd)"
           :description="blockchainTooltipData.tokenDetails.information.marketCapitalization"
         />
 

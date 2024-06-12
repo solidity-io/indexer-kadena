@@ -13,7 +13,7 @@ export const networks = [
     icon: 'twitter',
     title: 'Twitter',
     to: 'https://twitter.com/opactzk'
-  }
+  },
 ]
 
 export default networks

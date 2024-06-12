@@ -5,6 +5,7 @@ defineProps<{
   name: string;
   symbol: string;
   market_data: any;
+  detail_platforms: any;
 }>()
 
 const {
@@ -18,7 +19,7 @@ const {
       class="flex items-center gap-2"
     >
       <img
-        :src="image.large"
+        :src="image?.large"
         class="w-[34px] h-[34px]"
       />
 
@@ -64,14 +65,14 @@ const {
               <div
                 class="flex text-base gap-2"
               >
-                1 KDA <span class="text-font-500">{{ money.format(market_data?.current_price.usd) }}</span>
+                1 <span class="uppercase">{{ symbol }}</span> <span class="text-font-500">{{ customMoney(market_data?.current_price.usd) }}</span>
               </div>
             </template>
           </LabelValue>
 
           <LabelValue
             label="Max Total Supply"
-            :value="integer.format(market_data.max_supply)"
+            :value="integer.format(market_data?.max_supply || 0)"
             :description="blockchainTooltipData.tokenDetails.overview.maxTotalSupply"
           />
 
@@ -104,24 +105,34 @@ const {
           class="grid grid-cols-2 bazk:grid-cols-1 gap-3 bazk:gap-4"
         >
           <LabelValue
-            value="-"
             label="Module"
+            :value="detail_platforms.kadena?.contract_address || 'coin'"
             :description="blockchainTooltipData.tokenDetails.summary.contract"
           />
 
           <LabelValue
             label="Decimals"
-            value="-"
+            :value="detail_platforms.kadena?.decimal_place || '12'"
             :description="blockchainTooltipData.tokenDetails.summary.decimals"
           />
 
-          <!-- <LabelValue
+          <LabelValue
             label="Website"
-            :value="links.homepage[0]"
             :description="blockchainTooltipData.tokenDetails.summary.website"
-          /> -->
+          >
+            <template
+              #value
+            >
+              <NuxtLink
+                target="__blank"
+                :to="links.homepage[0]"
+              >
+                {{ links.homepage[0].replace(/^https?:\/\/(www\.)?/, '') }}
+              </NuxtLink>
+            </template>
+          </LabelValue>
 
-          <!-- <LabelValue
+          <LabelValue
             label="Community"
           >
             <template #value>
@@ -136,7 +147,7 @@ const {
                 />
 
                 <Network
-                  icon="github"
+                  icon="telegram"
                   target="__blank"
                   :to="`https://t.me/${links.telegram_channel_identifier}`"
                   v-if="links.telegram_channel_identifier"
@@ -150,7 +161,7 @@ const {
                 />
               </div>
             </template>
-          </LabelValue> -->
+          </LabelValue>
         </div>
       </div>
     </div>
