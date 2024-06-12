@@ -76,10 +76,16 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
 
   return blockByHeight
 });
+
+if (!block.value) {
+  await navigateTo('/404')
+}
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    v-if="block"
+  >
     <PageTitle>
       Block Details
     </PageTitle>

@@ -130,17 +130,23 @@ const { $graphql } = useNuxtApp();
 
 const { data: transaction } = await useAsyncData('GetTransactionById', async () => {
   const {
-    transaction
+    transaction,
   } = await $graphql.default.request(query, {
     id: route.params.requestKey,
   });
 
   return transaction
 });
+
+if (!transaction.value) {
+  await navigateTo('/404')
+}
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    v-if="transaction"
+  >
     <PageTitle>
       Transaction Details
     </PageTitle>

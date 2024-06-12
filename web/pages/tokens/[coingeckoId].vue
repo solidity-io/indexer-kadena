@@ -37,11 +37,15 @@ const { data: token } = await useAsyncData('token-trending', async () =>
   })
 );
 
-console.log('token', token.value)
+if (!token.value) {
+  await navigateTo('/404')
+}
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    v-if="token"
+  >
     <PageContainer>
       <TokenDetails
         v-bind="token"
