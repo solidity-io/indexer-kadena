@@ -45,7 +45,7 @@ defineProps<{
         </span>
 
         <Copy
-          v-if="withCopy"
+          v-if="withCopy && value"
           :value="value"
         />
       </slot>

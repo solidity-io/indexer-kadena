@@ -1,6 +1,6 @@
 <script setup lang="ts">
-const props = defineProps<{
-  code: string;
+defineProps<{
+  code: any;
   nodeId: string,
   result: string,
   sender: string,

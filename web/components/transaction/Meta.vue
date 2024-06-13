@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
   ttl: string,
-  data: string,
-  code: string,
+  data?: string,
+  code:  any,
   nonce: string,
   sender: string,
   chainId: number,
@@ -52,7 +52,9 @@ const pubkey = useTransactionPubkey(props.data)
       />
     </DivideItem>
 
-    <DivideItem>
+    <DivideItem
+      v-if="pubkey"
+    >
       <LabelValue
         withCopy
         label="Public Key"
