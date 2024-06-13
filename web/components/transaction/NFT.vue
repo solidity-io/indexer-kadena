@@ -9,8 +9,6 @@ const {
 } = useAppConfig()
 
 const nftMetadata = useNftMetadata(props.metadata)
-
-console.log('nftMetadata', nftMetadata)
 </script>
 
 <template>

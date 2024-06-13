@@ -65,8 +65,6 @@ const {
   query,
   key: 'allTransfers'
 })
-
-console.log('transfers', transfers.value)
 </script>
 
 <template>

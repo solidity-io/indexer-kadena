@@ -88,8 +88,6 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
   return transformRawBalances({ allBalances, prices})
 });
 
-console.log('balances', balances.value)
-
 // const balances = transformRawBalances(apiData?.value)
 // TODO: Check this approach, better if move that to a backend
 // const download = () => {

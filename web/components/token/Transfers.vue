@@ -56,8 +56,6 @@ const { data: transfers, pending } = useAsyncData(';token-details-transfers', as
 }, {
   watch: [() => data.page]
 });
-
-console.log('transfers', transfers.value)
 </script>
 
 <template>

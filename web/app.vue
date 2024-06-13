@@ -1,6 +1,28 @@
 <script setup lang="ts">
 import '@fontsource/inter/latin.css'
 import '@fontsource/roboto/latin.css'
+
+useHead({
+  titleTemplate: title => title || 'Kadscan: Block Explorer',
+  meta: [
+    {
+      hid: 'description',
+      name: 'description',
+      content: 'Explore and verify data on Kadscan. View detailed information about transfers, transactions, and blocks on the Kadena blockchain.'
+    },
+    {
+      hid: 'robots',
+      name: 'robots',
+      content: 'index, follow'
+    },
+    {
+      hid: 'googlebot',
+      name: 'googlebot',
+      content: 'index, follow'
+    }
+  ]
+})
+
 </script>
 
 <template>
