@@ -64,6 +64,8 @@ const {
   query,
   key: 'allTransactions'
 })
+
+console.log('transactions', transactions.value)
 </script>
 
 <template>
@@ -100,7 +102,7 @@ const {
       <TableRoot
         title="Recent Transactions"
         :pending="pending"
-        :rows="transactions.nodes"
+        :rows="transactions?.nodes || []"
         :columns="transactionTableColumns"
       >
         <template #status="{ row }">

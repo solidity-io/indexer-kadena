@@ -73,6 +73,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
     <HomeHero />
 
     <Container
+      v-if="!error"
       class="lg:!p-8 gap-4 lg:gap-6 grid lg:grid-cols-2"
     >
       <div

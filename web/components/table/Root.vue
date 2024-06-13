@@ -73,7 +73,7 @@ const emit = defineEmits(['rowClick'])
         </div>
 
         <div
-          v-else-if="!pending && rows?.length === 0"
+          v-else-if="rows?.length === 0"
         >
           <slot
             name="empty"
