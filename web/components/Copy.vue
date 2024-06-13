@@ -5,9 +5,9 @@ const props = defineProps<{
   value: string | number | undefined
 }>()
 
-const copying = ref(false)
 const button = ref(null);
 const tooltip = ref(null);
+const copying = ref(false);
 
 let popperInstance: any = null;
 
@@ -63,10 +63,6 @@ watchEffect(() => {
           Copied
         </span>
       </div>
-
-      <div
-        class="w-[15px] h-[15px] bg-gray-300 absolute bottom-[-4px] rotate-45 z-[-1] left-1/2 -translate-x-1/2"
-      />
     </div>
 
     <button
@@ -76,7 +72,7 @@ watchEffect(() => {
     >
       <IconCopy
         class="w-5 h-5 text-white"
-        :class="[data.copying && '!text-kadscan-500']"
+        :class="[copying && '!text-kadscan-500']"
       />
     </button>
   </div>
