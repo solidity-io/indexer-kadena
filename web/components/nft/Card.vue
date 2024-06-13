@@ -1,22 +1,37 @@
 <script lang="ts" setup>
-defineProps<{
-  id: string,
-  name?: string,
-  image?: string,
-  collection?: string,
+const props = defineProps<{
+  contract?: any,
 }>()
+
+const nft = useNft(props?.contract)
+
+console.log('nft', nft)
 </script>
 
 <template>
   <div
-    class="col-span-1 rounded-lg overflow-hidden border border-gray-500"
+    class="nft-card flex flex-col rounded-lg overflow-hidden border border-gray-500"
   >
     <div
       class="max-w-full aspect-square overflow-hidden"
     >
+      <div
+        v-if="!nft.image"
+        class="min-w-full bg-gray-200 pulse w-full"
+      />
+
+      <video
+        autoplay muted loop
+        class="aspect-square min-w-full bg-gray-200 pulse w-full"
+        v-else-if="nft.image.match(/\.(mp4|webm|ogg)$/i)"
+      >
+        <source :src="nft.image" />
+      </video>
+
       <img
-        :src="image"
-        class="w-full"
+        v-else
+        :src="nft.image"
+        class="aspect-square min-w-full"
       />
     </div>
 
@@ -26,20 +41,22 @@ defineProps<{
       <span
         class="text-xs bazk:text-sm text-font-500"
       >
-        {{ collection }}
+        {{ nft.collection}}
       </span>
 
       <span
         class="text-sm bazk:text-base text-font-400"
       >
-        {{ name }}
+        {{ nft.name }}
       </span>
-
-      <!-- <span
-        class="text-sm bazk:text-base pt-3 text-font-400"
-      >
-        0.0 KDA
-      </span> -->
     </div>
   </div>
 </template>
+
+<style>
+.nft-card {
+  max-width: 238px;
+  min-width: 152px;
+  width: 100%;
+}
+</style>

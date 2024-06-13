@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { gql } from 'nuxt-graphql-request/utils';
 
-defineProps<{
-  hash: string;
+const props = defineProps<{
+  address: string;
 }>()
 
 const {
@@ -11,19 +11,33 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $offset: Int) {
-    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetNftBalances($first: Int, $offset: Int, $account: String!) {
+    allBalances(offset: $offset, orderBy: ID_DESC, first: $first, condition: {account: $account, hasTokenId: true}) {
       nodes {
-        code
-        result
+        updatedAt
+        tokenId
+        qualname
         nodeId
-        requestkey
-      }
-      pageInfo {
-        endCursor
-        hasNextPage
-        hasPreviousPage
-        startCursor
+        network
+        module
+        id
+        hasTokenId
+        createdAt
+        contractId
+        chainId
+        balance
+        account
+        contractByContractId {
+          metadata
+          precision
+          tokenId
+          nodeId
+          module
+          chainId
+          createdAt
+          updatedAt
+          type
+        }
       }
       totalCount
     }
@@ -32,17 +46,20 @@ const query = gql`
 
 const data = reactive({
   page: 1,
-  limit: 20
+  limit: 10
 })
 
 const { $graphql } = useNuxtApp();
 
-const key = 'allTransactions'
+const key = 'allBalances'
 
-const { data: transactions, pending } = useAsyncData(key, async () => {
+//k:48704163cc65e8eea903b9ff6b48a8d905a2aa6c7e9d512607c84f7dc98cfbd2
+
+const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
   const res = await $graphql.default.request(query, {
     first: data.limit,
-    offset: (data.page - 1) * 20,
+    offset: (data.page - 1) * 10,
+    account: props.address,
   });
 
   const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)
@@ -58,27 +75,31 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
 
 <template>
   <div>
-    <div
-      class="
-        gap-2
-        bazk:gap-4
-        grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 bazk:grid-cols-5
-      "
+    <TableNft
+      :pending="pending"
+      :items="nfts?.nodes ?? []"
     >
-      <NftCard
-        v-for="n in 10"
-        :key="'nft-' + n"
-        :id="n + ''"
-        name="HC - Smoked  #823"
-        collection="Hack a Collection"
-      />
-    </div>
+      <template
+        #empty
+      >
+        <EmptyTable
+          image="/empty/txs.png"
+          title="No NFTs found yet"
+          description="We couldn't find any nft"
+        />
+      </template>
 
-    <PaginateTable
-      itemsLabel="NFT's"
-      :currentPage="1"
-      :totalItems="150"
-      :totalPages="10"
-    />
+      <template
+        #footer
+      >
+        <PaginateTable
+          itemsLabel="NFT's"
+          :currentPage="data.page"
+          :totalItems="nfts?.totalCount ?? 1"
+          :totalPages="nfts?.totalPages"
+          @pageChange="data.page = Number($event)"
+        />
+      </template>
+    </TableNft>
   </div>
 </template>

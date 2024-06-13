@@ -2,7 +2,7 @@
 import { gql } from 'nuxt-graphql-request/utils';
 
 const props = defineProps<{
-  modulename: string,
+  modulename?: string,
 }>()
 
 const {

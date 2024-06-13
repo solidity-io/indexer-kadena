@@ -138,7 +138,9 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
         </TabPanel>
 
         <TabPanel>
-          <AccountNFT />
+          <AccountNFT
+            :address="address + ''"
+          />
         </TabPanel>
 
         <TabPanel>

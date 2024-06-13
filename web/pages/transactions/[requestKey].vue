@@ -31,6 +31,99 @@ const data = reactive({
   ],
 })
 
+// const query = gql`
+//   query GetTransactionById {
+//     transactionByRequestKey(
+//       requestkey: "R0x-RA7B5J7gMWNYa1CWc2HDyas5JsZtv-AyGzdyYmc"
+//       transferLimit: 20
+//       eventLimit: 20
+//     ) {
+//       transfers {
+//         contract {
+//           chainId
+//           createdAt
+//           id
+//           metadata
+//           network
+//           module
+//           precision
+//           tokenId
+//           nodeId
+//           updatedAt
+//           type
+//         }
+//         transfer {
+//           amount
+//           chainId
+//           contractId
+//           createdAt
+//           fromAcct
+//           hasTokenId
+//           modulehash
+//           id
+//           modulename
+//           nodeId
+//           requestkey
+//           tokenId
+//           toAcct
+//           payloadHash
+//           network
+//           updatedAt
+//           type
+//           transactionId
+//         }
+//       }
+//       transaction {
+//         blockId
+//         chainId
+//         code
+//         continuation
+//         createdAt
+//         creationtime
+//         data
+//         gas
+//         gaslimit
+//         gasprice
+//         hash
+//         id
+//         logs
+//         nodeId
+//         metadata
+//         numEvents
+//         nonce
+//         payloadHash
+//         pactid
+//         requestkey
+//         proof
+//         rollback
+//         result
+//         step
+//         sigs
+//         sender
+//         updatedAt
+//         ttl
+//         txid
+//       }
+//       events {
+//         chainId
+//         createdAt
+//         id
+//         module
+//         modulehash
+//         nodeId
+//         params
+//         name
+//         paramtext
+//         payloadHash
+//         qualname
+//         requestkey
+//         transactionId
+//         updatedAt
+//       }
+//     }
+//   }
+// `
+
 const query = gql`
   query GetTransactionById($id: ID!) {
     transaction(nodeId: $id) {
@@ -133,6 +226,7 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
     transaction,
   } = await $graphql.default.request(query, {
     id: route.params.requestKey,
+    // requestKey: 'R0x-RA7B5J7gMWNYa1CWc2HDyas5JsZtv-AyGzdyYmc',
   });
 
   return transaction
