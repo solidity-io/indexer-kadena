@@ -1,5 +1,6 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
+import Contract from "./contract";
 
 export interface BalanceAttributes {
   id: number;
@@ -86,5 +87,10 @@ Balance.init(
     ],
   }
 );
+
+Balance.belongsTo(Contract, {
+  foreignKey: "contractId",
+  as: "contract",
+});
 
 export default Balance;

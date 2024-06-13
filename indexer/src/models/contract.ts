@@ -1,5 +1,6 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
+import Balance from "./balance";
 
 export interface ContractAttributes {
   id: number;
