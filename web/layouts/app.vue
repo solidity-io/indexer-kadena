@@ -2,7 +2,7 @@
 
 <template>
   <div
-    class="h-screen flex flex-col"
+    class="h-screen flex flex-col items-center"
   >
     <div
       class="w-full bg-blue-400"
@@ -12,8 +12,8 @@
 
     <div
       class="
-        w-full max-w-screen-bazk mx-auto grow
-        px-4 lg:px-[15px] xl:px-[30px] bazk:px-[60px]
+        w-full max-w-[1352px] grow
+        px-4
         pt-4 lg:pt-6
         pb-[60px] lg:pb-[38px]
       "

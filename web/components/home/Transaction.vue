@@ -19,7 +19,7 @@ const status = useTransactionStatus(props.result)
 
 <template>
   <div
-    class="flex flex-wrap items-center gap-3 xl:gap-4 py-3 border-b border-b-gray-300 xl:max-h-[82px]"
+    class="flex flex-wrap items-center gap-3 xl:gap-4 py-3 border-b lg:h-[111px] border-b-gray-300 xl:max-h-[82px]"
   >
     <IconStatus
       :status="status"
