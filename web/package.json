@@ -14,7 +14,7 @@
     "@fontsource/inter": "^5.0.17",
     "@fontsource/roboto": "^5.0.12",
     "@nuxtjs/tailwindcss": "^6.11.4",
-    "@popperjs/core": "^2.0.0",
+    "@popperjs/core": "^2.11.8",
     "@venegrad/vue3-click-outside": "^1.0.1",
     "autoprefixer": "^10.4.19",
     "chart.js": "^4.4.2",

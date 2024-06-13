@@ -44,14 +44,10 @@ defineProps<{
           {{ value }}
         </span>
 
-        <div
+        <Copy
           v-if="withCopy"
-          class="p-[6px]"
-        >
-          <IconCopy
-            class="w-5 h-5"
-          />
-        </div>
+          :value="value"
+        />
       </slot>
     </div>
   </div>
