@@ -1,27 +1,17 @@
 <script setup lang="ts">
-import { createPopper } from '@popperjs/core';
-
 const props = defineProps<{
   value: string | number | undefined
 }>()
 
-const button = ref(null);
-const tooltip = ref(null);
-const copying = ref(false);
+const open = ref(false)
 
-let popperInstance: any = null;
-
-const onCopy = async () => {
-  copying.value = true
-
-  await copyToClipboard(props.value || '')
-
-  copying.value = false
-}
+const [trigger, container] = usePopper({
+  placement: 'top'
+})
 
 const copyToClipboard = async (value: string | number) => {
   try {
-    await navigator.clipboard.writeText(value + '');
+    await navigator.clipboard.writeText(value + '')
 
     return new Promise(resolve => setTimeout(resolve, 900));
   } catch (e) {
@@ -29,28 +19,22 @@ const copyToClipboard = async (value: string | number) => {
   }
 }
 
-watchEffect(() => {
-  if (copying.value && button.value && tooltip.value) {
-    popperInstance = createPopper(button.value, tooltip.value, {
-      placement: 'top',
-    });
-  } else {
-    if (popperInstance) {
-      popperInstance.destroy();
-      popperInstance = null;
-    }
-  }
-});
+const onCopy = async () => {
+  open.value = true
+
+  await copyToClipboard(props.value || '')
+
+  open.value = false
+}
 </script>
 
 <template>
   <div
-    class="relative"
+    ref="trigger"
   >
     <div
-      ref="tooltip"
-      v-if="copying"
-      class="z-[99999999]"
+      v-if="open"
+      ref="container"
     >
       <div
         class="
@@ -63,16 +47,19 @@ watchEffect(() => {
           Copied
         </span>
       </div>
+
+      <div
+        class="w-[15px] h-[15px] bg-gray-300  rotate-45 z-[-1] absolute bottom-[-4px] left-1/2 -translate-x-1/2"
+      />
     </div>
 
     <button
-      ref="button"
       @click.prevent="onCopy()"
       class="p-1.5 rounded-lg hover:bg-gray-500 place-items-center grid"
     >
       <IconCopy
         class="w-5 h-5 text-white"
-        :class="[copying && '!text-kadscan-500']"
+        :class="[open && '!text-kadscan-500']"
       />
     </button>
   </div>
