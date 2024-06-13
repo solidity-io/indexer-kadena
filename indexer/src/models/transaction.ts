@@ -169,8 +169,8 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
 
             const transferDataPromises = transfers.map(async (transfer: any) => {
               let contract = null;
-              transfer.to_acct = transfer.to_acct;
-              transfer.from_acct = transfer.from_acct;
+              transfer.toAcct = transfer.to_acct;
+              transfer.fromAcct = transfer.from_acct;
               if (transfer.contractId) {
                 const { rows: contracts } = await rootPgPool.query(
                   `SELECT * FROM public."Contracts" WHERE id = $1`,
