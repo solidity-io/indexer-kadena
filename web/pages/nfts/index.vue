@@ -111,10 +111,8 @@ const {
 
         <template #item="{ row }">
           <ColumnNft
-            name="To do"
-            image="/collection/bears.png"
-            collection="Todo"
-            v-bind="row.contractByContractId"
+            :nodeId="row.nodeId"
+            :contract="row.contractByContractId"
           />
         </template>
 

@@ -43,8 +43,9 @@ const {
         />
 
         <TransactionNFT
-          v-bind="transfer.contractByContractId"
+          :nodeId="transfer.nodeId"
           v-if="transfer.contractByContractId"
+          :contract="transfer.contractByContractId"
         />
 
         <TransactionToken

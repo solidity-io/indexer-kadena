@@ -53,8 +53,6 @@ const { $graphql } = useNuxtApp();
 
 const key = 'allBalances'
 
-//k:48704163cc65e8eea903b9ff6b48a8d905a2aa6c7e9d512607c84f7dc98cfbd2
-
 const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
   const res = await $graphql.default.request(query, {
     first: data.limit,

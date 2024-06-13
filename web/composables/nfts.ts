@@ -1,24 +1,8 @@
-export const useNftMetadata = (metadata?: string) => {
-  if(!metadata) {
-    return {
-      image: null,
-      id: 'unknown',
-      name: 'unknown',
-      isUnknown: true,
-      collection: 'unknown',
-    }
-  }
-
-  const parsedMetadata = JSON.parse(metadata)
-
-  return parsedMetadata.data[0].datum
-}
-
 const formatNftDatum = (datum: any) => {
   return {
     attributes: datum.attributes || [],
-    collection: datum.artistName || "Unknown Collection",
-    name: datum.title || datum.name || "Unknown Title",
+    collection: datum.artistName || "Unknown collection",
+    name: datum.title || datum.name || "Unknown name",
     description: datum.description || "No description available.",
     createdAt: datum.creationDate || datum['create-date'] || null,
     image: datum.assetUrl || datum.thumbnailUrl || null,
@@ -31,8 +15,8 @@ export const useNft = (contract?: any) => {
       image: null,
       attributes: [],
       createdAt: null,
-      name: "Unknown Title",
-      collection: "Unknown Collection",
+      name: "Unknown name",
+      collection: "Unknown collection",
       description: "No description available.",
     }
   }

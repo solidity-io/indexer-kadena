@@ -16,16 +16,16 @@ const data = reactive({
       key: 'properties',
       label: 'Properties',
     },
-    {
-      disabled: true,
-      key: 'activity',
-      label: 'Activity',
-    },
-    {
-      key: 'more',
-      disabled: true,
-      label: 'More from this Collection',
-    },
+    // {
+    //   disabled: true,
+    //   key: 'activity',
+    //   label: 'Activity',
+    // },
+    // {
+    //   key: 'more',
+    //   disabled: true,
+    //   label: 'More from this Collection',
+    // },
   ],
 })
 
@@ -60,12 +60,16 @@ const { data: nft } = await useAsyncData('GetNftById', async () => {
 
   return contract
 });
+
+if (!nft.value) {
+  await navigateTo('/404')
+}
 </script>
 
 <template>
   <PageRoot>
     <NftDetails
-      v-bind="nft"
+      :contract="nft"
     />
 
     <PageContainer>
@@ -87,17 +91,17 @@ const { data: nft } = await useAsyncData('GetNftById', async () => {
 
         <TabPanel>
           <NftProperties
-            v-bind="nft"
+            :contract="nft"
           />
         </TabPanel>
 
-        <TabPanel>
+        <!-- <TabPanel>
           <NftActivity />
         </TabPanel>
 
         <TabPanel>
           <NftMore />
-        </TabPanel>
+        </TabPanel> -->
       </Tabs>
     </PageContainer>
   </PageRoot>

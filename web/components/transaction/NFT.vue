@@ -1,14 +1,14 @@
 <script setup lang="ts">
 const props = defineProps<{
-  nodeId: string
-  metadata: string
+  nodeId: any,
+  contract: any
 }>()
 
 const {
   blockchainTooltipData
 } = useAppConfig()
 
-const nftMetadata = useNftMetadata(props.metadata)
+const nft = useNft(props.contract)
 </script>
 
 <template>
@@ -31,18 +31,9 @@ const nftMetadata = useNftMetadata(props.metadata)
             max-w-[44px]
             overflow-hidden border-[3px] border-gray-800 shrink-1 flex justify-center items-center"
         >
-          <video
-            autoplay muted loop
-            class="aspect-square max-w-[44px] bg-gray-200 pulse w-full"
-            v-if="nftMetadata.datum?.assetUrl?.match(/\.(mp4|webm|ogg)$/i)"
-          >
-            <source :src="nftMetadata.datum.assetUrl" />
-          </video>
-
-          <img
-            v-else
-            :src="nftMetadata?.datum?.assetUrl || nftMetadata.datum?.thumbnailUrl"
-            class="aspect-square max-w-[44px]"
+          <NftImage
+            :image="nft.image"
+            classRoot="aspect-square max-w-[44px] bg-gray-200 pulse w-full"
           />
         </div>
 
@@ -50,7 +41,7 @@ const nftMetadata = useNftMetadata(props.metadata)
           <span
             class="text-font-400 text-sm fix flex gap-2 break-words"
           >
-            {{ nftMetadata.datum.title || nftMetadata.datum.name }}
+            {{ nft.name }}
           </span>
         </div>
       </NuxtLink>

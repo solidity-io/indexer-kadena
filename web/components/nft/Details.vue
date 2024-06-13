@@ -1,13 +1,13 @@
 <script setup lang="ts">
 const props = defineProps<{
-  metadata: string
+  contract?: any,
 }>()
-
-const nftMetadata = useNftMetadata(props.metadata)
 
 const {
   blockchainTooltipData
 } = useAppConfig()
+
+const nft = useNft(props.contract)
 </script>
 
 <template>
@@ -23,18 +23,9 @@ const {
         md:rounded-2xl
         overflow-hidden border-[3px] border-gray-800 shrink-1 flex justify-center items-center"
     >
-      <video
-        autoplay muted loop
-        class="aspect-square min-w-full !max-w-[560px] bg-gray-200 pulse w-full"
-        v-if="nftMetadata.assetUrl.match(/\.(mp4|webm|ogg)$/i)"
-      >
-        <source :src="nftMetadata.assetUrl" />
-      </video>
-
-      <img
-        v-else
-        :src="nftMetadata.assetUrl"
-        class="aspect-square min-w-full bazk:min-w-[560px]"
+      <NftImage
+        :image="nft.image"
+        classRoot="aspect-square min-w-full !max-w-[560px] bg-gray-200 pulse w-full"
       />
     </div>
 
@@ -50,13 +41,13 @@ const {
           <span
             class="text-font-500 font-medium block"
           >
-            {{  nftMetadata.artistName }}
+            {{  nft.collection }}
           </span>
 
           <span
             class="text-[20px] md:text-[30px] lg:text-[40px] font-semibold block text-font-400 max-w-[500px]"
           >
-            {{ nftMetadata.title }}
+            {{ nft.name }}
           </span>
         </div>
       </div>
@@ -96,7 +87,7 @@ const {
         <LabelValue
           label="Timestamp"
           :description="blockchainTooltipData.nftDetails.timestamp"
-          :value="(new Date(Number(nftMetadata.datum.creationDate)) as any).toGMTString()"
+          :value="(new Date(Number(nft.createdAt)) as any).toGMTString()"
         />
 
         <!-- <LabelValue

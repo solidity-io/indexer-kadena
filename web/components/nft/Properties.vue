@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const props = defineProps<{
-  metadata: string
+  contract: any
 }>()
 
-const nftMetadata = useNftMetadata(props.metadata)
+const nft = useNft(props.contract)
 </script>
 
 <template>
@@ -14,7 +14,7 @@ const nftMetadata = useNftMetadata(props.metadata)
       :value="value"
       :key="trait_type"
       :label="trait_type"
-      v-for="{ value, trait_type } in nftMetadata.datum.attributes"
+      v-for="{ value, trait_type } in nft.attributes"
     />
   </div>
 </template>

@@ -4,8 +4,6 @@ const props = defineProps<{
 }>()
 
 const nft = useNft(props?.contract)
-
-console.log('nft', nft)
 </script>
 
 <template>
@@ -15,23 +13,8 @@ console.log('nft', nft)
     <div
       class="max-w-full aspect-square overflow-hidden"
     >
-      <div
-        v-if="!nft.image"
-        class="min-w-full bg-gray-200 pulse w-full"
-      />
-
-      <video
-        autoplay muted loop
-        class="aspect-square min-w-full bg-gray-200 pulse w-full"
-        v-else-if="nft.image.match(/\.(mp4|webm|ogg)$/i)"
-      >
-        <source :src="nft.image" />
-      </video>
-
-      <img
-        v-else
-        :src="nft.image"
-        class="aspect-square min-w-full"
+      <NftImage
+        :image="nft.image"
       />
     </div>
 
