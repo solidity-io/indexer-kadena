@@ -135,10 +135,9 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
   return transactionByRequestKey
 });
 
-console.log('transaction', transaction.value)
-// if (!transaction.value) {
-//   await navigateTo('/404')
-// }
+if (!transaction.value) {
+  await navigateTo('/404')
+}
 </script>
 
 <template>
