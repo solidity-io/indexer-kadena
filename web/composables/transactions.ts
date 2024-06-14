@@ -7,7 +7,7 @@ export const useTransactionPubkey = (data: string) => {
 
   const parsedData = JSON.parse(data || '{}')
 
-  const [ first ] = parsedData.keyset?.keys || parsedData.ks?.keys
+  const [ first ] = parsedData.keyset?.keys || parsedData.ks?.keys || []
 
   return first
 }

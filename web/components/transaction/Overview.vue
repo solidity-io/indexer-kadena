@@ -9,7 +9,7 @@ defineProps<{
   createdAt: string,
   requestkey: string,
   continuation: string;
-  transfersByTransactionId: any
+  transfers: any
 }>()
 
 const {
@@ -21,12 +21,12 @@ const {
   <Divide>
     <DivideScroll
       class="max-h-[360px]"
-      v-if="transfersByTransactionId?.nodes?.length > 0"
+      v-if="transfers?.length > 0"
     >
       <div
         class="grid gap-2"
+        v-for="{ transfer, contract } in transfers"
         :key="'transfer:' + transfer.id"
-        v-for="transfer in transfersByTransactionId?.nodes"
       >
         <LabelValue
           withCopy
@@ -43,9 +43,9 @@ const {
         />
 
         <TransactionNFT
+          v-if="contract"
+          :contract="contract"
           :nodeId="transfer.nodeId"
-          v-if="transfer.contractByContractId"
-          :contract="transfer.contractByContractId"
         />
 
         <TransactionToken

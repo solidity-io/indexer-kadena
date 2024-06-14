@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  nodeId: any,
+  nodeId?: any,
   contract: any
 }>()
 

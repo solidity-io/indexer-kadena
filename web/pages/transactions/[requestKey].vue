@@ -31,187 +31,90 @@ const data = reactive({
   ],
 })
 
-// const query = gql`
-//   query GetTransactionById {
-//     transactionByRequestKey(
-//       requestkey: "R0x-RA7B5J7gMWNYa1CWc2HDyas5JsZtv-AyGzdyYmc"
-//       transferLimit: 20
-//       eventLimit: 20
-//     ) {
-//       transfers {
-//         contract {
-//           chainId
-//           createdAt
-//           id
-//           metadata
-//           network
-//           module
-//           precision
-//           tokenId
-//           nodeId
-//           updatedAt
-//           type
-//         }
-//         transfer {
-//           amount
-//           chainId
-//           contractId
-//           createdAt
-//           fromAcct
-//           hasTokenId
-//           modulehash
-//           id
-//           modulename
-//           nodeId
-//           requestkey
-//           tokenId
-//           toAcct
-//           payloadHash
-//           network
-//           updatedAt
-//           type
-//           transactionId
-//         }
-//       }
-//       transaction {
-//         blockId
-//         chainId
-//         code
-//         continuation
-//         createdAt
-//         creationtime
-//         data
-//         gas
-//         gaslimit
-//         gasprice
-//         hash
-//         id
-//         logs
-//         nodeId
-//         metadata
-//         numEvents
-//         nonce
-//         payloadHash
-//         pactid
-//         requestkey
-//         proof
-//         rollback
-//         result
-//         step
-//         sigs
-//         sender
-//         updatedAt
-//         ttl
-//         txid
-//       }
-//       events {
-//         chainId
-//         createdAt
-//         id
-//         module
-//         modulehash
-//         nodeId
-//         params
-//         name
-//         paramtext
-//         payloadHash
-//         qualname
-//         requestkey
-//         transactionId
-//         updatedAt
-//       }
-//     }
-//   }
-// `
-
 const query = gql`
-  query GetTransactionById($id: ID!) {
-    transaction(nodeId: $id) {
-      chainId
-      continuation
-      code
-      createdAt
-      creationtime
-      gas
-      data
-      gasprice
-      gaslimit
-      updatedAt
-      txid
-      step
-      rollback
-      ttl
-      sender
-      sigs
-      result
-      proof
-      requestkey
-      payloadHash
-      pactid
-      numEvents
-      nodeId
-      nonce
-      logs
-      metadata
-      id
-      blockId
-      blockByBlockId {
-        adjacents
-        createdAt
-        chainwebVersion
-        epochStart
-        creationTime
-        featureFlags
-        hash
-        height
-        id
-        nodeId
-        nonce
-        target
-        parent
-        payloadHash
-        updatedAt
-        weight
-      }
-      eventsByTransactionId {
-        nodes {
-          updatedAt
-          transactionId
-          requestkey
-          qualname
-          paramtext
-          params
-          payloadHash
-          nodeId
-          modulehash
-          module
-          name
+  query GetTransactionById($requestKey: String!) {
+    transactionByRequestKey(
+      requestkey: $requestKey
+      transferLimit: 20
+      eventLimit: 20
+    ) {
+      transfers {
+        contract {
+          chainId
           createdAt
           id
-        }
-      }
-      transfersByTransactionId {
-        nodes {
-          updatedAt
-          transactionId
+          metadata
+          network
+          module
+          precision
           tokenId
+          updatedAt
+          type
+        }
+        transfer {
+          amount
+          chainId
+          contractId
+          createdAt
+          fromAcct
+          hasTokenId
+          modulehash
+          id
+          modulename
           requestkey
+          tokenId
           toAcct
           payloadHash
-          nodeId
-          modulename
-          modulehash
-          id
-          createdAt
-          amount
-          fromAcct
-          contractByContractId {
-            nodeId
-            metadata
-            module
-            tokenId
-          }
+          network
+          updatedAt
+          type
+          transactionId
         }
+      }
+      transaction {
+        blockId
+        chainId
+        code
+        continuation
+        createdAt
+        creationtime
+        data
+        gas
+        gaslimit
+        gasprice
+        hash
+        id
+        logs
+        metadata
+        numEvents
+        nonce
+        payloadHash
+        pactid
+        requestkey
+        proof
+        rollback
+        result
+        step
+        sigs
+        sender
+        updatedAt
+        ttl
+        txid
+      }
+      events {
+        chainId
+        createdAt
+        id
+        module
+        modulehash
+        params
+        name
+        paramtext
+        payloadHash
+        qualname
+        requestkey
+        transactionId
+        updatedAt
       }
     }
   }
@@ -223,18 +126,19 @@ const { $graphql } = useNuxtApp();
 
 const { data: transaction } = await useAsyncData('GetTransactionById', async () => {
   const {
-    transaction,
+    transactionByRequestKey
   } = await $graphql.default.request(query, {
-    id: route.params.requestKey,
-    // requestKey: 'R0x-RA7B5J7gMWNYa1CWc2HDyas5JsZtv-AyGzdyYmc',
+    // id: route.params.requestKey,
+    requestKey: 'R0x-RA7B5J7gMWNYa1CWc2HDyas5JsZtv-AyGzdyYmc',
   });
 
-  return transaction
+  return transactionByRequestKey
 });
 
-if (!transaction.value) {
-  await navigateTo('/404')
-}
+console.log('transaction', transaction.value)
+// if (!transaction.value) {
+//   await navigateTo('/404')
+// }
 </script>
 
 <template>
@@ -247,7 +151,7 @@ if (!transaction.value) {
 
     <PageContainer>
       <TransactionDetails
-        v-bind="transaction"
+        v-bind="transaction.transaction"
       />
     </PageContainer>
 
@@ -257,19 +161,20 @@ if (!transaction.value) {
       >
         <TabPanel>
           <TransactionOverview
-            v-bind="transaction"
+            v-bind="transaction.transaction"
+            :transfers="transaction.transfers"
           />
         </TabPanel>
 
         <TabPanel>
           <TransactionMeta
-            v-bind="transaction"
+            v-bind="transaction.transaction"
           />
         </TabPanel>
 
         <TabPanel>
           <TransactionOutput
-            v-bind="transaction"
+            v-bind="transaction.transaction"
           />
         </TabPanel>
 

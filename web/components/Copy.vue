@@ -13,7 +13,7 @@ const copyToClipboard = async (value: string | number) => {
   try {
     await navigator.clipboard.writeText(value + '')
 
-    return new Promise(resolve => setTimeout(resolve, 900));
+    return new Promise(resolve => setTimeout(resolve, 420));
   } catch (e) {
     console.warn(e)
   }
