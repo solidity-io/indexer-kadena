@@ -90,7 +90,7 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
       >
         <template #status="{ row }">
           <ColumnStatus
-            :key="'status-' + row.requestKey"
+            :key="'status-' + row.requestkey"
             :row="row"
           />
         </template>
@@ -98,7 +98,7 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
         <template #requestKey="{ row }">
           <ColumnLink
             :label="row.requestkey"
-            :to="`/transactions/${row.nodeId}`"
+            :to="`/transactions/${row.requestkey}`"
           />
         </template>
 

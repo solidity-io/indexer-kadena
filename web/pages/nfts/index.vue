@@ -36,9 +36,6 @@ const query = gql`
         createdAt
         fromAcct
         amount
-        transactionByTransactionId {
-          nodeId
-        }
         contractByContractId {
           nodeId
           metadata
@@ -87,7 +84,7 @@ const {
         <template #hash="{ row }">
           <ColumnLink
             :label="row.requestkey"
-            :to="`/transactions/${row.transactionByTransactionId.nodeId}`"
+            :to="`/transactions/${row.requestkey}`"
           />
         </template>
 

@@ -31,7 +31,7 @@ const status = useTransactionStatus(props.result)
       <Value
         isLink
         label="Request Key"
-        :to="`/transactions/${props.nodeId}`"
+        :to="`/transactions/${props.requestkey}`"
         :value="shortenAddress(props.requestkey)"
       />
 

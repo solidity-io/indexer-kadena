@@ -128,8 +128,7 @@ const { data: transaction } = await useAsyncData('GetTransactionById', async () 
   const {
     transactionByRequestKey
   } = await $graphql.default.request(query, {
-    // id: route.params.requestKey,
-    requestKey: 'R0x-RA7B5J7gMWNYa1CWc2HDyas5JsZtv-AyGzdyYmc',
+    requestKey: route.params.requestKey,
   });
 
   return transactionByRequestKey

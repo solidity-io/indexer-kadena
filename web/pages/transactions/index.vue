@@ -114,7 +114,7 @@ console.log('transactions', transactions.value)
         <template #requestKey="{ row }">
           <ColumnLink
             :label="row.requestkey"
-            :to="`/transactions/${row.nodeId}`"
+            :to="`/transactions/${row.requestkey}`"
           />
         </template>
 

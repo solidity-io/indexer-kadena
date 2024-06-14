@@ -12,7 +12,7 @@ const status = useTransactionStatus(props.result)
 
 <template>
   <NuxtLink
-    :to="`/transactions/${nodeId}`"
+    :to="`/transactions/${requestkey}`"
     class="py-3 border-b border-gray-300 flex gap-2 hover:opacity-[0.8]"
   >
     <IconStatus

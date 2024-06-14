@@ -1,7 +1,6 @@
 <script setup lang="ts">
 defineProps<{
   code: any;
-  nodeId: string,
   result: string,
   sender: string,
   chainId: number,
@@ -45,7 +44,6 @@ const {
         <TransactionNFT
           v-if="contract"
           :contract="contract"
-          :nodeId="transfer.nodeId"
         />
 
         <TransactionToken
