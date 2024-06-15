@@ -65,11 +65,11 @@ const {
 
         <LabelValue
           label="Market Data Source"
-          class="w-max bazk:w-auto"
+          class="w-auto"
         >
           <template #value>
             <div
-              class="flex items-center px-2 py-1 gap-1 rounded bg-gray-600 shrink-0"
+              class="flex items-center px-2 py-1 gap-1 rounded bg-gray-600 shrink-0 min-w-max"
             >
               <IconCoinGecko
                 class="w-4 h-4 shrink-0"

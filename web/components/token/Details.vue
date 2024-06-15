@@ -39,10 +39,10 @@ const {
     </div>
 
     <div
-      class="grid grid-cols-1 bazk:gap-4 bazk:grid-cols-2 divide-y divide-gray-300 bazk:divide-y-0"
+      class="grid grid-cols-1 md:gap-4 md:grid-cols-2 divide-y divide-gray-300 md:divide-y-0"
     >
       <div
-        class="flex flex-col gap-4 pb-4 bazk:pb-0"
+        class="flex flex-col gap-4 pb-4 md:pb-0"
       >
         <div>
           <span
@@ -53,7 +53,7 @@ const {
         </div>
 
         <div
-          class="grid grid-cols-2 bazk:grid-cols-1 gap-3 bazk:gap-4"
+          class="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4"
         >
           <LabelValue
             label="Price"
@@ -91,7 +91,7 @@ const {
       </div>
 
       <div
-        class="flex flex-col gap-4 pt-4 bazk:pt-0"
+        class="flex flex-col gap-4 pt-4 md:pt-0"
       >
         <div>
           <span
@@ -102,7 +102,7 @@ const {
         </div>
 
         <div
-          class="grid grid-cols-2 bazk:grid-cols-1 gap-3 bazk:gap-4"
+          class="grid grid-cols-2 md:grid-cols-1 gap-3 md:gap-4"
         >
           <LabelValue
             label="Module"

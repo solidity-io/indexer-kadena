@@ -29,7 +29,7 @@ provideUseId(() => useId())
           >
             <button
               :class="[
-                'pb-[6px] lg:pb-[10px] px-3 lg:px-3 outline-none box-border border-b border-b-[2px] shrink-0 disabled:cursor-not-allowed disabled:opacity-[0.8]',
+                'pb-[6px] lg:pb-[10px] px-3 lg:px-3 outline-none box-border border-b-[2px] shrink-0 disabled:cursor-not-allowed disabled:opacity-[0.8]',
                 selected
                   ? 'text-font-400  border-b-kadscan-500'
                   : 'text-font-500 border-b-transparent hover:text-kadscan-500',

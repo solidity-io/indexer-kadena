@@ -18,7 +18,7 @@ provideUseId(() => useId())
     class="w-full flex flex-col items-center justify-center bg-gray-800 z-[10]"
   >
     <div
-      class="w-full max-w-screen-bazk py-3 lg:py-4 px-4 lg:px-[15px] xl:px-[30px] bazk:px-[60px] flex justify-between"
+      class="w-full max-w-screen-bazk py-3 lg:py-4 px-4 flex justify-between"
     >
       <NuxtLink
         to="/"
@@ -30,7 +30,7 @@ provideUseId(() => useId())
       </NuxtLink>
 
       <div
-        class="hidden lg:flex items-center justify-center gap-2"
+        class="hidden md:flex items-center justify-center gap-2"
       >
         <HeaderRoute
           :key="route.tag + i"
@@ -40,7 +40,7 @@ provideUseId(() => useId())
       </div>
 
       <DisclosureButton
-        class="lg:hidden h-8 w-8 rounded p-1 bg-gray-700"
+        class="md:hidden h-8 w-8 rounded p-1 bg-gray-700"
       >
         <IconMenu
           v-if="!open"

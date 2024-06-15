@@ -72,7 +72,7 @@ export default {
       md: '768px',
       lg: '1024px',
       xl: '1280px',
-      bazk: '1440px',
+      bazk: '1352px',
     },
   },
   plugins: [

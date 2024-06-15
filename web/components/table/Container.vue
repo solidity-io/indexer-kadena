@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-gray-800 p-4 bazk:p-6 bazk:rounded-2xl rounded-lg"
+    class="bg-gray-800 p-4 md:p-6 md:rounded-2xl rounded-lg"
   >
     <slot />
   </div>
