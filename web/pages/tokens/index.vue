@@ -62,6 +62,7 @@ const { data: transfers, pending } = await useAsyncData('all-token-transfers', a
 
   return {
     totalPages,
+    totalCount: transfers.totalCount,
     pageInfo: transfers.pageInfo,
     nodes: transfers.nodes.map((transfer: any) => {
       const metadata = staticTokens.find(({ module }) => module === transfer.modulename) || unknownToken

@@ -70,7 +70,7 @@ const emit = defineEmits(['rowClick'])
 
       <div
         class="relative divide-y"
-        :class="[isFull ? 'min-w-full' : 'min-w-[1200px] bazk:min-w-full']"
+        :class="[isFull && 'min-w-full', (pending || rows?.length > 0) && !isFull && 'min-w-[1200px] bazk:min-w-full']"
       >
         <div
           v-if="pending"
