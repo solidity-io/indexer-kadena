@@ -125,13 +125,19 @@ const route = useRoute()
 const { $graphql } = useNuxtApp();
 
 const { data: transaction } = await useAsyncData('GetTransactionById', async () => {
-  const {
-    transactionByRequestKey
-  } = await $graphql.default.request(query, {
-    requestKey: route.params.requestKey,
-  });
+  try {
+    const {
+      transactionByRequestKey
+    } = await $graphql.default.request(query, {
+      requestKey: route.params.requestKey,
+    });
 
-  return transactionByRequestKey
+    return transactionByRequestKey
+  } catch (e) {
+    console.warn('error', e);
+
+    return;
+  }
 });
 
 if (!transaction.value) {
