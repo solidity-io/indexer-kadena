@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const props = defineProps<{
-  nodeId?: any
   contract?: any,
 }>()
 
@@ -9,7 +8,7 @@ const nft = useNft(props?.contract)
 
 <template>
   <NuxtLink
-    :to="`/nfts/${props.nodeId}`"
+    :to="contract?.id ? `/nfts/${contract?.id}` : ''"
     class="w-full"
   >
     <div

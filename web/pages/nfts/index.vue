@@ -37,7 +37,7 @@ const query = gql`
         fromAcct
         amount
         contractByContractId {
-          nodeId
+          id
           metadata
           module
           tokenId
@@ -72,7 +72,7 @@ console.log('transfers', transfers.value)
       NFT Transfers
     </PageTitle>
 
-    <PageContainer>
+    <TableContainer>
       <TableRoot
         title="Latest Transactions"
         :pending="pending"
@@ -110,7 +110,6 @@ console.log('transfers', transfers.value)
 
         <template #item="{ row }">
           <ColumnNft
-            :nodeId="row.nodeId"
             :contract="row.contractByContractId"
           />
         </template>
@@ -145,6 +144,6 @@ console.log('transfers', transfers.value)
           />
         </template>
       </TableRoot>
-    </PageContainer>
+    </TableContainer>
   </PageRoot>
 </template>

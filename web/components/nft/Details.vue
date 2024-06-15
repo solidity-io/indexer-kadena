@@ -21,7 +21,7 @@ const nft = useNft(props.contract)
         aspect-square
         md:max-w-[560px]
         md:rounded-2xl
-        overflow-hidden border-[3px] border-gray-800 shrink-1 flex justify-center items-center"
+        overflow-hidden border-[3px] border-gray-800 shrink-2 flex justify-center items-center"
     >
       <NftImage
         :image="nft.image"
@@ -69,18 +69,25 @@ const nft = useNft(props.contract)
       </div> -->
 
       <div
-        class="grid gap-3 md:gap-6"
+        class="grid gap-3 md:gap-4 lg:gap-6"
       >
         <LabelValue
           copy
-          label="Owner"
-          value="-"
+          label="Chain Id"
+          :value="props.contract.chainId"
           :description="blockchainTooltipData.nftDetails.owner"
         />
 
         <LabelValue
-          label="Creator"
-          value="-"
+          copy
+          label="Module"
+          :value="props.contract.module"
+          :description="blockchainTooltipData.nftDetails.owner"
+        />
+
+        <LabelValue
+          label="Collection"
+          :value="nft.collection"
           :description="blockchainTooltipData.nftDetails.creator"
         />
 

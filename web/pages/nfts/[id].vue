@@ -30,15 +30,14 @@ const data = reactive({
 })
 
 const query = gql`
-  query GetNftById($id: ID!) {
-    contract(nodeId: $id) {
+  query GetNftById($id: Int!) {
+    contractById(id: $id) {
       chainId
       createdAt
       id
       metadata
       module
       network
-      nodeId
       precision
       tokenId
       updatedAt
@@ -52,13 +51,11 @@ const route = useRoute()
 const { $graphql } = useNuxtApp();
 
 const { data: nft } = await useAsyncData('GetNftById', async () => {
-  const {
-    contract
-  } = await $graphql.default.request(query, {
-    id: route.params.tokenId,
+  const res = await $graphql.default.request(query, {
+    id: Number(route.params.id),
   });
 
-  return contract
+  return res.contractById
 });
 
 if (!nft.value) {
@@ -67,7 +64,9 @@ if (!nft.value) {
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    v-if="nft"
+  >
     <NftDetails
       :contract="nft"
     />
