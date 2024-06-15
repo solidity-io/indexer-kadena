@@ -69,7 +69,7 @@ const {
         >
           <template #value>
             <div
-              class="flex items-center px-2 py-1 gap-1 rounded bg-gray-600 shrink-0 min-w-max"
+              class="flex items-center px-2 py-1 gap-1 rounded bg-gray-600 shrink-0 max-w-max"
             >
               <IconCoinGecko
                 class="w-4 h-4 shrink-0"

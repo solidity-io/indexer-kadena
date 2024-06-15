@@ -24,7 +24,7 @@ const emit = defineEmits(['rowClick'])
   <div>
     <div
       v-if="title"
-      class="pb-4 lg:pb-6"
+      class="pb-4 md:pb-6"
     >
       <span
         class="text-font-400 text-lg leading-[100%] font-semibold tracking-[0.36px]"

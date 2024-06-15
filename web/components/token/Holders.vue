@@ -155,7 +155,7 @@ const data = reactive({
     </TableRoot>
 
     <PaginateTable
-      class="px-3 bazk:px-0"
+      class="px-3 md:px-0"
       :currentPage="data.page"
       :totalItems="data.totalCount ?? 1"
       :totalPages="data.totalPages"
