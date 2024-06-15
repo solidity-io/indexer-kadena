@@ -3,6 +3,7 @@ const props = defineProps<{
   row: any;
   columns: any;
   rowIndex: any;
+  isLast?: any,
 }>()
 
 const emit = defineEmits(['click'])
@@ -11,7 +12,8 @@ const emit = defineEmits(['click'])
 <template>
   <div
     @click.prevent="emit('click')"
-    class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-3 bazk:px-4 py-2 border-b border-b-gray-300 justify-between hover:bg-gray-700 group"
+    :class="[isLast && '!border-b border-b-gray-300']"
+    class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-3 bazk:px-4 py-2 justify-between hover:bg-gray-700 group"
   >
     <div
       :key="index"

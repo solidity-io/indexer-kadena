@@ -76,7 +76,7 @@ const onMouseLeave = () => {
       </div>
 
       <div
-        class="w-[15px] h-[15px] bg-gray-400 rotate-45 z-[-1] absolute bottom-[-4px] left-1/2 -translate-x-1/2"
+        class="hidden md:block w-[15px] h-[15px] bg-gray-400 rotate-45 z-[-1] absolute bottom-[-4px] left-1/2 -translate-x-1/2"
       />
     </div>
 

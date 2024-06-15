@@ -5,9 +5,13 @@ const props = withDefaults(
     columns: any[],
     title?: string,
     pending?: boolean,
+    isFull?: boolean,
+    mobileWithoutHeader?: boolean,
   }>(),
   {
+    isFull: false,
     pending: false,
+    mobileWithoutHeader: false,
   }
 )
 
@@ -38,7 +42,11 @@ const emit = defineEmits(['rowClick'])
     >
       <div
         v-if="!pending && rows?.length > 0"
-        class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 min-w-[1200px] bazk:min-w-full"
+        class="grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 border-b border-b-gray-300"
+        :class="[
+          mobileWithoutHeader ? 'hidden md:grid' : 'grid',
+          isFull ? 'min-w-full' : 'min-w-[1200px] bazk:min-w-full',
+        ]"
       >
         <div
           v-for="column in props.columns"
@@ -61,8 +69,8 @@ const emit = defineEmits(['rowClick'])
       </div>
 
       <div
-        :class="!pending && rows?.length > 0 && 'border-t border-t-gray-300 min-w-[1200px]'"
-        class="bazk:min-w-full relative"
+        class="relative divide-y"
+        :class="[isFull ? 'min-w-full' : 'min-w-[1200px] bazk:min-w-full']"
       >
         <div
           v-if="pending"
@@ -90,11 +98,13 @@ const emit = defineEmits(['rowClick'])
             :rowIndex="rowIndex"
             :key="row.requestKey"
             v-for="(row, rowIndex) in rows"
+            :isLast="rowIndex === rows.length - 1"
           >
             <TableRowDefault
               :row="row"
               :columns="columns"
               :rowIndex="rowIndex"
+              :isLast="rowIndex + 1 === rows.length"
             >
               <template v-for="name in filteredSlots" v-slot:[name]="slotData">
                 <slot :name="name" v-bind="slotData" />

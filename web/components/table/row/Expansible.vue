@@ -7,6 +7,7 @@ import {
 
 const props = defineProps<{
   row: any;
+  isLast?: any,
   columns: any;
   rowIndex: any;
   subColumns: any;
@@ -19,31 +20,59 @@ const emit = defineEmits(['click'])
   <Disclosure
     as="div"
     v-slot="{ open }"
-    class="border-b border-b-gray-300"
+    :class="[isLast && 'md:!border-b border-b-gray-300']"
   >
     <DisclosureButton
       @click.prevent="emit('click')"
-      class="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-3 justify-between w-full items-center"
+      class="
+        grid grid-cols-2
+        md:grid-cols-[repeat(24,minmax(0,1fr))] gap-3 md:gap-1 lg:gap-4 px-3 md:px-4 py-3 justify-between w-full items-center
+      "
     >
       <div
         :key="index"
         v-for="(column, index) in columns"
-        :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
-        class="text-font-400 flex items-center"
-        :class="column.center && 'text-center justify-center'"
+        :style="{ '--col-span': column.cols }"
+        class="text-font-400 flex items-center col-span-1 md-grid-column-custom"
+        :class="column.center && 'text-center justify-end md:justify-center'"
       >
-        <slot
-          :row="row"
-          :open="open"
-          :name="column.key"
-          :order="rowIndex"
+        <div
+          class="hidden md:block"
         >
-          <span
-            class="text-font-400 text-sm truncate"
+          <slot
+            :row="row"
+            :open="open"
+            :name="column.key"
+            :order="rowIndex"
           >
-            {{ row[column.key] }}
-          </span>
-        </slot>
+            <span
+              class="text-font-400 text-sm truncate"
+            >
+              {{ row[column.key] }}
+            </span>
+          </slot>
+        </div>
+
+        <LabelValue
+          :description="column.description"
+          :label="column.label === 'Distribution' ? '' : column.label"
+          class="md:hidden"
+        >
+          <template #value>
+            <slot
+              :row="row"
+              :open="open"
+              :name="column.key"
+              :order="rowIndex"
+            >
+              <span
+                class="text-font-400 text-sm truncate text-left"
+              >
+                {{ row[column.key] }}
+              </span>
+            </slot>
+          </template>
+        </LabelValue>
       </div>
     </DisclosureButton>
 
@@ -101,3 +130,10 @@ const emit = defineEmits(['click'])
     </transition>
   </Disclosure>
 </template>
+
+<style>
+@screen md {
+  .md-grid-column-custom {
+    grid-column: span var(--col-span) / span var(--col-span);
+  }
+}</style>

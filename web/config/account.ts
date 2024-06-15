@@ -2,13 +2,13 @@ import { blockchainTooltipData } from "./tooltips"
 
 export const assetsTableColumns = [
   {
-    cols: 4,
+    cols: 5,
     key: 'asset',
     label: 'Asset',
     description: blockchainTooltipData.account.tabAssets.asset
   },
   {
-    cols: 6,
+    cols: 5,
     key: 'module',
     label: 'Module',
     description: blockchainTooltipData.account.tabAssets.symbol

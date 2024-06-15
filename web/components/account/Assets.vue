@@ -21,11 +21,14 @@ const {
   >
     <TableRoot
       :rows="balances"
+      :isFull="true"
+      :mobileWithoutHeader="true"
       :columns="assetsTableColumns"
     >
-      <template #row="{ row, columns, rowIndex }">
+      <template #row="{ row, columns, rowIndex, isLast }">
         <TableRowExpansible
           :row="row"
+          :isLast="isLast"
           :columns="columns"
           :rowIndex="rowIndex"
           :subColumns="assetsTableSubColumns"
