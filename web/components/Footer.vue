@@ -14,16 +14,16 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
     class="w-full bg-gray-800"
   >
     <div
-      class="w-full max-w-screen-bazk mx-auto px-4 py-6 lg:py-8 flex flex-col gap-6"
+      class="w-full max-w-screen-bazk mx-auto px-4 py-6 md:py-8 flex flex-col gap-6"
     >
       <div
         class="flex justify-between gap-4 flex-wrap"
       >
         <div
-          class="flex flex-col gap-2 bazk:gap-2.5 max-w-[360px]"
+          class="flex flex-col gap-2 md:gap-2.5 max-w-[360px]"
         >
           <IconLogoColor
-            class="h-[38px] bazk:h-[42px] w-max"
+            class="h-[38px] md:h-[42px] w-max"
           />
 
           <div>
@@ -35,7 +35,7 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
           </div>
 
           <div
-            class="flex items-center gap-4 pt-2 bazk:pt-0"
+            class="flex items-center gap-4 pt-2 md:pt-0"
           >
             <Network
               v-for="network in networks"
@@ -48,13 +48,13 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
         </div>
 
         <div
-          class="flex justify-between w-full bazk:w-auto flex-wrap gap-3 bazk:gap-6"
+          class="flex justify-between w-full md:w-auto flex-wrap gap-3 md:gap-6"
         >
           <div
-            class="flex flex-col bazk:min-w-[180px] gap-2 bazk:gap-3 grow"
+            class="flex flex-col md:min-w-[180px] gap-2 md:gap-3 grow"
           >
             <span
-              class="text-font-400 text-lg bazk:text-base bazk:font-[400] font-semibold"
+              class="text-font-400 text-lg md:text-base md:font-[400] font-semibold"
             >
               Overview
             </span>
@@ -71,11 +71,11 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
 
           <div
             :key="'footer-group-'+group.tag"
-            class="flex flex-col bazk:min-w-[180px] gap-2 bazk:gap-3 grow"
+            class="flex flex-col md:min-w-[180px] gap-2 md:gap-3 grow"
             v-for="group of groupRoutes"
           >
             <span
-              class="text-font-400 text-lg bazk:text-base bazk:font-[400] font-semibold"
+              class="text-font-400 text-lg md:text-base md:font-[400] font-semibold"
             >
               {{ group.label }}
             </span>

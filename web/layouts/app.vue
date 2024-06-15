@@ -14,8 +14,8 @@
       class="
         w-full max-w-[1352px] grow
         px-4
-        pt-4 lg:pt-6
-        pb-[60px] lg:pb-[38px]
+        pt-4 md:pt-6
+        pb-[60px] md:pb-[38px]
       "
     >
       <slot />

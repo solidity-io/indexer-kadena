@@ -13,7 +13,7 @@ defineProps<{
     class="flex gap-2 md:gap-4 flex-col md:flex-row"
     :class="[
       col && '!flex-col !items-start',
-      value && 'lg:items-center'
+      value && 'md:items-center'
     ]"
   >
     <div
