@@ -17,7 +17,7 @@ const {
 
 <template>
   <div
-    class="py-3 bazk:p-6 rounded-lg bazk:rounded-2xl border border-gray-300"
+    class="py-3 md:p-6 rounded-lg md:rounded-2xl border border-gray-300"
   >
     <TableRoot
       :rows="balances"

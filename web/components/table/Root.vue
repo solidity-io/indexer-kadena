@@ -41,7 +41,7 @@ const emit = defineEmits(['rowClick'])
       class="max-w-full overflow-auto w-full"
     >
       <div
-        v-if="!pending && rows?.length > 0"
+        v-if="pending || rows?.length > 0"
         class="grid-cols-[repeat(24,minmax(0,1fr))] gap-4 px-4 py-2 border-b border-b-gray-300"
         :class="[
           mobileWithoutHeader ? 'hidden md:grid' : 'grid',
