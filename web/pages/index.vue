@@ -82,7 +82,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
         "
       >
         <HomeCard
-          :label="data?.token.name + ' Price'"
+          :label="data?.token?.name + ' Price'"
           :description="moneyCompact.format(data?.token.market_data?.current_price.usd)"
           :delta="data?.token.market_data.price_change_percentage_24h_in_currency.usd"
         />
