@@ -73,7 +73,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
     <HomeHero />
 
     <Container
-      v-if="!error"
+      v-if="!error && data.token"
       class="lg:!p-8 gap-4 lg:gap-6 grid lg:grid-cols-2"
     >
       <div
@@ -83,24 +83,24 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
       >
         <HomeCard
           :label="data?.token?.name + ' Price'"
-          :description="moneyCompact.format(data?.token.market_data?.current_price.usd)"
-          :delta="data?.token.market_data.price_change_percentage_24h_in_currency.usd"
+          :description="moneyCompact.format(data?.token?.market_data?.current_price.usd)"
+          :delta="data?.token?.market_data?.price_change_percentage_24h_in_currency?.usd"
         />
 
         <HomeCard
           isDark
           label="Total Volume"
-          :description="moneyCompact.format(data?.token.market_data.total_volume.usd)"
+          :description="moneyCompact.format(data?.token?.market_data?.total_volume.usd)"
         />
 
         <HomeCard
           label="Market Capital"
-          :description="moneyCompact.format(data?.token.market_data.market_cap.usd)"
+          :description="moneyCompact.format(data?.token?.market_data?.market_cap.usd)"
         />
 
         <HomeCard
           label="Circulating Supply"
-          :description="moneyCompact.format(data?.token.market_data.circulating_supply)"
+          :description="moneyCompact.format(data?.token?.market_data?.circulating_supply)"
         />
       </div>
 
