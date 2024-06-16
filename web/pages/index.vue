@@ -9,6 +9,12 @@ useHead({
   title: 'Kadscan'
 })
 
+const defaultChartData = {
+  market_caps: [],
+  prices: [],
+  total_volumes: []
+}
+
 const { $graphql, $coingecko } = useNuxtApp();
 
 const query = gql`
@@ -92,17 +98,17 @@ const { data, error } = useAsyncData('GetChartData', async () => {
         <HomeCard
           isDark
           label="Total Volume"
-          :description="moneyCompact.format(data?.token?.market_data?.total_volume?.usd)"
+          :description="moneyCompact.format(data?.token?.market_data?.total_volume?.usd || 0)"
         />
 
         <HomeCard
           label="Market Capital"
-          :description="moneyCompact.format(data?.token?.market_data?.market_cap?.usd)"
+          :description="moneyCompact.format(data?.token?.market_data?.market_cap?.usd || 0)"
         />
 
         <HomeCard
           label="Circulating Supply"
-          :description="moneyCompact.format(data?.token?.market_data?.circulating_supply)"
+          :description="moneyCompact.format(data?.token?.market_data?.circulating_supply || 0)"
         />
       </div>
 
@@ -119,7 +125,7 @@ const { data, error } = useAsyncData('GetChartData', async () => {
           class="h-full max-h-[216px]"
         >
           <Chart
-            v-bind="data?.chartData || []"
+            v-bind="data?.chartData || defaultChartData"
           />
         </div>
       </div>
