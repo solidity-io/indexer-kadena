@@ -45,11 +45,11 @@ const query = gql`
 
 const { data, error } = useAsyncData('GetChartData', async () => {
   const [
-    // apiRes,
+    apiRes,
     token,
     chartData,
   ] = await Promise.all([
-    // $graphql.default.request(query),
+    $graphql.default.request(query),
     $coingecko.request('coins/kadena'),
     $coingecko.request('coins/kadena/market_chart', {
       days: 14,
@@ -64,7 +64,7 @@ const { data, error } = useAsyncData('GetChartData', async () => {
   return {
     token,
     chartData,
-    // ...apiRes
+    ...apiRes
   };
 });
 </script>
@@ -119,7 +119,7 @@ const { data, error } = useAsyncData('GetChartData', async () => {
           class="h-full max-h-[216px]"
         >
           <Chart
-            v-bind="data?.chartData"
+            v-bind="data?.chartData || []"
           />
         </div>
       </div>
