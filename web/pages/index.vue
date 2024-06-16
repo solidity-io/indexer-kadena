@@ -64,9 +64,6 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
     })
   ])
 
-  console.log('token', token)
-  console.log('chatData', chartData)
-
   return {
     token,
     chartData,

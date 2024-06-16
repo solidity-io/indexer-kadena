@@ -149,7 +149,7 @@ const cleanup = () => {
 
     <div
       v-if="data.open"
-      class="absolute top-full mt-2 w-full max-w-[580px] right-0 bg-gray-700 rounded-lg p-4 gap-4 flex flex-col border border-gray-300 max-h-[344px] overflow-auto scrollbar-custom"
+      class="absolute top-full mt-2 w-full right-0 bg-gray-700 rounded-lg p-4 gap-4 flex flex-col border border-gray-300 max-h-[344px] overflow-auto scrollbar-custom"
     >
       <div
         v-if="data.loading"
