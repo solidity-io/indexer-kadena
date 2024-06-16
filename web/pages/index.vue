@@ -49,7 +49,7 @@ const query = gql`
   }
 `
 
-const { data, error } = useAsyncData('GetChartData', async () => {
+const { data, error } = await useAsyncData('GetChartData', async () => {
   const [
     apiRes,
     token,
