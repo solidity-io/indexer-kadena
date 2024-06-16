@@ -49,7 +49,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
     token,
     chartData,
   ] = await Promise.all([
-    $graphql.default.request(query),
+    // $graphql.default.request(query),
     $coingecko.request('coins/kadena'),
     $coingecko.request('coins/kadena/market_chart', {
       days: 14,
@@ -73,7 +73,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
     <HomeHero />
 
     <Container
-      v-if="!error && data.token"
+      v-if="data?.token"
       class="lg:!p-8 gap-4 lg:gap-6 grid lg:grid-cols-2"
     >
       <div
@@ -124,7 +124,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
     </Container>
 
     <div
-      v-if="!error"
+      v-if="data?.allTransactions"
       class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
       <HomeList
