@@ -67,7 +67,6 @@ const icons = {
     <component
       v-if="icon"
       :is="icons[icon]"
-      :class="[iconSizes[props.size]]"
       class="
         w-0
         z-[2]
