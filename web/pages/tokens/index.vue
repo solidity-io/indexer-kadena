@@ -50,7 +50,7 @@ const { $graphql } = useNuxtApp();
 const page = ref(1)
 const limit = ref(20)
 
-const { data: transfers, pending } = await useAsyncData('all-token-transfers', async () => {
+const { data: transfers, pending } = useAsyncData('all-token-transfers', async () => {
   const res = await $graphql.default.request(query, {
     first: limit.value,
     offset: (page.value - 1) * 20,

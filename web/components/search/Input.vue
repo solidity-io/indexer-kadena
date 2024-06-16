@@ -103,7 +103,7 @@ const cleanup = () => {
         w-full p-2 bg-gray-800 rounded-lg border border-transparent
       "
     >
-      <div
+      <!-- <div
         class="hidden bazk:block"
       >
         <Select
@@ -111,7 +111,7 @@ const cleanup = () => {
           :items="data.filters"
           @update:model-value="search(data.query as any)"
         />
-      </div>
+      </div> -->
 
       <input
         class="

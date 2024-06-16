@@ -45,11 +45,11 @@ const query = gql`
 
 const { data, error } = useAsyncData('GetChartData', async () => {
   const [
-    apiRes,
+    // apiRes,
     token,
     chartData,
   ] = await Promise.all([
-    $graphql.default.request(query),
+    // $graphql.default.request(query),
     $coingecko.request('coins/kadena'),
     $coingecko.request('coins/kadena/market_chart', {
       days: 14,
@@ -64,7 +64,7 @@ const { data, error } = useAsyncData('GetChartData', async () => {
   return {
     token,
     chartData,
-    ...apiRes
+    // ...apiRes
   };
 });
 </script>
@@ -76,7 +76,6 @@ const { data, error } = useAsyncData('GetChartData', async () => {
     <HomeHero />
 
     <Container
-      v-if="data?.token"
       class="lg:!p-8 gap-4 lg:gap-6 grid lg:grid-cols-2"
     >
       <div
@@ -85,25 +84,25 @@ const { data, error } = useAsyncData('GetChartData', async () => {
         "
       >
         <HomeCard
-          :label="data?.token.name + ' Price'"
-          :description="moneyCompact.format(data?.token.market_data.current_price.usd)"
-          :delta="data?.token.market_data.price_change_percentage_24h_in_currency.usd"
+          :label="data?.token?.name + ' Price'"
+          :description="moneyCompact.format(data?.token?.market_data?.current_price?.usd || 0)"
+          :delta="data?.token?.market_data?.price_change_percentage_24h_in_currency?.usd || 0"
         />
 
         <HomeCard
           isDark
           label="Total Volume"
-          :description="moneyCompact.format(data?.token.market_data.total_volume.usd)"
+          :description="moneyCompact.format(data?.token?.market_data?.total_volume?.usd)"
         />
 
         <HomeCard
           label="Market Capital"
-          :description="moneyCompact.format(data?.token.market_data.market_cap.usd)"
+          :description="moneyCompact.format(data?.token?.market_data?.market_cap?.usd)"
         />
 
         <HomeCard
           label="Circulating Supply"
-          :description="moneyCompact.format(data?.token.market_data.circulating_supply)"
+          :description="moneyCompact.format(data?.token?.market_data?.circulating_supply)"
         />
       </div>
 
