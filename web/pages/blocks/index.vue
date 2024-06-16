@@ -80,8 +80,8 @@ const {
     <TableContainer>
       <TableRoot
         :pending="pending"
-        :rows="blocks.nodes"
         title="Recent Blocks"
+        :rows="blocks?.nodes || []"
         :columns="blocksTableColumns"
       >
         <template
