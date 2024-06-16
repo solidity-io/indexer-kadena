@@ -76,7 +76,7 @@ console.log('transfers', transfers.value)
       <TableRoot
         title="Latest Transactions"
         :pending="pending"
-        :rows="transfers.nodes"
+        :rows="transfers?.nodes || []"
         :columns="nftTransfersTableColumns"
       >
         <template #method>

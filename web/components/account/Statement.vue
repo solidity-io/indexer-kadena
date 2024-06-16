@@ -76,7 +76,7 @@ const {
 
     <TableRoot
       :pending="pending"
-      :rows="transactions.nodes"
+      :rows="transactions?.nodes || []"
       :columns="statementTableColumns"
     >
       <template #createdAt="{ row }">
