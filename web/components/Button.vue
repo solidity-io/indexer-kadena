@@ -54,7 +54,7 @@ const icons = {
       rootClass[props.type],
       iconPosition === 'left' && 'flex-row-reverse',
     ]"
-    class="rounded-lg group box-border w-auto h-auto flex gap-2 w-full items-center"
+    class="rounded-lg group box-border w-auto h-auto flex w-full items-center"
   >
     <span
       class="text-font-400 group-hover:text-kadscan-500 block"
@@ -69,7 +69,16 @@ const icons = {
       v-if="icon"
       :is="icons[icon]"
       :class="[iconSizes[props.size]]"
-      class="text-font-400 group-hover:text-kadscan-500 hidden group-hover:block"
+      class="
+        w-0
+        z-[2]
+        relative
+        text-font-400 group-hover:text-kadscan-500
+        duration-[0.3s]
+        translate-y-[-5%]
+        group-hover:w-[24px]
+        group-hover:mr-[-8px]
+      "
     />
   </button>
 </template>
