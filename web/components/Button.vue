@@ -20,7 +20,6 @@ const props = withDefaults(
 const iconSizes = {
   large: 'h-5 w-5',
   small: 'h-4 w-4',
-  medium: 'h-[18px] w-[18px]',
 }
 
 const rootSizes = {
