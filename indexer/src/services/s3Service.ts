@@ -44,7 +44,7 @@ export async function saveHeader(
   chainId: number,
   height: number,
   data: any
-) {
+): Promise<boolean> {
   const objectKey = `${network}/chains/${chainId}/headers/${height}.json`;
   const jsonData = JSON.stringify(data);
   const params = {
@@ -65,8 +65,10 @@ export async function saveHeader(
       },
       calculateDataSize(jsonData)
     );
+    return true;
   } catch (error) {
     console.error("Error saving header to S3:", error);
+    return false;
   }
 }
 
