@@ -1,4 +1,4 @@
-[Kadscan](https://www.kadscan.io/)
+# [Kadscan](https://www.kadscan.io/)
 
 ==========
 
@@ -6,8 +6,8 @@
 * Use the present tense ("Add feature" not "Added feature") and the imperative mood ("Move class to..." not "Moves class to...") on commits and use the name issue on pull requests.
 * Pull requests must be reviewed before merged.
 * Done is better than perfect. Does it work as expected? Ship now, iterate later.
-* All contributions must have tests. Remember to verify the [Github Actions CI status](https://github.com/hack-a-chain-software/kadena-product/actions/workflows/CI.yaml).
-* Every commit is checked using [Github Actions](https://github.com/hack-a-chain-software/kadena-product/actions).
+* All contributions must have tests. Remember to verify the [Github Actions CI status](https://github.com/hack-a-chain-software/indexer-kadena/actions/workflows/CI.yaml).
+* Every commit is checked using [Github Actions](https://github.com/hack-a-chain-software/indexer-kadena/actions).
 * If the CI status are not passing, the deploy will not work.
 
 ## Coding Style
