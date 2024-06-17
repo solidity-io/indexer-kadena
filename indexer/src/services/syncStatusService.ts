@@ -258,8 +258,8 @@ export class SyncStatusService {
         SELECT 
           "chainwebVersion" AS network,
           "chainId",
-          from_height AS fromHeight,
-          to_height AS toHeight,
+          from_height AS "fromHeight",
+          to_height AS "toHeight",
           diff
         FROM missing_block_ranges
         WHERE "chainId" = :chainId AND "chainwebVersion" = :network
@@ -271,6 +271,8 @@ export class SyncStatusService {
         replacements: { chainId, network },
         type: QueryTypes.SELECT,
       });
+
+      console.log("Records:", records);
 
       return records.length > 0 ? records[0] : null;
     } catch (error) {
