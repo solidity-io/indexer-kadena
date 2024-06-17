@@ -272,8 +272,6 @@ export class SyncStatusService {
         type: QueryTypes.SELECT,
       });
 
-      console.log("Records:", records);
-
       return records.length > 0 ? records[0] : null;
     } catch (error) {
       console.error("Error getting the next missing block:", error);
