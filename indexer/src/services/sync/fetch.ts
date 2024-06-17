@@ -64,5 +64,5 @@ export async function fetchHeaders(network: string, chainId: number, minHeight: 
   const response = await axios.get(endpoint, {
     headers: { Accept: "application/json;blockheader-encoding=object" },
   });
-  return response.data.items;
+  return response.data;
 }
