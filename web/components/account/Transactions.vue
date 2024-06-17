@@ -117,9 +117,11 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
 
         <template #icon>
           <div
-            class="flex items-center justify-center"
+            class="w-8 h-8 group hover:bg-gray-500 rounded grid items-center justify-center"
           >
-            <IconEye />
+            <IconEye
+              class="mx-auto -rotate-90 text-white group-hover:text-kadscan-500 transition"
+            />
           </div>
         </template>
 
