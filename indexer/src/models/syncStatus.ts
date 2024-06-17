@@ -6,6 +6,13 @@ export const SOURCE_API = "api";
 export const SOURCE_BACKFILL = "backfill";
 export const SOURCE_STREAMING = "streaming";
 
+export interface MissingBlocksAttributes {
+  chainId: number;
+  chainwebVersion: string;
+  fromHeight: number;
+  toHeight: number;
+}
+
 export interface SyncStatusAttributes {
   id: number;
   network: string;
@@ -19,8 +26,7 @@ export interface SyncStatusAttributes {
 
 class SyncStatus
   extends Model<SyncStatusAttributes>
-  implements SyncStatusAttributes
-{
+  implements SyncStatusAttributes {
   declare id: number;
   declare network: string;
   declare chainId: number;

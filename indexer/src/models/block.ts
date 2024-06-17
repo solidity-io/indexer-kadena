@@ -68,6 +68,13 @@ Block.init(
   {
     sequelize,
     modelName: "Block",
+    indexes: [
+      {
+        unique: true,
+        fields: ["chainwebVersion", "chainId", "height"],
+        name: "block_unique_constraint",
+      },
+    ],
   }
 );
 
