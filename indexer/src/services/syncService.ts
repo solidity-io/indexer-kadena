@@ -28,13 +28,11 @@ const shutdownSignal = createSignal();
  * Type definition for a function that processes an individual key.
  *
  * @param {string} network - The identifier for the blockchain network (e.g., 'mainnet01').
- * @param {string} prefix - The S3 object prefix used to locate blockchain header data.
  * @param {string} key - The specific S3 object key that points to the data to be processed.
  * @returns {Promise<void>} A promise that resolves when the processing of the key is complete.
  */
 type ProcessKeyFunction = (
   network: string,
-  prefix: string,
   key: string
 ) => Promise<void>;
 
@@ -82,7 +80,7 @@ export async function processKeys(
       if (keys.length > 0) {
         await Promise.all(
           keys.map(async (key) => {
-            processKey(network, prefix, key);
+            processKey(network, key);
           })
         );
         totalKeysProcessed += keys.length;
@@ -280,10 +278,10 @@ export async function startMissingBlocks(network: string) {
         SYNC_FETCH_INTERVAL_IN_BLOCKS
       ).forEach(async (chunk) => {
         console.info(`Processing chunk:`, {
-          fromHeight: chunk[0],
-          toHeight: chunk[1],
+          fromHeight: chunk[1],
+          toHeight: chunk[0],
         });
-        await fetchHeadersWithRetry(network, chainId, chunk[0], chunk[1]);
+        await fetchHeadersWithRetry(network, chainId, chunk[1], chunk[0]);
       });
     }
   }
