@@ -52,7 +52,6 @@ const query = gql`
         balance
         chainId
         createdAt
-        id
         module
         nodeId
         network

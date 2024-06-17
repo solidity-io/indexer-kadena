@@ -26,7 +26,6 @@ const query = gql`
         nodeId
         modulehash
         modulename
-        id
         chainId
         createdAt
         fromAcct

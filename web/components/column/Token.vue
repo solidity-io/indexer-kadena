@@ -1,5 +1,5 @@
 <script setup lang="ts">
-withDefaults(
+const props = withDefaults(
   defineProps<{
     id?: string,
     icon?: string,
@@ -15,7 +15,7 @@ withDefaults(
 
 <template>
   <NuxtLink
-    :to="`/tokens/${id}`"
+    :to="id ? `/tokens/${id}` : ''"
   >
     <div
       class="flex items-center gap-2"
