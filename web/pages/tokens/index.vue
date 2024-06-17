@@ -84,7 +84,7 @@ const { data: transfers, pending } = useAsyncData('all-token-transfers', async (
       Token Transfers
     </PageTitle>
 
-    <PageContainer>
+    <TableContainer>
       <TableRoot
         :pending="pending"
         title="Latest Transactions"
@@ -158,6 +158,6 @@ const { data: transfers, pending } = useAsyncData('all-token-transfers', async (
           />
         </template>
       </TableRoot>
-    </PageContainer>
+    </TableContainer>
   </PageRoot>
 </template>
