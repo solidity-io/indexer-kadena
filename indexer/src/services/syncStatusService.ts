@@ -3,12 +3,17 @@ import SyncStatus, {
   SyncStatusAttributes,
   SOURCE_BACKFILL,
   SOURCE_STREAMING,
+  SOURCE_S3,
+  MissingBlocksAttributes,
 } from "../models/syncStatus";
 import { getRequiredEnvNumber } from "../utils/helpers";
+import { sequelize } from "../config/database";
+import { QueryTypes } from 'sequelize'; // import QueryTypes
 
 const SYNC_FETCH_INTERVAL_IN_BLOCKS_FILLING = getRequiredEnvNumber(
   "SYNC_FETCH_INTERVAL_IN_BLOCKS"
 );
+
 const SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING = 1;
 
 /**
@@ -72,6 +77,17 @@ export class SyncStatusService {
             ],
           },
         };
+      } else if (lastSyncData.source === SOURCE_S3) {
+        filter = {
+          where: {
+            [Op.and]: [
+              { network: lastSyncData.network },
+              { chainId: lastSyncData.chainId },
+              { prefix: lastSyncData.prefix },
+              { source: lastSyncData.source },
+            ],
+          },
+        };
       }
 
       const existingBlock = await SyncStatus.findOne(filter);
@@ -83,11 +99,17 @@ export class SyncStatusService {
           parsedData.fromHeight = existingBlock.fromHeight;
         }
         await existingBlock.update(parsedData);
-        console.log("Sync status updated in database:", existingBlock.toHeight);
+        console.log(
+          "Sync status updated in database:",
+          existingBlock.toHeight || existingBlock.key
+        );
         return existingBlock.toJSON() as SyncStatusAttributes;
       } else {
         const block = await SyncStatus.create(parsedData);
-        console.log("Sync status saved in database:", block.toHeight);
+        console.log(
+          "Sync status saved in database:",
+          block.toHeight || block.key
+        );
         return block.toJSON() as SyncStatusAttributes;
       }
     } catch (error) {
@@ -111,6 +133,23 @@ export class SyncStatusService {
     try {
       const block = await SyncStatus.findOne({
         where: { chainId, network, source },
+      });
+      return block ? (block.toJSON() as SyncStatusAttributes) : null;
+    } catch (error) {
+      console.error("Error finding block:", error);
+      throw error;
+    }
+  }
+
+  async findWithPrefix(
+    chainId: number,
+    network: string,
+    prefix: string,
+    source: string
+  ): Promise<SyncStatusAttributes | null> {
+    try {
+      const block = await SyncStatus.findOne({
+        where: { chainId, network, prefix, source },
       });
       return block ? (block.toJSON() as SyncStatusAttributes) : null;
     } catch (error) {
@@ -179,46 +218,68 @@ export class SyncStatusService {
   async getMissingBlocks(
     network: string,
     chainId: number
-  ): Promise<SyncStatusAttributes[]> {
+  ): Promise<MissingBlocksAttributes[]> {
     try {
-      const records = await SyncStatus.findAll({
-        where: { chainId, network },
-        order: [["toHeight", "DESC"]],
+      const query = `
+        SELECT 
+          "chainwebVersion" AS network,
+          "chainId",
+          from_height AS fromHeight,
+          to_height AS toHeight,
+        FROM missing_block_ranges
+        WHERE "chainId" = :chainId AND "chainwebVersion" = :network
+      `;
+
+      const records = await sequelize.query<MissingBlocksAttributes>(query, {
+        replacements: { chainId, network },
+        type: QueryTypes.SELECT,
       });
 
-      const missingBlocks = [] as SyncStatusAttributes[];
-      let lastToHeight = 0;
-
-      records.forEach((record, index) => {
-        const syncStatus = record.toJSON() as SyncStatusAttributes;
-        if (index === 0) {
-          lastToHeight = syncStatus.toHeight;
-          return;
-        }
-
-        const blockDiffs = lastToHeight - syncStatus.fromHeight - 1;
-        if (blockDiffs > 0) {
-          const fromHeight = lastToHeight - 1;
-          const toHeight = fromHeight - (blockDiffs - 1);
-          missingBlocks.push({
-            network: syncStatus.network,
-            chainId: syncStatus.chainId,
-            fromHeight: fromHeight,
-            toHeight: toHeight,
-            key: "",
-            source: "missingBlocks",
-            id: 0,
-          });
-        }
-        lastToHeight = syncStatus.toHeight;
-      });
-
-      return missingBlocks;
+      return records;
     } catch (error) {
       console.error("Error getting missing blocks:", error);
       throw error;
     }
   }
+
+  /**
+ * Calculates and returns the gaps (missing blocks) in the sync status records for a given chain and network.
+ * This method identifies ranges of blocks that have not been synced based on the existing records.
+ * @param network The network of the chain to check for missing blocks.
+ * @param chainId The chain ID to check for missing blocks.
+ * @returns The next missing block range to process.
+ */
+  async getNextMissingBlock(
+    network: string,
+    chainId: number
+  ): Promise<MissingBlocksAttributes | null> {
+    try {
+      const query = `
+        SELECT 
+          "chainwebVersion" AS network,
+          "chainId",
+          from_height AS "fromHeight",
+          to_height AS "toHeight",
+          diff
+        FROM missing_block_ranges
+        WHERE "chainId" = :chainId AND "chainwebVersion" = :network
+        ORDER BY from_height DESC
+        LIMIT 1;
+      `;
+
+      const records = await sequelize.query<MissingBlocksAttributes>(query, {
+        replacements: { chainId, network },
+        type: QueryTypes.SELECT,
+      });
+
+      return records.length > 0 ? records[0] : null;
+    } catch (error) {
+      console.error("Error getting the next missing block:", error);
+      throw error;
+    }
+  }
 }
+
+
 
 export const syncStatusService = new SyncStatusService();

@@ -1,27 +1,19 @@
-import axios from "axios";
-import {
-  saveHeader,
-  savePayload,
-  listS3Objects,
-  readAndParseS3Object,
-} from "./s3Service";
-import { getDecoded, delay, splitIntoChunks } from "../utils/helpers";
-import { blockService } from "./blockService";
+import "dotenv/config";
+
+import { listS3Objects } from "./s3Service";
+import { delay, splitIntoChunks, getRequiredEnvNumber, createSignal } from "../utils/helpers";
 import { syncStatusService } from "./syncStatusService";
 import { syncErrorService } from "./syncErrorService";
-import { register } from "../server/metrics";
-import { Histogram } from "prom-client";
-import https from "https";
-import "dotenv/config";
+import { fetchHeadersWithRetry } from "./sync/header"
+import { fetchCut, FetchCutResult } from "./sync/fetch"
+
 import {
   SOURCE_S3,
   SOURCE_API,
   SOURCE_BACKFILL,
   SOURCE_STREAMING,
 } from "../models/syncStatus";
-import { getRequiredEnvString, getRequiredEnvNumber } from "../utils/helpers";
 
-const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
 const SYNC_MIN_HEIGHT = getRequiredEnvNumber("SYNC_MIN_HEIGHT");
 const SYNC_FETCH_INTERVAL_IN_BLOCKS = getRequiredEnvNumber(
   "SYNC_FETCH_INTERVAL_IN_BLOCKS"
@@ -29,135 +21,88 @@ const SYNC_FETCH_INTERVAL_IN_BLOCKS = getRequiredEnvNumber(
 const SYNC_TIME_BETWEEN_REQUESTS_IN_MS = getRequiredEnvNumber(
   "SYNC_TIME_BETWEEN_REQUESTS_IN_MS"
 );
-const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
-const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
-  "SYNC_ATTEMPTS_INTERVAL_IN_MS"
-);
 
-const metrics = {
-  syncDuration: new Histogram({
-    name: "sync_duration_seconds",
-    help: "Duration of sync operations in seconds",
-    labelNames: ["chainId", "type", "minheight", "maxheight"],
-    registers: [register],
-  }),
-};
+const shutdownSignal = createSignal();
 
 /**
- * Processes headers from S3 for a specific network and chainId.
- * This method fetches a list of keys (headers) from an S3 bucket based on the last synchronization status.
+ * Type definition for a function that processes an individual key.
+ *
+ * @param {string} network - The identifier for the blockchain network (e.g., 'mainnet01').
+ * @param {string} key - The specific S3 object key that points to the data to be processed.
+ * @returns {Promise<void>} A promise that resolves when the processing of the key is complete.
+ */
+type ProcessKeyFunction = (
+  network: string,
+  key: string
+) => Promise<void>;
+
+/**
+ * Processes keys from S3 for a specific network and chainId.
+ * This method fetches a list of keys from an S3 bucket based on the last synchronization status.
  * For each key, it reads and parses the S3 object to obtain block data, saves the block data to the database,
  * and updates the synchronization status accordingly.
  *
  * @param {string} network - The network identifier (e.g., 'mainnet01').
  * @param {number} chainId - The chain ID to process headers for.
+ * @param {string} prefix - The prefix for the S3 keys to process.
+ * @param {ProcessKeyFunction} processKey - The function to process each key.
+ * @param {number} maxKeys - The maximum number of keys to process in a single batch.
+ * @param {number} maxIterations - The maximum number of iterations to perform. Unlimited if not specified.
+ * @returns {Promise<number>} - A promise that resolves with the total number of keys processed.
  */
-export async function processHeaders(
+export async function processKeys(
   network: string,
-  chainId: number
-): Promise<void> {
+  chainId: number,
+  prefix: string,
+  processKey: ProcessKeyFunction,
+  maxKeys: number = 20,
+  maxIteractions?: number
+): Promise<number> {
+  let totalKeysProcessed = 0;
+
   try {
-    const lastSync = await syncStatusService.find(chainId, network, SOURCE_S3);
-    let keys = [];
-    if (lastSync) {
-      console.log(`Last sync found. Fetching keys from ${lastSync.key}`);
-      keys = await listS3Objects(network, chainId, lastSync.key);
-    } else {
-      console.log(
-        `No last sync found. Fetching all keys for chainId ${chainId}`
-      );
-      keys = await listS3Objects(network, chainId);
+    const lastSync = await syncStatusService.findWithPrefix(
+      chainId,
+      network,
+      prefix,
+      SOURCE_S3
+    );
+
+    let startAfter = lastSync ? lastSync.key : undefined;
+    let isFinished = false;
+    let iterationCount = 0;
+
+    while (
+      !isFinished &&
+      (!maxIteractions || iterationCount < maxIteractions)
+    ) {
+      const keys = await listS3Objects(prefix, maxKeys, startAfter);
+      if (keys.length > 0) {
+        await Promise.all(
+          keys.map(async (key) => {
+            processKey(network, key);
+          })
+        );
+        totalKeysProcessed += keys.length;
+        startAfter = keys[keys.length - 1];
+        iterationCount++;
+      } else {
+        isFinished = true;
+      }
     }
 
-    for (const key of keys) {
-      const parsedData = await readAndParseS3Object(key);
-      await blockService.save(parsedData);
-
-      await syncStatusService.save({
-        chainId: parsedData.chainId,
-        fromHeight: parsedData.height,
-        toHeight: parsedData.height,
-        network: network,
-        key: key,
-        source: SOURCE_S3,
-      } as any);
-    }
+    await syncStatusService.save({
+      chainId: chainId,
+      network: network,
+      key: startAfter,
+      prefix: prefix,
+      source: SOURCE_S3,
+    } as any);
   } catch (error) {
     console.error("Error processing block headers from storage:", error);
   }
-}
 
-/**
- * Starts streaming headers from the Chainweb P2P network.
- * This method establishes a connection to the Chainweb node's header stream and listens for new headers.
- * Upon receiving a header, it saves the header and its payload to S3 and attempts to fetch the payload's transactions.
- * It retries fetching the payload up to a maximum number of attempts if necessary.
- *
- * @param {string} network - The network identifier (e.g., 'mainnet01').
- */
-export async function startStreaming(network: string): Promise<void> {
-  const options = {
-    method: "GET",
-    hostname: "api.chainweb.com",
-    port: 443,
-    path: `/chainweb/0.0/${network}/header/updates`,
-  };
-
-  const req = https.request(options, (res) => {
-    console.log(`Status Code: ${res.statusCode}`);
-    console.log(`Status Message: ${res.statusMessage}`);
-
-    res.on("data", async (chunk) => {
-      const chunkStr = chunk.toString();
-      const dataLine = chunkStr
-        .split("\n")
-        .find((line: any) => line.startsWith("data:"));
-
-      if (dataLine) {
-        const jsonData = dataLine.replace("data:", "").trim();
-
-        try {
-          const blockData = JSON.parse(jsonData);
-          const height = blockData.header.height;
-          const chainId = blockData.header.chainId;
-          const creationTime = blockData.header.creationTime;
-
-          console.log(
-            `chainId: ${chainId} - height: ${height} - creationTime: ${creationTime}`
-          );
-
-          const payloadHash = blockData.header.payloadHash;
-
-          await saveHeader(network, chainId, height, blockData);
-          // console.log("Payload hash:", payloadHash);
-
-          fetchPayloadWithRetry(network, chainId, height, height, [
-            payloadHash,
-          ]);
-
-          await syncStatusService.save({
-            chainId: chainId,
-            fromHeight: height,
-            toHeight: height,
-            network: network,
-            source: SOURCE_STREAMING,
-          } as any);
-        } catch (e) {
-          console.error("Error parsing JSON:", e);
-        }
-      }
-    });
-
-    res.on("end", () => {
-      console.log("No more data in response.");
-    });
-  });
-
-  req.on("error", (e) => {
-    console.error(`problem with request: ${e.message}`);
-  });
-
-  req.end();
+  return totalKeysProcessed;
 }
 
 /**
@@ -180,6 +125,7 @@ export async function startStreaming(network: string): Promise<void> {
  */
 export async function startBackFill(network: string): Promise<void> {
   try {
+    console.log("Starting filling...");
     let chains = await getLastSync(network);
 
     console.info("Starting backfill process for chains:", { chains });
@@ -268,6 +214,42 @@ async function getLastSync(network: string): Promise<any> {
 }
 
 /**
+ * Initiates a background task (daemon) that periodically checks for and processes missing blocks across all chains
+ * within a specified network. It aims to identify gaps in the synchronized data, fetching and processing headers and
+ * payloads for missing blocks to ensure complete and up-to-date blockchain data coverage.
+ *
+ * @param network The blockchain network identifier where missing blocks are to be processed.
+ */
+export async function startMissingBlocksDaemon(network: string) {
+  console.log("Daemon: Starting to process missing blocks...");
+
+  const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "5000", 10);
+
+  process.on("SIGINT", () => shutdownSignal.trigger());
+  process.on("SIGTERM", () => shutdownSignal.trigger());
+
+  while (!shutdownSignal.isTriggered) {
+    try {
+      await startMissingBlocks(network);
+      console.log(
+        `Daemon: Waiting for ${sleepInterval / 1000
+        } seconds before the next iteration...`
+      );
+      await delay(sleepInterval);
+    } catch (error) {
+      console.error("Daemon: Error occurred in startMissingBlocks -", error);
+      console.log(
+        `Daemon: Attempting to restart after waiting ${sleepInterval / 1000
+        } seconds...`
+      );
+      await delay(sleepInterval);
+    }
+  }
+
+  console.log("Daemon: Shutting down gracefully.");
+}
+
+/**
  * Initiates the process to handle missing blocks for all chains within a specified network.
  * This function iterates through each chain in the network, identifies missing blocks, and
  * processes them in chunks to manage large ranges efficiently.
@@ -275,253 +257,36 @@ async function getLastSync(network: string): Promise<any> {
  * @param network The network identifier to process missing blocks for.
  */
 export async function startMissingBlocks(network: string) {
-  const chains = await syncStatusService.getChains(network);
-
+  console.log("Starting processing missing blocks...");
+  const chains = Array.from({ length: 20 }, (_, i) => i);
   for (const chainId of chains) {
-    const missingBlocks = await syncStatusService.getMissingBlocks(
+    console.info(`Processing missing blocks for chain ID ${chainId}`);
+    const missingBlock = await syncStatusService.getNextMissingBlock(
       network,
       chainId
     );
 
-    for (const block of missingBlocks) {
-      console.info(`Processing missing blocks for chain ID ${chainId}`, {
-        fromHeight: block.fromHeight,
-        toHeight: block.toHeight,
+    if (missingBlock) {
+      console.info("Processing missing block range:", {
+        fromHeight: missingBlock.fromHeight,
+        toHeight: missingBlock.toHeight,
       });
 
       splitIntoChunks(
-        block.toHeight,
-        block.fromHeight,
+        missingBlock.toHeight,
+        missingBlock.fromHeight,
         SYNC_FETCH_INTERVAL_IN_BLOCKS
       ).forEach(async (chunk) => {
         console.info(`Processing chunk:`, {
-          fromHeight: chunk[0],
-          toHeight: chunk[1],
+          fromHeight: chunk[1],
+          toHeight: chunk[0],
         });
-        await fetchHeadersWithRetry(network, chainId, chunk[0], chunk[1]);
+        await fetchHeadersWithRetry(network, chainId, chunk[1], chunk[0]);
       });
     }
   }
 
   console.info("Missing blocks processing complete.");
-}
-
-interface FetchCutResult {
-  hashes: {
-    [chainId: string]: {
-      height: number;
-      hash: string;
-    };
-  };
-}
-
-/**
- * Fetches the current cut information from the network.
- *
- * @param network The network to fetch the cut from (e.g., "mainnet01").
- * @returns A promise resolving to the cut information.
- */
-async function fetchCut(network: string): Promise<any> {
-  try {
-    const response = await axios.get(`${SYNC_BASE_URL}/${network}/cut`);
-    return response.data as FetchCutResult;
-  } catch (error) {
-    console.error("Error fetching cut:", error);
-    throw error;
-  }
-}
-
-/**
- * Attempts to fetch headers for a given blockchain chain within a specified height range, with retries upon failure.
- * This function makes an HTTP GET request to fetch headers between the minHeight and maxHeight for a specific chainId.
- * In case of a failure, it retries the request up to a maximum number of attempts defined by ATTEMPTS_MAX_RETRY.
- *
- * @param network - The network identifier (e.g., "mainnet01") from which to fetch the headers.
- * @param chainId - The ID of the chain for which headers are being fetched.
- * @param minHeight - The minimum block height for which headers should be fetched.
- * @param maxHeight - The maximum block height for which headers should be fetched.
- * @param attempt - The current attempt number (used internally for retries).
- */
-async function fetchHeadersWithRetry(
-  network: string,
-  chainId: number,
-  minHeight: number,
-  maxHeight: number,
-  attempt: number = 1
-): Promise<void> {
-  const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/header?minheight=${minHeight}&maxheight=${maxHeight}`;
-
-  console.log("Fetching headers from:", endpoint);
-  const end = metrics.syncDuration.startTimer({
-    chainId: chainId.toString(),
-    minheight: minHeight.toString(),
-    maxheight: maxHeight.toString(),
-    type: "headers",
-  });
-  try {
-    const response = await axios.get(endpoint, {
-      headers: { Accept: "application/json;blockheader-encoding=object" },
-    });
-
-    const items = response.data.items;
-
-    console.log(`Fetched ${items.length} headers for chainId ${chainId}`);
-
-    await Promise.all(
-      items.map((header: any) =>
-        saveHeader(network, chainId, header.height, header)
-      )
-    );
-
-    const payloadHashes = items.map((header: any) => header.payloadHash);
-
-    await fetchPayloadWithRetry(
-      network,
-      chainId,
-      maxHeight,
-      minHeight,
-      payloadHashes
-    );
-
-    await syncStatusService.save({
-      chainId: chainId,
-      fromHeight: maxHeight,
-      toHeight: minHeight,
-      network: network,
-      source: SOURCE_BACKFILL,
-    } as any);
-    end();
-  } catch (error) {
-    console.error(`Error fetching headers: ${error}`);
-    if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
-      console.log(
-        `Retrying fetch headers... Attempt ${
-          attempt + 1
-        } of ${SYNC_ATTEMPTS_MAX_RETRY}`
-      );
-      await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
-      await fetchHeadersWithRetry(
-        network,
-        chainId,
-        minHeight,
-        maxHeight,
-        attempt + 1
-      );
-    } else {
-      await syncErrorService.save({
-        network: network,
-        chainId: chainId,
-        fromHeight: maxHeight,
-        toHeight: minHeight,
-        data: error,
-        endpoint: endpoint,
-        source: SOURCE_API,
-      } as any);
-
-      console.log("Max retry attempts reached. Unable to fetch headers for", {
-        network,
-        chainId,
-        minHeight,
-        maxHeight,
-      });
-    }
-    end();
-  }
-}
-
-/**
- * Attempts to fetch payload data for a given block with retries.
- *
- * @param network The network to fetch payload from (e.g., "mainnet01").
- * @param chainId The ID of the chain to fetch payload for.
- * @param height The height of the block to fetch payload for.
- * @param payloadHash The hash of the payload to fetch.
- * @param attempt The current retry attempt.
- */
-async function fetchPayloadWithRetry(
-  network: string,
-  chainId: number,
-  fromHeight: number,
-  toHeight: number,
-  payloadHashes: string[],
-  attempt = 1
-): Promise<void> {
-  const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
-
-  console.log("Fetching payloads from:", endpoint);
-  try {
-    const response = (await axios.post(endpoint, payloadHashes, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    })) as any;
-
-    const payloads = response.data;
-    // console.log("Fetching payload from hashes:", payloadHashes);
-
-    await processPayloads(network, chainId, payloads);
-  } catch (error) {
-    if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
-      console.log(
-        `Retrying... Attempt ${
-          attempt + 1
-        } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
-      );
-      console.log("Error fetching payload:", error);
-      await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
-      await fetchPayloadWithRetry(
-        network,
-        chainId,
-        fromHeight,
-        toHeight,
-        payloadHashes,
-        attempt + 1
-      );
-    } else {
-      await syncErrorService.save({
-        network: network,
-        chainId: chainId,
-        fromHeight: fromHeight,
-        toHeight: toHeight,
-        data: error,
-        endpoint: endpoint,
-        source: SOURCE_API,
-      } as any);
-
-      console.log(
-        "Max retry attempts reached. Unable to fetch transactions for",
-        { network, chainId, fromHeight, toHeight }
-      );
-    }
-  }
-}
-
-/**
- * Processes an array of payloads for a specific blockchain network and chain ID.
- * Each payload typically includes transaction data that needs to be decoded and then saved.
- *
- * @param network The blockchain network identifier (e.g., "mainnet01").
- * @param chainId The specific chain ID within the blockchain network.
- * @param payloads An array of payload objects to be processed.
- * @returns A Promise that resolves when all payloads have been processed.
- */
-async function processPayloads(
-  network: string,
-  chainId: number,
-  payloads: any[]
-): Promise<void> {
-  const saveOperations = payloads.map(async (payload) => {
-    const transactions = payload.transactions;
-    // console.log("Number of transactions:", transactions.length);
-    transactions.forEach((transaction: any) => {
-      transaction[0] = getDecoded(transaction[0]);
-      transaction[1] = getDecoded(transaction[1]);
-    });
-    return savePayload(network, chainId, payload.payloadHash, transactions);
-  });
-
-  await Promise.all(saveOperations);
 }
 
 /**
@@ -534,6 +299,7 @@ async function processPayloads(
  */
 export async function startRetryErrors(network: string): Promise<void> {
   try {
+    console.log("Starting retrying failed blocks...");
     const errors = await syncErrorService.getErrors(network, SOURCE_API);
 
     for (const error of errors) {

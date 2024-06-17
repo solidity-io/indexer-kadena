@@ -44,7 +44,7 @@ export async function saveHeader(
   chainId: number,
   height: number,
   data: any
-) {
+): Promise<boolean> {
   const objectKey = `${network}/chains/${chainId}/headers/${height}.json`;
   const jsonData = JSON.stringify(data);
   const params = {
@@ -65,8 +65,10 @@ export async function saveHeader(
       },
       calculateDataSize(jsonData)
     );
+    return true;
   } catch (error) {
     console.error("Error saving header to S3:", error);
+    return false;
   }
 }
 
@@ -84,7 +86,8 @@ export async function savePayload(
   payloadHash: string,
   data: any
 ) {
-  const objectKey = `${network}/chains/${chainId}/payloads/${payloadHash}.json`;
+  const timestamp = new Date().getTime();
+  const objectKey = `${network}/chains/${chainId}/payloads/${timestamp}-${payloadHash}.json`;
   const jsonData = JSON.stringify(data);
 
   try {
@@ -114,17 +117,16 @@ export async function savePayload(
  *
  * @param network The network identifier.
  * @param chainId The chain ID for which to list headers.
+ * @param prefix The prefix to use for filtering objects.
  * @param startAfter An optional parameter to specify the object key to start after for pagination.
- * @param limit An optional parameter to specify the maximum number of objects to return.
+ * @param maxKeys An optional parameter to specify the maximum number of objects to return.
  * @returns A Promise resolving to an array of S3 object keys.
  */
 export async function listS3Objects(
-  network: string,
-  chainId: number,
-  startAfter?: string,
-  limit?: number
+  prefix: string,
+  maxKeys?: number,
+  startAfter?: string
 ): Promise<string[]> {
-  const prefix = `${network}/chains/${chainId}/headers/`;
   try {
     let command = new ListObjectsV2Command({
       Bucket: AWS_S3_BUCKET_NAME,
@@ -135,14 +137,16 @@ export async function listS3Objects(
       command.input.StartAfter = startAfter;
     }
 
-    if (limit) {
-      command.input.MaxKeys = limit;
+    if (maxKeys) {
+      command.input.MaxKeys = maxKeys;
     }
 
     const { Contents } = await s3Client.send(command);
     if (!Contents) {
-      console.log("No objects found in S3 for the given prefix:", prefix);
+      // console.log(`Objects not found for prefix: ${prefix}`);
       return [];
+    } else {
+      console.log(`Objects found for prefix: ${prefix}:`, Contents.length);
     }
 
     return Contents.map((obj) => obj.Key ?? "");

@@ -98,3 +98,26 @@ export function getRequiredEnvNumber(key: string): number {
   }
   return parsed;
 }
+
+
+/**
+ * Creates a signal object that can be used to manage shutdown or interrupt signals in asynchronous operations.
+ * It provides a mechanism to gracefully exit from a loop or terminate a process when an external signal is received.
+ * The signal object contains a boolean flag that is initially set to false and can be toggled to true using the
+ * trigger method. This flag can be checked periodically in asynchronous loops to determine if the process should
+ * continue running or begin shutdown procedures.
+ *
+ * @returns An object with properties 'isTriggered' to check the current state of the signal,
+ * and 'trigger' to change the state to triggered, indicating that a shutdown or interrupt has been requested.
+ */
+export function createSignal() {
+  let isTriggered = false;
+  return {
+    get isTriggered() {
+      return isTriggered;
+    },
+    trigger() {
+      isTriggered = true;
+    },
+  };
+}

@@ -1,19 +1,27 @@
 import {
-  startStreaming,
   startBackFill,
   startRetryErrors,
-  startMissingBlocks,
+  startMissingBlocksDaemon,
 } from "./services/syncService";
+
 import dotenv from "dotenv";
 import { program } from "commander";
 import { initializeDatabase } from "./config/database";
 import { getRequiredEnvString } from "./utils/helpers";
 
+import { startStreaming } from "./services/sync/streaming";
+import { processS3HeadersDaemon } from "./services/sync/header";
+
 program
   .option("-s, --streaming", "Start streaming blockchain data")
   .option("-b, --backfill", "Start back filling blockchain data")
   .option("-r, --retry", "Start retrying failed blocks")
-  .option("-m, --missing", "Process headers from the block");
+  .option("-m, --missing", "Process missing blocks")
+  .option("-h, --headers", "Process headers from s3 bucket to database")
+  .option(
+    "-run, --run",
+    "Continuous process of streaming, headers, payloads and missing blocks from node to s3 bucket and from s3 bucket to database"
+  );
 
 program.parse(process.argv);
 
@@ -33,17 +41,18 @@ async function main() {
     await initializeDatabase();
 
     if (options.streaming) {
-      console.log("Starting streaming...");
       await startStreaming(SYNC_NETWORK);
     } else if (options.backfill) {
-      console.log("Starting filling...");
       await startBackFill(SYNC_NETWORK);
     } else if (options.retry) {
-      console.log("Starting retrying failed blocks...");
       await startRetryErrors(SYNC_NETWORK);
     } else if (options.missing) {
-      console.log("Starting processing missing blocks...");
-      await startMissingBlocks(SYNC_NETWORK);
+      await startMissingBlocksDaemon(SYNC_NETWORK);
+    } else if (options.headers) {
+      await processS3HeadersDaemon(SYNC_NETWORK);
+    } else if (options.run) {
+      startStreaming(SYNC_NETWORK);
+      processS3HeadersDaemon(SYNC_NETWORK);
     } else {
       console.log("No specific task requested.");
     }
