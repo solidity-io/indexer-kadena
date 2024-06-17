@@ -24,7 +24,7 @@ export async function fetchAndSavePayloadWithRetry(
   height: any,
   payloadHash: any,
   blockData: any
-) {
+): Promise<boolean> {
   const payload = await fetchPayloadWithRetry(
     network,
     chainId,
@@ -39,13 +39,12 @@ export async function fetchAndSavePayloadWithRetry(
       chainId,
       blockData,
     });
-
-    return;
+    return false;
   }
 
   blockData.payload = payload[0];
 
-  await saveHeader(network, chainId, height, blockData);
+  return await saveHeader(network, chainId, height, blockData);
 }
 
 /**
