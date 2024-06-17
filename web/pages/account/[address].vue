@@ -40,7 +40,7 @@ const data = reactive({
 
 /**
  * The API needs to be changed so that tokens can be computed using pagination,
- * for needs to get all the balances
+ * Now, is necessary to load all tokens and compute on Front the balance of each token
  */
 const query = gql`
   query GetBalanceByAccount($account: String!) {
