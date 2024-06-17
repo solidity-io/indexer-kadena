@@ -66,21 +66,27 @@ export async function fetchHeadersWithRetry(
     type: "headers",
   });
   try {
-    const items = await fetchHeaders(network, chainId, minHeight, maxHeight);
+    const data = await fetchHeaders(network, chainId, minHeight, maxHeight);
 
-    console.log(`Fetched ${items.length} headers for chainId ${chainId}`);
+    console.log(`Fetched ${data.items.length} headers for chainId ${chainId}`);
 
-    await Promise.all(
-      items.map(async (header: any) => {
-        await fetchAndSavePayloadWithRetry(
-          network,
-          chainId,
-          maxHeight,
-          minHeight,
-          [header.payloadHash]
-        );
-      })
-    );
+    for (let i = 0; i < data.items.length; i++) {
+      const header = data.items[i];
+      console.log(`fetchAndSavePayloadWithRetry for ${header.payloadHash}, chainId ${chainId}, network ${network}, minHeight ${minHeight}, maxHeight ${maxHeight}`);
+      await fetchAndSavePayloadWithRetry(
+        network,
+        chainId,
+        header.height,
+        header.payloadHash,
+        { header: header }
+      ).then(async (success) => {
+        console.log(`processHeaderKey for network ${network}, height ${header.height}`);
+        if (success) {
+          const objectKey = `${network}/chains/${chainId}/headers/${header.height}.json`;
+          await processHeaderKey(network, objectKey);
+        }
+      });
+    }
 
     await syncStatusService.save({
       chainId: chainId,
@@ -226,7 +232,7 @@ export async function processS3Headers(network: string) {
  *                          including reading, parsing, saving the block data, and updating the sync status.
  */
 
-export async function processHeaderKey(network: string, prefix: string, key: string) {
+export async function processHeaderKey(network: string, key: string) {
   const parsedData = await readAndParseS3Object(key);
 
   if (!parsedData) {
