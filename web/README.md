@@ -63,4 +63,4 @@ $ cp ./front/.env.example ./front/.env
 $ pnpm install
 ```
 
-When working on frontend, run `pnpm front dev`. Files will be compiled, concatenated and the browser will auto update.
+When working on frontend, run `pnpm web dev`. Files will be compiled, concatenated and the browser will auto update.
