@@ -260,23 +260,23 @@ export async function startMissingBlocksDaemon(network: string) {
  */
 export async function startMissingBlocks(network: string) {
   console.log("Starting processing missing blocks...");
-  const chains = await syncStatusService.getChains(network);
-
+  const chains = Array.from({ length: 20 }, (_, i) => i);
   for (const chainId of chains) {
-    const missingBlocks = await syncStatusService.getMissingBlocks(
+    console.info(`Processing missing blocks for chain ID ${chainId}`);
+    const missingBlock = await syncStatusService.getNextMissingBlock(
       network,
       chainId
     );
 
-    for (const block of missingBlocks) {
-      console.info(`Processing missing blocks for chain ID ${chainId}`, {
-        fromHeight: block.fromHeight,
-        toHeight: block.toHeight,
+    if (missingBlock) {
+      console.info("Processing missing block range:", {
+        fromHeight: missingBlock.fromHeight,
+        toHeight: missingBlock.toHeight,
       });
 
       splitIntoChunks(
-        block.toHeight,
-        block.fromHeight,
+        missingBlock.toHeight,
+        missingBlock.fromHeight,
         SYNC_FETCH_INTERVAL_IN_BLOCKS
       ).forEach(async (chunk) => {
         console.info(`Processing chunk:`, {

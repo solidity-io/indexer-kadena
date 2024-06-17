@@ -155,6 +155,36 @@ EXECUTE FUNCTION update_balances();
   END $$;
 `);
 
+    // Create missing_block_ranges view
+    await sequelize.query(`
+CREATE OR REPLACE VIEW missing_block_ranges AS
+WITH missing_ranges AS (
+  SELECT DISTINCT 
+    "chainId", 
+    "chainwebVersion", 
+    height + 1 AS missing_start, 
+    next_height - 1 AS missing_end
+  FROM (
+    SELECT 
+      "chainId", 
+      "chainwebVersion", 
+      height, 
+      LEAD(height) OVER (PARTITION BY "chainId", "chainwebVersion" ORDER BY height) AS next_height
+    FROM "Blocks"
+  ) AS t
+  WHERE next_height IS NOT NULL AND next_height <> height + 1
+)
+SELECT DISTINCT 
+  "chainId", 
+  "chainwebVersion", 
+  missing_start AS from_height, 
+  missing_end AS to_height, 
+  (missing_end - missing_start) AS diff
+FROM missing_ranges
+where (missing_end - missing_start) >= 0
+ORDER BY "chainId", "chainwebVersion", missing_start ASC;
+`);
+
     console.log("Trigger function and trigger have been created successfully.");
   } catch (error) {
     console.error("Unable to create tables:", error);
