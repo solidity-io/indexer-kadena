@@ -14,7 +14,6 @@ defineProps<{
     >
       {{ label ? customMoney(label) : '-' }}
     </span>
-
     <div
       v-if="delta"
       class="px-2 py-1 bg-gray-900 rounded"
