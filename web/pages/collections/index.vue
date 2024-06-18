@@ -65,7 +65,7 @@ const data = reactive({
 
         <template #icon>
           <div
-            class="w-8 h-8 group hover:bg-gray-500 rounded grid items-center justify-center"
+            class="w-6 h-6 group hover:bg-gray-500 rounded grid items-center justify-center"
           >
             <IconEye
               class="mx-auto -rotate-90 text-white group-hover:text-kadscan-500 transition"
