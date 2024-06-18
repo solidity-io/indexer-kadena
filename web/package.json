@@ -36,8 +36,5 @@
   },
   "overrides": {
     "@headlessui/vue": "1.7.18"
-  },
-  "devDependencies": {
-    "@tailwindcss/line-clamp": "^0.4.4"
   }
 }

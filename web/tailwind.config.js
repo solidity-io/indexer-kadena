@@ -75,8 +75,5 @@ export default {
       bazk: '1352px',
     },
   },
-  plugins: [
-    require('@tailwindcss/line-clamp'),
-  ],
 }
 
