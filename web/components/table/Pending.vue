@@ -12,7 +12,7 @@ defineProps<{
   >
     <div
       :key="index"
-      class="h-[28px] flex items-center justify-center"
+      class="h-[32px] flex items-center justify-center"
       v-for="(column, index) in columns"
       :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
     >
