@@ -54,10 +54,10 @@ async function main() {
     } else if (options.graphql) {
       await usePostgraphile();
     } else if (options.run) {
-      if (process.env.RUN_GRAPHQL_ON_START) {
+      if (process.env.RUN_GRAPHQL_ON_START === "true") {
         await usePostgraphile();
       }
-      if (process.env.RUN_STREAMING_ON_START) {
+      if (process.env.RUN_STREAMING_ON_START === "true") {
         startStreaming(SYNC_NETWORK);
         processS3HeadersDaemon(SYNC_NETWORK);
       }
