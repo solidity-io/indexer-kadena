@@ -54,8 +54,13 @@ async function main() {
     } else if (options.graphql) {
       await usePostgraphile();
     } else if (options.run) {
-      startStreaming(SYNC_NETWORK);
-      processS3HeadersDaemon(SYNC_NETWORK);
+      if (process.env.RUN_GRAPHQL_ON_START) {
+        await usePostgraphile();
+      }
+      if (process.env.RUN_STREAMING_ON_START) {
+        startStreaming(SYNC_NETWORK);
+        processS3HeadersDaemon(SYNC_NETWORK);
+      }
     } else {
       console.log("No specific task requested.");
     }
