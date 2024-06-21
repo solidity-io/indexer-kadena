@@ -18,7 +18,7 @@ const register = new Registry();
 collectDefaultMetrics({ register });
 
 const app = express();
-const POST = 3000;
+const PORT = 3000;
 const DB_USERNAME = getRequiredEnvString("DB_USERNAME");
 const DB_PASSWORD = getRequiredEnvString("DB_PASSWORD");
 const DB_NAME = getRequiredEnvString("DB_NAME");
@@ -31,47 +31,50 @@ const rootPgPool = new Pool({
   connectionString: DB_CONNECTION,
 });
 
-app.use(cors());
+export async function usePostgraphile() {
+  console.log("Starting GraphQL server...");
 
-app.get("/metrics", async (req, res) => {
-  try {
-    const metrics = await register.metrics();
-    res.set("Content-Type", register.contentType);
-    res.end(metrics);
-  } catch (err) {
-    res.status(500).end(err);
-  }
-});
+  app.use(cors());
 
-app.use(
-  postgraphile(DB_CONNECTION, SCHEMAS, {
-    graphileBuildOptions: {
-      connectionFilterAllowNullInput: true,
-      connectionFilterAllowEmptyObjectInput: true,
-    },
-    watchPg: true,
-    graphiql: true,
-    enhanceGraphiql: true,
-    appendPlugins: [
-      ConnectionFilterPlugin,
-      blockQueryPlugin,
-      transactionsByBlockIdQueryPlugin,
-      transactionByRequestKeyQueryPlugin,
-      transfersByTypeQueryPlugin,
-    ],
-    async additionalGraphQLContextFromRequest(req, res) {
-      return {
-        rootPgPool,
-      };
-    },
-  })
-);
+  app.get("/metrics", async (req, res) => {
+    try {
+      const metrics = await register.metrics();
+      res.set("Content-Type", register.contentType);
+      res.end(metrics);
+    } catch (err) {
+      res.status(500).end(err);
+    }
+  });
 
-app.listen(POST, () => {
-  console.log(`Metrics server listening at http://localhost:${POST}/metrics`);
-  console.log(
-    `Postgraphile server listening at http://localhost:${POST}/graphiql`
+  app.use(
+    postgraphile(DB_CONNECTION, SCHEMAS, {
+      graphileBuildOptions: {
+        connectionFilterAllowNullInput: true,
+        connectionFilterAllowEmptyObjectInput: true,
+      },
+      watchPg: true,
+      graphiql: true,
+      enhanceGraphiql: true,
+      appendPlugins: [
+        ConnectionFilterPlugin,
+        blockQueryPlugin,
+        transactionsByBlockIdQueryPlugin,
+        transactionByRequestKeyQueryPlugin,
+        transfersByTypeQueryPlugin,
+      ],
+      async additionalGraphQLContextFromRequest(req, res) {
+        return {
+          rootPgPool,
+        };
+      },
+    })
   );
-});
+  app.listen(PORT, () => {
+    console.log(`Metrics server listening at http://localhost:${PORT}/metrics`);
+    console.log(
+      `Postgraphile server listening at http://localhost:${PORT}/graphiql`
+    );
+  });
+}
 
-export { register };
+export { register, app };
