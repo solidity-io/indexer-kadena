@@ -26,13 +26,12 @@ provider "aws" {
   secret_key = var.AWS_SECRET_ACCESS_KEY
 }
 
-
 # Configure AWS RDS
 
 variable "AWS_DB_INSTANCE_CLASS" {
   description = "The instance type of the RDS instance"
   type        = string
-  default     = "db.t3.micro"
+  default     = "db.t3.medium"
 }
 
 variable "AWS_DB_NAME" {
@@ -58,10 +57,82 @@ variable "AWS_DB_ALLOCATED_STORAGE" {
   default     = 20
 }
 
+# Configure AWS S3
+
+variable "AWS_S3_REGION" {
+  description = "AWS S3 region"
+  type        = string
+}
+
+variable "AWS_S3_BUCKET_NAME" {
+  description = "AWS S3 bucket name"
+  type        = string
+}
+
+# Configure DB
+
+variable "DB_HOST" {
+  description = "Database host"
+  type        = string
+}
+
+variable "DB_USERNAME" {
+  description = "Database username"
+  type        = string
+}
+
+variable "DB_PASSWORD" {
+  description = "Database password"
+  type        = string
+  sensitive   = true
+}
+
+variable "DB_NAME" {
+  description = "Database name"
+  type        = string
+}
+
+# Configure Sync
+
+variable "SYNC_BASE_URL" {
+  description = "Sync base URL"
+  type        = string
+}
+
+variable "SYNC_MIN_HEIGHT" {
+  description = "Sync min height"
+  type        = string
+}
+
+variable "SYNC_FETCH_INTERVAL_IN_BLOCKS" {
+  description = "Sync fetch interval in blocks"
+  type        = string
+}
+
+variable "SYNC_TIME_BETWEEN_REQUESTS_IN_MS" {
+  description = "Sync time between requests in ms"
+  type        = string
+}
+
+variable "SYNC_ATTEMPTS_MAX_RETRY" {
+  description = "Sync attempts max retry"
+  type        = string
+}
+
+variable "SYNC_ATTEMPTS_INTERVAL_IN_MS" {
+  description = "Sync attempts interval in ms"
+  type        = string
+}
+
+variable "SYNC_NETWORK" {
+  description = "Sync network"
+  type        = string
+}
+
 # Resources
 
 resource "aws_s3_bucket" "kadindexer" {
-  bucket        = "kadena-indexer-data-001"
+  bucket        = "kadena-indexer-data-002"
   force_destroy = true
 
   tags = {
@@ -246,7 +317,7 @@ resource "aws_ecr_repository" "kadindexer" {
 }
 
 resource "aws_ecs_task_definition" "kadindexer" {
-  family                   = "my-task"
+  family                   = "graphql-task"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "512"
@@ -273,6 +344,70 @@ resource "aws_ecs_task_definition" "kadindexer" {
           awslogs-stream-prefix = "ecs"
         }
       }
+      environment = [
+        { name = "DB_HOST", value = var.DB_HOST },
+        { name = "DB_USERNAME", value = var.DB_USERNAME },
+        { name = "DB_PASSWORD", value = var.DB_PASSWORD },
+        { name = "DB_NAME", value = var.DB_NAME },
+        { name = "AWS_S3_REGION", value = var.AWS_S3_REGION },
+        { name = "AWS_S3_BUCKET_NAME", value = var.AWS_S3_BUCKET_NAME },
+        { name = "AWS_ACCESS_KEY_ID", value = var.AWS_ACCESS_KEY_ID },
+        { name = "AWS_SECRET_ACCESS_KEY", value = var.AWS_SECRET_ACCESS_KEY },
+        { name = "SYNC_BASE_URL", value = var.SYNC_BASE_URL },
+        { name = "SYNC_MIN_HEIGHT", value = var.SYNC_MIN_HEIGHT },
+        { name = "SYNC_FETCH_INTERVAL_IN_BLOCKS", value = var.SYNC_FETCH_INTERVAL_IN_BLOCKS },
+        { name = "SYNC_TIME_BETWEEN_REQUESTS_IN_MS", value = var.SYNC_TIME_BETWEEN_REQUESTS_IN_MS },
+        { name = "SYNC_ATTEMPTS_MAX_RETRY", value = var.SYNC_ATTEMPTS_MAX_RETRY },
+        { name = "SYNC_ATTEMPTS_INTERVAL_IN_MS", value = var.SYNC_ATTEMPTS_INTERVAL_IN_MS },
+        { name = "SYNC_NETWORK", value = var.SYNC_NETWORK },
+        { name = "RUN_GRAPHQL_ON_START", value = "true" },
+        { name = "RUN_STREAMING_ON_START", value = "false" },
+      ]
+    }
+  ])
+}
+
+resource "aws_ecs_task_definition" "kadindexer_streaming" {
+  family                   = "streaming-task"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "512"
+  memory                   = "2048"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  container_definitions = jsonencode([
+    {
+      name      = "kadena-indexer-streaming"
+      image     = "${aws_ecr_repository.kadindexer.repository_url}:latest"
+      cpu       = 512
+      memory    = 2048
+      essential = true
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/kadena-indexer-streaming"
+          awslogs-region        = "us-east-1"
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+      environment = [
+        { name = "DB_HOST", value = var.DB_HOST },
+        { name = "DB_USERNAME", value = var.DB_USERNAME },
+        { name = "DB_PASSWORD", value = var.DB_PASSWORD },
+        { name = "DB_NAME", value = var.DB_NAME },
+        { name = "AWS_S3_REGION", value = var.AWS_S3_REGION },
+        { name = "AWS_S3_BUCKET_NAME", value = var.AWS_S3_BUCKET_NAME },
+        { name = "AWS_ACCESS_KEY_ID", value = var.AWS_ACCESS_KEY_ID },
+        { name = "AWS_SECRET_ACCESS_KEY", value = var.AWS_SECRET_ACCESS_KEY },
+        { name = "SYNC_BASE_URL", value = var.SYNC_BASE_URL },
+        { name = "SYNC_MIN_HEIGHT", value = var.SYNC_MIN_HEIGHT },
+        { name = "SYNC_FETCH_INTERVAL_IN_BLOCKS", value = var.SYNC_FETCH_INTERVAL_IN_BLOCKS },
+        { name = "SYNC_TIME_BETWEEN_REQUESTS_IN_MS", value = var.SYNC_TIME_BETWEEN_REQUESTS_IN_MS },
+        { name = "SYNC_ATTEMPTS_MAX_RETRY", value = var.SYNC_ATTEMPTS_MAX_RETRY },
+        { name = "SYNC_ATTEMPTS_INTERVAL_IN_MS", value = var.SYNC_ATTEMPTS_INTERVAL_IN_MS },
+        { name = "SYNC_NETWORK", value = var.SYNC_NETWORK },
+        { name = "RUN_GRAPHQL_ON_START", value = "false" },
+        { name = "RUN_STREAMING_ON_START", value = "true" },
+      ]
     }
   ])
 }
@@ -325,10 +460,10 @@ resource "aws_security_group" "kadindexer_sg" {
 }
 
 resource "aws_ecs_service" "kadindexer" {
-  name            = "kadindexer-service"
+  name            = "kadindexer-graphql-service"
   cluster         = aws_ecs_cluster.kadindexer.id
   task_definition = aws_ecs_task_definition.kadindexer.arn
-  desired_count   = 3
+  desired_count   = 2
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -348,12 +483,36 @@ resource "aws_ecs_service" "kadindexer" {
   ]
 }
 
+resource "aws_ecs_service" "kadindexer_streaming" {
+  name            = "kadindexer-streaming-service"
+  cluster         = aws_ecs_cluster.kadindexer.id
+  task_definition = aws_ecs_task_definition.kadindexer_streaming.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = [aws_subnet.kadindexer.id, aws_subnet.kadindexer-b.id]
+    security_groups  = [aws_security_group.kadindexer_sg.id]
+    assign_public_ip = true
+  }
+}
+
 resource "aws_cloudwatch_log_group" "kadena_indexer_log_group" {
   name              = "/ecs/kadena-indexer"
   retention_in_days = 30
 
   tags = {
     Name        = "KadenaIndexerLogGroup"
+    Environment = "Development"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "kadena_indexer_streaming_log_group" {
+  name              = "/ecs/kadena-indexer-streaming"
+  retention_in_days = 30
+
+  tags = {
+    Name        = "KadenaIndexerStreamingLogGroup"
     Environment = "Development"
   }
 }
