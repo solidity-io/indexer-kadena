@@ -1,6 +1,6 @@
 const fs = require("fs");
 
-import { Sequelize } from "sequelize";
+import { Sequelize, Transaction } from "sequelize";
 
 export const sequelize = new Sequelize(
   process.env.DB_NAME as string,
@@ -26,6 +26,7 @@ export const sequelize = new Sequelize(
         ca: fs.readFileSync(__dirname + "/global-bundle.pem").toString(),
       },
     },
+    isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED,
   }
 );
 
