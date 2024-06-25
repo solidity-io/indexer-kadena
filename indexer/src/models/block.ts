@@ -70,9 +70,9 @@ Block.init(
     modelName: "Block",
     indexes: [
       {
+        name: "blocks_unique_constraint",
         unique: true,
         fields: ["chainwebVersion", "chainId", "height"],
-        name: "block_unique_constraint",
       },
     ],
   }

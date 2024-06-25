@@ -40,9 +40,9 @@ Contract.init(
     modelName: "Contract",
     indexes: [
       {
+        name: "contract_unique_constraint",
         unique: true,
         fields: ["network", "chainId", "module", "tokenId"],
-        name: "contract_unique_constraint",
       },
     ],
   }

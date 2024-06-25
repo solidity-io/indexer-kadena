@@ -80,9 +80,9 @@ Balance.init(
     modelName: "Balance",
     indexes: [
       {
+        name: "balances_unique_constraint",
         unique: true,
         fields: ["network", "chainId", "account", "qualname", "tokenId"],
-        name: "balance_unique_constraint",
       },
     ],
   }

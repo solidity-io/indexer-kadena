@@ -97,11 +97,11 @@ Transaction.init(
     modelName: "Transaction",
     indexes: [
       {
-        name: "requestkey_index",
+        name: "transactions_requestkey_idx",
         fields: ["requestkey"],
       },
       {
-        name: "blockId_index",
+        name: "transactions_blockId_idx",
         fields: ["blockId"],
       },
     ],
