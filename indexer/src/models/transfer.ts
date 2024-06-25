@@ -63,8 +63,12 @@ Transfer.init(
     modelName: "Transfer",
     indexes: [
       {
-        name: "type_index",
+        name: "transfers_type_idx",
         fields: ["type"],
+      },
+      {
+        name: "transfers_transactionid_idx",
+        fields: ["transactionId"],
       },
     ],
   }
