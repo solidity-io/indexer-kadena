@@ -47,6 +47,12 @@ Event.init(
   {
     sequelize,
     modelName: "Event",
+    indexes: [
+      {
+        name: "events_transactionid_idx",
+        fields: ["transactionId"],
+      },
+    ],
   }
 );
 
