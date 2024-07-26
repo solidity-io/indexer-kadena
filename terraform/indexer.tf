@@ -253,6 +253,8 @@ resource "aws_db_instance" "postgres_db" {
   username          = var.AWS_DB_USERNAME
   password          = var.AWS_DB_PASSWORD
   db_name           = var.AWS_DB_NAME
+  
+  max_allocated_storage = 1000
 
   vpc_security_group_ids = [aws_security_group.postgres_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.kadindexer.name
