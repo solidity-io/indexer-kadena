@@ -17,6 +17,8 @@ const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
 const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
   "SYNC_ATTEMPTS_INTERVAL_IN_MS"
 );
+const TRANSACTION_INDEX = 0;
+const RECEIPT_INDEX = 1;
 
 export async function fetchAndSavePayloadWithRetry(
   network: string,
@@ -61,129 +63,132 @@ export async function processPayloadKey(
   payloadData: any,
   options?: Transaction
 ) {
-  const TRANSACTION_INDEX = 0;
-  const RECEIPT_INDEX = 1;
-
   const payloadHash = payloadData.payloadHash;
   const transactions = payloadData.transactions || [];
 
-  if (transactions.length > 0) {
-    console.log("transactions.length", transactions.length);
+  const transactionPromises = transactions.map((transactionArray: any) =>
+    processTransaction(transactionArray, block, payloadHash, network, options)
+  );
+
+  await Promise.all(transactionPromises);
+}
+
+export async function processTransaction(transactionArray: any,
+  block: BlockAttributes,
+  payloadHash: string,
+  network: string,
+  options?: Transaction) {
+  const transactionInfo = transactionArray[TRANSACTION_INDEX];
+  const receiptInfo = transactionArray[RECEIPT_INDEX];
+
+  let sigsData = transactionInfo.sigs;
+  let cmdData;
+  try {
+    cmdData = JSON.parse(transactionInfo.cmd);
+  } catch (error) {
+    console.error(
+      `Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`
+    );
   }
 
-  for (const transactionArray of transactions) {
-    const transactionInfo = transactionArray[TRANSACTION_INDEX];
-    const receiptInfo = transactionArray[RECEIPT_INDEX];
+  const eventsData = receiptInfo.events || [];
+  const transactionAttributes = {
+    blockId: block.id,
+    payloadHash: payloadHash,
+    code: cmdData.payload.exec ? cmdData.payload.exec.code : null,
+    data: cmdData.payload.exec ? cmdData.payload.exec.data : null,
+    chainId: cmdData.meta.chainId,
+    creationtime: cmdData.meta.creationTime,
+    gaslimit: cmdData.meta.gasLimit,
+    gasprice: cmdData.meta.gasPrice,
+    hash: transactionInfo.hash,
+    nonce: cmdData.nonce || "",
+    continuation: receiptInfo.continuation || "",
+    gas: receiptInfo.gas,
+    result: receiptInfo.result || null,
+    logs: receiptInfo.logs || null,
+    metadata: receiptInfo.metaData || null,
+    num_events: eventsData ? eventsData.length : 0,
+    requestkey: receiptInfo.reqKey,
+    rollback: receiptInfo.result
+      ? receiptInfo.result.status != "success"
+      : true,
+    sender: cmdData.meta.sender || null,
+    sigs: sigsData,
+    step: receiptInfo.step || null,
+    ttl: cmdData.meta.ttl,
+    txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
+  } as TransactionAttributes;
 
-    let sigsData = transactionInfo.sigs;
-    let cmdData;
-    try {
-      cmdData = JSON.parse(transactionInfo.cmd);
-    } catch (error) {
-      console.error(
-        `Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`
-      );
-    }
-
-    const eventsData = receiptInfo.events || [];
-    const transactionAttributes = {
-      blockId: block.id,
+  const eventsAttributes = eventsData.map((eventData: any) => {
+    return {
       payloadHash: payloadHash,
-      code: cmdData.payload.exec ? cmdData.payload.exec.code : null,
-      data: cmdData.payload.exec ? cmdData.payload.exec.data : null,
-      chainId: cmdData.meta.chainId,
-      creationtime: cmdData.meta.creationTime,
-      gaslimit: cmdData.meta.gasLimit,
-      gasprice: cmdData.meta.gasPrice,
-      hash: transactionInfo.hash,
-      nonce: cmdData.nonce || "",
-      continuation: receiptInfo.continuation || "",
-      gas: receiptInfo.gas,
-      result: receiptInfo.result || null,
-      logs: receiptInfo.logs || null,
-      metadata: receiptInfo.metaData || null,
-      num_events: eventsData ? eventsData.length : 0,
+      chainId: transactionAttributes.chainId,
+      module: eventData.module.namespace
+        ? `${eventData.module.namespace}.${eventData.module.name}`
+        : eventData.module.name,
+      modulehash: eventData.moduleHash,
+      name: eventData.name,
+      params: eventData.params,
+      paramtext: eventData.params,
+      qualname: eventData.module.namespace
+        ? `${eventData.module.namespace}.${eventData.module.name}`
+        : eventData.module.name,
       requestkey: receiptInfo.reqKey,
-      rollback: receiptInfo.result
-        ? receiptInfo.result.status != "success"
-        : true,
-      sender: cmdData.meta.sender || null,
-      sigs: sigsData,
-      step: receiptInfo.step || null,
-      ttl: cmdData.meta.ttl,
-      txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
-    } as TransactionAttributes;
+    } as EventAttributes;
+  }) as EventAttributes[];
 
-    const eventsAttributes = eventsData.map((eventData: any) => {
-      return {
-        payloadHash: payloadHash,
-        chainId: transactionAttributes.chainId,
-        module: eventData.module.namespace
-          ? `${eventData.module.namespace}.${eventData.module.name}`
-          : eventData.module.name,
-        modulehash: eventData.moduleHash,
-        name: eventData.name,
-        params: eventData.params,
-        paramtext: eventData.params,
-        qualname: eventData.module.namespace
-          ? `${eventData.module.namespace}.${eventData.module.name}`
-          : eventData.module.name,
-        requestkey: receiptInfo.reqKey,
-      } as EventAttributes;
-    }) as EventAttributes[];
+  const transfersCoinAttributes = await getCoinTransfers(
+    network,
+    eventsData,
+    payloadHash,
+    transactionAttributes,
+    receiptInfo
+  );
 
-    const transfersCoinAttributes = await getCoinTransfers(
-      network,
-      eventsData,
-      payloadHash,
+  const transfersNftAttributes = await getNftTransfers(
+    network,
+    transactionAttributes.chainId,
+    eventsData,
+    payloadHash,
+    transactionAttributes,
+    receiptInfo
+  );
+
+  const transfersAttributes = [
+    transfersCoinAttributes,
+    transfersNftAttributes,
+  ]
+    .flat()
+    .filter((transfer) => transfer.amount !== undefined);
+
+  try {
+    let transactionInstance = await transactionService.save(
       transactionAttributes,
-      receiptInfo
+      options
     );
 
-    const transfersNftAttributes = await getNftTransfers(
-      network,
-      transactionAttributes.chainId,
-      eventsData,
-      payloadHash,
-      transactionAttributes,
-      receiptInfo
-    );
+    let transactionId = transactionInstance.id;
 
-    const transfersAttributes = [
-      transfersCoinAttributes,
-      transfersNftAttributes,
-    ]
-      .flat()
-      .filter((transfer) => transfer.amount !== undefined);
+    const eventsWithTransactionId = eventsAttributes.map((event) => ({
+      ...event,
+      transactionId: transactionId,
+    })) as EventAttributes[];
 
-    try {
-      let transactionInstance = await transactionService.save(
-        transactionAttributes,
-        options
-      );
+    await eventService.saveMany(eventsWithTransactionId, options);
 
-      let transactionId = transactionInstance.id;
-
-      const eventsWithTransactionId = eventsAttributes.map((event) => ({
-        ...event,
+    const transfersWithTransactionId = transfersAttributes.map(
+      (transfer) => ({
+        ...transfer,
+        tokenId: transfer.tokenId,
+        contractId: transfer.contractId,
         transactionId: transactionId,
-      })) as EventAttributes[];
+      })
+    ) as TransferAttributes[];
 
-      await eventService.saveMany(eventsWithTransactionId, options);
-
-      const transfersWithTransactionId = transfersAttributes.map(
-        (transfer) => ({
-          ...transfer,
-          tokenId: transfer.tokenId,
-          contractId: transfer.contractId,
-          transactionId: transactionId,
-        })
-      ) as TransferAttributes[];
-
-      await transferService.saveMany(transfersWithTransactionId, options);
-    } catch (error) {
-      console.error(`Error saving transaction to the database: ${error}`);
-    }
+    await transferService.saveMany(transfersWithTransactionId, options);
+  } catch (error) {
+    console.error(`Error saving transaction to the database: ${error}`);
   }
 }
 

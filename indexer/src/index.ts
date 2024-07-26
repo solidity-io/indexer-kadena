@@ -61,6 +61,9 @@ async function main() {
         startStreaming(SYNC_NETWORK);
         processS3HeadersDaemon(SYNC_NETWORK);
       }
+      if (process.env.RUN_MISSING_BLOCKS_ON_START === "true") {
+        await startMissingBlocksDaemon(SYNC_NETWORK);
+      }
     } else {
       console.log("No specific task requested.");
     }

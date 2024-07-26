@@ -259,34 +259,52 @@ export async function startMissingBlocksDaemon(network: string) {
 export async function startMissingBlocks(network: string) {
   console.log("Starting processing missing blocks...");
   const chains = Array.from({ length: 20 }, (_, i) => i);
-  for (const chainId of chains) {
-    console.info(`Processing missing blocks for chain ID ${chainId}`);
-    const missingBlock = await syncStatusService.getNextMissingBlock(
+  const limit = 1;
+
+  const chainPromises = chains.map(async (chainId) => {
+    const missingBlocks = await syncStatusService.getNextMissingBlock(
       network,
-      chainId
+      chainId,
+      limit
     );
 
-    if (missingBlock) {
-      console.info("Processing missing block range:", {
-        fromHeight: missingBlock.fromHeight,
-        toHeight: missingBlock.toHeight,
-      });
+    if (missingBlocks) {
+      const missingBlockPromisses = missingBlocks.map((missingBlock) =>
+        processMissingBlock(network, chainId, missingBlock)
+      );
 
-      splitIntoChunks(
-        missingBlock.toHeight,
-        missingBlock.fromHeight,
-        SYNC_FETCH_INTERVAL_IN_BLOCKS
-      ).forEach(async (chunk) => {
-        console.info(`Processing chunk:`, {
-          fromHeight: chunk[1],
-          toHeight: chunk[0],
-        });
-        await fetchHeadersWithRetry(network, chainId, chunk[1], chunk[0]);
-      });
+      await Promise.all(missingBlockPromisses);
     }
-  }
+  });
+
+  await Promise.all(chainPromises);
 
   console.info("Missing blocks processing complete.");
+}
+
+export async function processMissingBlock
+  (
+    network: string,
+    chainId: number,
+    missingBlock: any
+  ) {
+  if (missingBlock) {
+    var chunks = splitIntoChunks(
+      missingBlock.toHeight,
+      missingBlock.fromHeight,
+      SYNC_FETCH_INTERVAL_IN_BLOCKS
+    );
+
+    const chunkPromises = chunks.map((chunk) => {
+      console.info(`*** [Missing] Processing missing block range`, {
+        fromHeight: chunk[1],
+        toHeight: chunk[0],
+      }, `for chain ID ${chainId}`);
+      return fetchHeadersWithRetry(network, chainId, chunk[1], chunk[0]);
+    });
+
+    await Promise.all(chunkPromises);
+  }
 }
 
 /**

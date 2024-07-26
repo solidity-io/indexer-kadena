@@ -54,7 +54,7 @@ variable "AWS_DB_PASSWORD" {
 variable "AWS_DB_ALLOCATED_STORAGE" {
   description = "The allocated storage size for the RDS instance (in gigabytes)"
   type        = number
-  default     = 20
+  default     = 30
 }
 
 # Configure AWS S3
@@ -362,9 +362,13 @@ resource "aws_ecs_task_definition" "kadindexer" {
         { name = "SYNC_NETWORK", value = var.SYNC_NETWORK },
         { name = "RUN_GRAPHQL_ON_START", value = "true" },
         { name = "RUN_STREAMING_ON_START", value = "false" },
+        { name = "RUN_MISSING_BLOCKS_ON_START", value = "false" },
       ]
     }
   ])
+  lifecycle {
+    ignore_changes = [ container_definitions ]
+  }
 }
 
 resource "aws_ecs_task_definition" "kadindexer_streaming" {
@@ -407,6 +411,56 @@ resource "aws_ecs_task_definition" "kadindexer_streaming" {
         { name = "SYNC_NETWORK", value = var.SYNC_NETWORK },
         { name = "RUN_GRAPHQL_ON_START", value = "false" },
         { name = "RUN_STREAMING_ON_START", value = "true" },
+        { name = "RUN_MISSING_BLOCKS_ON_START", value = "false" },
+      ]
+    }
+  ])
+  lifecycle {
+    ignore_changes = [ container_definitions ]
+  }
+}
+
+resource "aws_ecs_task_definition" "kadindexer_missing" {
+  family                   = "missing-task"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = "2048"
+  memory                   = "4096"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  container_definitions = jsonencode([
+    {
+      name      = "kadena-indexer-missing"
+      image     = "${aws_ecr_repository.kadindexer.repository_url}:latest"
+      cpu       = 2048
+      memory    = 4096
+      essential = true
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = "/ecs/kadena-indexer-missing"
+          awslogs-region        = "us-east-1"
+          awslogs-stream-prefix = "ecs"
+        }
+      }
+      environment = [
+        { name = "DB_HOST", value = var.DB_HOST },
+        { name = "DB_USERNAME", value = var.DB_USERNAME },
+        { name = "DB_PASSWORD", value = var.DB_PASSWORD },
+        { name = "DB_NAME", value = var.DB_NAME },
+        { name = "AWS_S3_REGION", value = var.AWS_S3_REGION },
+        { name = "AWS_S3_BUCKET_NAME", value = var.AWS_S3_BUCKET_NAME },
+        { name = "AWS_ACCESS_KEY_ID", value = var.AWS_ACCESS_KEY_ID },
+        { name = "AWS_SECRET_ACCESS_KEY", value = var.AWS_SECRET_ACCESS_KEY },
+        { name = "SYNC_BASE_URL", value = var.SYNC_BASE_URL },
+        { name = "SYNC_MIN_HEIGHT", value = var.SYNC_MIN_HEIGHT },
+        { name = "SYNC_FETCH_INTERVAL_IN_BLOCKS", value = var.SYNC_FETCH_INTERVAL_IN_BLOCKS },
+        { name = "SYNC_TIME_BETWEEN_REQUESTS_IN_MS", value = var.SYNC_TIME_BETWEEN_REQUESTS_IN_MS },
+        { name = "SYNC_ATTEMPTS_MAX_RETRY", value = var.SYNC_ATTEMPTS_MAX_RETRY },
+        { name = "SYNC_ATTEMPTS_INTERVAL_IN_MS", value = var.SYNC_ATTEMPTS_INTERVAL_IN_MS },
+        { name = "SYNC_NETWORK", value = var.SYNC_NETWORK },
+        { name = "RUN_GRAPHQL_ON_START", value = "false" },
+        { name = "RUN_STREAMING_ON_START", value = "false" },
+        { name = "RUN_MISSING_BLOCKS_ON_START", value = "true" },
       ]
     }
   ])
@@ -497,6 +551,20 @@ resource "aws_ecs_service" "kadindexer_streaming" {
   }
 }
 
+resource "aws_ecs_service" "kadindexer_missing" {
+  name            = "kadindexer-missing-service"
+  cluster         = aws_ecs_cluster.kadindexer.id
+  task_definition = aws_ecs_task_definition.kadindexer_missing.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = [aws_subnet.kadindexer.id, aws_subnet.kadindexer-b.id]
+    security_groups  = [aws_security_group.kadindexer_sg.id]
+    assign_public_ip = true
+  }
+}
+
 resource "aws_cloudwatch_log_group" "kadena_indexer_log_group" {
   name              = "/ecs/kadena-indexer"
   retention_in_days = 30
@@ -513,6 +581,16 @@ resource "aws_cloudwatch_log_group" "kadena_indexer_streaming_log_group" {
 
   tags = {
     Name        = "KadenaIndexerStreamingLogGroup"
+    Environment = "Development"
+  }
+}
+
+resource "aws_cloudwatch_log_group" "kadena_indexer_missing_log_group" {
+  name              = "/ecs/kadena-indexer-missing"
+  retention_in_days = 30
+
+  tags = {
+    Name        = "KadenaIndexerMissingLogGroup"
     Environment = "Development"
   }
 }

@@ -1,7 +1,7 @@
 import { TransactionAttributes } from "../../models/transaction";
 import { TransferAttributes } from "../../models/transfer";
 import { getPrecision, } from "../../utils/pact";
-import { saveContract, syncContract } from "./contract";
+import { getContract, saveContract, syncContract } from "./contract";
 
 /**
  * Filters and processes NFT transfer events from a payload's event data. It identifies NFT transfer events based on
@@ -103,17 +103,22 @@ export function getCoinTransfers(
         : eventData.module.name;
       const chainId = transactionAttributes.chainId;
 
-      const precisionData = await getPrecision(
-        network,
-        chainId,
-        modulename
-      );
-
       let contractId;
-      if (precisionData) {
-        contractId = await saveContract(network, chainId, modulename, contractId, "fungible", null, null, precisionData);
-      } else {
-        console.log("No precision found for module:", modulename);
+      let contract = await getContract(network, chainId, modulename);
+
+      if (contract) {
+        contractId = contract.id;
+      }
+      else {
+        console.log("Getting precision for module from Pact:", modulename, chainId);
+        const precisionData = await getPrecision(
+          network,
+          chainId,
+          modulename
+        );
+        if (precisionData) {
+          contractId = await saveContract(network, chainId, modulename, "fungible", null, null, precisionData);
+        }
       }
 
       const params = eventData.params;
@@ -135,7 +140,7 @@ export function getCoinTransfers(
         hasTokenId: false,
         tokenId: undefined,
         type: "fungible",
-        contractId: undefined,
+        contractId: contractId,
       } as TransferAttributes;
     }) as TransferAttributes[];
   return Promise.all(transferPromises);

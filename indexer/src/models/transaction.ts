@@ -30,6 +30,7 @@ export interface TransactionAttributes {
   step: number;
   ttl: string;
   txid: string;
+  canonical?: boolean;
 }
 
 /**
@@ -113,6 +114,9 @@ class Transaction extends Model<TransactionAttributes> implements TransactionAtt
 
   /** The transaction ID (e.g., "309297606"). */
   declare txid: string;
+
+  /** Indicates whether the transaction is canonical. */
+  declare canonical?: boolean;
 }
 
 Transaction.init(
@@ -143,6 +147,7 @@ Transaction.init(
     step: { type: DataTypes.INTEGER, comment: "The step of the transaction (e.g., 0)." },
     ttl: { type: DataTypes.STRING, comment: "The time-to-live of the transaction (e.g., '28800')." },
     txid: { type: DataTypes.STRING, comment: "The transaction ID (e.g., '309297606')." },
+    canonical: { type: DataTypes.BOOLEAN, comment: "Indicates whether the transaction is canonical." },
   },
   {
     sequelize,

@@ -21,6 +21,7 @@ export interface BlockAttributes {
   transactionsHash: string;
   outputsHash: string;
   coinbase: object;
+  canonical?: boolean;
 }
 
 class Block extends Model<BlockAttributes> implements BlockAttributes {
@@ -77,6 +78,9 @@ class Block extends Model<BlockAttributes> implements BlockAttributes {
 
   /** The coinbase data of the block (e.g., {"gas": 0, "logs": "xHwiHPh-CY_sc6xbTFuhXOWybRSzlJ_NVSGQTL4ady0", "txId": 4457873, "events": [{"name": "TRANSFER", "module": {"name": "coin", "namespace": null}, "params": ["", "k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3", 0.983026]}]}). */
   declare coinbase: object;
+
+  /** Whether the block is canonical or not, if true then the block represents the main chain. */
+  declare canonical?: boolean;
 }
 
 Block.init(
@@ -99,15 +103,16 @@ Block.init(
     transactionsHash: { type: DataTypes.STRING, comment: "The transactions hash of the block (e.g., '9yNSeh7rTW_j1ziKYyubdYUCefnO5K63d5RfPkHQXiM')." },
     outputsHash: { type: DataTypes.STRING, comment: "The outputs hash of the block (e.g., 'DwI3H4FgR5iC-AZ-f_BV8oYxH4yrz6ed-o5jvDAlVLE')." },
     coinbase: { type: DataTypes.JSONB, comment: "The coinbase data of the block (e.g., {'gas': 0, 'logs': 'xHwiHPh-CY_sc6xbTFuhXOWybRSzlJ_NVSGQTL4ady0', 'txId': 4457873, 'events': [{'name': 'TRANSFER', 'module': {'name': 'coin', 'namespace': null}, 'params': ['', 'k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3', 0.983026]}]})." },
+    canonical: { type: DataTypes.BOOLEAN, comment: "Indicates whether the transaction is canonical." },
   },
   {
     sequelize,
     modelName: "Block",
     indexes: [
       {
-        name: "blocks_unique_constraint",
+        name: "blocks_chainwebVersion_chainid_hash_unique_idx",
         unique: true,
-        fields: ["chainwebVersion", "chainId", "height"],
+        fields: ["chainwebVersion", "chainId", "hash"],
       },
     ],
   }
