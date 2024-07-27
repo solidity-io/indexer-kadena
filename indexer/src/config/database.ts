@@ -284,12 +284,87 @@ BEGIN
     END LOOP;
 
     -- If there are no gaps and no duplicates, update the last block to canonical
-    IF no_duplicates AND previous_block IS NOT NULL THEN
+    IF no_duplicates AND previous_block.hash IS NOT NULL THEN
         UPDATE public."Blocks"
         SET canonical = TRUE
         WHERE hash = previous_block.hash
         AND "chainId" = NEW."chainId" 
        	AND "chainwebVersion" = NEW."chainwebVersion";
+    END IF;
+
+    RETURN NEW;
+END;
+$function$
+;`);
+
+
+    await sequelize.query(`
+CREATE OR REPLACE FUNCTION public.check_upward_orphans()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    recent_blocks RECORD;
+    previous_block RECORD;
+    first_block RECORD;
+    block_count INT := 0;
+    depth CONSTANT INT := 10; -- Default the depth constant
+    buffer CONSTANT INT := 5; -- Number of heights to buffer, because some blocks can arrive out of order
+    no_duplicates BOOLEAN := TRUE;
+    total_rows INT := 0;
+BEGIN
+    -- Calculate the total number of rows in the range
+    SELECT count(*) INTO total_rows FROM public."Blocks"
+    WHERE height >= NEW.height AND height < ((NEW.height + buffer) + depth)
+        AND "chainId" = NEW."chainId"
+        AND "chainwebVersion" = NEW."chainwebVersion";
+
+    -- No sufficient blocks to validate
+    IF total_rows < (buffer + depth) THEN
+        RETURN NEW;
+    END IF;
+
+    -- Check the last 'depth' blocks
+    FOR recent_blocks IN 
+        SELECT * FROM public."Blocks"
+        WHERE height >= NEW.height AND height <((NEW.height + buffer) + depth)
+            AND "chainId" = NEW."chainId"
+            AND "chainwebVersion" = NEW."chainwebVersion"
+        ORDER BY height DESC
+    LOOP
+        -- Set the first block
+        IF block_count = 0 THEN
+            first_block := recent_blocks;
+        END IF;
+
+        IF previous_block IS NOT NULL THEN
+            -- Check for non-duplicated block
+            IF previous_block.height = recent_blocks.height 
+                AND previous_block.canonical = FALSE
+                AND recent_blocks.canonical = FALSE THEN
+                -- duplicated block
+                PERFORM check_canonical(first_block.hash, recent_blocks.height, recent_blocks."chainId", recent_blocks."chainwebVersion", depth);
+                no_duplicates := FALSE;
+            END IF;
+        END IF;
+
+        -- Check for gaps
+        IF recent_blocks.height <> (NEW.height + buffer) - block_count - 1 THEN
+            -- If there are gaps, do not change canonical status
+            RETURN NEW;
+        END IF;
+
+        previous_block := recent_blocks;
+        block_count := block_count + 1;
+    END LOOP;
+   
+    -- If there are no gaps and no duplicates, update the last block to canonical
+    IF no_duplicates THEN
+        UPDATE public."Blocks"
+        SET canonical = TRUE
+        WHERE hash = NEW.hash
+        AND "chainId" = NEW."chainId" 
+        AND "chainwebVersion" = NEW."chainwebVersion";
     END IF;
 
     RETURN NEW;
@@ -335,10 +410,16 @@ EXECUTE FUNCTION transactions_propagate_canonical_function();`);
 
     // Create orphan blocks trigger
     await sequelize.query(`
-CREATE OR REPLACE TRIGGER check_orphan_blocks
+CREATE OR REPLACE TRIGGER check_orphan_blocks_backward
 AFTER INSERT ON public."Blocks" 
 FOR EACH ROW
 EXECUTE FUNCTION check_backward_orphans();`);
+
+await sequelize.query(`
+CREATE OR REPLACE TRIGGER check_orphan_blocks_upward
+AFTER INSERT ON public."Blocks" 
+FOR EACH ROW
+EXECUTE FUNCTION check_upward_orphans();`);
 
     console.log("Trigger function and trigger have been created successfully.");
   } catch (error) {
