@@ -1,3 +1,14 @@
+/**
+ * Fetches the precision value of a module from the blockchain.
+ *
+ * This function constructs a local call to the blockchain to get the precision value of a specified module.
+ * The precision value indicates the number of decimal places the token supports.
+ *
+ * @param {string} network - The network identifier (e.g., 'mainnet').
+ * @param {number} chainId - The ID of the blockchain chain.
+ * @param {string} module - The name of the module for which precision is being fetched.
+ * @returns {Promise<number | undefined>} A Promise that resolves to the precision value or undefined if an error occurs.
+ */
 export async function getPrecision(
   network: string,
   chainId: number,
@@ -27,6 +38,18 @@ export async function getPrecision(
   }
 }
 
+/**
+ * Fetches the manifest of a token from the blockchain.
+ *
+ * This function constructs a local call to the blockchain to get the manifest of a specified token.
+ * The manifest contains metadata and other relevant information about the token.
+ *
+ * @param {string} network - The network identifier (e.g., 'mainnet').
+ * @param {number} chainId - The ID of the blockchain chain.
+ * @param {string} module - The name of the module containing the token.
+ * @param {string} tokenId - The ID of the token for which the manifest is being fetched.
+ * @returns {Promise<any>} A Promise that resolves to the manifest data or undefined if an error occurs.
+ */
 export async function getManifest(
   network: string,
   chainId: number,
@@ -57,6 +80,18 @@ export async function getManifest(
   }
 }
 
+/**
+ * Makes a local call to the blockchain API.
+ *
+ * This function performs a POST request to the blockchain, sending the provided body as the request payload.
+ * It attempts to parse the response as JSON, but falls back to plain text if JSON parsing fails.
+ *
+ * @param {string} network - The network identifier (e.g., 'mainnet').
+ * @param {number} chainId - The ID of the blockchain chain.
+ * @param {string} body - The request body to be sent in the POST request.
+ * @returns {Promise<{ textResponse: string | undefined; jsonResponse: { result: { data: any } } | undefined; response: Response; }>} 
+ * A Promise that resolves to an object containing the text response, JSON response, and the original response object.
+ */
 export async function callLocal(
   network: string,
   chainId: number,

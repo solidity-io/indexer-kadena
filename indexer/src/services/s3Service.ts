@@ -103,7 +103,6 @@ export async function listS3Objects(
 
     const { Contents } = await s3Client.send(command);
     if (!Contents) {
-      // console.log(`Objects not found for prefix: ${prefix}`);
       return [];
     } else {
       console.log(`Objects found for prefix: ${prefix}:`, Contents.length);

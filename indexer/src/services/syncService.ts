@@ -1,11 +1,10 @@
 import "dotenv/config";
-
 import { listS3Objects } from "./s3Service";
 import { delay, splitIntoChunks, getRequiredEnvNumber, createSignal } from "../utils/helpers";
 import { syncStatusService } from "./syncStatusService";
 import { syncErrorService } from "./syncErrorService";
-import { fetchHeadersWithRetry } from "./sync/header"
-import { fetchCut, FetchCutResult } from "./sync/fetch"
+import { fetchHeadersWithRetry } from "./sync/header";
+import { fetchCut, FetchCutResult } from "./sync/fetch";
 
 import {
   SOURCE_S3,
@@ -56,7 +55,7 @@ export async function processKeys(
   prefix: string,
   processKey: ProcessKeyFunction,
   maxKeys: number = 20,
-  maxIteractions?: number
+  maxIterations?: number
 ): Promise<number> {
   let totalKeysProcessed = 0;
 
@@ -74,7 +73,7 @@ export async function processKeys(
 
     while (
       !isFinished &&
-      (!maxIteractions || iterationCount < maxIteractions)
+      (!maxIterations || iterationCount < maxIterations)
     ) {
       const keys = await listS3Objects(prefix, maxKeys, startAfter);
       if (keys.length > 0) {
@@ -121,7 +120,6 @@ export async function processKeys(
  * 5. The process continues iteratively, moving through each chain in turn, until all chains have reached the minimum required block height.
  *
  * @param {string} network - The identifier of the Chainweb network from which to synchronize data (e.g., 'mainnet01').
- *
  */
 export async function startBackFill(network: string): Promise<void> {
   try {
@@ -179,11 +177,10 @@ export async function startBackFill(network: string): Promise<void> {
  * This method is useful for determining the starting point for synchronization processes,
  * ensuring that all chains are processed up to the current state.
  *
- * @param network The identifier of the Chainweb network from which to retrieve the last sync status.
- * @returns A promise that resolves to an array of objects, each representing a chain with its
- *          chain ID and the current height from which the synchronization should start.
+ * @param {string} network - The identifier of the Chainweb network from which to retrieve the last sync status.
+ * @returns {Promise<Array<{ chainId: number, currentHeight: number }>>} - A promise that resolves to an array of objects, each representing a chain with its chain ID and the current height from which the synchronization should start.
  */
-async function getLastSync(network: string): Promise<any> {
+async function getLastSync(network: string): Promise<Array<{ chainId: number, currentHeight: number }>> {
   const lastCutResult = (await fetchCut(network)) as FetchCutResult;
 
   let lastSyncs = await syncStatusService.getLastSyncForAllChains(network, [
@@ -218,9 +215,9 @@ async function getLastSync(network: string): Promise<any> {
  * within a specified network. It aims to identify gaps in the synchronized data, fetching and processing headers and
  * payloads for missing blocks to ensure complete and up-to-date blockchain data coverage.
  *
- * @param network The blockchain network identifier where missing blocks are to be processed.
+ * @param {string} network - The blockchain network identifier where missing blocks are to be processed.
  */
-export async function startMissingBlocksDaemon(network: string) {
+export async function startMissingBlocksDaemon(network: string): Promise<void> {
   console.log("Daemon: Starting to process missing blocks...");
 
   const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "5000", 10);
@@ -254,9 +251,9 @@ export async function startMissingBlocksDaemon(network: string) {
  * This function iterates through each chain in the network, identifies missing blocks, and
  * processes them in chunks to manage large ranges efficiently.
  *
- * @param network The network identifier to process missing blocks for.
+ * @param {string} network - The network identifier to process missing blocks for.
  */
-export async function startMissingBlocks(network: string) {
+export async function startMissingBlocks(network: string): Promise<void> {
   console.log("Starting processing missing blocks...");
   const chains = Array.from({ length: 20 }, (_, i) => i);
   const limit = 1;
@@ -269,11 +266,11 @@ export async function startMissingBlocks(network: string) {
     );
 
     if (missingBlocks) {
-      const missingBlockPromisses = missingBlocks.map((missingBlock) =>
+      const missingBlockPromises = missingBlocks.map((missingBlock) =>
         processMissingBlock(network, chainId, missingBlock)
       );
 
-      await Promise.all(missingBlockPromisses);
+      await Promise.all(missingBlockPromises);
     }
   });
 
@@ -282,14 +279,22 @@ export async function startMissingBlocks(network: string) {
   console.info("Missing blocks processing complete.");
 }
 
-export async function processMissingBlock
-  (
-    network: string,
-    chainId: number,
-    missingBlock: any
-  ) {
+/**
+ * Processes a range of missing blocks for a specific chain within a network.
+ * This function fetches headers for each missing block range and processes them.
+ *
+ * @param {string} network - The identifier of the Chainweb network.
+ * @param {number} chainId - The ID of the chain to process missing blocks for.
+ * @param {object} missingBlock - The missing block object containing the range to be processed.
+ * @returns {Promise<void>} - A promise that resolves when the processing is complete.
+ */
+export async function processMissingBlock(
+  network: string,
+  chainId: number,
+  missingBlock: any
+): Promise<void> {
   if (missingBlock) {
-    var chunks = splitIntoChunks(
+    const chunks = splitIntoChunks(
       missingBlock.toHeight,
       missingBlock.fromHeight,
       SYNC_FETCH_INTERVAL_IN_BLOCKS
@@ -312,8 +317,8 @@ export async function processMissingBlock
  * This function retrieves a list of errors recorded during previous operations,
  * attempts to fetch and process the data again, and if successful, removes the error from the log.
  *
- * @param network The blockchain network identifier where the errors occurred.
- * @returns A Promise that resolves when all retry attempts have been processed.
+ * @param {string} network - The blockchain network identifier where the errors occurred.
+ * @returns {Promise<void>} - A promise that resolves when all retry attempts have been processed.
  */
 export async function startRetryErrors(network: string): Promise<void> {
   try {
@@ -329,8 +334,8 @@ export async function startRetryErrors(network: string): Promise<void> {
           error.toHeight
         );
         await syncErrorService.delete(error.id);
-      } catch (error) {
-        console.log("Error during error retrying:", error);
+      } catch (err) {
+        console.log("Error during error retrying:", err);
         console.log("Moving to next error...");
       }
     }

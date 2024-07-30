@@ -3,7 +3,7 @@ import { SOURCE_API, SOURCE_BACKFILL } from "../../models/syncStatus";
 import { createSignal, delay, getRequiredEnvNumber } from "../../utils/helpers";
 import { readAndParseS3Object } from "../s3Service";
 import { syncErrorService } from "../syncErrorService";
-import { processKeys, } from "../syncService";
+import { processKeys } from "../syncService";
 import { fetchAndSavePayloadWithRetry, processPayloadKey } from "./payload";
 import { syncStatusService } from "../syncStatusService";
 import { register } from "../../server/metrics";
@@ -42,13 +42,15 @@ const metrics = {
 /**
  * Attempts to fetch headers for a given blockchain chain within a specified height range, with retries upon failure.
  * This function makes an HTTP GET request to fetch headers between the minHeight and maxHeight for a specific chainId.
- * In case of a failure, it retries the request up to a maximum number of attempts defined by ATTEMPTS_MAX_RETRY.
+ * In case of a failure, it retries the request up to a maximum number of attempts defined by SYNC_ATTEMPTS_MAX_RETRY.
  *
- * @param network - The network identifier (e.g., "mainnet01") from which to fetch the headers.
- * @param chainId - The ID of the chain for which headers are being fetched.
- * @param minHeight - The minimum block height for which headers should be fetched.
- * @param maxHeight - The maximum block height for which headers should be fetched.
- * @param attempt - The current attempt number (used internally for retries).
+ * @param {string} network - The network identifier (e.g., "mainnet01") from which to fetch the headers.
+ * @param {number} chainId - The ID of the chain for which headers are being fetched.
+ * @param {number} minHeight - The minimum block height for which headers should be fetched.
+ * @param {number} maxHeight - The maximum block height for which headers should be fetched.
+ * @param {number} [attempt=1] - The current attempt number (used internally for retries).
+ * @returns {Promise<void>} A promise that resolves when headers are successfully fetched and processed.
+ * @throws {Error} If the maximum number of retry attempts is reached without success.
  */
 export async function fetchHeadersWithRetry(
   network: string,
@@ -117,11 +119,20 @@ export async function fetchHeadersWithRetry(
   }
 }
 
+/**
+ * Processes a single header for a given blockchain chain.
+ * This function fetches and saves the payload associated with the header and processes the header key.
+ *
+ * @param {string} network - The network identifier (e.g., "mainnet01").
+ * @param {number} chainId - The ID of the chain.
+ * @param {any} header - The header data to be processed.
+ * @returns {Promise<void>} A promise that resolves when the header is successfully processed.
+ */
 export async function processHeader(
   network: string,
   chainId: number,
-  header: any,
-) {
+  header: any
+): Promise<void> {
   await fetchAndSavePayloadWithRetry(
     network,
     chainId,
@@ -141,9 +152,10 @@ export async function processHeader(
  * It checks for new headers to process and does so in a loop until a shutdown signal is received.
  * This method ensures that your application stays up-to-date with the latest block headers.
  *
- * @param network The identifier for the blockchain network (e.g., 'mainnet01').
+ * @param {string} network - The identifier for the blockchain network (e.g., 'mainnet01').
+ * @returns {Promise<void>} A promise that resolves when the daemon is successfully started.
  */
-export async function processS3HeadersDaemon(network: string) {
+export async function processS3HeadersDaemon(network: string): Promise<void> {
   console.log("Daemon: Starting to process headers...");
 
   const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "15000", 10);
@@ -179,8 +191,9 @@ export async function processS3HeadersDaemon(network: string) {
  * load across multiple chains.
  *
  * @param {string} network - The identifier of the network for which headers are to be processed.
+ * @returns {Promise<void>} A promise that resolves when all headers have been processed.
  */
-export async function processS3Headers(network: string) {
+export async function processS3Headers(network: string): Promise<void> {
   console.log("Starting processing headers...");
 
   const chains = await syncStatusService.getChains(network);
@@ -226,17 +239,14 @@ export async function processS3Headers(network: string) {
  * @param {string} network - The identifier for the blockchain network (e.g., 'mainnet01'). This is used
  *                           to specify the network context in which the header key is being processed,
  *                           affecting how the data is saved and synchronized.
- * @param {string} prefix - The S3 object prefix that precedes the key, used to construct the full path
- *                          to the S3 object. This typically includes the network and chain ID,
- *                          and helps in organizing and locating the blockchain data in S3.
  * @param {string} key - The specific S3 object key that uniquely identifies the data
  *                       to be processed. This key is used to fetch the data from S3 for processing.
  *
  * @returns {Promise<void>} A promise that resolves when the key has been successfully processed,
- *                          including reading, parsing, saving the block data, and updating the sync status.
+ *                       including reading, parsing, saving the block data, and updating the sync status.
+ * @throws {Error} If there is an error reading, parsing, or saving the block data.
  */
-
-export async function processHeaderKey(network: string, key: string) {
+export async function processHeaderKey(network: string, key: string): Promise<void> {
   const parsedData = await readAndParseS3Object(key);
 
   if (!parsedData) {
@@ -252,7 +262,7 @@ export async function processHeaderKey(network: string, key: string) {
   const payloadData = parsedData.payload;
 
   try {
-    let blockAttribute = {
+    const blockAttribute = {
       nonce: headerData.nonce,
       creationTime: headerData.creationTime,
       parent: headerData.parent,
