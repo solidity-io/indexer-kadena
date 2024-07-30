@@ -3,6 +3,9 @@ import { fetchAndSavePayloadWithRetry } from "./payload";
 import { syncStatusService } from "../syncStatusService";
 import { SOURCE_STREAMING } from "../../models/syncStatus";
 
+const MAX_RETRIES = 50;
+const RETRY_DELAY = 10000; // 10 seconds
+
 /**
  * Starts streaming headers from the Chainweb P2P network.
  * This method establishes a connection to the Chainweb node's header stream and listens for new headers.
@@ -10,8 +13,9 @@ import { SOURCE_STREAMING } from "../../models/syncStatus";
  * It retries fetching the payload up to a maximum number of attempts if necessary.
  *
  * @param {string} network - The network identifier (e.g., 'mainnet01').
+ * @param {number} retryCount - The current retry attempt count.
  */
-export async function startStreaming(network: string): Promise<void> {
+export async function startStreaming(network: string, retryCount: number = 0): Promise<void> {
   console.log("Starting streaming...");
   const options = {
     method: "GET",
@@ -25,6 +29,8 @@ export async function startStreaming(network: string): Promise<void> {
     console.log(`Status Message: ${res.statusMessage}`);
 
     res.on("data", async (chunk) => {
+      retryCount = 0;
+
       const chunkStr = chunk.toString();
       const dataLine = chunkStr
         .split("\n")
@@ -66,14 +72,28 @@ export async function startStreaming(network: string): Promise<void> {
       }
     });
 
-    res.on("end", () => {
-      console.log("No more data in response.");
-    });
+    res.on("end", () => 
+      handleRetry(network, retryCount));
   });
 
   req.on("error", (e) => {
-    console.error(`problem with request: ${e.message}`);
+    handleRetry(network, retryCount);
   });
 
   req.end();
+}
+
+/**
+ * Handles retry logic for reconnecting the stream.
+ *
+ * @param {string} network - The network identifier (e.g., 'mainnet01').
+ * @param {number} retryCount - The current retry attempt count.
+ */
+function handleRetry(network: string, retryCount: number): void {
+  if (retryCount < MAX_RETRIES) {
+    console.log(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
+    setTimeout(() => startStreaming(network, retryCount + 1), RETRY_DELAY);
+  } else {
+    console.error("Max retries reached. Giving up.");
+  }
 }
