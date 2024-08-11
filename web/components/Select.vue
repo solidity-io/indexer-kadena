@@ -48,6 +48,7 @@ const emit = defineEmits(['update:modelValue'])
           >
             <ListboxOptions
               class="
+                z-[99999]
                 w-[180px]
                 p-2
                 border border-gray-300
@@ -65,7 +66,7 @@ const emit = defineEmits(['update:modelValue'])
                 as="template"
               >
                 <li
-                  class="px-4 py-2"
+                  class="px-4 py-2 hover:opacity-[0.7] cursor-pointer"
                 >
                   <span
                     class="

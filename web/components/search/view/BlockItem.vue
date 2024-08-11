@@ -3,7 +3,6 @@ import { format } from 'date-fns'
 
 const props = defineProps<{
   parent: string,
-  nodeId: string,
   chainId: number,
   height: number,
   hash: string,
@@ -21,8 +20,8 @@ const status = computed((): 'success' | 'error' => {
 
 <template>
   <NuxtLink
-    :to="`/blocks/${nodeId}`"
-    class="py-3 border-b border-gray-300 flex gap-2 hover:opacity-[0.8]"
+    :to="`/blocks/chain/${chainId}/height/${height}`"
+    class="py-3 flex gap-2 hover:opacity-[0.8]"
   >
     <IconStatus
       :status="status"

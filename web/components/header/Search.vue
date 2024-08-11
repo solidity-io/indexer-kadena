@@ -9,15 +9,17 @@ const {
 
 <template>
   <div
-    class="relative bazk:max-w-[700px]"
+    class="relative w-full max-w-[500px] max-h-[48px]"
     v-outside="close"
   >
     <div
-      :class="[data.open && '!border-kadscan-500']"
       class="
         flex gap-2 items-center
-        w-full p-2 bg-gray-800 rounded-lg border border-transparent
+        p-1.5  rounded-lg border border-gray-300 min-w-full
       "
+      :class="[
+        data.open && '!border-kadscan-500'
+      ]"
     >
       <div
         class="hidden bazk:block"
