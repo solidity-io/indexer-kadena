@@ -151,6 +151,16 @@ if (!transaction.value) {
   >
     <PageTitle>
       Transaction Details
+
+      <template
+        #button
+      >
+        <ButtonExport
+          type="transaction"
+          :entry="transaction"
+          :filename="`${transaction.transaction.requestkey}.csv`"
+        />
+      </template>
     </PageTitle>
 
     <PageContainer>

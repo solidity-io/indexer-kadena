@@ -88,6 +88,16 @@ if (!block.value) {
   >
     <PageTitle>
       Block Details
+
+      <template
+        #button
+      >
+        <ButtonExport
+          type="block"
+          :entry="block"
+          :filename="`${block.height}.csv`"
+        />
+      </template>
     </PageTitle>
 
     <PageContainer>
