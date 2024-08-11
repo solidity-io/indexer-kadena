@@ -51,10 +51,11 @@ const query = gql`
   }
 `
 
-const data = reactive({
-  page: 1,
-  limit: 20
-})
+const {
+  page,
+  limit,
+  updatePage,
+} = usePagination();
 
 const { $graphql } = useNuxtApp();
 
@@ -62,19 +63,19 @@ const key = 'allTransactions'
 
 const { data: transactions, pending } = useAsyncData(key, async () => {
   const res = await $graphql.default.request(query, {
-    first: data.limit,
-    offset: (data.page - 1) * 20,
+    first: limit.value,
+    offset: (Number(page.value) - 1) * 20,
     sender: props.address,
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)
+  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
 
   return {
     ...res[key],
     totalPages
   };
 }, {
-  watch: [() => data.page]
+  watch: [page]
 });
 </script>
 
@@ -139,10 +140,10 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
           #footer
         >
           <PaginateTable
-            :currentPage="data.page"
+            :currentPage="page"
             :totalItems="transactions?.totalCount ?? 1"
             :totalPages="transactions?.totalPages"
-            @pageChange="data.page = Number($event)"
+            @pageChange="updatePage(Number($event))"
             class="p-3"
           />
         </template>

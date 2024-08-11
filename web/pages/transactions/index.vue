@@ -58,12 +58,29 @@ const query = gql`
 
 const {
   page,
-  pending,
-  data: transactions,
-} = await usePaginate({
-  query,
-  key: 'allTransactions'
-})
+  limit,
+  updatePage,
+} = usePagination();
+
+const { $graphql } = useNuxtApp();
+
+const key = 'allTransactions'
+
+const { data: transactions, pending } = useAsyncData('all-transactions', async () => {
+  const res = await $graphql.default.request(query, {
+    first: limit.value,
+    offset: (page.value - 1) * 20,
+  });
+
+  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+
+  return {
+    ...res[key],
+    totalPages
+  };
+}, {
+  watch: [page]
+});
 
 console.log('transactions', transactions.value)
 </script>
@@ -164,7 +181,7 @@ console.log('transactions', transactions.value)
             :currentPage="page"
             :totalItems="transactions.totalCount ?? 1"
             :totalPages="transactions.totalPages"
-            @pageChange="page = Number($event)"
+            @pageChange="updatePage(Number($event))"
           />
         </template>
       </TableRoot>

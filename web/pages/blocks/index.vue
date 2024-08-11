@@ -39,12 +39,29 @@ const query = gql`
 
 const {
   page,
-  pending,
-  data: blocks,
-} = await usePaginate({
-  query,
-  key: 'allBlocks'
-})
+  limit,
+  updatePage,
+} = usePagination();
+
+const { $graphql } = useNuxtApp();
+
+const key = 'allBlocks'
+
+const { data: blocks, pending } = useAsyncData(key, async () => {
+  const res = await $graphql.default.request(query, {
+    first: limit.value,
+    offset: (page.value - 1) * 20,
+  });
+
+  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+
+  return {
+    ...res[key],
+    totalPages
+  };
+}, {
+  watch: [page]
+});
 </script>
 
 <template>
@@ -152,7 +169,7 @@ const {
             :currentPage="page"
             :totalItems="blocks.totalCount ?? 1"
             :totalPages="blocks.totalPages"
-            @pageChange="page = Number($event)"
+            @pageChange="updatePage(Number($event))"
           />
         </template>
       </TableRoot>

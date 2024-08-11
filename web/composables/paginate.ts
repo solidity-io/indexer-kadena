@@ -43,3 +43,42 @@ export const usePaginate = async ({
     pending,
   }
 }
+
+export function usePagination(defaultLimit = 20) {
+  const route = useRoute()
+  const router = useRouter()
+
+  const page = ref(1)
+  const limit = ref(defaultLimit)
+
+  const updateURL = (newPage: number) => {
+    router.push({ query: { ...route.query, page: newPage.toString() } })
+  }
+
+  watch(() => route.query.page, (newPage) => {
+    if (newPage) {
+      page.value = Number(newPage)
+    }
+  }, { immediate: true })
+
+  watch(page, (newPage) => {
+    updateURL(newPage)
+  })
+
+  onMounted(() => {
+    const pageFromURL = route.query.page as string
+    if (pageFromURL) {
+      page.value = Number(pageFromURL)
+    } else {
+      updateURL(page.value)
+    }
+  })
+
+  return {
+    page,
+    limit,
+    updatePage: (newPage: number) => {
+      page.value = newPage
+    }
+  }
+}

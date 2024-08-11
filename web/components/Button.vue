@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { IconArrowRight } from '#components'
+import { IconArrowRight, IconReceive } from '#components'
 
 const props = withDefaults(
   defineProps<{
     label: string,
-    icon?: 'arrowRight',
+    icon?: 'arrowRight' | 'receive',
     iconPosition?: 'left' | 'right',
     size?: 'small' | 'medium' | 'large',
     type?: 'outline' | 'filled' | 'double' | 'icon',
@@ -17,10 +17,11 @@ const props = withDefaults(
   }
 )
 
-const iconSizes = {
-  large: 'h-5 w-5',
-  small: 'h-4 w-4',
-}
+const iconWidth = computed(() => ({
+  large: '24px',
+  medium: '18px',
+  small: '16px',
+}[props.size]));
 
 const rootSizes = {
   large: 'px-4 py-2',
@@ -43,6 +44,7 @@ const rootClass = {
 
 const icons = {
   arrowRight: IconArrowRight,
+  receive: IconReceive,
 }
 </script>
 
@@ -74,9 +76,22 @@ const icons = {
         text-font-400 group-hover:text-kadscan-500
         duration-[0.3s]
         translate-y-[-5%]
-        group-hover:w-[24px]
-        group-hover:mr-[-8px]
+        shrink-0
+        icon-transition
       "
+      :style="{ '--icon-width': iconWidth }"
     />
   </button>
 </template>
+
+<style scoped>
+.icon-transition {
+  width: 0;
+  transition: width 0.2s ease-in-out;
+}
+
+.group:hover .icon-transition {
+  width: var(--icon-width);
+  margin-left: 4px;
+}
+</style>
