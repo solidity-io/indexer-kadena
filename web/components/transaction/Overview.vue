@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   code: any;
   result: string,
   sender: string,
@@ -13,7 +13,9 @@ defineProps<{
 
 const {
   blockchainTooltipData
-} = useAppConfig()
+} = useAppConfig();
+
+console.log('transaction::transfers', props.transfers);
 </script>
 
 <template>
@@ -42,13 +44,14 @@ const {
         />
 
         <TransactionNFT
-          v-if="contract"
+          v-if="transfer.type === 'poly-fungible'"
           :contract="contract"
         />
 
         <TransactionToken
           v-else
           v-bind="transfer"
+          :contract="contract"
         />
       </div>
     </DivideScroll>

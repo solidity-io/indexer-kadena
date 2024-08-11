@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { TabPanel } from '@headlessui/vue'
 import { gql } from 'nuxt-graphql-request/utils';
-// import { convertArrayToCSV } from 'convert-array-to-csv'
 
 definePageMeta({
   layout: 'app',
@@ -87,7 +86,6 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
   return transformRawBalances({ allBalances, prices})
 });
 
-// const balances = transformRawBalances(apiData?.value)
 // TODO: Check this approach, better if move that to a backend
 // const download = () => {
 //   try {
@@ -107,7 +105,7 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
 
 //     document.body.removeChild(link);
 //   } catch (error) {
-//   console.error("Erro ao exportar CSV:", error);
+//     console.error("Erro ao exportar CSV:", error);
 //   }
 // }
 </script>
