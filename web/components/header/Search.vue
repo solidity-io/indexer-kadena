@@ -56,7 +56,7 @@ const {
       >
         <IconSearchClose
           class="w-5 h-5"
-          v-if="data.open"
+          v-if="data.open && !!data.query"
         />
 
         <IconSearch
