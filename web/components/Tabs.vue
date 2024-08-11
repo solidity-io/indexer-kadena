@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { provideUseId, TabGroup, TabList, Tab, TabPanels } from '@headlessui/vue'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     tabs: any,
   }>(),
@@ -10,12 +10,45 @@ withDefaults(
   }
 )
 
+const route = useRoute()
+const router = useRouter()
+
+const selectedIndex = ref(0);
+
+const updateURL = async (index: number) => {
+  const tabKey = props.tabs[index].key
+
+  const { page, ...newQuery}: any = { ...route.query, tab: tabKey };
+
+  await router.push({ query: newQuery });
+
+  selectedIndex.value = index;
+}
+
+watch(() => route.query.tab, (newTab) => {
+  const index = props.tabs.findIndex((tab: any) => tab.key === newTab)
+  if (index !== -1) {
+    selectedIndex.value = index
+  }
+}, { immediate: true })
+
+watch(selectedIndex, (newIndex) => {
+  updateURL(newIndex)
+})
+
+onMounted(() => {
+  const tabFromURL = route.query.tab as string
+  const index = props.tabs.findIndex((tab: any) => tab.key === tabFromURL)
+  selectedIndex.value = index !== -1 ? index : 0
+  updateURL(selectedIndex.value)
+})
+
 provideUseId(() => useId())
 </script>
 
 <template>
   <div>
-    <TabGroup>
+    <TabGroup :selectedIndex="selectedIndex" @change="updateURL($event)">
       <div
         class="flex justify-between gap-4 max-w-full overflow-auto"
       >
