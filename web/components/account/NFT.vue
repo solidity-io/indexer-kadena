@@ -27,27 +27,17 @@ const query = gql`
         chainId
         balance
         account
-        contractByContractId {
-          metadata
-          precision
-          tokenId
-          nodeId
-          module
-          chainId
-          createdAt
-          updatedAt
-          type
-        }
       }
       totalCount
     }
   }
 `
 
-const data = reactive({
-  page: 1,
-  limit: 10
-})
+const {
+  page,
+  limit,
+  updatePage,
+} = usePagination(10);
 
 const { $graphql } = useNuxtApp();
 
@@ -55,19 +45,19 @@ const key = 'allBalances'
 
 const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
   const res = await $graphql.default.request(query, {
-    first: data.limit,
-    offset: (data.page - 1) * 10,
+    first: limit.value,
+    offset: (page.value - 1) * 10,
     account: props.address,
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)
+  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
 
   return {
     ...res[key],
     totalPages
   };
 }, {
-  watch: [() => data.page]
+  watch: [page]
 });
 </script>
 
@@ -92,10 +82,10 @@ const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
       >
         <PaginateTable
           itemsLabel="NFT's"
-          :currentPage="data.page"
+          :currentPage="page"
           :totalItems="nfts?.totalCount ?? 1"
           :totalPages="nfts?.totalPages"
-          @pageChange="data.page = Number($event)"
+          @pageChange="updatePage(Number($event))"
         />
       </template>
     </TableNft>

@@ -16,7 +16,7 @@ const {
 const query = gql`
   query GetNftTransfers($first: Int, $offset: Int) {
     allTransfers(
-      condition: {hasTokenId: true}
+      condition: {type: "poly-fungible"}
       offset: $offset
       orderBy: ID_DESC
       first: $first
@@ -56,14 +56,31 @@ const query = gql`
 
 const {
   page,
-  pending,
-  data: transfers,
-} = await usePaginate({
-  query,
-  key: 'allTransfers'
-})
+  limit,
+  updatePage,
+} = usePagination();
 
-console.log('transfers', transfers.value)
+const { $graphql } = useNuxtApp();
+
+const key = 'allTransfers'
+
+const { data: transfers, pending } = useAsyncData('all-nft-transfers', async () => {
+  const res = await $graphql.default.request(query, {
+    first: limit.value,
+    offset: (page.value - 1) * 20,
+  });
+
+  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+
+  return {
+    ...res[key],
+    totalPages
+  };
+}, {
+  watch: [page]
+});
+
+console.log('nft:transfers', transfers.value)
 </script>
 
 <template>
@@ -142,7 +159,7 @@ console.log('transfers', transfers.value)
             :currentPage="page"
             :totalItems="transfers?.totalCount ?? 1"
             :totalPages="transfers?.totalPages"
-            @pageChange="page = Number($event)"
+            @pageChange="updatePage(Number($event))"
           />
         </template>
       </TableRoot>
