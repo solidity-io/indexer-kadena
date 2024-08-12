@@ -15,7 +15,7 @@ const {
     <div
       class="
         flex gap-2 items-center
-        p-1.5  rounded-lg border border-gray-300 min-w-full
+        py-[5px] px-2  rounded-lg border border-gray-300 min-w-full
       "
       :class="[
         data.open && '!border-kadscan-500'
@@ -36,7 +36,6 @@ const {
         class="
           px-1
           bazk:px-2
-          py-2
           text-sm
           bg-transparent
           outline-none
@@ -52,7 +51,7 @@ const {
 
       <div
         @click="cleanup()"
-        class="mr-1 flex items-center justify-center p-[6px] bg-gray-500 rounded-lg h-8 w-8 bazk:h-9 bazk:w-9 shrink-0 cursor-pointer"
+        class="mr-1 flex items-center justify-center p-[6px] bg-gray-500 rounded-lg h-8 w-8 shrink-0 cursor-pointer"
       >
         <IconSearchClose
           class="w-5 h-5"
