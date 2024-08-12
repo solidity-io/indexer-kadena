@@ -57,7 +57,7 @@ withDefaults(
           class="text-xs block"
           :class="delta < 0 ? 'text-system-red' : 'text-system-green'"
         >
-          {{ delta.toFixed(2) }}
+          {{ delta.toFixed(2) }}%
         </span>
       </div>
     </div>

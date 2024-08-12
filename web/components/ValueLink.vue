@@ -18,7 +18,7 @@ withDefaults(
 <template>
   <NuxtLink
     :to="to"
-    class="w-full flex gap-1 items-center"
+    class="max-w-full flex gap-1 items-center"
   >
     <div
       :class="truncate && 'truncate'"

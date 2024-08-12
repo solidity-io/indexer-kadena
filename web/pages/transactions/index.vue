@@ -62,9 +62,15 @@ const {
   updatePage,
 } = usePagination();
 
-const { $graphql } = useNuxtApp();
+const { $graphql, $coingecko } = useNuxtApp();
 
 const key = 'allTransactions'
+
+const { data: blockchain, error: blokchainError } = await useAsyncData('get-kadena-chart-data', async () => {
+  const res = await $coingecko.request('coins/kadena');
+
+  return res;
+});
 
 const { data: transactions, pending, error } = useAsyncData('all-transactions', async () => {
   const res = await $graphql.default.request(query, {
@@ -85,35 +91,37 @@ const { data: transactions, pending, error } = useAsyncData('all-transactions', 
 
 <template>
   <PageRoot
-    :error="error"
+    :error="error || blokchainError"
   >
     <PageTitle>
       Transactions
     </PageTitle>
 
-    <!-- <div
+    <div
       class="grid gap-3 bazk:grid-cols-4 bazk:gap-6"
     >
       <Card
-        label="Market Capital"
-        :description="moneyCompact.format(blockchain?.kadena.market_cap)"
+        label="Market Cap (24h)"
+        :description="moneyCompact.format(blockchain?.market_data?.market_cap?.usd || 0)"
+        :delta="blockchain?.market_data?.market_cap_change_percentage_24h"
       />
 
       <Card
-        label="Volume (24h)"
-        :description="moneyCompact.format(blockchain?.kadena.volume_24h)"
+        label="Total Volume (24h)"
+        :description="moneyCompact.format(blockchain?.market_data?.total_volume?.usd || 0)"
+        :delta="blockchain?.market_data?.price_change_percentage_24h"
       />
 
       <Card
-        description="-"
-        label="Transactions (24h)"
+        label="Circulating Supply (24h)"
+        :description="moneyCompact.format(blockchain?.market_data?.circulating_supply || 0)"
       />
 
       <Card
         :description="transactions.totalCount ?? 0"
         label="Total transactions (All time)"
       />
-    </div> -->
+    </div>
 
     <TableContainer>
       <TableRoot

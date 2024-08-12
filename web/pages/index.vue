@@ -96,6 +96,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
         <HomeCard
           isDark
           label="Total Volume"
+          :delta="data?.token?.market_data?.price_change_percentage_24h"
           :description="moneyCompact.format(data?.token?.market_data?.total_volume?.usd || 0)"
         />
 
