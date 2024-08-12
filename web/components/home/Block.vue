@@ -26,10 +26,14 @@ const coinbase = useBlockMiner(props.coinbase)
   <div
     class="flex flex-wrap items-center gap-3 xl:gap-4 py-3 lg:h-[111px] xl:max-h-[82px] border-b border-b-gray-300"
   >
-    <IconStatus
-      :status="status"
+    <NuxtLink
+      :to="`/blocks/chain/${props.chainId}/height/${props.height}`"
       class="mb-auto xl:mb-0"
-    />
+    >
+      <IconStatus
+        :status="status"
+      />
+    </NuxtLink>
 
     <div
       class="flex xl:flex-col gap-4 grow xl:min-w-[150px]"

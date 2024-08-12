@@ -13,7 +13,6 @@ export const trendingTokensTableColumns = [
   },
   {
     cols: 3,
-    center: true,
     key: 'price',
     label: 'Price',
   },

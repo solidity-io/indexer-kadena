@@ -1,5 +1,6 @@
 <script setup lang="ts">
 defineProps<{
+  id: string;
   name: string;
   symbol: string;
   description: any;
@@ -68,19 +69,24 @@ const {
           class="w-auto"
         >
           <template #value>
-            <div
-              class="flex items-center px-2 py-1 gap-1 rounded bg-gray-600 shrink-0 max-w-max"
+            <NuxtLink
+              target="_blank"
+              :to="`https://www.coingecko.com/en/coins/${id}`"
             >
-              <IconCoinGecko
-                class="w-4 h-4 shrink-0"
-              />
-
-              <span
-                class="text-xs font-medium leading-[150%] shrink-0"
+              <div
+                class="flex items-center px-2 py-1 gap-1 rounded bg-gray-600 shrink-0 max-w-max"
               >
-                CoinGecko
-              </span>
-            </div>
+                <IconCoinGecko
+                  class="w-4 h-4 shrink-0"
+                />
+
+                <span
+                  class="text-xs font-medium leading-[150%] shrink-0"
+                >
+                  CoinGecko
+                </span>
+              </div>
+            </NuxtLink>
           </template>
         </LabelValue>
       </div>

@@ -12,7 +12,7 @@ defineProps<{
   >
     <span
       class="text-white text-sm"
-      :class="isActive && 'text-kadscan-400'"
+      :class="isActive && '!text-kadscan-500'"
     >
       {{ label }}
     </span>

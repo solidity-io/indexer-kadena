@@ -7,7 +7,7 @@ defineProps<{
 
 <template>
   <div
-    class="flex gap-2 items-center"
+    class="flex gap-2 items-left"
   >
     <span
       class="text-sm text-font-400"

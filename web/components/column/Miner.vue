@@ -8,7 +8,9 @@ const miner = useBlockMiner(props.minerData)
 
 <template>
   <ColumnLink
+    withCopy
+    :value="miner.account"
     :to="`/account/${miner.account}`"
-    :label="shortenAddress(miner.account, 8)"
+    :label="shortenAddress(miner.account, 6)"
   />
 </template>

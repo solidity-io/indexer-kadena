@@ -3,6 +3,7 @@ import { gql } from 'nuxt-graphql-request/utils';
 
 const props = defineProps<{
   modulename?: string,
+  symbol?: string,
 }>()
 
 const {
@@ -75,6 +76,7 @@ const { data: transfers, pending } = useAsyncData('token-details-transfers', asy
 
       <template #requestKey="{ row }">
         <ColumnLink
+          withCopy
           :label="row.requestkey"
           :to="`/transactions/${row.requestkey}`"
         />
@@ -84,6 +86,19 @@ const { data: transfers, pending } = useAsyncData('token-details-transfers', asy
         <ColumnAddress
           :value="row.fromAcct"
         />
+      </template>
+
+      <template #amount="{ row }">
+        <div
+          class="text-font-450 text-sm"
+        >
+          {{ row.amount }}
+          <span
+            class="uppercase"
+          >
+            {{ symbol }}
+          </span>
+        </div>
       </template>
 
       <template #to="{ row }">

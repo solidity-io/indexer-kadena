@@ -44,9 +44,18 @@ const {
 
     <LabelValue
       label="Block Height"
-      :value="blockId"
       :description="blockchainTooltipData.transaction.blockHeight"
-    />
+    >
+      <template
+        #value
+      >
+        <ValueLink
+          :label="blockId"
+          :value="blockId"
+          :to="`/blocks/chain/${chainId}/height/${blockId}`"
+        />
+      </template>
+    </LabelValue>
 
     <LabelValue
       label="Timestamp"

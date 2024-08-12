@@ -11,7 +11,16 @@ const {
   blockchainTooltipData
 } = useAppConfig()
 
-const sigs = useTransactionSigs(props.sigs)
+const sigs = useTransactionSigs(props.sigs);
+
+function parseJsonSafely(jsonString: any) {
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error("Erro ao fazer parse do JSON:", error);
+    return '';
+  }
+}
 </script>
 
 <template>
@@ -44,7 +53,7 @@ const sigs = useTransactionSigs(props.sigs)
             </div> -->
 
             <Code
-              :value="result"
+              :value="parseJsonSafely(result)"
             />
           </div>
         </template>

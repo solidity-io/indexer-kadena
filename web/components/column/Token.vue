@@ -16,6 +16,7 @@ const props = withDefaults(
 <template>
   <NuxtLink
     :to="id ? `/tokens/${id}` : ''"
+    :class="!id && 'opacity-[.6] cursor-not-allowed'"
   >
     <div
       class="flex items-center gap-2"

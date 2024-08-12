@@ -20,7 +20,25 @@ const minerData = useBlockMiner(props.minerData)
         label="Miner Account"
         :value="minerData.account"
         :description="blockchainTooltipData.block.payload.minerAccount"
-      />
+      >
+        <template
+          #value
+        >
+          <div
+            class="flex gap-2"
+          >
+            <ValueLink
+              :label="minerData.account"
+              :value="minerData.account"
+              :to="`/account/${minerData.account}`"
+            />
+
+            <Copy
+              :value="minerData.account"
+            />
+          </div>
+        </template>
+      </LabelValue>
 
       <LabelValue
         label="Miner Public Keys"

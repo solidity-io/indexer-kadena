@@ -1,17 +1,17 @@
 <script setup lang="ts">
 defineProps<{
-  to: string;
+  to?: string;
+  withCopy?: boolean;
+  value?: string | number;
   label: string | number;
 }>()
 </script>
 
 <template>
-  <NuxtLink
+  <ValueLink
+    :withCopy="withCopy"
     :to="to"
-    class="text-sm text-font-400 hover:text-kadscan-500 truncate"
-  >
-    <slot>
-      {{ label }}
-    </slot>
-  </NuxtLink>
+    :label="label"
+    :value="value || label"
+  />
 </template>

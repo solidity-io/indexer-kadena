@@ -34,14 +34,50 @@ console.log('transaction::transfers', props.transfers);
           label="From"
           :value="transfer.fromAcct"
           :description="blockchainTooltipData.transaction.overview.from"
-        />
+        >
+          <template
+            #value
+          >
+            <div
+              class="flex gap-2"
+            >
+              <ValueLink
+                :label="transfer.fromAcct"
+                :value="transfer.fromAcct"
+                :to="`/account/${transfer.fromAcct}`"
+              />
+
+              <Copy
+                :value="transfer.fromAcct"
+              />
+            </div>
+          </template>
+        </LabelValue>
 
         <LabelValue
           withCopy
           label="To"
           :value="transfer.toAcct"
           :description="blockchainTooltipData.transaction.overview.to"
-        />
+        >
+          <template
+            #value
+          >
+            <div
+              class="flex gap-2"
+            >
+              <ValueLink
+                :label="transfer.toAcct"
+                :value="transfer.toAcct"
+                :to="`/account/${transfer.toAcct}`"
+              />
+
+              <Copy
+                :value="transfer.toAcct"
+              />
+            </div>
+          </template>
+        </LabelValue>
 
         <TransactionNFT
           v-if="transfer.type === 'poly-fungible'"
@@ -68,7 +104,25 @@ console.log('transaction::transfers', props.transfers);
         label="Paid by"
         :value="sender"
         :description="blockchainTooltipData.transaction.overview.paidBy"
-      />
+      >
+        <template
+          #value
+        >
+          <div
+            class="flex gap-2"
+          >
+            <ValueLink
+              :label="sender"
+              :value="sender"
+              :to="`/account/${sender}`"
+            />
+
+            <Copy
+              :value="sender"
+            />
+          </div>
+        </template>
+      </LabelValue>
     </DivideItem>
 
     <DivideItem>
@@ -82,12 +136,22 @@ console.log('transaction::transfers', props.transfers);
     <DivideItem>
       <LabelValue
         label="Code"
+        :withCopy="true"
+        :valueCopy="code"
         :description="blockchainTooltipData.transaction.overview.code"
       >
         <template #value>
-          <HighlightValue>
-            {{ code }}
-          </HighlightValue>
+          <div
+            class="flex gap-2"
+          >
+            <HighlightValue>
+              {{ code }}
+            </HighlightValue>
+
+            <Copy
+              :value="code"
+            />
+          </div>
         </template>
       </LabelValue>
     </DivideItem>

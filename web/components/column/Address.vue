@@ -15,7 +15,9 @@ function shortenAddress (
 
 <template>
   <ColumnLink
+    withCopy
+    :value="value"
     :to="`/account/${value}`"
-    :label="shortenAddress(value, 8)"
+    :label="shortenAddress(value, 6)"
   />
 </template>

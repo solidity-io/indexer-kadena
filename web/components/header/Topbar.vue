@@ -20,7 +20,8 @@ const route = useRoute()
     class="w-full flex flex-col items-center justify-center bg-gray-800 z-[10]"
   >
     <div
-      class="w-full max-w-screen-bazk py-3 md:py-4 px-4 flex justify-between"
+      class="w-full max-w-screen-bazk py-3 px-4 flex justify-between"
+      :class="route.name !== 'index' ? 'md:py-3' : 'md:py-4'"
     >
       <NuxtLink
         to="/"

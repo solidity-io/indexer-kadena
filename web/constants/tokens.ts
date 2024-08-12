@@ -24,7 +24,7 @@ export const staticTokens = [
     module: "coin",
     symbol: "KDA",
     coingeckoId: "",
-    name: "Kadena Coin",
+    name: "Kadena",
     icon: "https://swap.ecko.finance/images/crypto/kda-crypto.svg",
   },
   {
@@ -91,6 +91,7 @@ export const staticTokens = [
     icon: "https://swap.ecko.finance/images/crypto/kapy.svg",
   },
   {
+    id: "kishu-ken",
     symbol: "KISHK",
     coingeckoId: "",
     name: "Kishu Ken",
@@ -112,6 +113,7 @@ export const staticTokens = [
     icon: "https://swap.ecko.finance/images/crypto/hypercent-crypto.svg",
   },
   {
+    id: "kaddex",
     symbol: "KDX",
     name: "Kaddex",
     coingeckoId: "",
@@ -119,6 +121,7 @@ export const staticTokens = [
     icon: "https://swap.ecko.finance/images/crypto/kaddex-crypto.svg",
   },
   {
+    id: "kdswap",
     symbol: "KDS",
     name: "KDSwap",
     coingeckoId: "",
@@ -126,6 +129,7 @@ export const staticTokens = [
     icon: "https://swap.ecko.finance/images/crypto/kds.svg",
   },
   {
+    id: "kdlaunch",
     symbol: "KDL",
     name: "KDLaunch",
     coingeckoId: "",
