@@ -64,7 +64,7 @@ const { $graphql } = useNuxtApp();
 
 const key = 'allTransfers'
 
-const { data: transfers, pending } = useAsyncData('all-nft-transfers', async () => {
+const { data: transfers, pending, error } = useAsyncData('all-nft-transfers', async () => {
   const res = await $graphql.default.request(query, {
     first: limit.value,
     offset: (page.value - 1) * 20,
@@ -84,7 +84,9 @@ console.log('nft:transfers', transfers.value)
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       NFT Transfers
     </PageTitle>
@@ -102,6 +104,7 @@ console.log('nft:transfers', transfers.value)
 
         <template #hash="{ row }">
           <ColumnLink
+            withCopy
             :label="row.requestkey"
             :to="`/transactions/${row.requestkey}`"
           />
@@ -131,14 +134,10 @@ console.log('nft:transfers', transfers.value)
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/transactions/${row.requestkey}`"
+          />
         </template>
 
         <template

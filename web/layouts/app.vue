@@ -1,4 +1,6 @@
-<script setup lang="ts"/>
+<script setup lang="ts">
+const route = useRoute();
+</script>
 
 <template>
   <div
@@ -21,6 +23,8 @@
       <slot />
     </div>
 
-    <Footer />
+    <Footer
+      v-if="route.name !== 'all'"
+    />
   </div>
 </template>

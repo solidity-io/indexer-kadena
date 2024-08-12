@@ -66,7 +66,7 @@ const { $graphql } = useNuxtApp();
 
 const key = 'allTransactions'
 
-const { data: transactions, pending } = useAsyncData('all-transactions', async () => {
+const { data: transactions, pending, error } = useAsyncData('all-transactions', async () => {
   const res = await $graphql.default.request(query, {
     first: limit.value,
     offset: (page.value - 1) * 20,
@@ -81,12 +81,12 @@ const { data: transactions, pending } = useAsyncData('all-transactions', async (
 }, {
   watch: [page]
 });
-
-console.log('transactions', transactions.value)
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       Transactions
     </PageTitle>
@@ -130,6 +130,7 @@ console.log('transactions', transactions.value)
 
         <template #requestKey="{ row }">
           <ColumnLink
+            withCopy
             :label="row.requestkey"
             :to="`/transactions/${row.requestkey}`"
           />
@@ -154,14 +155,10 @@ console.log('transactions', transactions.value)
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/transactions/${row.requestkey}`"
+          />
         </template>
 
         <template

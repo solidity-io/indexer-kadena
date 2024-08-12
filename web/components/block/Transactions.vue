@@ -42,7 +42,7 @@ const { $graphql } = useNuxtApp();
 
 const key = 'allTransactions'
 
-const { data: transactions, pending } = useAsyncData(key, async () => {
+const { data: transactions, pending, error } = useAsyncData(key, async () => {
   const res = await $graphql.default.request(query, {
     first: limit.value,
     offset: (page.value - 1) * 20,
@@ -62,7 +62,9 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <LabelValue
       withCopy
       label="Block Hash"
@@ -85,6 +87,21 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
           />
         </template>
 
+        <template #requestkey="{ row }">
+          <ColumnLink
+            withCopy
+            :label="row.requestkey"
+            :to="`/transactions/${row.requestkey}`"
+          />
+        </template>
+
+        <template #code="{ row }">
+          <ColumnLink
+            withCopy
+            :label="row.code"
+          />
+        </template>
+
         <template #createdAt="{ row }">
           <ColumnDate
             :row="row"
@@ -103,14 +120,10 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/transactions/${row.requestkey}`"
+          />
         </template>
 
         <template

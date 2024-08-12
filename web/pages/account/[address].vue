@@ -64,7 +64,7 @@ const query = gql`
 
 const { $graphql, $coingecko } = useNuxtApp();
 
-const { data: balances } = await useAsyncData('allBalances', async () => {
+const { data: balances, error } = await useAsyncData('allBalances', async () => {
   const [
     apiRes,
     prices,
@@ -111,7 +111,9 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       Account Details
     </PageTitle>

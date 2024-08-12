@@ -66,7 +66,7 @@ const route = useRoute()
 
 const { $graphql } = useNuxtApp();
 
-const { data: block } = await useAsyncData('GetBlockById', async () => {
+const { data: block, error } = await useAsyncData('GetBlockById', async () => {
   const {
     blockByHeight
   } = await $graphql.default.request(query, {
@@ -77,14 +77,14 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
   return blockByHeight
 });
 
-if (!block.value) {
+if (!block.value && !error.value) {
   await navigateTo('/404')
 }
 </script>
 
 <template>
   <PageRoot
-    v-if="block"
+    :error="error"
   >
     <PageTitle>
       Block Details

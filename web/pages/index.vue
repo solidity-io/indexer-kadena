@@ -28,6 +28,7 @@ const query = gql`
         nodeId
         numEvents
         requestkey
+        gasprice
         result
         sender
         gas
@@ -62,7 +63,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
       interval: 'daily',
       vs_currency: 'usd',
     })
-  ])
+  ]);
 
   return {
     token,

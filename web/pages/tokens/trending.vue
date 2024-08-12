@@ -15,7 +15,7 @@ const {
 
 const { $coingecko } = useNuxtApp();
 
-const { data: tokens, pending } = await useAsyncData('tokens-trending', async () =>
+const { data: tokens, pending, error } = await useAsyncData('tokens-trending', async () =>
   await $coingecko.request('coins/markets', {
     vs_currency: 'usd',
     category: 'kadena-ecosystem',
@@ -24,7 +24,9 @@ const { data: tokens, pending } = await useAsyncData('tokens-trending', async ()
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       Trending Tokens
     </PageTitle>

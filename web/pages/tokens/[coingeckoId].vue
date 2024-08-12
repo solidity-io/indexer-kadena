@@ -30,21 +30,21 @@ const route = useRoute()
 
 const { $coingecko } = useNuxtApp();
 
-const { data: token } = await useAsyncData('token-trending', async () =>
+const { data: token, error } = await useAsyncData('token-trending', async () =>
   await $coingecko.request(`coins/${route.params.coingeckoId}`, {
     vs_currency: 'usd',
     category: 'kadena-ecosystem',
   })
 );
 
-if (!token.value) {
+if (!token.value && !error.value) {
   await navigateTo('/404')
 }
 </script>
 
 <template>
   <PageRoot
-    v-if="token"
+    :error="error"
   >
     <PageContainer>
       <TokenDetails
@@ -77,6 +77,7 @@ if (!token.value) {
 
         <TabPanel>
           <TokenTransfers
+            :symbol="token.symbol"
             :modulename="token.contract_address"
           />
         </TabPanel>

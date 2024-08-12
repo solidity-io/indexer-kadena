@@ -11,7 +11,7 @@ useHead({
 
 <template>
   <div
-    class="h-[calc(100vh-120px)] flex items-center justify-center"
+    class="flex flex-col h-[calc(100vh-120px)] flex items-center justify-center"
   >
     <div
       class="flex flex-col items-center justify-center bg-gray-800 p-8 rounded-2xl max-w-[414px]"
@@ -48,5 +48,16 @@ useHead({
         </NuxtLink>
       </div>
     </div>
+
+    <div
+      class="fixed bottom-0 blockskull shrink-0 w-full z-[-1]"
+    />
   </div>
 </template>
+
+<style >
+  .blockskull {
+    height: 420px;
+    background: linear-gradient(to bottom, #000000 25%, #004d00 100%);
+  }
+</style>

@@ -100,6 +100,10 @@ const query = gql`
         updatedAt
         ttl
         txid
+        blockId
+        blockByBlockId {
+          height
+        }
       }
       events {
         chainId
@@ -124,30 +128,24 @@ const route = useRoute()
 
 const { $graphql } = useNuxtApp();
 
-const { data: transaction } = await useAsyncData('GetTransactionById', async () => {
-  try {
-    const {
+const { data: transaction, error } = await useAsyncData('GetTransactionById', async () => {
+  const {
       transactionByRequestKey
     } = await $graphql.default.request(query, {
       requestKey: route.params.requestKey,
     });
 
     return transactionByRequestKey
-  } catch (e) {
-    console.warn('error', e);
-
-    return;
-  }
 });
 
-if (!transaction.value) {
+if (!transaction.value && !error.value) {
   await navigateTo('/404')
 }
 </script>
 
 <template>
   <PageRoot
-    v-if="transaction"
+    :error="error"
   >
     <PageTitle>
       Transaction Details

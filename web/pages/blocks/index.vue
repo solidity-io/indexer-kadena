@@ -47,7 +47,7 @@ const { $graphql } = useNuxtApp();
 
 const key = 'allBlocks'
 
-const { data: blocks, pending } = useAsyncData(key, async () => {
+const { data: blocks, pending, error } = useAsyncData(key, async () => {
   const res = await $graphql.default.request(query, {
     first: limit.value,
     offset: (page.value - 1) * 20,
@@ -65,7 +65,9 @@ const { data: blocks, pending } = useAsyncData(key, async () => {
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       Blocks
     </PageTitle>
@@ -118,17 +120,20 @@ const { data: blocks, pending } = useAsyncData(key, async () => {
         </template>
 
         <template #hash="{ row }">
-          <span
-            class="max-w-[200px] text-font-450 text-sm block truncate"
-          >
-            {{ row.hash }}
-          </span>
+          <ValueLink
+            withCopy
+            :label="row.hash"
+            :value="row.hash"
+            class="max-w-[200px]"
+          />
         </template>
 
         <template #height="{ row }">
           <ColumnLink
+            withCopy
             :to="`/blocks/chain/${row.chainId}/height/${row.height}`"
             :label="row.height"
+            :value="row.height"
           />
         </template>
 
@@ -151,14 +156,10 @@ const { data: blocks, pending } = useAsyncData(key, async () => {
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/blocks/chain/${row.chainId}/height/${row.height}`"
+          />
         </template>
 
         <template
