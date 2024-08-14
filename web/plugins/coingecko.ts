@@ -16,7 +16,10 @@ export default defineNuxtPlugin(async () => {
         }
       });
 
+      console.warn(`HTTP status: ${response.statusText}`);
+
       if (!response.ok) {
+        console.warn(`HTTP error! status text: ${response.statusText}`);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 

@@ -14,8 +14,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTokenTransfers($first: Int, $offset: Int) {
-    allTransfers(condition: {type: "fungible"}, offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetTokenTransfers($first: Int, $last: Int, $after: Cursor, $before: Cursor) {
+    allTransfers(condition: {type: "fungible"}, first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC) {
       nodes {
         tokenId
         updatedAt
@@ -49,13 +49,14 @@ const { $graphql } = useNuxtApp();
 const {
   page,
   limit,
+  params,
   updatePage,
+  updateCursor,
 } = usePagination();
 
 const { data: transfers, pending, error } = useAsyncData('all-token-transfers', async () => {
   const res = await $graphql.default.request(query, {
-    first: limit.value,
-    offset: (page.value - 1) * 20,
+    ...params.value,
   });
 
   const transfers = res[key]
@@ -78,6 +79,10 @@ const { data: transfers, pending, error } = useAsyncData('all-token-transfers', 
 }, {
   watch: [page]
 });
+
+watch([transfers], ([newPage]) => {
+  updateCursor(newPage?.pageInfo.startCursor)
+})
 </script>
 
 <template>
@@ -156,7 +161,7 @@ const { data: transfers, pending, error } = useAsyncData('all-token-transfers', 
             :currentPage="page"
             :totalItems="transfers?.totalCount ?? 1"
             :totalPages="transfers?.totalPages"
-            @pageChange="updatePage(Number($event))"
+            @pageChange="updatePage(Number($event), transfers?.pageInfo, transfers?.totalCount ?? 1, transfers?.totalPages)"
           />
         </template>
       </TableRoot>

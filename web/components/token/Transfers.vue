@@ -11,8 +11,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $offset: Int, $modulename: String!) {
-    allTransfers(offset: $offset, orderBy: ID_DESC, first: $first, condition: {modulename: $modulename}) {
+  query GetTransactions($first: Int, $last: Int, $after: Cursor, $before: Cursor, $modulename: String!) {
+    allTransfers(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC, condition: {modulename: $modulename}) {
       nodes {
         requestkey
         amount
@@ -35,7 +35,9 @@ const query = gql`
 const {
   page,
   limit,
+  params,
   updatePage,
+  updateCursor,
 } = usePagination();
 
 const { $graphql } = useNuxtApp();
@@ -44,12 +46,15 @@ const key = 'allTransfers'
 
 const { data: transfers, pending } = useAsyncData('token-details-transfers', async () => {
   const res = await $graphql.default.request(query, {
-    first: limit.value,
-    offset: (page.value - 1) * 20,
+    ...params.value,
     modulename: props.modulename ?? 'coin'
   });
 
   const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+
+  const allTransfers = res[key];
+
+  updateCursor(allTransfers.pageInfo.startCursor);
 
   return {
     ...res[key],
@@ -130,7 +135,7 @@ const { data: transfers, pending } = useAsyncData('token-details-transfers', asy
           :currentPage="page"
           :totalItems="transfers?.totalCount ?? 1"
           :totalPages="transfers?.totalPages"
-          @pageChange="updatePage(Number($event))"
+          @pageChange="updatePage(Number($event), transfers.pageInfo, transfers.totalCount ?? 1, transfers.totalPages)"
           class="p-3"
         />
       </template>

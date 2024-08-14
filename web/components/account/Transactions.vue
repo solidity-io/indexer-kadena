@@ -10,8 +10,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $offset: Int, $sender: String) {
-    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first, filter: {sender: { equalTo: $sender }}) {
+  query GetTransactions($first: Int, $last: Int, $after: Cursor, $before: Cursor, $sender: String) {
+    allTransactions(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC, filter: {sender: { equalTo: $sender }}) {
       nodes {
         chainId
         code
@@ -54,7 +54,9 @@ const query = gql`
 const {
   page,
   limit,
+  params,
   updatePage,
+  updateCursor,
 } = usePagination();
 
 const { $graphql } = useNuxtApp();
@@ -63,8 +65,7 @@ const key = 'allTransactions'
 
 const { data: transactions, pending, error } = useAsyncData(key, async () => {
   const res = await $graphql.default.request(query, {
-    first: limit.value,
-    offset: (Number(page.value) - 1) * 20,
+    ...params.value,
     sender: props.address,
   });
 
@@ -77,6 +78,10 @@ const { data: transactions, pending, error } = useAsyncData(key, async () => {
 }, {
   watch: [page]
 });
+
+watch([transactions], ([newPage]) => {
+  updateCursor(newPage.pageInfo.startCursor)
+})
 </script>
 
 <template>
@@ -142,7 +147,7 @@ const { data: transactions, pending, error } = useAsyncData(key, async () => {
             :currentPage="page"
             :totalItems="transactions?.totalCount ?? 1"
             :totalPages="transactions?.totalPages"
-            @pageChange="updatePage(Number($event))"
+            @pageChange="updatePage(Number($event), transactions.pageInfo, transactions.totalCount ?? 1, transactions.totalPages)"
             class="p-3"
           />
         </template>

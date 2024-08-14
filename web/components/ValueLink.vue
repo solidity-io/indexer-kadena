@@ -37,6 +37,7 @@ withDefaults(
       class="shrink-0"
     >
       <Copy
+        isSmall
         :value="value"
       />
     </div>

@@ -50,13 +50,11 @@ const query = gql`
   }
 `
 
-const { data, error } = await useAsyncData('GetChartData', async () => {
+const { data: cgData, error: cgError } = await useAsyncData('get-cg-chart-data', async () => {
   const [
-    apiRes,
     token,
     chartData,
   ] = await Promise.all([
-    $graphql.default.request(query),
     $coingecko.request('coins/kadena'),
     $coingecko.request('coins/kadena/market_chart', {
       days: 14,
@@ -68,6 +66,17 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
   return {
     token,
     chartData,
+  };
+});
+
+const { data, error } = await useAsyncData('GetChartData', async () => {
+  const [
+    apiRes,
+  ] = await Promise.all([
+    $graphql.default.request(query),
+  ]);
+
+  return {
     ...apiRes
   };
 });
@@ -88,26 +97,26 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
         "
       >
         <HomeCard
-          :label="data?.token?.name + ' Price'"
-          :description="moneyCompact.format(data?.token?.market_data?.current_price?.usd || 0)"
-          :delta="data?.token?.market_data?.price_change_percentage_24h_in_currency?.usd || 0"
+          :label="cgData?.token?.name + ' Price'"
+          :description="moneyCompact.format(cgData?.token?.market_data?.current_price?.usd || 0)"
+          :delta="cgData?.token?.market_data?.price_change_percentage_24h_in_currency?.usd || 0"
         />
 
         <HomeCard
           isDark
           label="Total Volume"
-          :delta="data?.token?.market_data?.price_change_percentage_24h"
-          :description="moneyCompact.format(data?.token?.market_data?.total_volume?.usd || 0)"
+          :delta="cgData?.token?.market_data?.price_change_percentage_24h"
+          :description="moneyCompact.format(cgData?.token?.market_data?.total_volume?.usd || 0)"
         />
 
         <HomeCard
           label="Market Capital"
-          :description="moneyCompact.format(data?.token?.market_data?.market_cap?.usd || 0)"
+          :description="moneyCompact.format(cgData?.token?.market_data?.market_cap?.usd || 0)"
         />
 
         <HomeCard
           label="Circulating Supply"
-          :description="moneyCompact.format(data?.token?.market_data?.circulating_supply || 0)"
+          :description="moneyCompact.format(cgData?.token?.market_data?.circulating_supply || 0)"
         />
       </div>
 
@@ -124,7 +133,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
           class="h-full max-h-[216px]"
         >
           <Chart
-            v-bind="data?.chartData || defaultChartData"
+            v-bind="cgData?.chartData || defaultChartData"
           />
         </div>
       </div>

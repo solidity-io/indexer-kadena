@@ -14,8 +14,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $offset: Int) {
-    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetTransactions($first: Int, $last: Int, $after: Cursor, $before: Cursor) {
+    allTransactions(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC) {
       nodes {
         chainId
         code
@@ -46,10 +46,10 @@ const query = gql`
         updatedAt
       }
       pageInfo {
-        endCursor
-        hasNextPage
-        hasPreviousPage
         startCursor
+        endCursor
+        hasPreviousPage
+        hasNextPage
       }
       totalCount
     }
@@ -59,39 +59,43 @@ const query = gql`
 const {
   page,
   limit,
+  params,
   updatePage,
+  updateCursor,
 } = usePagination();
 
 const { $graphql, $coingecko } = useNuxtApp();
 
 const key = 'allTransactions'
 
-const { data: blockchain, error: blokchainError } = await useAsyncData('get-kadena-chart-data', async () => {
+const { data: blockchain, error: blockchainError } = await useAsyncData('get-kadena-chart-data', async () => {
   const res = await $coingecko.request('coins/kadena');
-
   return res;
 });
 
 const { data: transactions, pending, error } = useAsyncData('all-transactions', async () => {
   const res = await $graphql.default.request(query, {
-    first: limit.value,
-    offset: (page.value - 1) * 20,
+    ...params.value,
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1);
 
   return {
     ...res[key],
     totalPages
   };
 }, {
-  watch: [page]
+  watch: [params]
 });
+
+watch([transactions], ([newPage]) => {
+  updateCursor(newPage.pageInfo.startCursor)
+})
 </script>
 
 <template>
   <PageRoot
-    :error="error || blokchainError"
+    :error="error"
   >
     <PageTitle>
       Transactions
@@ -186,7 +190,7 @@ const { data: transactions, pending, error } = useAsyncData('all-transactions', 
             :currentPage="page"
             :totalItems="transactions.totalCount ?? 1"
             :totalPages="transactions.totalPages"
-            @pageChange="updatePage(Number($event))"
+            @pageChange="updatePage(Number($event), transactions.pageInfo, transactions.totalCount ?? 1, transactions.totalPages)"
           />
         </template>
       </TableRoot>

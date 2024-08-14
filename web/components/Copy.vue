@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
-  value: string | number | undefined
+  value: string | number | undefined;
+  isSmall?: boolean
 }>()
 
 const open = ref(false)
@@ -56,6 +57,7 @@ const onCopy = async () => {
     <button
       @click.prevent="onCopy()"
       class="p-1.5 rounded-lg hover:bg-gray-500 place-items-center grid"
+      :class="isSmall && '!p-1'"
     >
       <IconCopy
         class="w-5 h-5 text-white"

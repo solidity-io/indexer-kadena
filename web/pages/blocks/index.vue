@@ -14,8 +14,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetBlocks($first: Int, $offset: Int) {
-    allBlocks(offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetBlocks($first: Int, $last: Int, $after: Cursor, $before: Cursor) {
+    allBlocks(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC) {
       nodes {
         chainId
         coinbase
@@ -27,10 +27,10 @@ const query = gql`
         minerData
       }
       pageInfo {
-        endCursor
-        hasNextPage
-        hasPreviousPage
         startCursor
+        endCursor
+        hasPreviousPage
+        hasNextPage
       }
       totalCount
     }
@@ -40,8 +40,10 @@ const query = gql`
 const {
   page,
   limit,
+  params,
   updatePage,
-} = usePagination();
+  updateCursor,
+} = usePagination(20);
 
 const { $graphql } = useNuxtApp();
 
@@ -49,8 +51,7 @@ const key = 'allBlocks'
 
 const { data: blocks, pending, error } = useAsyncData(key, async () => {
   const res = await $graphql.default.request(query, {
-    first: limit.value,
-    offset: (page.value - 1) * 20,
+    ...params.value,
   });
 
   const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
@@ -62,6 +63,10 @@ const { data: blocks, pending, error } = useAsyncData(key, async () => {
 }, {
   watch: [page]
 });
+
+watch([blocks], ([newPage]) => {
+  updateCursor(newPage.pageInfo.startCursor)
+})
 </script>
 
 <template>
@@ -124,7 +129,7 @@ const { data: blocks, pending, error } = useAsyncData(key, async () => {
             withCopy
             :label="row.hash"
             :value="row.hash"
-            class="max-w-[200px]"
+            class="max-w-[190px]"
           />
         </template>
 
@@ -170,7 +175,7 @@ const { data: blocks, pending, error } = useAsyncData(key, async () => {
             :currentPage="page"
             :totalItems="blocks.totalCount ?? 1"
             :totalPages="blocks.totalPages"
-            @pageChange="updatePage(Number($event))"
+            @pageChange="updatePage(Number($event), blocks.pageInfo, blocks.totalCount ?? 1, blocks.totalPages)"
           />
         </template>
       </TableRoot>

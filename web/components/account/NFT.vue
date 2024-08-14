@@ -11,8 +11,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetNftBalances($first: Int, $offset: Int, $account: String!) {
-    allBalances(offset: $offset, orderBy: ID_DESC, first: $first, condition: {account: $account, hasTokenId: true}) {
+  query GetNftBalances($first: Int, $last: Int, $after: Cursor, $before: Cursor, $account: String!) {
+    allBalances(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC, condition: {account: $account, hasTokenId: true}) {
       nodes {
         updatedAt
         tokenId
@@ -28,6 +28,12 @@ const query = gql`
         balance
         account
       }
+      pageInfo {
+        startCursor
+        endCursor
+        hasPreviousPage
+        hasNextPage
+      }
       totalCount
     }
   }
@@ -36,7 +42,9 @@ const query = gql`
 const {
   page,
   limit,
+  params,
   updatePage,
+  updateCursor,
 } = usePagination(10);
 
 const { $graphql } = useNuxtApp();
@@ -45,8 +53,7 @@ const key = 'allBalances'
 
 const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
   const res = await $graphql.default.request(query, {
-    first: limit.value,
-    offset: (page.value - 1) * 10,
+    ...params.value,
     account: props.address,
   });
 
@@ -59,6 +66,10 @@ const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
 }, {
   watch: [page]
 });
+
+watch([nfts], ([newPage]) => {
+  updateCursor(newPage.pageInfo.startCursor)
+})
 </script>
 
 <template>
@@ -85,7 +96,7 @@ const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
           :currentPage="page"
           :totalItems="nfts?.totalCount ?? 1"
           :totalPages="nfts?.totalPages"
-          @pageChange="updatePage(Number($event))"
+          @pageChange="updatePage(Number($event), nfts.pageInfo, nfts.totalCount ?? 1, nfts.totalPages)"
         />
       </template>
     </TableNft>

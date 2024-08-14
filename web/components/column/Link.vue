@@ -13,5 +13,6 @@ defineProps<{
     :to="to"
     :label="label"
     :value="value || label"
+    class="!max-w-[270px]"
   />
 </template>
