@@ -122,7 +122,7 @@ watch([transactions], ([newPage]) => {
       />
 
       <Card
-        :description="transactions.totalCount ?? 0"
+        :description="transactions?.totalCount ?? 0"
         label="Total transactions (All time)"
       />
     </div>

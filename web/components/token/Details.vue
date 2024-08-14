@@ -1,11 +1,13 @@
 <script setup lang="ts">
 defineProps<{
-  links: any;
-  image: any;
-  name: string;
-  symbol: string;
-  market_data: any;
-  detail_platforms: any;
+  id?: string;
+  links?: any;
+  image?: any;
+  name?: string;
+  symbol?: string;
+  market_data?: any;
+  modulename?: any;
+  detail_platforms?: any;
 }>()
 
 const {
@@ -18,7 +20,13 @@ const {
     <div
       class="flex items-center gap-2"
     >
+      <div
+        v-if="!image"
+        class="w-[34px] h-[34px] bg-gray-300 pulse rounded"
+      />
+
       <img
+        v-else
         :src="image?.large"
         class="w-[34px] h-[34px]"
       />
@@ -26,7 +34,7 @@ const {
       <span
         class="text-2xl font-semibold leading-[130%] text-font-400"
       >
-        {{ name}}
+        {{ name || 'Unknown name' }}
       </span>
 
       <span
@@ -35,7 +43,9 @@ const {
         {{ symbol }}
       </span>
 
-      <IconVerified/>
+      <IconVerified
+        v-if="id"
+      />
     </div>
 
     <div
@@ -63,16 +73,23 @@ const {
               #value
             >
               <div
+                v-if="market_data"
                 class="flex text-base gap-2"
               >
                 1 <span class="uppercase">{{ symbol }}</span> <span class="text-font-500">{{ customMoney(market_data?.current_price.usd) }}</span>
+              </div>
+
+              <div
+                v-else
+              >
+                Information unavailable
               </div>
             </template>
           </LabelValue>
 
           <LabelValue
             label="Max Total Supply"
-            :value="integer.format(market_data?.max_supply || 0)"
+            :value="market_data ? integer.format(market_data?.max_supply || 0) : 'Information unavailable'"
             :description="blockchainTooltipData.tokenDetails.overview.maxTotalSupply"
           />
 
@@ -106,13 +123,13 @@ const {
         >
           <LabelValue
             label="Module"
-            :value="detail_platforms.kadena?.contract_address || 'coin'"
+            :value="detail_platforms ? detail_platforms.kadena?.contract_address || 'coin' : modulename ?? 'Information unavailable'"
             :description="blockchainTooltipData.tokenDetails.summary.contract"
           />
 
           <LabelValue
             label="Decimals"
-            :value="detail_platforms.kadena?.decimal_place || '12'"
+            :value="detail_platforms ? detail_platforms.kadena?.decimal_place || '12' : 'Information unavailable'"
             :description="blockchainTooltipData.tokenDetails.summary.decimals"
           />
 
@@ -125,9 +142,9 @@ const {
             >
               <NuxtLink
                 target="__blank"
-                :to="links.homepage[0]"
+                :to="links?.homepage[0] || ''"
               >
-                {{ links.homepage[0].replace(/^https?:\/\/(www\.)?/, '') }}
+                {{ links ? links.homepage[0].replace(/^https?:\/\/(www\.)?/, '') : 'Information unavailable' }}
               </NuxtLink>
             </template>
           </LabelValue>
@@ -137,6 +154,7 @@ const {
           >
             <template #value>
               <div
+                v-if="links"
                 class="flex items-center gap-4"
               >
                 <Network
@@ -159,6 +177,12 @@ const {
                   :to="`https://x.com/${links.twitter_screen_name}`"
                   v-if="links.twitter_screen_name"
                 />
+              </div>
+
+              <div
+                v-else
+              >
+                Information unavailable
               </div>
             </template>
           </LabelValue>

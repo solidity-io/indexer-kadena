@@ -30,12 +30,27 @@ const route = useRoute()
 
 const { $coingecko } = useNuxtApp();
 
-const { data: token, error } = await useAsyncData('token-trending', async () =>
-  await $coingecko.request(`coins/${route.params.coingeckoId}`, {
+const { data: token, error } = await useAsyncData('token-trending', async () => {
+  const res = await $coingecko.request(`coins/${route.params.coingeckoId}`, {
     vs_currency: 'usd',
     category: 'kadena-ecosystem',
-  })
-);
+  });
+
+  if (res) {
+    return res;
+  }
+
+  const staticMetadata = staticTokens.find(({ module }) => module === route.params.coingeckoId);
+
+  return {
+    name: staticMetadata?.name,
+    image: staticMetadata ? {
+      large: staticMetadata?.icon,
+    } : undefined,
+    symbol: staticMetadata?.symbol,
+    contract_address: staticMetadata?.module || route.params.coingeckoId,
+  };
+});
 
 if (!token.value && !error.value) {
   await navigateTo('/404')
@@ -49,6 +64,7 @@ if (!token.value && !error.value) {
     <PageContainer>
       <TokenDetails
         v-bind="token"
+        :modulename="token.contract_address"
       />
     </PageContainer>
 
@@ -77,7 +93,7 @@ if (!token.value && !error.value) {
 
         <TabPanel>
           <TokenTransfers
-            :symbol="token.symbol"
+            :symbol="token.symbol || token.contract_address"
             :modulename="token.contract_address"
           />
         </TabPanel>

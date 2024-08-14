@@ -50,7 +50,7 @@ export const staticTokens = [
     icon: "https://swap.ecko.finance/images/crypto/corona.svg",
   },
   {
-    name: "CRKK",
+    name: "Crankk",
     symbol: "CRKK",
     coingeckoId: "",
     module: "free.crankk01",

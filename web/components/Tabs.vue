@@ -18,7 +18,7 @@ const selectedIndex = ref(0);
 const updateURL = async (index: number) => {
   const tabKey = props.tabs[index].key
 
-  const { page, ...newQuery}: any = { ...route.query, tab: tabKey };
+  const { page, cursor, ...newQuery}: any = { ...route.query, tab: tabKey };
 
   await router.push({ query: newQuery });
 

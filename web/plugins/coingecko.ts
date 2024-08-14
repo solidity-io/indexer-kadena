@@ -27,7 +27,7 @@ export default defineNuxtPlugin(async () => {
 
       return await response.json();
     } catch (error) {
-      console.error('Fetching CoinGecko API failed:', error);
+      console.warn('Fetching CoinGecko API failed:', error);
       return null;
     }
   };

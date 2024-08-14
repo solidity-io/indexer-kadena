@@ -4,6 +4,7 @@ defineProps<{
   withCopy?: boolean;
   value?: string | number;
   label: string | number;
+  withouMax?: boolean;
 }>()
 </script>
 
@@ -13,6 +14,6 @@ defineProps<{
     :to="to"
     :label="label"
     :value="value || label"
-    class="!max-w-[270px]"
+    :class="!withouMax && '!max-w-[270px]'"
   />
 </template>

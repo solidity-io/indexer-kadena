@@ -52,10 +52,6 @@ const { data: transfers, pending } = useAsyncData('token-details-transfers', asy
 
   const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
 
-  const allTransfers = res[key];
-
-  updateCursor(allTransfers.pageInfo.startCursor);
-
   return {
     ...res[key],
     totalPages
@@ -63,6 +59,11 @@ const { data: transfers, pending } = useAsyncData('token-details-transfers', asy
 }, {
   watch: [page]
 });
+
+
+watch([transfers], ([newPage]) => {
+  updateCursor(newPage?.pageInfo.startCursor)
+})
 </script>
 
 <template>

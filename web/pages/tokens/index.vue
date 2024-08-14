@@ -107,6 +107,7 @@ watch([transfers], ([newPage]) => {
         <template #requestkey="{ row }">
           <ColumnLink
             withCopy
+            withouMax
             :value="row.requestkey"
             :label="row.requestkey"
             :to="`/transactions/${row.requestkey}`"

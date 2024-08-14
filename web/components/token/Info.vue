@@ -1,10 +1,10 @@
 <script setup lang="ts">
 defineProps<{
-  id: string;
-  name: string;
-  symbol: string;
-  description: any;
-  market_data: any;
+  id?: string;
+  name?: string;
+  symbol?: string;
+  description?: any;
+  market_data?: any;
 }>()
 
 const {
@@ -24,9 +24,17 @@ const {
       </span>
 
       <span
+        v-if="description"
         v-text="description.en"
         class="text-xs bazk:text-sm text-font-400"
       />
+
+      <span
+        v-else
+        class="text-xs bazk:text-sm text-font-400"
+      >
+        Information unavailable
+      </span>
     </div>
 
     <div
@@ -43,13 +51,13 @@ const {
       >
         <LabelValue
           label="Market Capitalization"
-          :value="customMoney(market_data.market_cap.usd)"
+          :value="market_data ? customMoney(market_data.market_cap.usd) : 'Information unavailable'"
           :description="blockchainTooltipData.tokenDetails.information.marketCapitalization"
         />
 
         <LabelValue
           label="Volume (24H)"
-          :value="moneyCompact.format(market_data.total_volume.usd)"
+          :value="market_data ? moneyCompact.format(market_data.total_volume.usd) : 'Information unavailable'"
           :description="blockchainTooltipData.tokenDetails.information.volume24H"
         />
 
@@ -58,8 +66,15 @@ const {
           :description="blockchainTooltipData.tokenDetails.information.circulatingSupply"
         >
           <template #value>
-            <span class="uppercase">
+            <span v-if="market_data" class="uppercase">
               {{ `${integer.format(market_data.circulating_supply)} ${symbol}` }}
+            </span>
+
+            <span
+              v-else
+              class="text-xs bazk:text-sm text-font-400"
+            >
+              Information unavailable
             </span>
           </template>
         </LabelValue>
@@ -70,6 +85,7 @@ const {
         >
           <template #value>
             <NuxtLink
+              v-if="id"
               target="_blank"
               :to="`https://www.coingecko.com/en/coins/${id}`"
             >
@@ -87,6 +103,14 @@ const {
                 </span>
               </div>
             </NuxtLink>
+
+            <span
+              v-else
+              class="text-xs bazk:text-sm text-font-400"
+            >
+              Information unavailable
+            </span>
+
           </template>
         </LabelValue>
       </div>
