@@ -13,30 +13,15 @@ withDefaults(
   <div
     class="flex flex-col gap-4 md:gap-6"
   >
+    <Error
+      v-if="error"
+      :error="error"
+    />
+
     <template
-      v-if="!error"
+      v-else
     >
       <slot />
     </template>
-
-    <TableContainer
-      v-else
-    >
-      <div
-        class="pb-4"
-      >
-        <span
-          class="text-font-400 text-md font-bold"
-        >
-          Server Error
-        </span>
-      </div>
-
-      <span
-        class="text-font-400"
-      >
-        {{ error?.message }}
-      </span>
-  </TableContainer>
   </div>
 </template>

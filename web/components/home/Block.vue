@@ -10,6 +10,7 @@ const props = defineProps<{
   createdAt: any,
   minerData: string,
   coinbase: string,
+  transactionsCount: string,
   // transactionsByBlockId: any,
 }>()
 
@@ -71,10 +72,11 @@ const coinbase = useBlockMiner(props.coinbase)
     <div
       class="flex flex-row-reverse justify-between w-full xl:w-auto xl:justify-start xl:flex-col items-end gap-4 xl:ml-auto"
     >
-      <!-- <Value
+      <Value
         label="Transactions"
-        :value="transactionsByBlockId.totalCount"
-      /> -->
+        :value="transactionsCount"
+        class="!flex-row flex-grow xl:w-full"
+      />
 
       <Value
         :value="format(props.createdAt, 'dd MMM y HH:mm:ss')"

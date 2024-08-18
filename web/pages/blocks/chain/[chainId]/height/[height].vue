@@ -66,7 +66,7 @@ const route = useRoute()
 
 const { $graphql } = useNuxtApp();
 
-const { data: block, error } = await useAsyncData('GetBlockById', async () => {
+const { data: block, error } = await useAsyncData('block-detail', async () => {
   const {
     blockByHeight
   } = await $graphql.default.request(query, {

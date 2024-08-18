@@ -42,104 +42,112 @@ const {
 
 const { $graphql } = useNuxtApp();
 
-const key = 'allTransfers'
-
-const { data: transfers, pending } = useAsyncData('token-details-transfers', async () => {
-  const res = await $graphql.default.request(query, {
+const { data: transfers, pending, error } = await useAsyncData('token-transfers', async () => {
+  const {
+    allTransfers,
+  } = await $graphql.default.request(query, {
     ...params.value,
     modulename: props.modulename ?? 'coin'
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+  const totalPages = Math.max(Math.ceil(allTransfers.totalCount / limit.value), 1)
 
   return {
-    ...res[key],
+    ...allTransfers,
     totalPages
   };
 }, {
-  watch: [page]
+  watch: [page],
+  lazy: true,
 });
 
-
 watch([transfers], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
   updateCursor(newPage?.pageInfo.startCursor)
 })
 </script>
 
 <template>
-  <div
-    class="py-3 md:p-6 rounded-lg md:rounded-2xl border border-gray-300"
+  <PageRoot
+    :error="error"
   >
-    <TableRoot
-      :pending="pending"
-      id="token-transfers-table"
-      :rows="transfers?.nodes ?? []"
-      :columns="tokenDetailTransferTableColumns"
+    <div
+      class="py-3 md:p-6 rounded-lg md:rounded-2xl border border-gray-300"
     >
-      <template #method>
-        <Chip />
-      </template>
+      <TableRoot
+        :pending="pending"
+        id="token-transfers-table"
+        :rows="transfers?.nodes ?? []"
+        :columns="tokenDetailTransferTableColumns"
+      >
+        <template #method>
+          <Chip />
+        </template>
 
-      <template #requestKey="{ row }">
-        <ColumnLink
-          withCopy
-          :label="row.requestkey"
-          :to="`/transactions/${row.requestkey}`"
-        />
-      </template>
+        <template #requestKey="{ row }">
+          <ColumnLink
+            withCopy
+            :label="row.requestkey"
+            :to="`/transactions/${row.requestkey}`"
+          />
+        </template>
 
-      <template #from="{ row }">
-        <ColumnAddress
-          :value="row.fromAcct"
-        />
-      </template>
+        <template #from="{ row }">
+          <ColumnAddress
+            :value="row.fromAcct"
+          />
+        </template>
 
-      <template #amount="{ row }">
-        <div
-          class="text-font-450 text-sm"
-        >
-          {{ row.amount }}
-          <span
-            class="uppercase"
+        <template #amount="{ row }">
+          <div
+            class="text-font-450 text-sm"
           >
-            {{ symbol }}
-          </span>
-        </div>
-      </template>
+            {{ row.amount }}
+            <span
+              class="uppercase"
+            >
+              {{ symbol }}
+            </span>
+          </div>
+        </template>
 
-      <template #to="{ row }">
-        <ColumnAddress
-          :value="row.toAcct"
-        />
-      </template>
+        <template #to="{ row }">
+          <ColumnAddress
+            :value="row.toAcct"
+          />
+        </template>
 
-      <template #date="{ row }">
-        <ColumnDate
-          :row="row"
-        />
-      </template>
+        <template #date="{ row }">
+          <ColumnDate
+            :row="row"
+          />
+        </template>
 
-      <template
-        #empty
-      >
-        <EmptyTable
-          image="/empty/txs.png"
-          title="No transfers found yet"
-          description="We couldn't find transfer"
-        />
-      </template>
+        <template
+          #empty
+        >
+          <EmptyTable
+            image="/empty/txs.png"
+            title="No transfers found yet"
+            description="We couldn't find transfer"
+          />
+        </template>
 
-      <template
-        #footer
-      >
-        <PaginateTable
-          :currentPage="page"
-          :totalItems="transfers?.totalCount ?? 1"
-          :totalPages="transfers?.totalPages"
-          @pageChange="updatePage(Number($event), transfers.pageInfo, transfers.totalCount ?? 1, transfers.totalPages)"
-          class="p-3"
-        />
-      </template>
-    </TableRoot>
-  </div>
+        <template
+          #footer
+        >
+          <PaginateTable
+            :currentPage="page"
+            :totalItems="transfers?.totalCount ?? 1"
+            :totalPages="transfers?.totalPages"
+            @pageChange="updatePage(Number($event), transfers.pageInfo, transfers.totalCount ?? 1, transfers.totalPages)"
+            class="p-3"
+          />
+        </template>
+      </TableRoot>
+    </div>
+  </PageRoot>
 </template>

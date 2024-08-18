@@ -42,26 +42,31 @@ const {
 
 const { $graphql } = useNuxtApp();
 
-const key = 'allTransactions'
-
-const { data: transactions, pending, error } = useAsyncData(key, async () => {
-  const res = await $graphql.default.request(query, {
+const { data: transactions, pending, error } = await useAsyncData('block-all-transactions', async () => {
+  const {
+    allTransactions
+  } = await $graphql.default.request(query, {
     ...params.value,
     blockId: Number(props.id),
     chainId: Number(props.chainId)
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+  const totalPages = Math.max(Math.ceil(allTransactions.totalCount / limit.value), 1)
 
   return {
-    ...res[key],
+    ...allTransactions,
     totalPages
   };
 }, {
-  watch: [page]
+  watch: [page],
+  lazy: true,
 });
 
 watch([transactions], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
   updateCursor(newPage.pageInfo.startCursor)
 })
 </script>

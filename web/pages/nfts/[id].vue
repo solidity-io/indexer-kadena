@@ -50,7 +50,7 @@ const route = useRoute()
 
 const { $graphql } = useNuxtApp();
 
-const { data: nft, error } = await useAsyncData('GetNftById', async () => {
+const { data: nft, error } = await useAsyncData('nft-detail', async () => {
   const res = await $graphql.default.request(query, {
     id: Number(route.params.id),
   });

@@ -60,7 +60,7 @@ export function usePagination(defaultLimit = 20) {
       query.cursor = newCursor;
     }
 
-    router.push({ query })
+    router.replace({ query })
   }
 
   function updatePage (newPage: number, pageInfo: any, totalCount: any, totalPages: any) {

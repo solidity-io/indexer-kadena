@@ -66,30 +66,37 @@ const {
 
 const { $graphql, $coingecko } = useNuxtApp();
 
-const key = 'allTransactions'
-
-const { data: blockchain, error: blockchainError } = await useAsyncData('get-kadena-chart-data', async () => {
+const { data: blockchain, error: blockchainError } = await useAsyncData('transactions-chart', async () => {
   const res = await $coingecko.request('coins/kadena');
   return res;
+}, {
+  lazy: true,
 });
 
-const { data: transactions, pending, error } = useAsyncData('all-transactions', async () => {
-  const res = await $graphql.default.request(query, {
+const { data: transactions, pending, error, execute } = await useAsyncData('transactions-recent', async () => {
+  const {
+    allTransactions,
+  } = await $graphql.default.request(query, {
     ...params.value,
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1);
+  const totalPages = Math.max(Math.ceil(allTransactions.totalCount / limit.value), 1);
 
   return {
-    ...res[key],
+    ...allTransactions,
     totalPages
   };
 }, {
-  watch: [params]
+  watch: [params],
+  lazy: true,
 });
 
 watch([transactions], ([newPage]) => {
-  updateCursor(newPage.pageInfo.startCursor)
+  if (!newPage) {
+    return;
+  }
+
+  updateCursor(newPage?.pageInfo?.startCursor)
 })
 </script>
 
@@ -113,7 +120,7 @@ watch([transactions], ([newPage]) => {
       <Card
         label="Total Volume (24h)"
         :description="moneyCompact.format(blockchain?.market_data?.total_volume?.usd || 0)"
-        :delta="blockchain?.market_data?.price_change_percentage_24h"
+        :delta="blockchain?.market_data?.price_change_percentage_24h || 0"
       />
 
       <Card

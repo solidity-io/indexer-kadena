@@ -54,20 +54,18 @@ const {
   updateCursor,
 } = usePagination();
 
-const { data: transfers, pending, error } = useAsyncData('all-token-transfers', async () => {
-  const res = await $graphql.default.request(query, {
+const { data: transfers, pending, error } = await useAsyncData('all-token-transfers', async () => {
+  const { allTransfers } = await $graphql.default.request(query, {
     ...params.value,
   });
 
-  const transfers = res[key]
-
-  const totalPages = Math.max(Math.ceil(transfers.totalCount / limit.value), 1)
+  const totalPages = Math.max(Math.ceil(allTransfers.totalCount / limit.value), 1)
 
   return {
     totalPages,
-    totalCount: transfers.totalCount,
-    pageInfo: transfers.pageInfo,
-    nodes: transfers.nodes.map((transfer: any) => {
+    totalCount: allTransfers.totalCount,
+    pageInfo: allTransfers.pageInfo,
+    nodes: allTransfers.nodes.map((transfer: any) => {
       const metadata = staticTokens.find(({ module }) => module === transfer.modulename) || unknownToken
 
       return {
@@ -77,10 +75,15 @@ const { data: transfers, pending, error } = useAsyncData('all-token-transfers', 
     }),
   };
 }, {
-  watch: [page]
+  watch: [page],
+  lazy: true
 });
 
 watch([transfers], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
   updateCursor(newPage?.pageInfo.startCursor)
 })
 </script>

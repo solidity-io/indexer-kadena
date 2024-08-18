@@ -57,6 +57,7 @@ const query = gql`
         qualname
         tokenId
         updatedAt
+        transactionsCount
       }
     }
   }
@@ -64,7 +65,7 @@ const query = gql`
 
 const { $graphql, $coingecko } = useNuxtApp();
 
-const { data: balances, error } = await useAsyncData('allBalances', async () => {
+const { data: queryData, error } = await useAsyncData('account-balances-etl', async () => {
   const [
     apiRes,
     prices,
@@ -83,31 +84,29 @@ const { data: balances, error } = await useAsyncData('allBalances', async () => 
     allBalances,
   } = apiRes
 
-  return transformRawBalances({ allBalances, prices})
+  return {
+    balances: transformRawBalances({ allBalances, prices}),
+    totalTransactions: allBalances?.nodes[0]?.transactionsCount || 0
+  }
 });
 
-// TODO: Check this approach, better if move that to a backend
-// const download = () => {
-//   try {
-//     const csv = convertArrayToCSV(data.tabs)
 
-//     const url = window.URL.createObjectURL(new Blob([csv]));
-
-//     const link = document.createElement('a');
-
-//     link.href = url;
-
-//     link.setAttribute('download', 'dados.csv');
-
-//     document.body.appendChild(link);
-
-//     link.click();
-
-//     document.body.removeChild(link);
-//   } catch (error) {
-//     console.error("Erro ao exportar CSV:", error);
-//   }
-// }
+const tabs = computed(() => {
+  return [
+    {
+      key: 'assets',
+      label: `Assets (${queryData.value?.balances.length || 0})`,
+    },
+    {
+      key: 'nft',
+      label: 'NFT',
+    },
+    {
+      key: 'transactions',
+      label: `Transactions (${queryData.value?.totalTransactions})`,
+    },
+  ]
+})
 </script>
 
 <template>
@@ -121,17 +120,18 @@ const { data: balances, error } = await useAsyncData('allBalances', async () => 
     <PageContainer>
       <AccountDetails
         :address="address + ''"
-        :balances="balances"
+        :balances="queryData?.balances"
+        :totalTransactions="queryData?.totalTransactions"
       />
     </PageContainer>
 
     <PageContainer>
       <Tabs
-        :tabs="data.tabs"
+        :tabs="tabs"
       >
         <TabPanel>
           <AccountAssets
-            :balances="balances"
+            :balances="queryData?.balances"
             :address="(address as string)"
           />
         </TabPanel>

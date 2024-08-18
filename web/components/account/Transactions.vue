@@ -61,25 +61,30 @@ const {
 
 const { $graphql } = useNuxtApp();
 
-const key = 'allTransactions'
-
-const { data: transactions, pending, error } = useAsyncData(key, async () => {
-  const res = await $graphql.default.request(query, {
+const { data: transactions, pending, error } = await useAsyncData('account-all-transactions', async () => {
+  const {
+    allTransactions
+  } = await $graphql.default.request(query, {
     ...params.value,
     sender: props.address,
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+  const totalPages = Math.max(Math.ceil(allTransactions.totalCount / limit.value), 1)
 
   return {
-    ...res[key],
+    ...allTransactions,
     totalPages
   };
 }, {
-  watch: [page]
+  watch: [page],
+  lazy: true,
 });
 
 watch([transactions], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
   updateCursor(newPage.pageInfo.startCursor)
 })
 </script>
@@ -93,7 +98,7 @@ watch([transactions], ([newPage]) => {
     >
       <TableRoot
         :pending="pending"
-        :rows="[]"
+        :rows="transactions?.nodes || []"
         :columns="accountTransactionsTableColumns"
       >
         <template #status="{ row }">

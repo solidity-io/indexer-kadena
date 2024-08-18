@@ -45,12 +45,13 @@ const query = gql`
         nodeId
         coinbase
         minerData
+        transactionsCount
       }
     }
   }
 `
 
-const { data: cgData, error: cgError } = await useAsyncData('get-cg-chart-data', async () => {
+const { data: cgData, error: cgError } = await useAsyncData('home-cg-etl', async () => {
   const [
     token,
     chartData,
@@ -67,9 +68,11 @@ const { data: cgData, error: cgError } = await useAsyncData('get-cg-chart-data',
     token,
     chartData,
   };
+}, {
+  // lazy: true
 });
 
-const { data, error } = await useAsyncData('GetChartData', async () => {
+const { data, error } = await useAsyncData('home-transactions-blocks', async () => {
   const [
     apiRes,
   ] = await Promise.all([
@@ -79,6 +82,8 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
   return {
     ...apiRes
   };
+}, {
+  // lazy: true
 });
 </script>
 

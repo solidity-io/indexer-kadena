@@ -49,25 +49,30 @@ const {
 
 const { $graphql } = useNuxtApp();
 
-const key = 'allBalances'
-
-const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
-  const res = await $graphql.default.request(query, {
+const { data: nfts, pending } = await useAsyncData('account-nft-balances', async () => {
+  const {
+    allBalances,
+  } = await $graphql.default.request(query, {
     ...params.value,
     account: props.address,
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
+  const totalPages = Math.max(Math.ceil(allBalances.totalCount / limit.value), 1)
 
   return {
-    ...res[key],
+    ...allBalances,
     totalPages
   };
 }, {
-  watch: [page]
+  watch: [page],
+  lazy: true,
 });
 
 watch([nfts], ([newPage]) => {
+  if (!newPage) {
+    return;
+  }
+
   updateCursor(newPage.pageInfo.startCursor)
 })
 </script>

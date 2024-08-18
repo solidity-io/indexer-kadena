@@ -20,7 +20,7 @@ const updateURL = async (index: number) => {
 
   const { page, cursor, ...newQuery}: any = { ...route.query, tab: tabKey };
 
-  await router.push({ query: newQuery });
+  await router.replace({ query: newQuery });
 
   selectedIndex.value = index;
 }

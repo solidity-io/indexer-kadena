@@ -74,7 +74,7 @@ const gasDisplay = computed(() => {
     </div>
 
     <div
-      class="flex flex-row-reverse justify-between w-full xl:w-auto xl:justify-start xl:flex-col items-end gap-4 xl:ml-auto"
+      class="flex  h-full w-full xl:w-auto xl:justify-start xl:flex-col xl:ml-auto"
     >
       <!-- <div
         class="flex px-2 py-1 border border-gray-300 rounded"
