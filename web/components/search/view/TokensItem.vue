@@ -10,7 +10,7 @@ const metadata = computed(() => {
 
 <template>
   <NuxtLink
-    class="flex items-center justify-between"
+    class="flex items-center justify-between w-full"
   >
     <div
       class="flex items-center gap-2"
@@ -30,10 +30,10 @@ const metadata = computed(() => {
       </div>
 
       <div
-        class="flex gap-2 items-end"
+        class="flex gap-2 items-end w-full truncate"
       >
         <span
-          class="text-sm text-font-400 whitespace-nowrap"
+          class="text-sm text-font-400 truncate block"
         >
           {{ metadata.name }}
         </span>

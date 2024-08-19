@@ -39,7 +39,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="itemRef">
+  <div ref="itemRef" class="max-w-full w-full">
     <slot></slot>
   </div>
 </template>

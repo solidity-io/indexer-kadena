@@ -18,7 +18,7 @@ const props = defineProps<{
       class="max-w-full truncate"
     >
       <span
-        class="text-sm text-font-400"
+        class="text-sm text-font-400 truncate block"
       >
         {{ account }}
       </span>

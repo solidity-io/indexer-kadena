@@ -68,7 +68,7 @@ const activeFilter = ref('');
 
       <div
         v-else
-        class="flex gap-2 border-b border-gray-300 pb-4"
+        class="flex gap-2 border-b border-gray-300 pb-4 overflow-auto"
       >
         <SearchViewFilter
           label="Blocks"
@@ -95,7 +95,7 @@ const activeFilter = ref('');
 
     <div
       v-if="!loading && !isEmpty"
-      class="flex flex-col p-4 overflow-auto scrollbar-custom min-h-full gap-4"
+      class="flex flex-col p-4 overflow-auto scrollbar-custom min-h-full gap-4 max-w-full overflow-hidden"
     >
       <SearchViewVisible
         v-if="hasBlocks"

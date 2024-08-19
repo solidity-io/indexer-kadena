@@ -29,10 +29,10 @@ const status = computed((): 'success' | 'error' => {
     />
 
     <div
-      class="flex flex-col"
+      class="flex flex-col truncate"
     >
       <span
-        class="text-font-400 text-sm"
+        class="text-font-400 text-sm truncate block"
       >
         {{ hash }}
       </span>

@@ -22,7 +22,7 @@ const {
       ]"
     >
       <div
-        class="hidden bazk:block"
+        class="hidden sm:block"
       >
         <Select
           v-model="data.filter"

@@ -9,7 +9,7 @@ const {
 
 <template>
   <div
-    class="relative bazk:max-w-[700px]"
+    class="relative max-w-[700px]"
     v-outside="close"
   >
     <div
@@ -20,7 +20,7 @@ const {
       "
     >
       <div
-        class="hidden bazk:block"
+        class="hidden sm:block"
       >
         <Select
           v-model="data.filter"
