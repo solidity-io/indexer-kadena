@@ -51,7 +51,7 @@ const query = gql`
   }
 `
 
-const { data: cgData, error: cgError } = await useAsyncData('home-cg-etl', async () => {
+const { data: cgData, status: cgStatus, error: cgError } = await useAsyncData('home-cg-etl', async () => {
   const [
     token,
     chartData,
@@ -69,10 +69,10 @@ const { data: cgData, error: cgError } = await useAsyncData('home-cg-etl', async
     chartData,
   };
 }, {
-  // lazy: true
+  lazy: true
 });
 
-const { data, error } = await useAsyncData('home-transactions-blocks', async () => {
+const { data, error, status } = await useAsyncData('home-transactions-blocks', async () => {
   const [
     apiRes,
   ] = await Promise.all([
@@ -83,7 +83,7 @@ const { data, error } = await useAsyncData('home-transactions-blocks', async () 
     ...apiRes
   };
 }, {
-  // lazy: true
+  lazy: true
 });
 </script>
 
@@ -102,7 +102,8 @@ const { data, error } = await useAsyncData('home-transactions-blocks', async () 
         "
       >
         <HomeCard
-          :label="cgData?.token?.name + ' Price'"
+          :isLoading="cgStatus === 'pending'"
+          :label="'Kadena Price'"
           :description="moneyCompact.format(cgData?.token?.market_data?.current_price?.usd || 0)"
           :delta="cgData?.token?.market_data?.price_change_percentage_24h_in_currency?.usd || 0"
         />
@@ -110,17 +111,20 @@ const { data, error } = await useAsyncData('home-transactions-blocks', async () 
         <HomeCard
           isDark
           label="Total Volume"
+          :isLoading="cgStatus === 'pending'"
           :delta="cgData?.token?.market_data?.price_change_percentage_24h"
           :description="moneyCompact.format(cgData?.token?.market_data?.total_volume?.usd || 0)"
         />
 
         <HomeCard
           label="Market Capital"
+          :isLoading="cgStatus === 'pending'"
           :description="moneyCompact.format(cgData?.token?.market_data?.market_cap?.usd || 0)"
         />
 
         <HomeCard
           label="Circulating Supply"
+          :isLoading="cgStatus === 'pending'"
           :description="moneyCompact.format(cgData?.token?.market_data?.circulating_supply || 0)"
         />
       </div>
@@ -138,11 +142,21 @@ const { data, error } = await useAsyncData('home-transactions-blocks', async () 
           class="h-full max-h-[216px]"
         >
           <Chart
+            :key="cgStatus"
             v-bind="cgData?.chartData || defaultChartData"
           />
         </div>
       </div>
     </Container>
+
+    <div
+      v-if="status === 'pending'"
+      class="grid lg:grid-cols-2 gap-4 lg:gap-6"
+    >
+      <SkeletonHomeTransactionList />
+
+      <SkeletonHomeBlockList />
+    </div>
 
     <div
       v-if="data?.allTransactions"
@@ -170,5 +184,10 @@ const { data, error } = await useAsyncData('home-transactions-blocks', async () 
         />
       </HomeList>
     </div>
+
+    <Error
+      v-else-if="status === 'error'"
+      :error="error"
+    />
   </div>
 </template>

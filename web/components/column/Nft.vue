@@ -4,8 +4,6 @@ const props = defineProps<{
 }>()
 
 const nft = useNft(props?.contract)
-
-console.log('props', props);
 </script>
 
 <template>

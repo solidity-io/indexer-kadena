@@ -5,6 +5,7 @@ withDefaults(
     delta?: number,
     suffix?: string;
     isDark?: boolean;
+    isLoading?: boolean;
     description?: string | number;
   }>(),
   {
@@ -12,6 +13,7 @@ withDefaults(
     suffix: '',
     description: '',
     isDark: false,
+    isLoading: true,
   }
 )
 </script>
@@ -31,7 +33,7 @@ withDefaults(
       </span>
 
       <div
-        v-if="delta"
+        v-if="delta && !isLoading"
         class="px-2 py-1 bg-gray-900 rounded"
       >
         <span
@@ -47,18 +49,27 @@ withDefaults(
     <div
       class="text-font-400 flex items-end gap-1"
     >
-      <span
-        class="text-xl lg:text-2xl lg:leading-[100%] font-medium lg:font-semibold"
+      <template
+        v-if="!isLoading"
       >
-        {{ description }}
-      </span>
+        <span
+          class="text-xl lg:text-2xl lg:leading-[100%] font-medium lg:font-semibold"
+        >
+          {{ description }}
+        </span>
 
-      <span
-        v-if="suffix"
-        class="text-[14px] font-[500]"
-      >
-        {{ suffix }}
-      </span>
+        <span
+          v-if="suffix"
+          class="text-[14px] font-[500]"
+        >
+          {{ suffix }}
+        </span>
+      </template>
+
+      <div
+        v-else
+        class="bg-gray-200 h-[24px] rounded w-full"
+      />
     </div>
   </div>
 </template>

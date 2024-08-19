@@ -5,12 +5,14 @@ withDefaults(
     float?: string,
     suffix?: string;
     delta?: number;
+    isLoading?: boolean;
     description?: string | number;
   }>(),
   {
     label: '',
     suffix: '',
     description: '',
+    isLoading: false,
   }
 )
 </script>
@@ -32,34 +34,43 @@ withDefaults(
     <div
       class="flex items-center justify-between gap-2"
     >
-      <div
-        class="flex items-center justify-between text-font-400 flex items-end gap-1"
+      <template
+        v-if="!isLoading"
       >
-        <span
-          class="text-lg bazk:text-2xl leading-[100%] font-[600]"
+        <div
+          class="flex items-center justify-between text-font-400 flex items-end gap-1"
         >
-          {{ description }}
-        </span>
+          <span
+            class="text-lg bazk:text-2xl leading-[100%] font-[600]"
+          >
+            {{ description }}
+          </span>
 
-        <span
-          v-if="suffix"
-          class="text-xs bazk:text-[14px] font-[500]"
+          <span
+            v-if="suffix"
+            class="text-xs bazk:text-[14px] font-[500]"
+          >
+            {{ suffix }}
+          </span>
+        </div>
+
+        <div
+          v-if="delta"
+          class="px-2 py-1 bg-gray-900 rounded"
         >
-          {{ suffix }}
-        </span>
-      </div>
+          <span
+            class="text-xs block"
+            :class="delta < 0 ? 'text-system-red' : 'text-system-green'"
+          >
+            {{ delta.toFixed(2) }}%
+          </span>
+        </div>
+      </template>
 
       <div
-        v-if="delta"
-        class="px-2 py-1 bg-gray-900 rounded"
-      >
-        <span
-          class="text-xs block"
-          :class="delta < 0 ? 'text-system-red' : 'text-system-green'"
-        >
-          {{ delta.toFixed(2) }}%
-        </span>
-      </div>
+        v-else
+        class="bg-gray-200 h-[34px] rounded w-full"
+      />
     </div>
   </div>
 </template>

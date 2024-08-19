@@ -31,10 +31,15 @@ withDefaults(
     />
 
     <span
-      v-else
+      v-else-if="value"
       class="text-font-450 leading-[20px] block"
     >
       {{ value }}
     </span>
+
+    <div
+      v-else
+      class="h-[20px] rounded-lg bg-gray-200 grow"
+    />
   </div>
 </template>

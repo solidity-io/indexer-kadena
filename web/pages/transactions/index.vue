@@ -66,14 +66,14 @@ const {
 
 const { $graphql, $coingecko } = useNuxtApp();
 
-const { data: blockchain, error: blockchainError } = await useAsyncData('transactions-chart', async () => {
+const { data: blockchain, status: cgStatus, error: blockchainError } = await useAsyncData('transactions-chart', async () => {
   const res = await $coingecko.request('coins/kadena');
   return res;
 }, {
   lazy: true,
 });
 
-const { data: transactions, pending, error, execute } = await useAsyncData('transactions-recent', async () => {
+const { data: transactions, status, pending, error } = await useAsyncData('transactions-recent', async () => {
   const {
     allTransactions,
   } = await $graphql.default.request(query, {
@@ -113,22 +113,26 @@ watch([transactions], ([newPage]) => {
     >
       <Card
         label="Market Cap (24h)"
+        :isLoading="cgStatus === 'pending'"
         :description="moneyCompact.format(blockchain?.market_data?.market_cap?.usd || 0)"
         :delta="blockchain?.market_data?.market_cap_change_percentage_24h"
       />
 
       <Card
         label="Total Volume (24h)"
+        :isLoading="cgStatus === 'pending'"
         :description="moneyCompact.format(blockchain?.market_data?.total_volume?.usd || 0)"
         :delta="blockchain?.market_data?.price_change_percentage_24h || 0"
       />
 
       <Card
         label="Circulating Supply (24h)"
+        :isLoading="cgStatus === 'pending'"
         :description="moneyCompact.format(blockchain?.market_data?.circulating_supply || 0)"
       />
 
       <Card
+        :isLoading="status === 'pending'"
         :description="transactions?.totalCount ?? 0"
         label="Total transactions (All time)"
       />

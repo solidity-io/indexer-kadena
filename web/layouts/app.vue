@@ -4,7 +4,7 @@ const route = useRoute();
 
 <template>
   <div
-    class="h-screen flex flex-col items-center"
+    class="h-screen flex flex-col items-center !font-sans"
   >
     <div
       class="w-full bg-blue-400"
