@@ -3,95 +3,28 @@ import { gql } from 'nuxt-graphql-request/utils';
 
 const allQuery = gql`
   query SearchAll($searchTerm: String!, $limit: Int!, $heightFilter: Int) {
-    blocks: allBlocks(
-      last: $limit,
-      filter: {
-        or: [
-          { hash: { includesInsensitive: $searchTerm } },
-          { parent: { includesInsensitive: $searchTerm } },
-          { payloadHash: { includesInsensitive: $searchTerm } },
-          { transactionsHash: { includesInsensitive: $searchTerm } },
-          { outputsHash: { includesInsensitive: $searchTerm } },
-          { height: { equalTo: $heightFilter } }
-        ]
-      }
-    ) {
-      nodes {
-        id
-        hash
-        parent
+    searchAll(searchTerm: $searchTerm, limit: $limit, heightFilter: $heightFilter) {
+      blocks {
         chainId
+        hash
         height
-        creationTime
-        payloadHash
-        transactionsHash
-        outputsHash
-        weight
-        epochStart
-        chainwebVersion
+        parent
+        transactionsCount
       }
-    }
-
-    transactions: allTransactions(
-      last: $limit,
-      filter: {
-        or: [
-          { requestkey: { includesInsensitive: $searchTerm } },
-          { hash: { includesInsensitive: $searchTerm } },
-          { txid: { includesInsensitive: $searchTerm } },
-          { pactid: { includesInsensitive: $searchTerm } },
-          { sender: { includesInsensitive: $searchTerm } }
-        ]
+      tokens {
+        type
+        module
+        chainId
       }
-    ) {
-      nodes {
-        id
-        requestkey
-        hash
-        txid
-        pactid
+      transactions {
         sender
-        chainId
+        requestkey
         result
-        gas
-        gaslimit
-        gasprice
-      }
-    }
-
-    addresses: allBalances(
-      first: $limit,
-      filter: {
-        account: { includesInsensitive: $searchTerm }
-      },
-      orderBy: [ACCOUNT_ASC]
-    ) {
-      nodes {
-        account
-        chainId
-        balance
-        module
-        qualname
-        tokenId
-        hasTokenId
-      }
-    }
-
-    tokens: allContracts(
-      first: $limit,
-      filter: {
-        type: { equalTo: "fungible" },
-        module: { includesInsensitive: $searchTerm }
-      }
-    ) {
-      nodes {
-        id
-        network
-        chainId
-        module
         metadata
-        tokenId
-        precision
+        chainId
+      }
+      addresses {
+        account
       }
     }
   }
@@ -99,32 +32,13 @@ const allQuery = gql`
 
 const searchBlocksQuery = gql`
   query SearchBlocks($searchTerm: String!, $limit: Int!, $heightFilter: Int) {
-    blocks: allBlocks(
-      last: $limit,
-      filter: {
-        or: [
-          { hash: { includesInsensitive: $searchTerm } },
-          { parent: { includesInsensitive: $searchTerm } },
-          { payloadHash: { includesInsensitive: $searchTerm } },
-          { transactionsHash: { includesInsensitive: $searchTerm } },
-          { outputsHash: { includesInsensitive: $searchTerm } },
-          { height: { equalTo: $heightFilter } }
-        ]
-      }
-    ) {
-      nodes {
-        id
-        hash
-        parent
+    searchAll(searchTerm: $searchTerm, limit: $limit, heightFilter: $heightFilter) {
+      blocks {
         chainId
+        hash
         height
-        creationTime
-        payloadHash
-        transactionsHash
-        outputsHash
-        weight
-        epochStart
-        chainwebVersion
+        parent
+        transactionsCount
       }
     }
   }
@@ -132,30 +46,13 @@ const searchBlocksQuery = gql`
 
 const searchTransactionsQuery = gql`
   query SearchTransactions($searchTerm: String!, $limit: Int!) {
-    transactions: allTransactions(
-      last: $limit,
-      filter: {
-        or: [
-          { requestkey: { includesInsensitive: $searchTerm } },
-          { hash: { includesInsensitive: $searchTerm } },
-          { txid: { includesInsensitive: $searchTerm } },
-          { pactid: { includesInsensitive: $searchTerm } },
-          { sender: { includesInsensitive: $searchTerm } }
-        ]
-      }
-    ) {
-      nodes {
-        id
-        requestkey
-        hash
-        txid
-        pactid
+    searchAll(searchTerm: $searchTerm, limit: $limit) {
+      transactions {
         sender
-        chainId
+        requestkey
         result
-        gas
-        gaslimit
-        gasprice
+        metadata
+        chainId
       }
     }
   }
@@ -163,21 +60,9 @@ const searchTransactionsQuery = gql`
 
 const searchAddressQuery = gql`
   query SearchUniqueAddresses($searchTerm: String!, $limit: Int!) {
-    addresses: allBalances(
-      first: $limit,
-      filter: {
-        account: { includesInsensitive: $searchTerm }
-      },
-      orderBy: [ACCOUNT_ASC]
-    ) {
-      nodes {
+    searchAll(searchTerm: $searchTerm, limit: $limit) {
+      addresses {
         account
-        chainId
-        balance
-        module
-        qualname
-        tokenId
-        hasTokenId
       }
     }
   }
@@ -185,21 +70,11 @@ const searchAddressQuery = gql`
 
 const searchFungibleTokensQuery = gql`
   query SearchFungibleTokens($searchTerm: String!, $limit: Int!) {
-    tokens: allContracts(
-      first: $limit,
-      filter: {
-        type: { equalTo: "fungible" },
-        module: { includesInsensitive: $searchTerm }
-      }
-    ) {
-      nodes {
-        id
-        network
-        chainId
+    searchAll(searchTerm: $searchTerm, limit: $limit) {
+      tokens {
+        type
         module
-        metadata
-        tokenId
-        precision
+        chainId
       }
     }
   }
@@ -255,8 +130,6 @@ export function useSearch () {
     data.loading = true;
     data.error = null;
 
-    console.log('fucking value', value);
-
     try {
       const variables = {
         searchTerm: value,
@@ -271,11 +144,10 @@ export function useSearch () {
         }
       }
 
-      const queryResult = await $graphql.default.request(data.filter.query, variables);
+      const { searchAll } = await $graphql.default.request(data.filter.query, variables);
 
-      console.log('foo', queryResult);
       if (value === data.query) {
-        data.searched = queryResult;
+        data.searched = searchAll;
       }
     } catch (error) {
       console.error('Search error:', error);

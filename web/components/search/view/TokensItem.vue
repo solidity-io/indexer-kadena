@@ -10,6 +10,7 @@ const metadata = computed(() => {
 
 <template>
   <NuxtLink
+    :to="metadata?.id ? `/tokens/${metadata.id}` : `/tokens/${module}`"
     class="flex items-center justify-between w-full"
   >
     <div
@@ -21,6 +22,7 @@ const metadata = computed(() => {
         <img
           v-if="metadata.icon"
           :src="metadata.icon"
+          class="rounded-full"
         />
 
         <div

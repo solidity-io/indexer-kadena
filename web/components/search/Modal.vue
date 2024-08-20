@@ -16,23 +16,23 @@ const isEmpty = computed(() => {
   if (props.items === null) {
     return true
   }
-  return Object.values(props.items).every(({ nodes }: any) => nodes?.length === 0)
+  return Object.values(props.items).every((item: any) => item?.length === 0)
 });
 
 const hasBlocks = computed(() => {
-  return props.items?.blocks?.nodes?.length > 0
+  return props.items?.blocks?.length > 0
 });
 
 const hasTransactions = computed(() => {
-  return props.items?.transactions?.nodes?.length > 0
+  return props.items?.transactions?.length > 0
 });
 
 const hasAddresses = computed(() => {
-  return props.items?.addresses?.nodes?.length > 0
+  return props.items?.addresses?.length > 0
 });
 
 const hasTokens = computed(() => {
-  return props.items?.tokens?.nodes?.length > 0
+  return props.items?.tokens?.length > 0
 });
 
 const activeFilter = ref('');
@@ -101,28 +101,28 @@ const activeFilter = ref('');
         v-if="hasBlocks"
         @visible="activeFilter = 'blocks'"
       >
-        <SearchViewBlock :blocks="items?.blocks?.nodes" />
+        <SearchViewBlock :blocks="items?.blocks" />
       </SearchViewVisible>
 
       <SearchViewVisible
         v-if="hasTransactions"
         @visible="activeFilter = 'transactions'"
       >
-        <SearchViewTransaction :transactions="items?.transactions?.nodes" />
+        <SearchViewTransaction :transactions="items?.transactions" />
       </SearchViewVisible>
 
       <SearchViewVisible
         v-if="hasAddresses"
         @visible="activeFilter = 'address'"
       >
-        <SearchViewAddress :addresses="items?.addresses?.nodes" />
+        <SearchViewAddress :addresses="items?.addresses" />
       </SearchViewVisible>
 
       <SearchViewVisible
         v-if="hasTokens"
         @visible="activeFilter = 'tokens'"
       >
-        <SearchViewTokens :tokens="items?.tokens?.nodes" />
+        <SearchViewTokens :tokens="items?.tokens" />
       </SearchViewVisible>
     </div>
   </div>
