@@ -16,13 +16,13 @@ const data = reactive({
       label: 'Info',
     },
     {
+      key: 'holders',
+      label: 'Holders',
+    },
+    {
       key: 'transfers',
       label: 'Transfers',
     },
-    // {
-    //   key: 'holders',
-    //   label: 'Holders',
-    // },
   ],
 })
 
@@ -35,6 +35,10 @@ const { data: token, error } = await useAsyncData('token-trending', async () => 
     vs_currency: 'usd',
     category: 'kadena-ecosystem',
   });
+
+  if (['coin', 'kadena'].includes(route.params.coingeckoId)) {
+    res.contract_address = 'coin';
+  }
 
   if (res) {
     return res;
@@ -92,17 +96,18 @@ if (!token.value && !error.value) {
         </TabPanel>
 
         <TabPanel>
+          <TokenHolders
+            v-bind="token"
+            :modulename="token.contract_address"
+          />
+        </TabPanel>
+
+        <TabPanel>
           <TokenTransfers
             :symbol="token.symbol || token.contract_address"
             :modulename="token.contract_address"
           />
         </TabPanel>
-
-        <!-- <TabPanel>
-          <TokenHolders
-            v-bind="token"
-          />
-        </TabPanel> -->
       </Tabs>
     </PageContainer>
   </PageRoot>

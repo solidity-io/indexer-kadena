@@ -14,8 +14,6 @@ const props = defineProps<{
 const {
   blockchainTooltipData
 } = useAppConfig();
-
-console.log('transaction::transfers', props.transfers);
 </script>
 
 <template>

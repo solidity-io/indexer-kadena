@@ -6,11 +6,11 @@ defineProps<{
 
 <template>
   <div
-    class="w-full flex flex-col gap-1"
+    class="w-full flex flex-col gap-1 h-[26px]"
   >
     <div>
       <span
-        class="text-sm text-font-400 h-[140%] block"
+        class="text-sm text-font-400 block h-[19px]"
       >
         {{ Math.round(value * 100) }}%
       </span>

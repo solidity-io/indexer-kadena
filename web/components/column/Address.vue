@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   value: string,
+  chars?: number,
 }>()
 
 function shortenAddress (
@@ -18,6 +19,6 @@ function shortenAddress (
     withCopy
     :value="value"
     :to="`/account/${value}`"
-    :label="shortenAddress(value, 6)"
+    :label="shortenAddress(value, chars || 6)"
   />
 </template>

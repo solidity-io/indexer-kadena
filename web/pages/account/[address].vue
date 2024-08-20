@@ -58,6 +58,8 @@ const query = gql`
         tokenId
         updatedAt
         transactionsCount
+        polyfungiblesCount
+        fungiblesCount
       }
     }
   }
@@ -86,10 +88,11 @@ const { data: queryData, error } = await useAsyncData('account-balances-etl', as
 
   return {
     balances: transformRawBalances({ allBalances, prices}),
-    totalTransactions: allBalances?.nodes[0]?.transactionsCount || 0
+    fungiblesCount: allBalances?.nodes[0]?.fungiblesCount || 0,
+    totalTransactions: allBalances?.nodes[0]?.transactionsCount || 0,
+    polyfungiblesCount: allBalances?.nodes[0]?.polyfungiblesCount || 0
   }
 });
-
 
 const tabs = computed(() => {
   return [
@@ -99,7 +102,7 @@ const tabs = computed(() => {
     },
     {
       key: 'nft',
-      label: 'NFT',
+      label: `NFT (${queryData.value?.polyfungiblesCount})`,
     },
     {
       key: 'transactions',

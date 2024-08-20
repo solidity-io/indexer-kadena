@@ -19,7 +19,7 @@ const emit = defineEmits(['click'])
       :key="index"
       v-for="(column, index) in columns"
       :style="{ gridColumn: `span ${column.cols} / span ${column.cols}` }"
-      class="text-font-450 flex items-center bg-gray-800 group-hover:bg-gray-700"
+      class="text-font-450 flex items-center bg-gray-800 group-hover:bg-gray-700 text-sm text-font-450"
       :class="[column.center && 'text-center justify-center', !!column.isFixed && 'sticky left-0']"
     >
       <slot
