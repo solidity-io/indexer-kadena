@@ -119,7 +119,7 @@ export const staticTokens = [
     name: "Kaddex",
     coingeckoId: "",
     module: "kaddex.kdx",
-    icon: "https://swap.ecko.finance/images/crypto/kaddex-crypto.svg",
+    icon: "https://assets.coingecko.com/coins/images/27325/standard/kdx.png?1696526373",
   },
   {
     id: "kdswap",
