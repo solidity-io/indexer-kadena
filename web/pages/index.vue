@@ -69,7 +69,7 @@ const { data: cgData, status: cgStatus, error: cgError } = await useAsyncData('h
     chartData,
   };
 }, {
-  lazy: true
+  // lazy: true,
 });
 
 const { data, error, status } = await useAsyncData('home-transactions-blocks', async () => {
@@ -83,7 +83,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
     ...apiRes
   };
 }, {
-  lazy: true
+  // lazy: true,
 });
 </script>
 

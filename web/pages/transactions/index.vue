@@ -70,7 +70,7 @@ const { data: blockchain, status: cgStatus, error: blockchainError } = await use
   const res = await $coingecko.request('coins/kadena');
   return res;
 }, {
-  lazy: true,
+  // lazy: true,
 });
 
 const { data: transactions, status, pending, error } = await useAsyncData('transactions-recent', async () => {
@@ -88,7 +88,7 @@ const { data: transactions, status, pending, error } = await useAsyncData('trans
   };
 }, {
   watch: [params],
-  lazy: true,
+  // lazy: true,
 });
 
 watch([transactions], ([newPage]) => {

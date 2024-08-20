@@ -76,7 +76,7 @@ const { data: transfers, pending, error } = await useAsyncData('all-token-transf
   };
 }, {
   watch: [page],
-  lazy: true
+  // lazy: true,
 });
 
 watch([transfers], ([newPage]) => {
