@@ -130,6 +130,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
       </div>
 
       <div
+        v-if="cgStatus !== 'pending'"
         class="w-full h-full flex flex-col gap-3 lg:gap-6"
       >
         <span
@@ -150,7 +151,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
     </Container>
 
     <div
-      v-if="status === 'pending'"
+      v-if="status === 'pending' && cgStatus !== 'pending'"
       class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
       <SkeletonHomeTransactionList />
@@ -159,7 +160,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
     </div>
 
     <div
-      v-if="data?.allTransactions"
+      v-if="status !== 'error' && data"
       class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
       <HomeList
@@ -169,7 +170,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
         <HomeTransaction
           v-bind="transaction"
           :key="transaction.requestKey"
-          v-for="transaction in data?.allTransactions?.nodes"
+          v-for="transaction in data?.allTransactions?.nodes ?? []"
         />
       </HomeList>
 
@@ -180,7 +181,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
         <HomeBlock
           v-bind="block"
           :key="block.hash"
-          v-for="block in data?.allBlocks?.nodes"
+          v-for="block in data?.allBlocks?.nodes ?? []"
         />
       </HomeList>
     </div>

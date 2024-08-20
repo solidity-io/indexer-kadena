@@ -112,7 +112,7 @@ console.log('holders', holders.value);
         </template>
 
         <template #value="{ row }">
-          {{ money.format(Number(row.quantity) * (market_data?.current_price.usd || 0)) }}
+          {{ customMoney(Number(row.quantity) * (market_data?.current_price.usd || 0)) }}
         </template>
 
         <template

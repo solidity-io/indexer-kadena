@@ -27,6 +27,8 @@ const gasInKDA = computed(() => {
 const gasDisplay = computed(() => {
   return `${customInteger(gasInKDA.value)} KDA`
 })
+
+const createdAt = useState('date', () => format(new Date(props.createdAt), 'dd MMM y HH:mm:ss'));
 </script>
 
 <template>
@@ -87,7 +89,7 @@ const gasDisplay = computed(() => {
       </div> -->
 
       <Value
-        :value="format(new Date(props.createdAt), 'dd MMM y HH:mm:ss')"
+        :value="createdAt"
       />
     </div>
   </div>

@@ -21,6 +21,8 @@ const status = computed((): 'success' | 'error' => {
 const miner = useBlockMiner(props.minerData)
 
 const coinbase = useBlockMiner(props.coinbase)
+
+const createdAt = useState('date', () => format(new Date(props.createdAt), 'dd MMM y HH:mm:ss'));
 </script>
 
 <template>
@@ -79,7 +81,7 @@ const coinbase = useBlockMiner(props.coinbase)
       />
 
       <Value
-        :value="format(props.createdAt, 'dd MMM y HH:mm:ss')"
+        :value="createdAt"
       />
     </div>
   </div>
