@@ -146,6 +146,7 @@ export const blockchainTooltipData = {
     },
   },
   nftDetails: {
+    id: "The indexer NFT ID.",
     account: "The account identifier or address associated with the account.",
     price: "The current price of the NFT in the marketplace.",
     floorPrice: "The minimum price set for the NFT in the marketplace.",

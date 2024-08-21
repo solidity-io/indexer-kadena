@@ -25,6 +25,7 @@ const query = gql`
         id
         nodeId
         minerData
+        transactionsCount
       }
       pageInfo {
         startCursor
@@ -132,7 +133,7 @@ watch([blocks], ([newPage]) => {
             withCopy
             :label="row.hash"
             :value="row.hash"
-            class="max-w-[190px]"
+            class="max-w-[195px]"
           />
         </template>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
+    chain?: any;
     rows: any[],
     columns: any[],
     title?: string,
@@ -9,11 +10,18 @@ const props = withDefaults(
     mobileWithoutHeader?: boolean,
   }>(),
   {
+    chain: false,
     isFull: false,
     pending: false,
     mobileWithoutHeader: false,
   }
 )
+
+const isOpen = ref(false);
+
+const close = () => {
+  isOpen.value = false
+}
 
 const slots = useSlots();
 
@@ -21,7 +29,7 @@ const filteredSlots = computed(() => {
   return Object.keys(slots).filter(name => !['default', 'row'].includes(name))
 })
 
-const emit = defineEmits(['rowClick'])
+const emit = defineEmits(['rowClick', 'chain'])
 </script>
 
 <template>
@@ -61,9 +69,54 @@ const emit = defineEmits(['rowClick'])
             {{ column.label }}
           </span>
 
+          <div
+            v-if="column.key === 'chainId'"
+            class="relative rounded-lg"
+            v-outside="close"
+          >
+            <button
+              class="group flex"
+              @click.prevent="isOpen = true"
+            >
+              <IconFilter
+                class="group-hover:text-kadscan-500 w-4 h-4"
+                :class="chain !== null ? 'text-kadscan-500' : 'text-font-500'"
+              />
+            </button>
+
+            <div
+              v-if="isOpen"
+              class="absolute top-[calc(100% + 5px)] right-0 rounded-lg flex flex-col z-[9999] bg-gray-300 p-2 w-[74px] text-sm text-font-400"
+            >
+              <span
+                class="cursor-pointer hover:text-kadscan-400"
+                @click.prevent="() => {
+                  emit('chain', null)
+                  close()
+                }"
+                :class="chain === null && '!text-kadscan-500'"
+              >
+                All
+              </span>
+
+              <span
+                :key="n"
+                class="cursor-pointer hover:text-kadscan-400"
+                :class="chain === n - 1 && '!text-kadscan-500'"
+                @click.prevent="() => {
+                  emit('chain', n - 1);
+                  close()
+                }"
+                v-for="n in 20"
+              >
+                {{ `Chain ${n - 1}` }}
+              </span>
+            </div>
+          </div>
+
           <Tooltip
             :value="column.description"
-            v-if="column.description"
+            v-else-if="column.description"
           />
         </div>
       </div>

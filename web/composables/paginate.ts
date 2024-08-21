@@ -13,11 +13,11 @@ export function usePagination(defaultLimit = 20) {
   const page = ref(isNaN(Number(route.query.page)) ? 1 : Number(route.query.page))
 
   const limit = ref(defaultLimit);
-  const cursor = ref<string | null>(null);
+  const cursor = ref<string | undefined>(undefined);
 
   const params = ref<any>({
     first: defaultLimit,
-    after: route.query.cursor || null,
+    after: route.query.cursor ?? undefined,
   });
 
   function updateCursor(newCursor: string) {
@@ -51,6 +51,14 @@ export function usePagination(defaultLimit = 20) {
   }
 
   function updateURL (newPage: number, newCursor: string | null) {
+    if (!newPage || !newCursor) {
+      const { page, cursor, ...rest } = route.query;
+
+      router.replace({ query: rest })
+
+      return;
+    }
+
     const query = {
       ...route.query,
       page: newPage.toString(),

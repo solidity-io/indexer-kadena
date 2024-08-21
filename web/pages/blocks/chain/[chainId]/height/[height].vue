@@ -44,7 +44,6 @@ const query = gql`
       minerData
       coinbase
       outputsHash
-      transactionsHash
       featureFlags
       hash
       height
@@ -58,6 +57,7 @@ const query = gql`
       updatedAt
       weight
       transactionsHash
+      transactionsCount
     }
   }
 `
@@ -131,6 +131,7 @@ if (!block.value && !error.value) {
         <TabPanel>
           <BlockTransactions
             v-bind="block"
+            :height="route.params.height"
           />
         </TabPanel>
       </Tabs>

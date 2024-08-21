@@ -5,6 +5,7 @@ const props = defineProps<{
   chainId: number;
   createdAt: string;
   requestkey: string;
+  blockByBlockId?: any;
 }>()
 
 const status = useTransactionStatus(props.result)
@@ -52,7 +53,7 @@ const {
         <ValueLink
           :label="blockId"
           :value="blockId"
-          :to="`/blocks/chain/${chainId}/height/${blockId}`"
+          :to="blockByBlockId ? `/blocks/chain/${chainId}/height/${blockByBlockId.height}` : ''"
         />
       </template>
     </LabelValue>

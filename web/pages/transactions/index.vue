@@ -14,8 +14,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $last: Int, $after: Cursor, $before: Cursor) {
-    allTransactions(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC) {
+  query GetTransactions($first: Int, $last: Int, $after: Cursor, $before: Cursor, $chainId: Int) {
+    allTransactions(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC, filter: {chainId: {equalTo: $chainId}}) {
       nodes {
         chainId
         code
@@ -44,6 +44,9 @@ const query = gql`
         ttl
         txid
         updatedAt
+        blockByBlockId {
+          height
+        }
       }
       pageInfo {
         startCursor
@@ -60,9 +63,18 @@ const {
   page,
   limit,
   params,
+  cursor,
   updatePage,
   updateCursor,
 } = usePagination();
+
+const chain = ref<any>(null);
+
+const updateChain = (newChain: any) => {
+  chain.value = newChain;
+  cursor.value = undefined;
+  page.value = 1;
+}
 
 const { $graphql, $coingecko } = useNuxtApp();
 
@@ -78,6 +90,7 @@ const { data: transactions, status, pending, error } = await useAsyncData('trans
     allTransactions,
   } = await $graphql.default.request(query, {
     ...params.value,
+    chainId: chain.value,
   });
 
   const totalPages = Math.max(Math.ceil(allTransactions.totalCount / limit.value), 1);
@@ -87,7 +100,7 @@ const { data: transactions, status, pending, error } = await useAsyncData('trans
     totalPages
   };
 }, {
-  watch: [params],
+  watch: [params, chain],
   // lazy: true,
 });
 
@@ -140,6 +153,8 @@ watch([transactions], ([newPage]) => {
 
     <TableContainer>
       <TableRoot
+        :chain="chain"
+        @chain="updateChain"
         title="Recent Transactions"
         :pending="pending"
         :rows="transactions?.nodes || []"
@@ -173,8 +188,8 @@ watch([transactions], ([newPage]) => {
 
         <template #block="{ row }">
           <ColumnLink
-            :to="`/blocks/${row.blockId ?? 'null'}`"
-            :label="row.blockId ?? 'null'"
+            :to="row.blockByBlockId ?`/blocks/chain/${row.chainId}/height/${row?.blockByBlockId?.height}`: ''"
+            :label="row?.blockByBlockId?.height ?? 'null'"
           />
         </template>
 
