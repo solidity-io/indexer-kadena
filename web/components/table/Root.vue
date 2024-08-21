@@ -70,7 +70,7 @@ const emit = defineEmits(['rowClick', 'chain'])
           </span>
 
           <div
-            v-if="column.key === 'chainId'"
+            v-if="column.withChainFilter"
             class="relative rounded-lg"
             v-outside="close"
           >
@@ -116,7 +116,7 @@ const emit = defineEmits(['rowClick', 'chain'])
 
           <Tooltip
             :value="column.description"
-            v-else-if="column.description"
+            v-if="column.description"
           />
         </div>
       </div>

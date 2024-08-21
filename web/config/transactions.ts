@@ -30,7 +30,8 @@ export const transactionTableColumns = [
     center: true,
     key: 'chainId',
     label: 'Chain',
-    description: blockchainTooltipData.transaction.chain
+    withChainFilter: true,
+    // description: blockchainTooltipData.transaction.chain
   },
   {
     cols: 3,
