@@ -23,7 +23,11 @@
     </div>
 
     <div
-      class="hidden xl:block bg-gray-800 rounded-xl w-full max-w-[420px] lg:h-[132px]"
-    />
+      class="hidden xl:flex bg-gray-800 rounded-xl w-full max-w-[420px] lg:h-[132px] items-center justify-center"
+    >
+      <IconLogoWhite
+        class="h-10"
+      />
+    </div>
   </div>
 </template>
