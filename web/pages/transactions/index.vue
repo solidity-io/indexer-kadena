@@ -69,6 +69,7 @@ const {
 } = usePagination();
 
 const chain = ref<any>(null);
+const totalTransactions = ref(null)
 
 const updateChain = (newChain: any) => {
   chain.value = newChain;
@@ -94,6 +95,10 @@ const { data: transactions, status, pending, error } = await useAsyncData('trans
   });
 
   const totalPages = Math.max(Math.ceil(allTransactions.totalCount / limit.value), 1);
+
+  if (!totalTransactions.value) {
+    totalTransactions.value = allTransactions.totalCount;
+  }
 
   return {
     ...allTransactions,
@@ -145,8 +150,7 @@ watch([transactions], ([newPage]) => {
       />
 
       <Card
-        :isLoading="status === 'pending'"
-        :description="transactions?.totalCount ?? 0"
+        :description="totalTransactions || ''"
         label="Total transactions (All time)"
       />
     </div>
