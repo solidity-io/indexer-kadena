@@ -10,7 +10,7 @@ import { initializeDatabase } from "./config/database";
 import { getRequiredEnvString } from "./utils/helpers";
 import { startStreaming } from "./services/sync/streaming";
 import { processS3HeadersDaemon } from "./services/sync/header";
-import { usePostgraphile } from "./server/metrics";
+import { usePostgraphile, useKadenaExtension } from "./server/metrics";
 
 program
   .option("-s, --streaming", "Start streaming blockchain data")
@@ -53,6 +53,7 @@ async function main() {
       await processS3HeadersDaemon(SYNC_NETWORK);
     } else if (options.graphql) {
       await usePostgraphile();
+      await useKadenaExtension();
     } else if (options.run) {
       if (process.env.RUN_GRAPHQL_ON_START === "true") {
         await usePostgraphile();

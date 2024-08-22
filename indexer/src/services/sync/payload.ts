@@ -63,6 +63,7 @@ export async function processPayloadKey(
   payloadData: any,
   options?: Transaction
 ) {
+  const start = new Date().getTime();
   const payloadHash = payloadData.payloadHash;
   const transactions = payloadData.transactions || [];
 
@@ -71,6 +72,15 @@ export async function processPayloadKey(
   );
 
   await Promise.all(transactionPromises);
+
+  const end = new Date().getTime();
+  const time = end - start;
+
+  if (transactions.length > 0) {
+    console.log("Chain Id:", block.chainId,
+      "| Height:", block.height, "| Number of transactions:", transactions.length,
+      "| Average time per transaction:", time / transactions.length, "ms");
+  }
 }
 
 export async function processTransaction(transactionArray: any,
@@ -214,19 +224,18 @@ export async function fetchPayloadWithRetry(
     const payloads = await fetchPayloads(network, chainId, payloadHashes);
 
     if (payloads.length === 0) {
-      console.log("payloads", payloads);
-      console.log("payloadHashes", payloadHashes);
-      throw new Error("No payloads found");
+      throw new Error("No payloads found, retrying...");
     }
 
     return await processPayloads(payloads);
   } catch (error) {
     if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
-      console.log(
-        `Retrying... Attempt ${attempt + 1
-        } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
-      );
-      console.log("Error fetching payload:", error);
+      if (attempt > 2) {
+        console.log(
+          `Retrying... Attempt ${attempt + 1
+          } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
+        );
+      }
       await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
       return await fetchPayloadWithRetry(
         network,

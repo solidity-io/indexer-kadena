@@ -62,6 +62,12 @@ Contract.init(
         unique: true,
         fields: ["network", "chainId", "module", "tokenId"],
       },
+      {
+        name: "contracts_search_idx",
+        fields: [
+          sequelize.fn('LOWER', sequelize.col('module')),
+        ]
+      }
     ],
   }
 );

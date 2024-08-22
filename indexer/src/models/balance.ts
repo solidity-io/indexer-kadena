@@ -1,6 +1,7 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
 import Contract from "./contract";
+import { gql, makeExtendSchemaPlugin } from "postgraphile";
 
 export interface BalanceAttributes {
   id: number;
@@ -13,6 +14,9 @@ export interface BalanceAttributes {
   hasTokenId: boolean;
   network: string;
   contractId: number;
+  transactionsCount: number;
+  fungiblesCount: number;
+  polyfungiblesCount: number;
 }
 
 /**
@@ -48,6 +52,15 @@ class Balance extends Model<BalanceAttributes> implements BalanceAttributes {
 
   /** The ID of the associated contract (e.g., 204). */
   public contractId!: number;
+
+  /** The number of transactions in the block. */
+  public transactionsCount!: number;
+
+  /** The number of fungibles in the block. */
+  public fungiblesCount!: number;
+
+  /** The number of polyfungibles in the block. */
+  public polyfungiblesCount!: number;
 }
 
 Balance.init(
@@ -105,6 +118,21 @@ Balance.init(
       allowNull: true,
       comment: "The ID of the associated contract (e.g., 204).",
     },
+    transactionsCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      comment: "The number of transactions in the block."
+    },
+    fungiblesCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      comment: "The number of fungibles in the block."
+    },
+    polyfungiblesCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      comment: "The number of polyfungibles in the block."
+    },
   },
   {
     sequelize,
@@ -115,6 +143,24 @@ Balance.init(
         unique: true,
         fields: ["network", "chainId", "account", "qualname", "tokenId"],
       },
+      {
+        name: "balances_account_index",
+        fields: ["account"],
+      },
+      {
+        name: "balances_tokenid_index",
+        fields: ["tokenId"],
+      },
+      {
+        name: "balances_contractid_index",
+        fields: ["contractId"],
+      },
+      {
+        name: "balances_search_idx",
+        fields: [
+          sequelize.fn('LOWER', sequelize.col('account')),
+        ]
+      }
     ],
   }
 );
@@ -122,6 +168,73 @@ Balance.init(
 Balance.belongsTo(Contract, {
   foreignKey: "contractId",
   as: "contract",
+});
+
+export const getHoldersPlugin = makeExtendSchemaPlugin((build) => {
+  return {
+    typeDefs: gql`
+      extend type Query {
+        getHolders(moduleName: String!, before: String, after: String, first: Int, last: Int): HolderResponse
+      }
+
+      type HolderResponse {
+        edges: [HolderEdge]
+        pageInfo: PageInfo
+        totalCount: Int
+      }
+
+      type HolderEdge {
+        cursor: String
+        node: HolderNode
+      }
+
+      type HolderNode {
+        address: String
+        quantity: Float
+        percentage: Float
+      }
+    `,
+    resolvers: {
+      Query: {
+        getHolders: async (_query, args, context, _resolveInfo) => {
+          const { moduleName, before, after, first, last } = args;
+          const { rootPgPool } = context;
+
+          const { rows } = await rootPgPool.query(
+            `SELECT * FROM get_holders_by_module($1::VARCHAR, $2::VARCHAR, $3::VARCHAR, $4::INT, $5::INT)`,
+            [moduleName, before, after, first, last]
+          );
+
+          const holders = rows.map((row: any) => ({
+            cursor: Buffer.from(row.row_id.toString()).toString('base64'),
+            node: {
+              address: row.address,
+              quantity: row.quantity,
+              percentage: row.percentage,
+            }
+          }));
+
+          const hasNextPage = first ? holders.length === first : false;
+          const hasPreviousPage = last ? holders.length === last : !!after;
+
+          const endCursor = hasNextPage ? holders[holders.length - 1].cursor : null;
+          const startCursor = holders.length > 0 ? holders[0].cursor : null;
+          const totalCount = holders.length;
+
+          return {
+            edges: holders,
+            pageInfo: {
+              endCursor,
+              hasNextPage,
+              hasPreviousPage,
+              startCursor
+            },
+            totalCount
+          };
+        },
+      },
+    },
+  };
 });
 
 export default Balance;

@@ -33,8 +33,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
+    "@types/chai": "^4.3.17",
     "@types/cors": "^2.8.17",
-    "dotenv": "^16.4.4"
+    "@types/mocha": "^10.0.7",
+    "chai": "^5.1.1",
+    "dotenv": "^16.4.4",
+    "mocha": "^10.7.3"
   },
   "scripts": {
     "build": "tsc",
@@ -47,7 +51,9 @@
     "dev:run": "ts-node src/index.ts --run",
     "prod:start": "docker-compose up --build indexer && docker-compose logs -f indexer",
     "prod:streaming": "node dist/index.js --streaming",
-    "prod:backfill": "node dist/index.js --backfill"
+    "prod:backfill": "node dist/index.js --backfill",
+    "test": "NODE_ENV=test mocha -r ts-node/register 'tests/**/*.test.ts'",
+    "start-localstack": "docker run --rm -p 4566:4566 -p 4571:4571 localstack/localstack"
   },
   "author": "Hackachain team",
   "license": "ISC"

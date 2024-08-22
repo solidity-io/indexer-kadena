@@ -161,6 +161,57 @@ Transaction.init(
         name: "transactions_blockId_idx",
         fields: ["blockId"],
       },
+      {
+        name: "transactions_sender_idx",
+        fields: ["sender"],
+      },
+      {
+        name: "transactions_chainId_idx",
+        fields: ["chainId"],
+      },
+      {
+        name: "transactions_chainid_blockid_idx",
+        fields: ["chainId", "blockId"],
+      },
+      {
+        name: "transactions_hash_idx",
+        fields: ["hash"],
+      },
+      {
+        name: "transactions_canonical_idx",
+        fields: ["canonical"],
+      },
+      // Search indexes
+      {
+        name: "transactions_trgm_requestkey_idx",
+        fields: [sequelize.fn('LOWER', sequelize.col('requestkey'))],
+        using: 'gin',
+        operator: 'gin_trgm_ops',
+      },
+      {
+        name: "transactions_trgm_hash_idx",
+        fields: [sequelize.fn('LOWER', sequelize.col('hash'))],
+        using: 'gin',
+        operator: 'gin_trgm_ops',
+      },
+      {
+        name: "transactions_trgm_txid_idx",
+        fields: [sequelize.fn('LOWER', sequelize.col('txid'))],
+        using: 'gin',
+        operator: 'gin_trgm_ops',
+      },
+      {
+        name: "transactions_trgm_pactid_idx",
+        fields: [sequelize.fn('LOWER', sequelize.col('pactid'))],
+        using: 'gin',
+        operator: 'gin_trgm_ops',
+      },
+      {
+        name: "transactions_trgm_sender_idx",
+        fields: [sequelize.fn('LOWER', sequelize.col('sender'))],
+        using: 'gin',
+        operator: 'gin_trgm_ops',
+      },
     ],
   }
 );
@@ -168,6 +219,547 @@ Transaction.init(
 Transaction.belongsTo(Block, {
   foreignKey: "blockId",
 });
+
+export interface Transaction_ {
+  cmd: TransactionCommand;
+  hash: string;
+  id: number;
+  result: TransactionInfo;
+  // sigs: TransactionSignature[];
+}
+
+export interface TransactionCommand {
+  meta: TransactionMeta;
+  networkId: string;
+  nonce: string;
+  payload: TransactionPayload;
+  signers: Signer[];
+}
+
+export interface TransactionMeta {
+  chainId: BigInt;
+  creationTime: Date;
+  gasLimit: BigInt;
+  gasPrice: number;
+  sender: string;
+  ttl: BigInt;
+}
+
+export interface TransactionSignature {
+  sig: string;
+}
+
+export interface TransactionMempoolInfo {
+  status: string;
+}
+
+export type TransactionInfo = TransactionMempoolInfo | TransactionResult;
+
+export type TransactionPayload = ContinuationPayload | ExecutionPayload;
+
+export interface ContinuationPayload {
+  data: string;
+  pactId: string;
+  proof: string;
+  rollback: boolean;
+  step: number;
+}
+
+export interface ExecutionPayload {
+  code: string;
+  data: string;
+}
+
+export interface TransactionResult {
+  badResult: string;
+  block: Block_ | null;
+  continuation: string;
+  eventCount: BigInt;
+  events: TransactionResultEventsConnection | null;
+  gas: BigInt;
+  goodResult: string;
+  height: BigInt;
+  logs: string;
+  metadata: string;
+  transactionId: BigInt;
+  transfers: TransactionResultTransfersConnection | null;
+}
+
+export interface Signer {
+  address: string;
+  clist: TransactionCapability[];
+  id: number;
+  orderIndex: number;
+  pubkey: string;
+  scheme: string;
+}
+
+export interface TransactionCapability {
+  args: string;
+  name: string;
+}
+
+export interface TransactionResultEventsConnection {
+  edges: TransactionResultEventsConnectionEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+
+export interface TransactionResultEventsConnectionEdge {
+  cursor: string;
+  node: Event_;
+}
+
+export interface Event_ {
+  block: Block_;
+  chainId: BigInt;
+  height: BigInt;
+  id: number;
+  incrementedId: number;
+  moduleName: string;
+  name: string;
+  orderIndex: BigInt;
+  parameterText: string;
+  parameters: string;
+  qualifiedName: string;
+  requestKey: string;
+  transaction: Transaction_;
+}
+
+export interface TransactionResultTransfersConnection {
+  edges: TransactionResultTransfersConnectionEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+
+export interface TransactionResultTransfersConnectionEdge {
+  cursor: string;
+  node: Transfer_;
+}
+
+export interface Transfer_ {
+  amount: number;
+  block: Block_;
+  blockHash: string;
+  chainId: BigInt;
+  creationTime: Date;
+  crossChainTransfer: Transfer_;
+  height: BigInt;
+  id: number;
+  moduleHash: string;
+  moduleName: string;
+  orderIndex: BigInt;
+  receiverAccount: string;
+  requestKey: string;
+  senderAccount: string;
+  transaction: Transaction_;
+}
+
+export interface Block_ {
+  chainId: BigInt;
+  creationTime: Date;
+  difficulty: BigInt;
+  epoch: Date;
+  events: BlockEventsConnection;
+  flags: number;
+  hash: string;
+  height: BigInt;
+  id: number;
+  minerAccount: FungibleChainAccount;
+  neighbors: BlockNeighbor[];
+  nonce: number;
+  parent: Block_;
+  payloadHash: string;
+  powHash: string;
+  target: number;
+  transactions: BlockTransactionsConnection;
+  weight: number;
+}
+
+export interface BlockEventsConnection {
+  edges: BlockEventsConnectionEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+
+export interface BlockEventsConnectionEdge {
+  cursor: string;
+  node: Event_;
+}
+
+export interface FungibleChainAccount {
+  accountName: string;
+  balance: number;
+  chainId: string;
+  fungibleName: string;
+  guard: Guard;
+  id: number;
+  transactions: FungibleChainAccountTransactionsConnection;
+  transfers: FungibleChainAccountTransfersConnection;
+}
+
+export interface FungibleChainAccountTransactionsConnection {
+  edges: FungibleChainAccountTransactionsConnectionEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+
+export interface FungibleChainAccountTransactionsConnectionEdge {
+  cursor: string;
+  node: Transaction_;
+}
+
+export interface FungibleChainAccountTransfersConnection {
+  edges: FungibleChainAccountTransfersConnectionEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+
+export interface FungibleChainAccountTransfersConnectionEdge {
+  cursor: string;
+  node: Transfer_;
+}
+
+export interface Guard {
+  keys: string[];
+  predicate: string;
+}
+
+export interface BlockNeighbor {
+  chainId: string;
+  hash: string;
+}
+
+export interface BlockTransactionsConnection {
+  edges: BlockTransactionsConnectionEdge[];
+  pageInfo: PageInfo;
+  totalCount: number;
+}
+
+export interface BlockTransactionsConnectionEdge {
+  cursor: string;
+  node: Transaction_;
+}
+
+export interface PageInfo {
+  endCursor: string;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  startCursor: string;
+}
+
+export const kadenaExtensionPlugin = makeExtendSchemaPlugin(
+  (build) => {
+    return {
+      typeDefs: gql`
+        extend type Query {
+          transaction_(requestkey: String!): Transaction_
+        }
+
+        type Transaction_ {
+          cmd: TransactionCommand!
+          hash: String!
+          id: ID!
+          result: TransactionInfo!
+        }
+
+        type TransactionCommand {
+          meta: TransactionMeta!
+          networkId: String!
+          nonce: String!
+          payload: TransactionPayload!
+          signers: [Signer!]!
+        }
+
+        type TransactionMeta {
+          chainId: BigInt!
+          creationTime: Datetime!
+          gasLimit: BigInt!
+          gasPrice: Float!
+          sender: String!
+          ttl: BigInt!
+        }
+
+        type TransactionSignature {
+          sig: String!
+        }
+
+        type TransactionMempoolInfo {
+          status: String
+        }
+
+        union TransactionInfo = TransactionMempoolInfo | TransactionResult
+        union TransactionPayload = ContinuationPayload | ExecutionPayload
+
+        type ContinuationPayload {
+          data: String!
+          pactId: String
+          proof: String
+          rollback: Boolean
+          step: Int
+        }
+
+        type ExecutionPayload {
+          code: String
+          data: String!
+        }
+
+        type TransactionResult {
+          badResult: String
+          block: Block_!
+          continuation: String
+          eventCount: BigInt
+          events(after: String, before: String, first: Int, last: Int): TransactionResultEventsConnection!
+          gas: BigInt!
+          goodResult: String
+          height: BigInt!
+          logs: String
+          metadata: String
+          transactionId: BigInt
+          transfers(after: String, before: String, first: Int, last: Int): TransactionResultTransfersConnection!
+        }
+
+        type Signer {
+          address: String
+          clist: [TransactionCapability!]!
+          id: ID!
+          orderIndex: Int
+          pubkey: String!
+          scheme: String
+        }
+
+        type TransactionCapability {
+          args: String!
+          name: String!
+        }
+
+        type TransactionResultEventsConnection {
+          edges: [TransactionResultEventsConnectionEdge]!
+          pageInfo: PageInfo!
+          totalCount: Int!
+        }
+
+        type TransactionResultEventsConnectionEdge {
+            cursor: String!
+            node: Event_!
+        }
+
+        type Event_ {
+          block: Block_!
+          chainId: BigInt!
+          height: BigInt!
+          id: ID!
+          incrementedId: Int!
+          moduleName: String!
+          name: String!
+          orderIndex: BigInt!
+          parameterText: String!
+          parameters: String
+          qualifiedName: String!
+          requestKey: String!
+          transaction: Transaction_
+        }
+
+        type TransactionResultTransfersConnection {
+          edges: [TransactionResultTransfersConnectionEdge]!
+          pageInfo: PageInfo!
+          totalCount: Int!
+        }
+
+        type TransactionResultTransfersConnectionEdge {
+          cursor: String!
+          node: Transfer_!
+        }
+
+        type Transfer_ {
+          amount: BigFloat!
+          block: Block_!
+          blockHash: String!
+          chainId: BigInt!
+          creationTime: Datetime!
+          crossChainTransfer: Transfer_
+          height: BigInt!
+          id: ID!
+          moduleHash: String!
+          moduleName: String!
+          orderIndex: BigInt!
+          receiverAccount: String!
+          requestKey: String!
+          senderAccount: String!
+          transaction: Transaction_
+        }
+
+        type Block_ {
+          chainId: BigInt!
+          creationTime: Datetime!
+          difficulty: BigInt!
+          epoch: Datetime!
+          events(after: String, before: String, first: Int, last: Int): BlockEventsConnection!
+          flags: BigFloat!
+          hash: String!
+          height: BigInt!
+          id: ID!
+          minerAccount: FungibleChainAccount!
+          neighbors: [BlockNeighbor!]!
+          nonce: BigFloat!
+          parent: Block_
+          payloadHash: String!
+          powHash: String!
+          target: BigFloat!
+          transactions(after: String, before: String, first: Int, last: Int): BlockTransactionsConnection!
+          weight: BigFloat!
+        }
+
+        type BlockEventsConnection {
+          edges: [BlockEventsConnectionEdge!]!
+          pageInfo: PageInfo!
+          totalCount: Int!
+        }
+
+        type BlockEventsConnectionEdge {
+          cursor: String!
+          node: Event_!
+        }
+
+        type FungibleChainAccount {
+          accountName: String!
+          balance: Float!
+          chainId: String!
+          fungibleName: String!
+          guard: Guard!
+          id: ID!
+          transactions(after: String, before: String, first: Int, last: Int): FungibleChainAccountTransactionsConnection!
+          transfers(after: String, before: String, first: Int, last: Int): FungibleChainAccountTransfersConnection!
+        }
+
+        type FungibleChainAccountTransactionsConnection {
+          edges: [FungibleChainAccountTransactionsConnectionEdge!]!
+          pageInfo: PageInfo!
+          totalCount: Int!
+        }
+
+        type FungibleChainAccountTransactionsConnectionEdge {
+          cursor: String!
+          node: Transaction_!
+        }
+
+        type FungibleChainAccountTransfersConnection {
+          edges: [FungibleChainAccountTransfersConnectionEdge!]!
+          pageInfo: PageInfo!
+          totalCount: Int!
+        }
+
+        type FungibleChainAccountTransfersConnectionEdge {
+          cursor: String!
+          node: Transfer_!
+        }
+
+        type Guard {
+          keys: [String!]!
+          predicate: String!
+        }
+
+        type BlockNeighbor {
+          chainId: String!
+          hash: String!
+        }
+
+        type BlockTransactionsConnection {
+          edges: [BlockTransactionsConnectionEdge!]!
+          pageInfo: PageInfo!
+          totalCount: Int!
+        }
+
+        type BlockTransactionsConnectionEdge {
+          cursor: String!
+          node: Transaction_!
+        }`,
+      resolvers: {
+        TransactionPayload: {
+          __resolveType(obj) {
+            if (obj.code) {
+              return "ExecutionPayload";
+            }
+            return "ContinuationPayload";
+          },
+        },
+        Query: {
+          // transfers(accountName: String, after: String, before: String, blockHash: String, chainId: String, first: Int, fungibleName: String, last: Int, requestKey: String): QueryTransfersConnection!
+          // fungibleAccount(accountName: String!, fungibleName: String): FungibleAccount
+          // nonFungibleAccount(accountName: String!): NonFungibleAccount
+          // transaction(blockHash: String, minimumDepth: Int, requestKey: String!): Transaction
+          transaction_: async (
+            _query,
+            args,
+            context,
+            resolveInfo
+          ) => {
+            const { requestkey } = args;
+            const { rootPgPool } = context;
+
+            const { rows: transactions } = await rootPgPool.query(
+              `SELECT * FROM public."Transactions" WHERE requestkey = $1`,
+              [requestkey]
+            );
+
+            var results: Array<Transaction_> = [];
+
+            transactions.forEach((transaction: TransactionAttributes) => {
+              results.push({
+                cmd: {
+                  meta: {
+                    chainId: BigInt(transaction.chainId),
+                    creationTime: new Date(parseInt(transaction.creationtime) * 1000),
+                    gasLimit: BigInt(transaction.gaslimit),
+                    gasPrice: parseFloat(transaction.gasprice),
+                    sender: transaction.sender,
+                    ttl: BigInt(transaction.ttl),
+                  },
+                  networkId: transaction.chainId ? transaction.chainId.toString() : "",
+                  nonce: transaction.nonce,
+                  payload: transaction.continuation.toString() == "" ? {
+                    code: transaction.code ? transaction.code.toString() : "",
+                    data: JSON.stringify(transaction.data),
+                  } as ExecutionPayload : {
+                    data: JSON.stringify(transaction.data),
+                    pactId: transaction.pactid,
+                    proof: transaction.proof,
+                    rollback: transaction.rollback,
+                    step: transaction.step,
+                  } as ContinuationPayload,
+                  signers: []
+                },
+                hash: transaction.hash,
+                id: transaction.id,
+                result: {
+                  badResult: transaction.rollback ? transaction.result.toString() : "",
+                  block: null,
+                  continuation: transaction.continuation ? transaction.continuation.toString() : "",
+                  eventCount: BigInt(transaction.num_events),
+                  events: null,
+                  gas: BigInt(transaction.gas),
+                  goodResult: transaction.rollback ? "" : transaction.result.toString(),
+                  height: BigInt(0),
+                  logs: transaction.logs ? transaction.logs.toString() : "",
+                  metadata: transaction.metadata ? transaction.metadata.toString() : "",
+                  transactionId: BigInt(transaction.id),
+                  transfers: null,
+                },
+                // sigs: []
+              });
+            });
+
+            if (results.length > 0) {
+              console.log(results[0]);
+              return results[0];
+            } else {
+              return null;
+            }
+          },
+        },
+      },
+    };
+  });
 
 export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
   (build) => {
@@ -251,7 +843,7 @@ export const transactionByRequestKeyQueryPlugin = makeExtendSchemaPlugin(
               events,
               transfers: transferData,
             };
-          }
+          },
         },
       },
     };

@@ -107,6 +107,18 @@ Transfer.init(
         name: "transfers_transactionid_idx",
         fields: ["transactionId"],
       },
+      {
+        name: "transfers_hasTokenId_idx",
+        fields: ["hasTokenId"],
+      },
+      {
+        name: "transfers_contractid_idx",
+        fields: ["contractId"],
+      },
+      {
+        name: "transfers_modulename_idx",
+        fields: ["modulename"],
+      },
     ],
   }
 );

@@ -86,10 +86,12 @@ export async function fetchHeadersWithRetry(
   } catch (error) {
     console.error(`Error fetching headers: ${error}`);
     if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
-      console.log(
-        `Retrying fetch headers... Attempt ${attempt + 1
-        } of ${SYNC_ATTEMPTS_MAX_RETRY}`
-      );
+      if (attempt > 2) {
+        console.log(
+          `Retrying fetch headers... Attempt ${attempt + 1
+          } of ${SYNC_ATTEMPTS_MAX_RETRY}`
+        );
+      }
       await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
       await fetchHeadersWithRetry(
         network,
@@ -280,6 +282,7 @@ export async function processHeaderKey(network: string, key: string): Promise<vo
       transactionsHash: payloadData.transactionsHash,
       outputsHash: payloadData.outputsHash,
       coinbase: payloadData.coinbase,
+      transactionsCount: payloadData.transactions.length,
     } as BlockAttributes;
 
     const createdBlock = await Block.create(blockAttribute);

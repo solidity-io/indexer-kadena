@@ -1,6 +1,6 @@
 import express from "express";
 import { collectDefaultMetrics, Registry } from "prom-client";
-import { postgraphile } from "postgraphile";
+import { makeExtendSchemaPlugin, postgraphile } from "postgraphile";
 import { getRequiredEnvString } from "../utils/helpers";
 import path from "path";
 import cors from "cors";
@@ -9,9 +9,12 @@ import { blockQueryPlugin } from "../models/block";
 import {
   transactionByRequestKeyQueryPlugin,
   transactionsByBlockIdQueryPlugin,
+  kadenaExtensionPlugin,
 } from "../models/transaction";
 import { transfersByTypeQueryPlugin } from "../models/transfer";
+import { getHoldersPlugin } from "../models/balance";
 import { Pool } from "pg";
+import { GraphQLScalarType, Kind } from "graphql";
 
 const register = new Registry();
 
@@ -19,6 +22,7 @@ collectDefaultMetrics({ register });
 
 const app = express();
 const PORT = 3000;
+const EXTENSION_PORT = 3001;
 const DB_USERNAME = getRequiredEnvString("DB_USERNAME");
 const DB_PASSWORD = getRequiredEnvString("DB_PASSWORD");
 const DB_NAME = getRequiredEnvString("DB_NAME");
@@ -30,6 +34,37 @@ const SCHEMAS: Array<string> = ["public"];
 const rootPgPool = new Pool({
   connectionString: DB_CONNECTION,
 });
+
+rootPgPool.on('connect', (client) => {
+  client.query('SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED');
+});
+
+export async function useKadenaExtension() {
+  console.log("Starting GraphQL server...");
+
+  app.use(cors());
+
+  app.use(
+    postgraphile(DB_CONNECTION, SCHEMAS, {
+      watchPg: true,
+      graphiql: true,
+      enhanceGraphiql: true,
+      appendPlugins: [
+        kadenaExtensionPlugin
+      ],
+      async additionalGraphQLContextFromRequest(req, res) {
+        return {
+          rootPgPool,
+        };
+      },
+    })
+  );
+  app.listen(EXTENSION_PORT, () => {
+    console.log(
+      `Postgraphile server listening at http://localhost:${EXTENSION_PORT}/graphiql`
+    );
+  });
+}
 
 export async function usePostgraphile() {
   console.log("Starting GraphQL server...");
@@ -61,6 +96,8 @@ export async function usePostgraphile() {
         transactionsByBlockIdQueryPlugin,
         transactionByRequestKeyQueryPlugin,
         transfersByTypeQueryPlugin,
+        kadenaExtensionPlugin,
+        getHoldersPlugin
       ],
       async additionalGraphQLContextFromRequest(req, res) {
         return {

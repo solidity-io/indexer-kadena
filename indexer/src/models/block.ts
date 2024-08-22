@@ -22,6 +22,7 @@ export interface BlockAttributes {
   outputsHash: string;
   coinbase: object;
   canonical?: boolean;
+  transactionsCount: number;
 }
 
 class Block extends Model<BlockAttributes> implements BlockAttributes {
@@ -81,6 +82,9 @@ class Block extends Model<BlockAttributes> implements BlockAttributes {
 
   /** Whether the block is canonical or not, if true then the block represents the main chain. */
   declare canonical?: boolean;
+
+  /** The number of transactions in the block. */
+  declare transactionsCount: number;
 }
 
 Block.init(
@@ -104,6 +108,7 @@ Block.init(
     outputsHash: { type: DataTypes.STRING, comment: "The outputs hash of the block (e.g., 'DwI3H4FgR5iC-AZ-f_BV8oYxH4yrz6ed-o5jvDAlVLE')." },
     coinbase: { type: DataTypes.JSONB, comment: "The coinbase data of the block (e.g., {'gas': 0, 'logs': 'xHwiHPh-CY_sc6xbTFuhXOWybRSzlJ_NVSGQTL4ady0', 'txId': 4457873, 'events': [{'name': 'TRANSFER', 'module': {'name': 'coin', 'namespace': null}, 'params': ['', 'k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3', 0.983026]}]})." },
     canonical: { type: DataTypes.BOOLEAN, comment: "Indicates whether the transaction is canonical." },
+    transactionsCount: { type: DataTypes.INTEGER, defaultValue: 0, comment: "The number of transactions in the block." },
   },
   {
     sequelize,
@@ -114,6 +119,29 @@ Block.init(
         unique: true,
         fields: ["chainwebVersion", "chainId", "hash"],
       },
+      {
+        name: "blocks_height_idx",
+        fields: ["height"],
+      },
+      {
+        name: "blocks_chainid_height_idx",
+        fields: ["chainId", "height"],
+      },
+      {
+        name: "blocks_chainid_idx",
+        fields: ["chainId"],
+      },
+      {
+        name: "blocks_canonical_idx",
+        fields: ["canonical"],
+      },
+      // Search indexes
+      {
+        name: "blocks_trgm_parent_idx",
+        fields: [sequelize.fn('LOWER', sequelize.col('parent'))],
+        using: 'gin',
+        operator: 'gin_trgm_ops'
+      },
     ],
   }
 );
@@ -123,6 +151,14 @@ export const blockQueryPlugin = makeExtendSchemaPlugin((build) => {
     typeDefs: gql`
       extend type Query {
         blockByHeight(height: Int!, chainId: Int!): Block
+        searchAll(searchTerm: String!, limit: Int!, heightFilter: Int): SearchAllResult
+      }
+
+      type SearchAllResult {
+        blocks: [Block]
+        transactions: [Transaction]
+        addresses: [Balance]
+        tokens: [Contract]
       }
     `,
     resolvers: {
@@ -136,6 +172,66 @@ export const blockQueryPlugin = makeExtendSchemaPlugin((build) => {
           );
           return rows[0];
         },
+        searchAll: async (_query, args, context, resolveInfo) => {
+          const { searchTerm, limit, heightFilter } = args;
+          const { rootPgPool } = context;
+
+          const blocksQuery = `
+          SELECT * FROM public."Blocks" WHERE LOWER(hash) = LOWER($1) 
+          UNION ALL
+          SELECT * FROM public."Blocks" WHERE LOWER(parent) = LOWER($1) 
+          UNION ALL
+          SELECT * FROM public."Blocks" WHERE LOWER("payloadHash") = LOWER($1) 
+          UNION ALL
+          SELECT * FROM public."Blocks" WHERE LOWER("transactionsHash") = LOWER($1) 
+          UNION ALL
+          SELECT * FROM public."Blocks" WHERE LOWER("outputsHash") = LOWER($1) 
+          UNION ALL
+          SELECT * FROM public."Blocks" WHERE height = $3
+          LIMIT $2;
+        `;
+
+          const transactionsQuery = `
+          SELECT * FROM public."Transactions" WHERE LOWER(requestkey) = LOWER($1)
+          UNION ALL
+          SELECT * FROM public."Transactions" WHERE LOWER(txid) = LOWER($1)
+          UNION ALL
+          SELECT * FROM public."Transactions" WHERE LOWER(pactid) = LOWER($1)
+          UNION ALL
+          SELECT * FROM public."Transactions" WHERE LOWER(sender) = LOWER($1)
+          LIMIT $2;
+        `;
+
+          const addressesQuery = `
+          SELECT DISTINCT account, module, qualname, network, -1 as "chainId"
+          FROM public."Balances"
+          WHERE LOWER(account) = LOWER($1)
+          ORDER BY account ASC
+          LIMIT $2
+        `;
+
+          const tokensQuery = `
+          SELECT DISTINCT network, type, module, precision, -1 as "chainId" 
+          FROM public."Contracts"
+          WHERE (type = 'fungible' OR type = 'poly-fungible')
+            AND LOWER(module) LIKE LOWER($1)
+          LIMIT $2
+        `;
+
+          const [blocks, transactions, addresses, tokens] = await Promise.all([
+            rootPgPool.query(blocksQuery, [`${searchTerm}`, limit, heightFilter]),
+            rootPgPool.query(transactionsQuery, [`${searchTerm}`, limit]),
+            rootPgPool.query(addressesQuery, [`${searchTerm}`, limit]),
+            rootPgPool.query(tokensQuery, [`%${searchTerm}%`, limit]),
+          ]);
+
+          return {
+            blocks: blocks.rows,
+            transactions: transactions.rows,
+            addresses: addresses.rows,
+            tokens: tokens.rows,
+          };
+        }
       },
     },
   };
