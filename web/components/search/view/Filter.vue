@@ -7,8 +7,8 @@ defineProps<{
 
 <template>
   <div
-    class="border border-gray-300 px-3 py-1 rounded"
-    :class="isActive && 'bg-gray-300'"
+    class="border border-gray-300 px-3 py-1 rounded cursor-pointer"
+    :class="isActive ? 'bg-gray-300' : 'hover:bg-gray-200'"
   >
     <span
       class="text-white text-sm"

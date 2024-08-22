@@ -52,6 +52,7 @@ const scrollToView = (viewId: string) => {
         top: elementPosition - modalContent.offsetTop - 20,
         behavior: 'smooth'
       });
+      activeFilter.value = viewId.split('-')[1];
     }
   });
 };
@@ -129,7 +130,7 @@ const scrollToView = (viewId: string) => {
         v-if="hasAddresses"
         @visible="activeFilter = 'address'"
       >
-        <SearchViewAddress id="search-addresses-view" :addresses="items?.addresses" />
+        <SearchViewAddress id="search-address-view" :addresses="items?.addresses" />
       </SearchViewVisible>
 
       <SearchViewVisible
