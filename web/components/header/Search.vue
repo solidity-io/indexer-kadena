@@ -4,6 +4,8 @@ const {
   close,
   search,
   cleanup,
+  handleInput,
+  handleKeyDown,
 } = useSearch();
 </script>
 
@@ -44,8 +46,9 @@ const {
           placeholder:text-font-500
         "
         @click.prevent="data.open = true"
-        v-model="data.query"
-        @input="search(($event.target as any).value)"
+        :value="data.query"
+        @input="handleInput"
+        @keydown="handleKeyDown"
         placeholder="Search by Address / Token / Block"
       />
 
@@ -66,7 +69,8 @@ const {
     </div>
 
     <SearchModal
-      :open="data.open && !!data.query"
+      :cleanup="cleanup"
+      :open="data.open && !!data.query && !!data.searched"
       :error="data.error"
       :loading="data.loading"
       :items="data.searched"

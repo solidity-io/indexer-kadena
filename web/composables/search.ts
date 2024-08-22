@@ -1,4 +1,4 @@
-import { debounce } from 'chart.js/helpers';
+import debounce from 'lodash/debounce'
 import { gql } from 'nuxt-graphql-request/utils';
 
 const allQuery = gql`
@@ -109,7 +109,7 @@ const filters = [
 ];
 
 export function useSearch () {
-  const data = reactive({
+  const data = reactive<any>({
     query: '',
     open: false,
     error: null,
@@ -119,9 +119,11 @@ export function useSearch () {
     filter: filters[0],
   });
 
+  const router = useRouter();
+
   const { $graphql } = useNuxtApp();
 
-  const search = debounce(async ([value]: any) => {
+  const searchImpl = async (value: string) => {
     if (!value) {
       data.searched = null;
       return;
@@ -133,15 +135,13 @@ export function useSearch () {
     try {
       const variables = {
         searchTerm: value,
-        limit: 5, // You can adjust this limit as needed
+        limit: 5,
       } as any;
 
       const heightFilter = parseInt(value);
 
-      if (!isNaN(heightFilter)) {
-        if (Number.isSafeInteger(heightFilter)) {
-          variables.heightFilter = heightFilter;
-        }
+      if (!isNaN(heightFilter) && Number.isSafeInteger(heightFilter)) {
+        variables.heightFilter = heightFilter;
       }
 
       const { searchAll } = await $graphql.default.request(data.filter.query, variables);
@@ -151,11 +151,94 @@ export function useSearch () {
       }
     } catch (error) {
       console.error('Search error:', error);
-      data.error = 'An error occurred while searching. Please try again.';
+      data.error = 'An error occurred while searching. Please try again.' as any;
     } finally {
       data.loading = false;
     }
-  }, 500);
+  };
+
+  const search = debounce(searchImpl, 250);
+
+  const requestKeyRegex = /^[A-Za-z0-9\-_]{43}$/;
+  const kadenaAddressRegex = /^k:[a-fA-F0-9]{64}$/;
+
+  function shouldRedirectBeforeSearch(search: any) {
+    if (kadenaAddressRegex.test(search)) {
+      return "account";
+    }
+
+    if (requestKeyRegex.test(search)) {
+      return "transactions";
+    }
+  }
+
+  function shouldRedirect() {
+    if (data?.searched?.addresses && data?.searched?.addresses?.length > 0) {
+      const address = data?.searched?.addresses[0];
+
+      router.push(`/account/${address.account}`);
+    }
+
+    if (data?.searched?.transactions && data?.searched?.transactions?.length > 0) {
+      const transaction = data?.searched?.transactions[0];
+
+      router.push(`/transactions/${transaction.requestkey}`);
+    }
+
+    if (data?.searched?.tokens && data?.searched?.tokens?.length > 0) {
+      const token = data?.searched?.tokens[0];
+
+      const staticMetadata = staticTokens.find(({ module }) => module === token.module);
+
+      router.push(`/tokens/${staticMetadata?.id || token.module}`);
+    }
+
+    if (data?.searched?.blocks && data?.searched?.blocks?.length > 0) {
+      const block = data?.searched?.blocks[0];
+
+      router.push(`/blocks/chain/${block.chainId}/height/${block.height}`);
+    }
+  }
+
+  const handleInput = (event: Event) => {
+    const value = (event.target as HTMLInputElement).value;
+    data.query = value;
+    search(value);
+  };
+
+  const handleKeyDown = async (event: KeyboardEvent) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+
+    search.cancel();
+
+    const redirectPath = shouldRedirectBeforeSearch(data.query);
+
+    if (redirectPath) {
+      router.push(`/${redirectPath}/${data.query}`);
+
+      cleanup();
+
+      return;
+    }
+
+    if (!data.loading && data.searched) {
+      shouldRedirect();
+
+      cleanup();
+
+      return;
+    }
+
+    await searchImpl(data.query);
+
+    shouldRedirect();
+
+    cleanup();
+  };
 
   const close = () => {
     data.open = false
@@ -172,5 +255,7 @@ export function useSearch () {
     close,
     search,
     cleanup,
+    handleKeyDown,
+    handleInput,
   };
 }

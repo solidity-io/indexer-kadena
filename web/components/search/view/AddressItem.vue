@@ -7,7 +7,7 @@ const props = defineProps<{
 <template>
   <NuxtLink
     :to="`/account/${account}`"
-    class="py-3 flex gap-2 hover:opacity-[0.8]"
+    class="py-3 flex gap-2 hover:opacity-[0.8] flex items-center"
   >
     <IconStatus
       status="success"
@@ -15,7 +15,7 @@ const props = defineProps<{
     />
 
     <div
-      class="max-w-full truncate"
+      class="flex truncate"
     >
       <span
         class="text-sm text-font-400 truncate block"
