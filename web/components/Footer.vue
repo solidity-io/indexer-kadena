@@ -34,7 +34,7 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
             </span>
           </div>
 
-          <div
+          <!-- <div
             class="flex items-center gap-4 pt-2 md:pt-0"
           >
             <Network
@@ -44,7 +44,7 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
               target="__blank"
               :icon="network.icon"
             />
-          </div>
+          </div> -->
         </div>
 
         <div
