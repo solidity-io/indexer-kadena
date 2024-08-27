@@ -1,45 +1,128 @@
+import { ref, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
 export interface PaginateInterface {
-  key: string,
-  query: string,
+  key: string
+  query: string
 }
 
-export const usePaginate = async ({
-  key,
-  query,
-}: PaginateInterface) => {
-  const { $graphql } = useNuxtApp();
+export function usePagination(defaultLimit = 20) {
+  const route = useRoute()
+  const router = useRouter()
 
-  const page = ref(1)
-  const limit = ref(20)
+  const page = ref(isNaN(Number(route.query.page)) ? 1 : Number(route.query.page))
 
-  const { data, pending, error } = useAsyncData(key, async () => {
-    try {
-      const res = await $graphql.default.request(query, {
-        first: limit.value,
-        offset: (page.value - 1) * 20,
-      });
+  const limit = ref(defaultLimit);
+  const cursor = ref<string | undefined>(undefined);
 
-      const totalPages = Math.max(Math.ceil(res[key].totalCount / limit.value), 1)
-
-      return {
-        ...res[key],
-        totalPages
-      };
-    } catch (e) {
-      console.warn('e', e)
-
-      return null
-    }
-  }, {
-    watch: [page]
+  const params = ref<any>({
+    first: defaultLimit,
+    after: route.query.cursor ?? undefined,
   });
 
+  function updateCursor(newCursor: string) {
+    cursor.value = newCursor;
+  }
+
+  function getLastPageParams() {
+    return {
+      last: limit.value,
+    }
+  }
+
+  function getFirstPageParams() {
+    return {
+      first: limit.value,
+    }
+  }
+
+  function getNextPageParams(pageInfo: any) {
+    return {
+      after: pageInfo.endCursor,
+      first: limit.value,
+    }
+  }
+
+  function getPrevPageParams(pageInfo: any) {
+    return {
+      before: pageInfo.startCursor,
+      last: limit.value,
+    }
+  }
+
+  function updateURL (newPage: number, newCursor: string | null) {
+    if (!newPage || !newCursor) {
+      const { page, cursor, ...rest } = route.query;
+
+      router.replace({ query: rest })
+
+      return;
+    }
+
+    const query = {
+      ...route.query,
+      page: newPage.toString(),
+    } as any;
+
+    if (newCursor) {
+      query.cursor = newCursor;
+    }
+
+    router.replace({ query })
+  }
+
+  function updatePage (newPage: number, pageInfo: any, totalCount: any, totalPages: any) {
+    if (newPage === page.value) {
+      return
+    }
+
+    if (newPage === totalPages) {
+      const newParams = getLastPageParams();
+
+      page.value = newPage
+      params.value = newParams;
+
+      return;
+    }
+
+    if (newPage === 1) {
+      const newParams = getFirstPageParams();
+
+      page.value = newPage
+      params.value = newParams;
+
+      return;
+    }
+
+    if (newPage > page.value) {
+      const newParams = getNextPageParams(pageInfo);
+
+      page.value = newPage
+      params.value = newParams;
+
+      return;
+    }
+
+    if (newPage < page.value) {
+      const newParams = getPrevPageParams(pageInfo);
+
+      page.value = newPage
+      params.value = newParams;
+
+      return;
+    }
+  }
+
+  watch([page, cursor], ([newPage, newCursor]) => {
+    updateURL(newPage, newCursor)
+  })
 
   return {
     page,
-    data,
-    error,
+    cursor,
     limit,
-    pending,
+    params,
+    updatePage,
+    updateCursor,
   }
 }

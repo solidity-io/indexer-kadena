@@ -1,7 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
   address: string,
-  balances: any
+  balances: any,
+  totalTransactions: string | number,
 }>()
 
 const {
@@ -38,12 +39,12 @@ const kdaBalance = props.balances.find(({ module }: any) => module === 'coin')
         :description="blockchainTooltipData.account.assets"
       />
 
-      <!-- <LabelValue
+      <LabelValue
         col
         label="Transactions"
-        value="25716773"
+        :value="totalTransactions"
         :description="blockchainTooltipData.account.transactions"
-      /> -->
+      />
 
       <!-- <LabelValue
         col

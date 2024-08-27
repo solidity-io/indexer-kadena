@@ -1,8 +1,8 @@
 name: Preview
-on:
-  pull_request:
-    paths:
-      - 'web/**'
+# on:
+#   pull_request:
+#     paths:
+#       - 'web/**'
 
 jobs:
   frontend_dev_deploy:

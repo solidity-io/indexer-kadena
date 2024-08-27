@@ -19,7 +19,13 @@ export const blocksTableColumns = [
     label: 'Miner',
   },
   {
-    cols: 3,
+    cols: 2,
+    center: true,
+    key: 'transactionsCount',
+    label: 'Transactions',
+  },
+  {
+    cols: 2,
     center: true,
     key: 'chainId',
     label: 'Chain',
@@ -33,7 +39,7 @@ export const blocksTableColumns = [
     description: blockchainTooltipData.block.overview.totalFees
   },
   {
-    cols: 6,
+    cols: 5,
     key: 'createdAt',
     label: 'Date',
     description: blockchainTooltipData.block.creationTime

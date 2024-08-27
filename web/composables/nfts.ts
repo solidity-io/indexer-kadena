@@ -1,6 +1,6 @@
 const formatNftDatum = (datum: any) => {
   return {
-    attributes: datum.attributes || [],
+    attributes: (datum.attributes && typeof datum.attributes !== 'string') ? datum.attributes : [],
     collection: datum.artistName || "Unknown collection",
     name: datum.title || datum.name || "Unknown name",
     description: datum.description || "No description available.",

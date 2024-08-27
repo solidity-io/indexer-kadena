@@ -4,6 +4,7 @@ const props = withDefaults(
     id?: string,
     icon?: string,
     name?: string,
+    module?: string,
     symbol?: string,
     withSymbol?: boolean,
   }>(),
@@ -15,7 +16,8 @@ const props = withDefaults(
 
 <template>
   <NuxtLink
-    :to="id ? `/tokens/${id}` : ''"
+    :to="(id || module) ? `/tokens/${id || module}` : ''"
+    :class="!(id || module) && 'opacity-[.6] cursor-not-allowed'"
   >
     <div
       class="flex items-center gap-2"

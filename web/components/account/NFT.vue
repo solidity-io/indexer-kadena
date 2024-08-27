@@ -11,8 +11,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetNftBalances($first: Int, $offset: Int, $account: String!) {
-    allBalances(offset: $offset, orderBy: ID_DESC, first: $first, condition: {account: $account, hasTokenId: true}) {
+  query GetNftBalances($first: Int, $last: Int, $after: Cursor, $before: Cursor, $account: String!) {
+    allBalances(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC, condition: {account: $account, hasTokenId: true}) {
       nodes {
         updatedAt
         tokenId
@@ -27,48 +27,54 @@ const query = gql`
         chainId
         balance
         account
-        contractByContractId {
-          metadata
-          precision
-          tokenId
-          nodeId
-          module
-          chainId
-          createdAt
-          updatedAt
-          type
-        }
+      }
+      pageInfo {
+        startCursor
+        endCursor
+        hasPreviousPage
+        hasNextPage
       }
       totalCount
     }
   }
 `
 
-const data = reactive({
-  page: 1,
-  limit: 10
-})
+const {
+  page,
+  limit,
+  params,
+  updatePage,
+  updateCursor,
+} = usePagination(10);
 
 const { $graphql } = useNuxtApp();
 
-const key = 'allBalances'
-
-const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
-  const res = await $graphql.default.request(query, {
-    first: data.limit,
-    offset: (data.page - 1) * 10,
+const { data: nfts, pending } = await useAsyncData('account-nft-balances', async () => {
+  const {
+    allBalances,
+  } = await $graphql.default.request(query, {
+    ...params.value,
     account: props.address,
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)
+  const totalPages = Math.max(Math.ceil(allBalances.totalCount / limit.value), 1)
 
   return {
-    ...res[key],
+    ...allBalances,
     totalPages
   };
 }, {
-  watch: [() => data.page]
+  watch: [page],
+  lazy: true,
 });
+
+watch([nfts], ([newPage]) => {
+  if (!newPage) {
+    return;
+  }
+
+  updateCursor(newPage.pageInfo.startCursor)
+})
 </script>
 
 <template>
@@ -92,10 +98,10 @@ const { data: nfts, pending } = useAsyncData('all-nft-balances', async () => {
       >
         <PaginateTable
           itemsLabel="NFT's"
-          :currentPage="data.page"
+          :currentPage="page"
           :totalItems="nfts?.totalCount ?? 1"
           :totalPages="nfts?.totalPages"
-          @pageChange="data.page = Number($event)"
+          @pageChange="updatePage(Number($event), nfts.pageInfo, nfts.totalCount ?? 1, nfts.totalPages)"
         />
       </template>
     </TableNft>

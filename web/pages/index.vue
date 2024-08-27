@@ -28,6 +28,7 @@ const query = gql`
         nodeId
         numEvents
         requestkey
+        gasprice
         result
         sender
         gas
@@ -44,31 +45,45 @@ const query = gql`
         nodeId
         coinbase
         minerData
+        transactionsCount
       }
     }
   }
 `
 
-const { data, error } = await useAsyncData('GetChartData', async () => {
+const { data: cgData, status: cgStatus, error: cgError } = await useAsyncData('home-cg-etl', async () => {
   const [
-    apiRes,
     token,
     chartData,
   ] = await Promise.all([
-    $graphql.default.request(query),
     $coingecko.request('coins/kadena'),
     $coingecko.request('coins/kadena/market_chart', {
       days: 14,
       interval: 'daily',
       vs_currency: 'usd',
     })
-  ])
+  ]);
 
   return {
     token,
     chartData,
+  };
+}, {
+  // lazy: true,
+});
+
+const { data, error, status } = await useAsyncData('home-transactions-blocks', async () => {
+  const [
+    apiRes,
+  ] = await Promise.all([
+    $graphql.default.request(query),
+  ]);
+
+  return {
     ...apiRes
   };
+}, {
+  // lazy: true,
 });
 </script>
 
@@ -87,29 +102,35 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
         "
       >
         <HomeCard
-          :label="data?.token?.name + ' Price'"
-          :description="moneyCompact.format(data?.token?.market_data?.current_price?.usd || 0)"
-          :delta="data?.token?.market_data?.price_change_percentage_24h_in_currency?.usd || 0"
+          :isLoading="cgStatus === 'pending'"
+          :label="'Kadena Price'"
+          :description="moneyCompact.format(cgData?.token?.market_data?.current_price?.usd || 0)"
+          :delta="cgData?.token?.market_data?.price_change_percentage_24h_in_currency?.usd || 0"
         />
 
         <HomeCard
           isDark
           label="Total Volume"
-          :description="moneyCompact.format(data?.token?.market_data?.total_volume?.usd || 0)"
+          :isLoading="cgStatus === 'pending'"
+          :delta="cgData?.token?.market_data?.price_change_percentage_24h"
+          :description="moneyCompact.format(cgData?.token?.market_data?.total_volume?.usd || 0)"
         />
 
         <HomeCard
           label="Market Capital"
-          :description="moneyCompact.format(data?.token?.market_data?.market_cap?.usd || 0)"
+          :isLoading="cgStatus === 'pending'"
+          :description="moneyCompact.format(cgData?.token?.market_data?.market_cap?.usd || 0)"
         />
 
         <HomeCard
           label="Circulating Supply"
-          :description="moneyCompact.format(data?.token?.market_data?.circulating_supply || 0)"
+          :isLoading="cgStatus === 'pending'"
+          :description="moneyCompact.format(cgData?.token?.market_data?.circulating_supply || 0)"
         />
       </div>
 
       <div
+        v-if="cgStatus !== 'pending'"
         class="w-full h-full flex flex-col gap-3 lg:gap-6"
       >
         <span
@@ -122,14 +143,24 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
           class="h-full max-h-[216px]"
         >
           <Chart
-            v-bind="data?.chartData || defaultChartData"
+            :key="cgStatus"
+            v-bind="cgData?.chartData || defaultChartData"
           />
         </div>
       </div>
     </Container>
 
     <div
-      v-if="data?.allTransactions"
+      v-if="status === 'pending' && cgStatus !== 'pending'"
+      class="grid lg:grid-cols-2 gap-4 lg:gap-6"
+    >
+      <SkeletonHomeTransactionList />
+
+      <SkeletonHomeBlockList />
+    </div>
+
+    <div
+      v-if="status !== 'error' && data"
       class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
       <HomeList
@@ -139,7 +170,7 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
         <HomeTransaction
           v-bind="transaction"
           :key="transaction.requestKey"
-          v-for="transaction in data?.allTransactions?.nodes"
+          v-for="transaction in data?.allTransactions?.nodes ?? []"
         />
       </HomeList>
 
@@ -150,9 +181,14 @@ const { data, error } = await useAsyncData('GetChartData', async () => {
         <HomeBlock
           v-bind="block"
           :key="block.hash"
-          v-for="block in data?.allBlocks?.nodes"
+          v-for="block in data?.allBlocks?.nodes ?? []"
         />
       </HomeList>
     </div>
+
+    <Error
+      v-else-if="status === 'error'"
+      :error="error"
+    />
   </div>
 </template>

@@ -14,8 +14,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetBlocks($first: Int, $offset: Int) {
-    allBlocks(offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetBlocks($first: Int, $last: Int, $after: Cursor, $before: Cursor) {
+    allBlocks(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC) {
       nodes {
         chainId
         coinbase
@@ -25,12 +25,13 @@ const query = gql`
         id
         nodeId
         minerData
+        transactionsCount
       }
       pageInfo {
-        endCursor
-        hasNextPage
-        hasPreviousPage
         startCursor
+        endCursor
+        hasPreviousPage
+        hasNextPage
       }
       totalCount
     }
@@ -39,16 +40,43 @@ const query = gql`
 
 const {
   page,
-  pending,
-  data: blocks,
-} = await usePaginate({
-  query,
-  key: 'allBlocks'
+  limit,
+  params,
+  updatePage,
+  updateCursor,
+} = usePagination(20);
+
+const { $graphql } = useNuxtApp();
+
+const { data: blocks, pending, error } = await useAsyncData('blocks-recent', async () => {
+  const { allBlocks } = await $graphql.default.request(query, {
+    ...params.value,
+  });
+
+  const totalPages = Math.max(Math.ceil(allBlocks.totalCount / limit.value), 1)
+
+  return {
+    ...allBlocks,
+    totalPages
+  };
+}, {
+  watch: [page],
+  // lazy: true,
+});
+
+watch([blocks], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
+  updateCursor(newPage.pageInfo.startCursor)
 })
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       Blocks
     </PageTitle>
@@ -101,17 +129,20 @@ const {
         </template>
 
         <template #hash="{ row }">
-          <span
-            class="max-w-[200px] text-font-450 text-sm block truncate"
-          >
-            {{ row.hash }}
-          </span>
+          <ValueLink
+            withCopy
+            :label="row.hash"
+            :value="row.hash"
+            class="max-w-[195px]"
+          />
         </template>
 
         <template #height="{ row }">
           <ColumnLink
+            withCopy
             :to="`/blocks/chain/${row.chainId}/height/${row.height}`"
             :label="row.height"
+            :value="row.height"
           />
         </template>
 
@@ -134,14 +165,10 @@ const {
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/blocks/chain/${row.chainId}/height/${row.height}`"
+          />
         </template>
 
         <template
@@ -152,7 +179,7 @@ const {
             :currentPage="page"
             :totalItems="blocks.totalCount ?? 1"
             :totalPages="blocks.totalPages"
-            @pageChange="page = Number($event)"
+            @pageChange="updatePage(Number($event), blocks.pageInfo, blocks.totalCount ?? 1, blocks.totalPages)"
           />
         </template>
       </TableRoot>

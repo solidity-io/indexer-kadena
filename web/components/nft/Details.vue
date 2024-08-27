@@ -73,6 +73,13 @@ const nft = useNft(props.contract)
       >
         <LabelValue
           copy
+          label="NFT Id"
+          :value="props.contract.id"
+          :description="blockchainTooltipData.nftDetails.id"
+        />
+
+        <LabelValue
+          copy
           label="Chain Id"
           :value="props.contract.chainId"
           :description="blockchainTooltipData.nftDetails.owner"

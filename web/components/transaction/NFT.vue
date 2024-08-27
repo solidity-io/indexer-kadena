@@ -20,7 +20,7 @@ const nft = useNft(props.contract)
     >
       <NuxtLink
         :to="contract ? `/nfts/${contract.id}` : ''"
-        class="flex gap-2 items-center"
+        class="flex gap-2 items-center block"
       >
         <div
           class="
@@ -28,17 +28,18 @@ const nft = useNft(props.contract)
             rounded-lg
             aspect-square
             max-w-[44px]
-            overflow-hidden border-[3px] border-gray-800 shrink-1 flex justify-center items-center"
+            min-w-[44px]
+            overflow-hidden border-[3px] border-gray-800 flex justify-center items-center"
         >
           <NftImage
             :image="nft.image"
-            classRoot="aspect-square max-w-[44px] bg-gray-200 pulse w-full"
+            classRoot="aspect-square max-w-[44px] bg-gray-200 pulse w-full shrink-0"
           />
         </div>
 
         <div>
           <span
-            class="text-font-400 text-sm fix flex gap-2 break-words"
+            class="text-font-400 text-sm fix flex gap-2 whitespace-nowrap"
           >
             {{ nft.name }}
           </span>

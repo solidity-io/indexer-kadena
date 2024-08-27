@@ -14,8 +14,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $offset: Int) {
-    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetTransactions($first: Int, $last: Int, $after: Cursor, $before: Cursor, $chainId: Int) {
+    allTransactions(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC, filter: {chainId: {equalTo: $chainId}}) {
       nodes {
         chainId
         code
@@ -44,12 +44,15 @@ const query = gql`
         ttl
         txid
         updatedAt
+        blockByBlockId {
+          height
+        }
       }
       pageInfo {
-        endCursor
-        hasNextPage
-        hasPreviousPage
         startCursor
+        endCursor
+        hasPreviousPage
+        hasNextPage
       }
       totalCount
     }
@@ -58,48 +61,104 @@ const query = gql`
 
 const {
   page,
-  pending,
-  data: transactions,
-} = await usePaginate({
-  query,
-  key: 'allTransactions'
-})
+  limit,
+  params,
+  cursor,
+  updatePage,
+  updateCursor,
+} = usePagination();
 
-console.log('transactions', transactions.value)
+const chain = ref<any>(null);
+const totalTransactions = ref(null)
+
+const updateChain = (newChain: any) => {
+  chain.value = newChain;
+  cursor.value = undefined;
+  page.value = 1;
+}
+
+const { $graphql, $coingecko } = useNuxtApp();
+
+const { data: blockchain, status: cgStatus, error: blockchainError } = await useAsyncData('transactions-chart', async () => {
+  const res = await $coingecko.request('coins/kadena');
+  return res;
+}, {
+  // lazy: true,
+});
+
+const { data: transactions, status, pending, error } = await useAsyncData('transactions-recent', async () => {
+  const {
+    allTransactions,
+  } = await $graphql.default.request(query, {
+    ...params.value,
+    chainId: chain.value,
+  });
+
+  const totalPages = Math.max(Math.ceil(allTransactions.totalCount / limit.value), 1);
+
+  if (!totalTransactions.value) {
+    totalTransactions.value = allTransactions.totalCount;
+  }
+
+  return {
+    ...allTransactions,
+    totalPages
+  };
+}, {
+  watch: [params, chain],
+  // lazy: true,
+});
+
+watch([transactions], ([newPage]) => {
+  if (!newPage) {
+    return;
+  }
+
+  updateCursor(newPage?.pageInfo?.startCursor)
+})
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       Transactions
     </PageTitle>
 
-    <!-- <div
+    <div
       class="grid gap-3 bazk:grid-cols-4 bazk:gap-6"
     >
       <Card
-        label="Market Capital"
-        :description="moneyCompact.format(blockchain?.kadena.market_cap)"
+        label="Market Cap (24h)"
+        :isLoading="cgStatus === 'pending'"
+        :description="moneyCompact.format(blockchain?.market_data?.market_cap?.usd || 0)"
+        :delta="blockchain?.market_data?.market_cap_change_percentage_24h"
       />
 
       <Card
-        label="Volume (24h)"
-        :description="moneyCompact.format(blockchain?.kadena.volume_24h)"
+        label="Total Volume (24h)"
+        :isLoading="cgStatus === 'pending'"
+        :description="moneyCompact.format(blockchain?.market_data?.total_volume?.usd || 0)"
+        :delta="blockchain?.market_data?.price_change_percentage_24h || 0"
       />
 
       <Card
-        description="-"
-        label="Transactions (24h)"
+        label="Circulating Supply (24h)"
+        :isLoading="cgStatus === 'pending'"
+        :description="moneyCompact.format(blockchain?.market_data?.circulating_supply || 0)"
       />
 
       <Card
-        :description="transactions.totalCount ?? 0"
+        :description="totalTransactions || ''"
         label="Total transactions (All time)"
       />
-    </div> -->
+    </div>
 
     <TableContainer>
       <TableRoot
+        :chain="chain"
+        @chain="updateChain"
         title="Recent Transactions"
         :pending="pending"
         :rows="transactions?.nodes || []"
@@ -113,6 +172,7 @@ console.log('transactions', transactions.value)
 
         <template #requestKey="{ row }">
           <ColumnLink
+            withCopy
             :label="row.requestkey"
             :to="`/transactions/${row.requestkey}`"
           />
@@ -132,19 +192,15 @@ console.log('transactions', transactions.value)
 
         <template #block="{ row }">
           <ColumnLink
-            :to="`/blocks/${row.blockId ?? 'null'}`"
-            :label="row.blockId ?? 'null'"
+            :to="row.blockByBlockId ?`/blocks/chain/${row.chainId}/height/${row?.blockByBlockId?.height}`: ''"
+            :label="row?.blockByBlockId?.height ?? 'null'"
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/transactions/${row.requestkey}`"
+          />
         </template>
 
         <template
@@ -164,7 +220,7 @@ console.log('transactions', transactions.value)
             :currentPage="page"
             :totalItems="transactions.totalCount ?? 1"
             :totalPages="transactions.totalPages"
-            @pageChange="page = Number($event)"
+            @pageChange="updatePage(Number($event), transactions.pageInfo, transactions.totalCount ?? 1, transactions.totalPages)"
           />
         </template>
       </TableRoot>

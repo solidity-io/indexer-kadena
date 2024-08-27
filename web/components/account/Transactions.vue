@@ -10,8 +10,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $offset: Int, $sender: String) {
-    allTransactions(offset: $offset, orderBy: ID_DESC, first: $first, filter: {sender: { equalTo: $sender }}) {
+  query GetTransactions($first: Int, $last: Int, $after: Cursor, $before: Cursor, $sender: String) {
+    allTransactions(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC, filter: {sender: { equalTo: $sender }}) {
       nodes {
         chainId
         code
@@ -51,41 +51,54 @@ const query = gql`
   }
 `
 
-const data = reactive({
-  page: 1,
-  limit: 20
-})
+const {
+  page,
+  limit,
+  params,
+  updatePage,
+  updateCursor,
+} = usePagination();
 
 const { $graphql } = useNuxtApp();
 
-const key = 'allTransactions'
-
-const { data: transactions, pending } = useAsyncData(key, async () => {
-  const res = await $graphql.default.request(query, {
-    first: data.limit,
-    offset: (data.page - 1) * 20,
+const { data: transactions, pending, error } = await useAsyncData('account-all-transactions', async () => {
+  const {
+    allTransactions
+  } = await $graphql.default.request(query, {
+    ...params.value,
     sender: props.address,
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)
+  const totalPages = Math.max(Math.ceil(allTransactions.totalCount / limit.value), 1)
 
   return {
-    ...res[key],
+    ...allTransactions,
     totalPages
   };
 }, {
-  watch: [() => data.page]
+  watch: [page],
+  lazy: true,
 });
+
+watch([transactions], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
+  updateCursor(newPage.pageInfo.startCursor)
+})
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <div
       class="py-3 md:p-6 rounded-lg md:rounded-2xl border border-gray-300"
     >
       <TableRoot
         :pending="pending"
-        :rows="[]"
+        :rows="transactions?.nodes || []"
         :columns="accountTransactionsTableColumns"
       >
         <template #status="{ row }">
@@ -97,6 +110,7 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
 
         <template #requestKey="{ row }">
           <ColumnLink
+            withCopy
             :label="row.requestkey"
             :to="`/transactions/${row.requestkey}`"
           />
@@ -115,14 +129,10 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/transactions/${row.requestkey}`"
+          />
         </template>
 
         <template
@@ -139,10 +149,10 @@ const { data: transactions, pending } = useAsyncData(key, async () => {
           #footer
         >
           <PaginateTable
-            :currentPage="data.page"
+            :currentPage="page"
             :totalItems="transactions?.totalCount ?? 1"
             :totalPages="transactions?.totalPages"
-            @pageChange="data.page = Number($event)"
+            @pageChange="updatePage(Number($event), transactions.pageInfo, transactions.totalCount ?? 1, transactions.totalPages)"
             class="p-3"
           />
         </template>

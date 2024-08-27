@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { TabPanel } from '@headlessui/vue'
 import { gql } from 'nuxt-graphql-request/utils';
-// import { convertArrayToCSV } from 'convert-array-to-csv'
 
 definePageMeta({
   layout: 'app',
@@ -58,6 +57,9 @@ const query = gql`
         qualname
         tokenId
         updatedAt
+        transactionsCount
+        polyfungiblesCount
+        fungiblesCount
       }
     }
   }
@@ -65,7 +67,7 @@ const query = gql`
 
 const { $graphql, $coingecko } = useNuxtApp();
 
-const { data: balances } = await useAsyncData('allBalances', async () => {
+const { data: queryData, error } = await useAsyncData('account-balances-etl', async () => {
   const [
     apiRes,
     prices,
@@ -84,36 +86,36 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
     allBalances,
   } = apiRes
 
-  return transformRawBalances({ allBalances, prices})
+  return {
+    balances: transformRawBalances({ allBalances, prices}),
+    fungiblesCount: allBalances?.nodes[0]?.fungiblesCount || 0,
+    totalTransactions: allBalances?.nodes[0]?.transactionsCount || 0,
+    polyfungiblesCount: allBalances?.nodes[0]?.polyfungiblesCount || 0
+  }
 });
 
-// const balances = transformRawBalances(apiData?.value)
-// TODO: Check this approach, better if move that to a backend
-// const download = () => {
-//   try {
-//     const csv = convertArrayToCSV(data.tabs)
-
-//     const url = window.URL.createObjectURL(new Blob([csv]));
-
-//     const link = document.createElement('a');
-
-//     link.href = url;
-
-//     link.setAttribute('download', 'dados.csv');
-
-//     document.body.appendChild(link);
-
-//     link.click();
-
-//     document.body.removeChild(link);
-//   } catch (error) {
-//   console.error("Erro ao exportar CSV:", error);
-//   }
-// }
+const tabs = computed(() => {
+  return [
+    {
+      key: 'assets',
+      label: `Assets (${queryData.value?.balances.length || 0})`,
+    },
+    {
+      key: 'nft',
+      label: `NFT (${queryData.value?.polyfungiblesCount})`,
+    },
+    {
+      key: 'transactions',
+      label: `Transactions (${queryData.value?.totalTransactions})`,
+    },
+  ]
+})
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       Account Details
     </PageTitle>
@@ -121,17 +123,18 @@ const { data: balances } = await useAsyncData('allBalances', async () => {
     <PageContainer>
       <AccountDetails
         :address="address + ''"
-        :balances="balances"
+        :balances="queryData?.balances"
+        :totalTransactions="queryData?.totalTransactions"
       />
     </PageContainer>
 
     <PageContainer>
       <Tabs
-        :tabs="data.tabs"
+        :tabs="tabs"
       >
         <TabPanel>
           <AccountAssets
-            :balances="balances"
+            :balances="queryData?.balances"
             :address="(address as string)"
           />
         </TabPanel>

@@ -1,12 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
   label: string,
-  path: string
+  path?: string
 }>()
-
-const transactions = computed(() => {
-  return props.data?.nodes || []
-})
 </script>
 
 <template>
@@ -21,6 +17,7 @@ const transactions = computed(() => {
       </span>
 
       <NuxtLink
+        v-if="path"
         :to="path"
         class="flex items-center"
       >

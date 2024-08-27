@@ -34,15 +34,22 @@ export const routes: Route[] = [
     tag: 'route:transactions',
   },
   {
+    type: 'link',
+    path: '/nfts',
+    label: 'NFTs',
+    tag: 'route:transactions',
+  },
+  {
+    path: '/tokens',
     type: 'group',
     label: 'Tokens',
     tag: 'route:token',
     subroutes: [
-      {
-        path: '/tokens',
-        label: 'Token Transfers',
-        tag: 'route:token',
-      },
+      // {
+      //   path: '/tokens',
+      //   label: 'Token Transfers',
+      //   tag: 'route:token',
+      // },
       {
         path: '/tokens/trending',
         label: 'Trending tokens',
@@ -50,24 +57,24 @@ export const routes: Route[] = [
       },
     ]
   },
-  {
-    label: 'NFT',
-    type: 'group',
-    tag: 'route:nft',
-    subroutes: [
-      // {
-      //   disabled: true,
-      //   path: '/collections',
-      //   tag: 'route:collections',
-      //   label: 'NFT Trending Collections',
-      // },
-      {
-        path: '/nfts',
-        label: 'NFT Transfers',
-        tag: 'route:collections:nfts',
-      }
-    ]
-  }
+  // {
+  //   label: 'NFT',
+  //   type: 'group',
+  //   tag: 'route:nft',
+  //   subroutes: [
+  //     // {
+  //     //   disabled: true,
+  //     //   path: '/collections',
+  //     //   tag: 'route:collections',
+  //     //   label: 'NFT Trending Collections',
+  //     // },
+  //     {
+  //       path: '/nfts',
+  //       label: 'NFT Transfers',
+  //       tag: 'route:collections:nfts',
+  //     }
+  //   ]
+  // }
 ]
 
 export default routes

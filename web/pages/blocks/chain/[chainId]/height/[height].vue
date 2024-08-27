@@ -44,7 +44,6 @@ const query = gql`
       minerData
       coinbase
       outputsHash
-      transactionsHash
       featureFlags
       hash
       height
@@ -58,6 +57,7 @@ const query = gql`
       updatedAt
       weight
       transactionsHash
+      transactionsCount
     }
   }
 `
@@ -66,7 +66,7 @@ const route = useRoute()
 
 const { $graphql } = useNuxtApp();
 
-const { data: block } = await useAsyncData('GetBlockById', async () => {
+const { data: block, error } = await useAsyncData('block-detail', async () => {
   const {
     blockByHeight
   } = await $graphql.default.request(query, {
@@ -77,17 +77,27 @@ const { data: block } = await useAsyncData('GetBlockById', async () => {
   return blockByHeight
 });
 
-if (!block.value) {
+if (!block.value && !error.value) {
   await navigateTo('/404')
 }
 </script>
 
 <template>
   <PageRoot
-    v-if="block"
+    :error="error"
   >
     <PageTitle>
       Block Details
+
+      <template
+        #button
+      >
+        <ButtonExport
+          type="block"
+          :entry="block"
+          :filename="`${block.height}.csv`"
+        />
+      </template>
     </PageTitle>
 
     <PageContainer>
@@ -121,6 +131,7 @@ if (!block.value) {
         <TabPanel>
           <BlockTransactions
             v-bind="block"
+            :height="route.params.height"
           />
         </TabPanel>
       </Tabs>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   code: any;
   result: string,
   sender: string,
@@ -13,7 +13,7 @@ defineProps<{
 
 const {
   blockchainTooltipData
-} = useAppConfig()
+} = useAppConfig();
 </script>
 
 <template>
@@ -32,23 +32,60 @@ const {
           label="From"
           :value="transfer.fromAcct"
           :description="blockchainTooltipData.transaction.overview.from"
-        />
+        >
+          <template
+            #value
+          >
+            <div
+              class="flex gap-2"
+            >
+              <ValueLink
+                :label="transfer.fromAcct"
+                :value="transfer.fromAcct"
+                :to="`/account/${transfer.fromAcct}`"
+              />
+
+              <Copy
+                :value="transfer.fromAcct"
+              />
+            </div>
+          </template>
+        </LabelValue>
 
         <LabelValue
           withCopy
           label="To"
           :value="transfer.toAcct"
           :description="blockchainTooltipData.transaction.overview.to"
-        />
+        >
+          <template
+            #value
+          >
+            <div
+              class="flex gap-2"
+            >
+              <ValueLink
+                :label="transfer.toAcct"
+                :value="transfer.toAcct"
+                :to="`/account/${transfer.toAcct}`"
+              />
+
+              <Copy
+                :value="transfer.toAcct"
+              />
+            </div>
+          </template>
+        </LabelValue>
 
         <TransactionNFT
-          v-if="contract"
+          v-if="transfer.type === 'poly-fungible'"
           :contract="contract"
         />
 
         <TransactionToken
           v-else
           v-bind="transfer"
+          :contract="contract"
         />
       </div>
     </DivideScroll>
@@ -65,7 +102,25 @@ const {
         label="Paid by"
         :value="sender"
         :description="blockchainTooltipData.transaction.overview.paidBy"
-      />
+      >
+        <template
+          #value
+        >
+          <div
+            class="flex gap-2"
+          >
+            <ValueLink
+              :label="sender"
+              :value="sender"
+              :to="`/account/${sender}`"
+            />
+
+            <Copy
+              :value="sender"
+            />
+          </div>
+        </template>
+      </LabelValue>
     </DivideItem>
 
     <DivideItem>
@@ -79,12 +134,22 @@ const {
     <DivideItem>
       <LabelValue
         label="Code"
+        :withCopy="true"
+        :valueCopy="code"
         :description="blockchainTooltipData.transaction.overview.code"
       >
         <template #value>
-          <HighlightValue>
-            {{ code }}
-          </HighlightValue>
+          <div
+            class="flex gap-2"
+          >
+            <HighlightValue>
+              {{ code }}
+            </HighlightValue>
+
+            <Copy
+              :value="code"
+            />
+          </div>
         </template>
       </LabelValue>
     </DivideItem>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provideUseId, Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
+import { provideUseId } from '@headlessui/vue'
 
 provideUseId(() => useId())
 
@@ -15,7 +15,19 @@ const props = defineProps<{
   label: string,
   type: 'group' | 'link',
   subroutes?: BaseRoute[];
-}>()
+}>();
+
+const data = reactive({
+  open: false,
+})
+
+function close () {
+  data.open = false;
+}
+
+function open () {
+  data.open = true;
+}
 </script>
 
 <template>
@@ -30,42 +42,46 @@ const props = defineProps<{
 
     <div
       v-else
+      @mouseenter="open"
+      @mouseleave="close"
+      v-outside="close"
+      class="relative"
     >
-      <Popover
-        v-slot="{ open, close }"
-        class="relative"
-        inheritAttrs
+      <NuxtLink
+        :to="props.path || ''"
+        :class="data.open ? 'text-kadscan-500' : 'text-font-400'"
+        class="hover:text-kadscan-500 flex items-center justify-center gap-2 px-3 py-2 ring-0 outline-none h-full"
       >
-        <PopoverButton
-          :class="open ? 'text-kadscan-500' : 'text-font-400'"
-          class="hover:text-kadscan-500 flex items-center justify-center gap-2 px-3 py-2 ring-0 outline-none"
+        <span
+          class="text-sm"
         >
-          <span
-            class="text-sm"
-          >
-            {{ props.label }}
-          </span>
+          {{ props.label }}
+        </span>
 
-          <IconArrow
-            class="transition"
-            :class="open ? 'rotate-90' : '-rotate-90'"
-          />
-        </PopoverButton>
+        <IconArrow
+          class="transition"
+          :class="data.open ? 'rotate-90' : '-rotate-90'"
+        />
+      </NuxtLink>
 
-        <transition
-          enter-active-class="transition duration-200 ease-out"
-          enter-from-class="translate-y-1 opacity-0"
-          enter-to-class="translate-y-0 opacity-100"
-          leave-active-class="transition duration-150 ease-in"
-          leave-from-class="translate-y-0 opacity-100"
-          leave-to-class="translate-y-1 opacity-0"
+      <transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="translate-y-1 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-1 opacity-0"
+      >
+        <div
+          v-if="data.open"
+          class=" md:absolute right-0 top-[calc(100%)] pt-4"
         >
-          <PopoverPanel
+          <div
             class="
               px-2
               pb-3
               pt-2
-              md:absolute right-0 top-[calc(100%+16px)] border-t-[2px] border-t-kadscan-500 bg-gray-700 rounded-b-lg w-[240px]
+              border-t-[2px] border-t-kadscan-500 bg-gray-700 rounded-b-lg w-[240px]
             "
           >
             <div
@@ -81,9 +97,9 @@ const props = defineProps<{
                 {{ subroute.label }}
               </NuxtLink>
             </div>
-          </PopoverPanel>
-        </transition>
-      </Popover>
+          </div>
+        </div>
+      </transition>
     </div>
   </div>
 </template>

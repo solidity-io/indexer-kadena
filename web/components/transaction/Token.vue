@@ -1,18 +1,23 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   amount: string,
   modulename: string,
+  contract: any
 }>()
 
 const {
   blockchainTooltipData
-} = useAppConfig()
+} = useAppConfig();
+
+const metadata = computed(() => {
+  return staticTokens.find(({ module }) => module === props.contract.module) || unknownToken
+})
 </script>
 
 <template>
   <LabelValue
     label="Amount"
-    :value="`${amount} ${modulename}`"
+    :value="`${amount} ${metadata.symbol || modulename}`"
     :description="blockchainTooltipData.transaction.overview.amount"
   />
 </template>

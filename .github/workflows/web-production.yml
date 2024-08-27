@@ -1,11 +1,11 @@
 name: Production Deploy
 
-on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'web/**'
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'web/**'
 
 concurrency:
   group: ci-${{ github.ref }}

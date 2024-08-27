@@ -5,6 +5,7 @@ const props = defineProps<{
   chainId: number;
   createdAt: string;
   requestkey: string;
+  blockByBlockId?: any;
 }>()
 
 const status = useTransactionStatus(props.result)
@@ -44,9 +45,18 @@ const {
 
     <LabelValue
       label="Block Height"
-      :value="blockId"
       :description="blockchainTooltipData.transaction.blockHeight"
-    />
+    >
+      <template
+        #value
+      >
+        <ValueLink
+          :label="blockId"
+          :value="blockId"
+          :to="blockByBlockId ? `/blocks/chain/${chainId}/height/${blockByBlockId.height}` : ''"
+        />
+      </template>
+    </LabelValue>
 
     <LabelValue
       label="Timestamp"

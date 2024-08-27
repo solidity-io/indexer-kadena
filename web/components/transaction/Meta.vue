@@ -25,7 +25,25 @@ const pubkey = useTransactionPubkey(props.data)
         label="Sender"
         :value="sender"
         :description="blockchainTooltipData.transaction.meta.sender"
-      />
+      >
+        <template
+          #value
+        >
+          <div
+            class="flex gap-2"
+          >
+            <ValueLink
+              :label="sender"
+              :value="sender"
+              :to="`/account/${sender}`"
+            />
+
+            <Copy
+              :value="sender"
+            />
+          </div>
+        </template>
+      </LabelValue>
 
       <LabelValue
         label="Chain"

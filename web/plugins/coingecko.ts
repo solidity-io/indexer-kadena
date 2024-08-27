@@ -12,19 +12,18 @@ export default defineNuxtPlugin(async () => {
     try {
       const response = await fetch(url, {
         headers: {
-          'x-cg-demo-api-key': apiKey
+          'x-cg-pro-api-key': apiKey
         }
       });
 
       if (!response.ok) {
+        console.warn(`HTTP error! status text: ${response.statusText}`);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      console.log('Coingecko response received')
-
       return await response.json();
     } catch (error) {
-      console.error('Fetching CoinGecko API failed:', error);
+      console.warn('Fetching CoinGecko API failed:', error);
       return null;
     }
   };

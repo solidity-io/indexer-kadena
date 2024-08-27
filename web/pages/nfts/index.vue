@@ -14,13 +14,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetNftTransfers($first: Int, $offset: Int) {
-    allTransfers(
-      condition: {hasTokenId: true}
-      offset: $offset
-      orderBy: ID_DESC
-      first: $first
-    ) {
+  query GetNftTransfers($first: Int, $last: Int, $after: Cursor, $before: Cursor) {
+    allTransfers(condition: {type: "poly-fungible"}, first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC) {
       nodes {
         tokenId
         updatedAt
@@ -56,18 +51,43 @@ const query = gql`
 
 const {
   page,
-  pending,
-  data: transfers,
-} = await usePaginate({
-  query,
-  key: 'allTransfers'
-})
+  limit,
+  params,
+  updatePage,
+  updateCursor,
+} = usePagination(20);
 
-console.log('transfers', transfers.value)
+const { $graphql } = useNuxtApp();
+
+const { data: transfers, pending, error } = await useAsyncData('nfts-transfers', async () => {
+  const { allTransfers } = await $graphql.default.request(query, {
+    ...params.value,
+  });
+
+  const totalPages = Math.max(Math.ceil(allTransfers.totalCount / limit.value), 1)
+
+  return {
+    ...allTransfers,
+    totalPages
+  };
+}, {
+  watch: [page],
+  // lazy: true,
+});
+
+watch([transfers], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
+  updateCursor(newPage.pageInfo.startCursor)
+})
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       NFT Transfers
     </PageTitle>
@@ -85,6 +105,8 @@ console.log('transfers', transfers.value)
 
         <template #hash="{ row }">
           <ColumnLink
+            withCopy
+            withouMax
             :label="row.requestkey"
             :to="`/transactions/${row.requestkey}`"
           />
@@ -114,14 +136,10 @@ console.log('transfers', transfers.value)
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/transactions/${row.requestkey}`"
+          />
         </template>
 
         <template
@@ -142,7 +160,7 @@ console.log('transfers', transfers.value)
             :currentPage="page"
             :totalItems="transfers?.totalCount ?? 1"
             :totalPages="transfers?.totalPages"
-            @pageChange="page = Number($event)"
+            @pageChange="updatePage(Number($event), transfers.pageInfo, transfers.totalCount ?? 1, transfers.totalPages)"
           />
         </template>
       </TableRoot>

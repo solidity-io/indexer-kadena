@@ -16,13 +16,13 @@ const data = reactive({
       label: 'Info',
     },
     {
+      key: 'holders',
+      label: 'Holders',
+    },
+    {
       key: 'transfers',
       label: 'Transfers',
     },
-    // {
-    //   key: 'holders',
-    //   label: 'Holders',
-    // },
   ],
 })
 
@@ -30,25 +30,45 @@ const route = useRoute()
 
 const { $coingecko } = useNuxtApp();
 
-const { data: token } = await useAsyncData('token-trending', async () =>
-  await $coingecko.request(`coins/${route.params.coingeckoId}`, {
+const { data: token, error } = await useAsyncData('token-trending', async () => {
+  const res = await $coingecko.request(`coins/${route.params.coingeckoId}`, {
     vs_currency: 'usd',
     category: 'kadena-ecosystem',
-  })
-);
+  });
 
-if (!token.value) {
+  if (['coin', 'kadena'].includes(route.params.coingeckoId)) {
+    res.contract_address = 'coin';
+  }
+
+  if (res) {
+    return res;
+  }
+
+  const staticMetadata = staticTokens.find(({ module }) => module === route.params.coingeckoId);
+
+  return {
+    name: staticMetadata?.name,
+    image: staticMetadata ? {
+      large: staticMetadata?.icon,
+    } : undefined,
+    symbol: staticMetadata?.symbol,
+    contract_address: staticMetadata?.module || route.params.coingeckoId,
+  };
+});
+
+if (!token.value && !error.value) {
   await navigateTo('/404')
 }
 </script>
 
 <template>
   <PageRoot
-    v-if="token"
+    :error="error"
   >
     <PageContainer>
       <TokenDetails
         v-bind="token"
+        :modulename="token.contract_address"
       />
     </PageContainer>
 
@@ -76,16 +96,18 @@ if (!token.value) {
         </TabPanel>
 
         <TabPanel>
-          <TokenTransfers
+          <TokenHolders
+            v-bind="token"
             :modulename="token.contract_address"
           />
         </TabPanel>
 
-        <!-- <TabPanel>
-          <TokenHolders
-            v-bind="token"
+        <TabPanel>
+          <TokenTransfers
+            :symbol="token.symbol || token.contract_address"
+            :modulename="token.contract_address"
           />
-        </TabPanel> -->
+        </TabPanel>
       </Tabs>
     </PageContainer>
   </PageRoot>

@@ -3,6 +3,7 @@ import { gql } from 'nuxt-graphql-request/utils';
 
 const props = defineProps<{
   modulename?: string,
+  symbol?: string,
 }>()
 
 const {
@@ -10,8 +11,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTransactions($first: Int, $offset: Int, $modulename: String!) {
-    allTransfers(offset: $offset, orderBy: ID_DESC, first: $first, condition: {modulename: $modulename}) {
+  query GetTransactions($first: Int, $last: Int, $after: Cursor, $before: Cursor, $modulename: String!) {
+    allTransfers(first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC, condition: {modulename: $modulename}) {
       nodes {
         requestkey
         amount
@@ -31,93 +32,122 @@ const query = gql`
   }
 `
 
-const data = reactive({
-  page: 1,
-  limit: 20
-})
+const {
+  page,
+  limit,
+  params,
+  updatePage,
+  updateCursor,
+} = usePagination();
 
 const { $graphql } = useNuxtApp();
 
-const key = 'allTransfers'
-
-const { data: transfers, pending } = useAsyncData('token-details-transfers', async () => {
-  const res = await $graphql.default.request(query, {
-    first: data.limit,
-    offset: (data.page - 1) * 20,
+const { data: transfers, pending, error } = await useAsyncData('token-transfers', async () => {
+  const {
+    allTransfers,
+  } = await $graphql.default.request(query, {
+    ...params.value,
     modulename: props.modulename ?? 'coin'
   });
 
-  const totalPages = Math.max(Math.ceil(res[key].totalCount / data.limit), 1)
+  const totalPages = Math.max(Math.ceil(allTransfers.totalCount / limit.value), 1)
 
   return {
-    ...res[key],
+    ...allTransfers,
     totalPages
   };
 }, {
-  watch: [() => data.page]
+  watch: [page],
+  lazy: true,
 });
+
+watch([transfers], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
+  updateCursor(newPage?.pageInfo.startCursor)
+})
 </script>
 
 <template>
-  <div
-    class="py-3 md:p-6 rounded-lg md:rounded-2xl border border-gray-300"
+  <PageRoot
+    :error="error"
   >
-    <TableRoot
-      :pending="pending"
-      id="token-transfers-table"
-      :rows="transfers?.nodes ?? []"
-      :columns="tokenDetailTransferTableColumns"
+    <div
+      class="py-3 md:p-6 rounded-lg md:rounded-2xl border border-gray-300"
     >
-      <template #method>
-        <Chip />
-      </template>
-
-      <template #requestKey="{ row }">
-        <ColumnLink
-          :label="row.requestkey"
-          :to="`/transactions/${row.requestkey}`"
-        />
-      </template>
-
-      <template #from="{ row }">
-        <ColumnAddress
-          :value="row.fromAcct"
-        />
-      </template>
-
-      <template #to="{ row }">
-        <ColumnAddress
-          :value="row.toAcct"
-        />
-      </template>
-
-      <template #date="{ row }">
-        <ColumnDate
-          :row="row"
-        />
-      </template>
-
-      <template
-        #empty
+      <TableRoot
+        :pending="pending"
+        id="token-transfers-table"
+        :rows="transfers?.nodes ?? []"
+        :columns="tokenDetailTransferTableColumns"
       >
-        <EmptyTable
-          image="/empty/txs.png"
-          title="No transfers found yet"
-          description="We couldn't find transfer"
-        />
-      </template>
+        <template #method>
+          <Chip />
+        </template>
 
-      <template
-        #footer
-      >
-        <PaginateTable
-          :currentPage="data.page"
-          :totalItems="transfers?.totalCount ?? 1"
-          :totalPages="transfers?.totalPages"
-          @pageChange="data.page = Number($event)"
-          class="p-3"
-        />
-      </template>
-    </TableRoot>
-  </div>
+        <template #requestKey="{ row }">
+          <ColumnLink
+            withCopy
+            :label="row.requestkey"
+            :to="`/transactions/${row.requestkey}`"
+          />
+        </template>
+
+        <template #from="{ row }">
+          <ColumnAddress
+            :value="row.fromAcct"
+          />
+        </template>
+
+        <template #amount="{ row }">
+          <div
+            class="text-font-450 text-sm"
+          >
+            {{ row.amount }}
+            <span
+              class="uppercase"
+            >
+              {{ symbol }}
+            </span>
+          </div>
+        </template>
+
+        <template #to="{ row }">
+          <ColumnAddress
+            :value="row.toAcct"
+          />
+        </template>
+
+        <template #date="{ row }">
+          <ColumnDate
+            :row="row"
+          />
+        </template>
+
+        <template
+          #empty
+        >
+          <EmptyTable
+            image="/empty/txs.png"
+            title="No transfers found yet"
+            description="We couldn't find transfer"
+          />
+        </template>
+
+        <template
+          #footer
+        >
+          <PaginateTable
+            :currentPage="page"
+            :totalItems="transfers?.totalCount ?? 1"
+            :totalPages="transfers?.totalPages"
+            @pageChange="updatePage(Number($event), transfers.pageInfo, transfers.totalCount ?? 1, transfers.totalPages)"
+            class="p-3"
+          />
+        </template>
+      </TableRoot>
+    </div>
+  </PageRoot>
 </template>

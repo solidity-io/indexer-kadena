@@ -8,7 +8,9 @@ import {
 
 const config = useAppConfig()
 
-provideUseId(() => useId())
+provideUseId(() => useId());
+
+const route = useRoute()
 </script>
 
 <template>
@@ -18,7 +20,8 @@ provideUseId(() => useId())
     class="w-full flex flex-col items-center justify-center bg-gray-800 z-[10]"
   >
     <div
-      class="w-full max-w-screen-bazk py-3 md:py-4 px-4 flex justify-between"
+      class="w-full max-w-screen-bazk py-3 px-4 flex justify-between"
+      :class="route.name !== 'index' ? 'md:py-3' : 'md:py-4'"
     >
       <NuxtLink
         to="/"
@@ -30,8 +33,13 @@ provideUseId(() => useId())
       </NuxtLink>
 
       <div
-        class="hidden md:flex items-center justify-center gap-2"
+        class="hidden md:flex w-full items-center justify-end gap-2"
       >
+        <HeaderSearch
+          variant="secondary"
+          v-if="route.name !== 'index'"
+        />
+
         <HeaderRoute
           :key="route.tag + i"
           v-bind="route"

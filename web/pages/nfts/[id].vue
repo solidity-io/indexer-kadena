@@ -50,7 +50,7 @@ const route = useRoute()
 
 const { $graphql } = useNuxtApp();
 
-const { data: nft } = await useAsyncData('GetNftById', async () => {
+const { data: nft, error } = await useAsyncData('nft-detail', async () => {
   const res = await $graphql.default.request(query, {
     id: Number(route.params.id),
   });
@@ -58,14 +58,14 @@ const { data: nft } = await useAsyncData('GetNftById', async () => {
   return res.contractById
 });
 
-if (!nft.value) {
+if (!nft.value && !error.value) {
   await navigateTo('/404')
 }
 </script>
 
 <template>
   <PageRoot
-    v-if="nft"
+    :error="error"
   >
     <NftDetails
       :contract="nft"

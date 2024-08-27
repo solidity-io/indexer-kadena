@@ -14,8 +14,8 @@ const {
 } = useAppConfig()
 
 const query = gql`
-  query GetTokenTransfers($first: Int, $offset: Int) {
-    allTransfers(condition: {tokenId: null}, offset: $offset, orderBy: ID_DESC, first: $first) {
+  query GetTokenTransfers($first: Int, $last: Int, $after: Cursor, $before: Cursor) {
+    allTransfers(condition: {type: "fungible"}, first: $first, last: $last, after: $after, before: $before, orderBy: ID_DESC) {
       nodes {
         tokenId
         updatedAt
@@ -46,24 +46,26 @@ const key = 'allTransfers'
 
 const { $graphql } = useNuxtApp();
 
-const page = ref(1)
-const limit = ref(20)
+const {
+  page,
+  limit,
+  params,
+  updatePage,
+  updateCursor,
+} = usePagination();
 
-const { data: transfers, pending } = useAsyncData('all-token-transfers', async () => {
-  const res = await $graphql.default.request(query, {
-    first: limit.value,
-    offset: (page.value - 1) * 20,
+const { data: transfers, pending, error } = await useAsyncData('all-token-transfers', async () => {
+  const { allTransfers } = await $graphql.default.request(query, {
+    ...params.value,
   });
 
-  const transfers = res[key]
-
-  const totalPages = Math.max(Math.ceil(transfers.totalCount / limit.value), 1)
+  const totalPages = Math.max(Math.ceil(allTransfers.totalCount / limit.value), 1)
 
   return {
     totalPages,
-    totalCount: transfers.totalCount,
-    pageInfo: transfers.pageInfo,
-    nodes: transfers.nodes.map((transfer: any) => {
+    totalCount: allTransfers.totalCount,
+    pageInfo: allTransfers.pageInfo,
+    nodes: allTransfers.nodes.map((transfer: any) => {
       const metadata = staticTokens.find(({ module }) => module === transfer.modulename) || unknownToken
 
       return {
@@ -73,12 +75,23 @@ const { data: transfers, pending } = useAsyncData('all-token-transfers', async (
     }),
   };
 }, {
-  watch: [page]
+  watch: [page],
+  // lazy: true,
 });
+
+watch([transfers], ([newPage]) => {
+  if (!newPage) {
+    return
+  }
+
+  updateCursor(newPage?.pageInfo.startCursor)
+})
 </script>
 
 <template>
-  <PageRoot>
+  <PageRoot
+    :error="error"
+  >
     <PageTitle>
       Token Transfers
     </PageTitle>
@@ -96,6 +109,9 @@ const { data: transfers, pending } = useAsyncData('all-token-transfers', async (
 
         <template #requestkey="{ row }">
           <ColumnLink
+            withCopy
+            withouMax
+            :value="row.requestkey"
             :label="row.requestkey"
             :to="`/transactions/${row.requestkey}`"
           />
@@ -125,14 +141,10 @@ const { data: transfers, pending } = useAsyncData('all-token-transfers', async (
           />
         </template>
 
-        <template #icon>
-          <div
-            class="w-6 h-full group hover:bg-gray-500 rounded grid items-center justify-center"
-          >
-            <IconEye
-              class="mx-auto text-white group-hover:text-kadscan-500 transition"
-            />
-          </div>
+        <template #icon="{ row }">
+          <EyeLink
+            :to="`/transactions/${row.requestkey}`"
+          />
         </template>
 
         <template
@@ -153,7 +165,7 @@ const { data: transfers, pending } = useAsyncData('all-token-transfers', async (
             :currentPage="page"
             :totalItems="transfers?.totalCount ?? 1"
             :totalPages="transfers?.totalPages"
-            @pageChange="page = Number($event)"
+            @pageChange="updatePage(Number($event), transfers?.pageInfo, transfers?.totalCount ?? 1, transfers?.totalPages)"
           />
         </template>
       </TableRoot>
