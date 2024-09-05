@@ -46,7 +46,7 @@ export async function useKadenaExtension() {
 
   app.use(
     postgraphile(DB_CONNECTION, SCHEMAS, {
-      watchPg: true,
+      watchPg: false,
       graphiql: true,
       enhanceGraphiql: true,
       appendPlugins: [
@@ -87,7 +87,7 @@ export async function usePostgraphile() {
         connectionFilterAllowNullInput: true,
         connectionFilterAllowEmptyObjectInput: true,
       },
-      watchPg: true,
+      watchPg: false,
       graphiql: true,
       enhanceGraphiql: true,
       appendPlugins: [

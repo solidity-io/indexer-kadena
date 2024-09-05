@@ -38,8 +38,11 @@ async function main() {
   try {
     console.log("Loading environment variables...");
     dotenv.config();
-    console.log("Initializing database...");
-    await initializeDatabase();
+
+    if (process.env.RUN_GRAPHQL_ON_START !== "true") {
+      console.log("Initializing database...");
+      await initializeDatabase();
+    }
 
     if (options.streaming) {
       await startStreaming(SYNC_NETWORK);
