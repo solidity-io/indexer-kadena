@@ -61,7 +61,8 @@ const { data: blocks, pending, error } = await useAsyncData('blocks-recent', asy
   };
 }, {
   watch: [page],
-  // lazy: true,
+  // remove
+  lazy: true,
 });
 
 watch([blocks], ([newPage]) => {

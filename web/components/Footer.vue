@@ -30,8 +30,17 @@ const groupRoutes = computed(() => routes.filter(({ type }) => type === 'group')
             <span
               class="text-sm text-font-500 leading-[19.6px] block"
             >
-              Kadscan is the leading blockchain explorer dedicated to the Kadena ecosystem. Powered by Kadena Protocol.
+              Kadscan is the leading blockchain explorer dedicated to the Kadena ecosystem. Powered by Hack-a-Chain.
             </span>
+
+            <div
+              class="pt-4"
+            >
+              <img
+                src="/hackachain.svg"
+                class="h-[32px]"
+              />
+            </div>
           </div>
 
           <!-- <div
