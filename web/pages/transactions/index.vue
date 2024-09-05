@@ -83,7 +83,8 @@ const { data: blockchain, status: cgStatus, error: blockchainError } = await use
   const res = await $coingecko.request('coins/kadena');
   return res;
 }, {
-  // lazy: true,
+  // remove
+  lazy: true,
 });
 
 const { data: transactions, status, pending, error } = await useAsyncData('transactions-recent', async () => {
@@ -106,7 +107,8 @@ const { data: transactions, status, pending, error } = await useAsyncData('trans
   };
 }, {
   watch: [params, chain],
-  // lazy: true,
+  // remove
+  lazy: true,
 });
 
 watch([transactions], ([newPage]) => {
@@ -152,6 +154,7 @@ watch([transactions], ([newPage]) => {
       <Card
         :description="totalTransactions || ''"
         label="Total transactions (All time)"
+        :isLoading="pending"
       />
     </div>
 

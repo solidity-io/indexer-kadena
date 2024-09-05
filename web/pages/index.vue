@@ -69,7 +69,8 @@ const { data: cgData, status: cgStatus, error: cgError } = await useAsyncData('h
     chartData,
   };
 }, {
-  // lazy: true,
+  // remove
+  lazy: true,
 });
 
 const { data, error, status } = await useAsyncData('home-transactions-blocks', async () => {
@@ -83,7 +84,8 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
     ...apiRes
   };
 }, {
-  // lazy: true,
+  // remove
+  lazy: true,
 });
 </script>
 
@@ -110,7 +112,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
 
         <HomeCard
           isDark
-          label="Total Volume"
+          label="Total volume 24h"
           :isLoading="cgStatus === 'pending'"
           :delta="cgData?.token?.market_data?.price_change_percentage_24h"
           :description="moneyCompact.format(cgData?.token?.market_data?.total_volume?.usd || 0)"
@@ -136,7 +138,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
         <span
           class="text-font-400"
         >
-          Total transactions history in 14 days
+          KDA Price 14 days
         </span>
 
         <div
@@ -151,7 +153,7 @@ const { data, error, status } = await useAsyncData('home-transactions-blocks', a
     </Container>
 
     <div
-      v-if="status === 'pending' && cgStatus !== 'pending'"
+      v-if="status === 'pending'"
       class="grid lg:grid-cols-2 gap-4 lg:gap-6"
     >
       <SkeletonHomeTransactionList />

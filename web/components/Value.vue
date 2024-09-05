@@ -31,7 +31,7 @@ withDefaults(
     />
 
     <span
-      v-else-if="value"
+      v-else-if="value === 0 || !!value"
       class="text-font-450 leading-[20px] block"
     >
       {{ value }}

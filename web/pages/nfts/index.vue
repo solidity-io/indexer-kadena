@@ -72,7 +72,8 @@ const { data: transfers, pending, error } = await useAsyncData('nfts-transfers',
   };
 }, {
   watch: [page],
-  // lazy: true,
+  // remove
+  lazy: true,
 });
 
 watch([transfers], ([newPage]) => {
