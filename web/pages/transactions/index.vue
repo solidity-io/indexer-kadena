@@ -154,7 +154,7 @@ watch([transactions], ([newPage]) => {
       <Card
         :description="totalTransactions || ''"
         label="Total transactions (All time)"
-        :isLoading="pending"
+        :isLoading="pending && !totalTransactions"
       />
     </div>
 
