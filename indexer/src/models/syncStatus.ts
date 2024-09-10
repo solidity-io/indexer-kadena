@@ -26,7 +26,8 @@ export interface SyncStatusAttributes {
 
 class SyncStatus
   extends Model<SyncStatusAttributes>
-  implements SyncStatusAttributes {
+  implements SyncStatusAttributes
+{
   declare id: number;
   declare network: string;
   declare chainId: number;
@@ -51,14 +52,14 @@ SyncStatus.init(
         SOURCE_S3,
         SOURCE_API,
         SOURCE_BACKFILL,
-        SOURCE_STREAMING
+        SOURCE_STREAMING,
       ),
     },
   },
   {
     sequelize,
     modelName: "SyncStatus",
-  }
+  },
 );
 
 export default SyncStatus;

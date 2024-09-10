@@ -1,27 +1,33 @@
+import dotenv from "dotenv";
+console.log("Loading environment variables...");
+dotenv.config();
+
 import {
   startBackFill,
   startRetryErrors,
   startMissingBlocksDaemon,
 } from "./services/syncService";
 
-import dotenv from "dotenv";
 import { program } from "commander";
-import { initializeDatabase } from "./config/database";
 import { getRequiredEnvString } from "./utils/helpers";
 import { startStreaming } from "./services/sync/streaming";
 import { processS3HeadersDaemon } from "./services/sync/header";
 import { usePostgraphile, useKadenaExtension } from "./server/metrics";
+import { useKadenaGraphqlServer } from "./kadena-server/server";
+import { closeDatabase, initializeDatabase } from "./config/database";
 
 program
   .option("-s, --streaming", "Start streaming blockchain data")
-  .option("-b, --backfill", "Start back filling blockchain data")
+  .option("-b, --backfill <number>", "Start back filling blockchain data")
   .option("-r, --retry", "Start retrying failed blocks")
   .option("-m, --missing", "Process missing blocks")
   .option("-h, --headers", "Process headers from s3 bucket to database")
   .option("-g, --graphql", "Start the GraphQL server")
+  .option("-t, --graphqlServer", "Start the custom GraphQL server")
+  .option("-z, --database", "Init the database")
   .option(
     "-run, --run",
-    "Continuous process of streaming, headers, payloads and missing blocks from node to s3 bucket and from s3 bucket to database"
+    "Continuous process of streaming, headers, payloads and missing blocks from node to s3 bucket and from s3 bucket to database",
   );
 
 program.parse(process.argv);
@@ -36,18 +42,21 @@ const options = program.opts();
  */
 async function main() {
   try {
-    console.log("Loading environment variables...");
-    dotenv.config();
-
-    if (process.env.RUN_GRAPHQL_ON_START !== "true") {
-      console.log("Initializing database...");
+    if (options.database) {
       await initializeDatabase();
+      await closeDatabase();
+      process.exit(0);
     }
 
     if (options.streaming) {
       await startStreaming(SYNC_NETWORK);
     } else if (options.backfill) {
-      await startBackFill(SYNC_NETWORK);
+      const blockNumber = parseInt(options.backfill, 10);
+      if (isNaN(blockNumber)) {
+        console.error("Please provide a valid number for the backfill option.");
+        process.exit(1);
+      }
+      await startBackFill(SYNC_NETWORK, blockNumber);
     } else if (options.retry) {
       await startRetryErrors(SYNC_NETWORK);
     } else if (options.missing) {
@@ -57,6 +66,8 @@ async function main() {
     } else if (options.graphql) {
       await usePostgraphile();
       await useKadenaExtension();
+    } else if (options.graphqlServer) {
+      await useKadenaGraphqlServer();
     } else if (options.run) {
       if (process.env.RUN_GRAPHQL_ON_START === "true") {
         await usePostgraphile();

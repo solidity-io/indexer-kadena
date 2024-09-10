@@ -1,6 +1,7 @@
+import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
 import { TransactionAttributes } from "../../models/transaction";
 import { TransferAttributes } from "../../models/transfer";
-import { getPrecision, } from "../../utils/pact";
+import { getPrecision } from "../../utils/pact";
 import { getContract, saveContract, syncContract } from "./contract";
 
 /**
@@ -21,7 +22,7 @@ export function getNftTransfers(
   eventsData: any,
   payloadHash: string | undefined,
   transactionAttributes: TransactionAttributes,
-  receiptInfo: any
+  receiptInfo: any,
 ) {
   const TRANSFER_NFT_SIGNATURE = "TRANSFER";
   const TRANSFER_NFT_PARAMS_LENGTH = 4;
@@ -47,9 +48,12 @@ export function getNftTransfers(
         ? `${eventData.module.namespace}.${eventData.module.name}`
         : eventData.module.name;
 
-      console.log("Token ID:", tokenId);
-
-      let contractId = await syncContract(network, chainId, modulename, tokenId);
+      let contractId = await syncContract(
+        network,
+        chainId,
+        modulename,
+        tokenId,
+      );
 
       return {
         amount: amount,
@@ -70,6 +74,8 @@ export function getNftTransfers(
   return Promise.all(transferPromises);
 }
 
+const requests: Record<string, undefined | boolean> = {};
+
 /**
  * Filters and processes coin transfer events from a payload's event data. Similar to `getNftTransfers`, but focuses on
  * coin-based transactions. It identifies events that represent coin transfers and constructs transfer attribute objects.
@@ -86,7 +92,7 @@ export function getCoinTransfers(
   eventsData: any,
   payloadHash: string,
   transactionAttributes: TransactionAttributes,
-  receiptInfo: any
+  receiptInfo: any,
 ) {
   const TRANSFER_COIN_SIGNATURE = "TRANSFER";
   const TRANSFER_COIN_PARAMS_LENGTH = 3;
@@ -111,17 +117,25 @@ export function getCoinTransfers(
 
       if (contract) {
         contractId = contract.id;
-      }
-      else {
-        console.log("Getting precision for module from Pact:", modulename, chainId);
-        const precisionData = await getPrecision(
-          network,
-          chainId,
-          modulename
-        );
-        if (precisionData) {
-          contractId = await saveContract(network, chainId, modulename, "fungible", null, null, precisionData);
+      } else if (!requests[`(${modulename}.precision)`]) {
+        requests[`(${modulename}.precision)`] = true;
+        const precisionData = await handleSingleQuery({
+          chainId: chainId.toString(),
+          code: `(${modulename}.precision)`,
+        });
+        if (precisionData.result) {
+          contractId = await saveContract(
+            network,
+            chainId,
+            modulename,
+            "fungible",
+            null,
+            null,
+            Number(precisionData.result),
+          );
         }
+        console.log(precisionData);
+        requests[`(${modulename}.precision)`] = false;
       }
 
       const params = eventData.params;

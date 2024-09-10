@@ -2,10 +2,15 @@ import https from "https";
 import { fetchAndSavePayloadWithRetry } from "./payload";
 import { syncStatusService } from "../syncStatusService";
 import { SOURCE_STREAMING } from "../../models/syncStatus";
+import { getRequiredEnvString } from "../../utils/helpers";
 
 const MAX_RETRIES = 50;
 const RETRY_DELAY = 10000; // 10 seconds
 
+const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
+const SYNC_NETWORK = getRequiredEnvString("SYNC_NETWORK");
+
+const url = new URL(`${SYNC_BASE_URL}/${SYNC_NETWORK}/header/updates`);
 /**
  * Starts streaming headers from the Chainweb P2P network.
  * This method establishes a connection to the Chainweb node's header stream and listens for new headers.
@@ -15,13 +20,16 @@ const RETRY_DELAY = 10000; // 10 seconds
  * @param {string} network - The network identifier (e.g., 'mainnet01').
  * @param {number} retryCount - The current retry attempt count.
  */
-export async function startStreaming(network: string, retryCount: number = 0): Promise<void> {
+export async function startStreaming(
+  network: string,
+  retryCount: number = 0,
+): Promise<void> {
   console.log("Starting streaming...");
   const options = {
     method: "GET",
-    hostname: "api.chainweb.com",
+    hostname: url.hostname,
     port: 443,
-    path: `/chainweb/0.0/${network}/header/updates`,
+    path: url.pathname,
   };
 
   const req = https.request(options, (res) => {
@@ -43,10 +51,9 @@ export async function startStreaming(network: string, retryCount: number = 0): P
           const blockData = JSON.parse(jsonData);
           const height = blockData.header.height;
           const chainId = blockData.header.chainId;
-          const creationTime = blockData.header.creationTime;
 
           console.log(
-            `chainId: ${chainId} - height: ${height} - creationTime: ${creationTime}`
+            `[chainId: ${chainId} height: ${height}] - Fetching payload ...`,
           );
 
           const payloadHash = blockData.header.payloadHash;
@@ -56,7 +63,7 @@ export async function startStreaming(network: string, retryCount: number = 0): P
             chainId,
             height,
             payloadHash,
-            blockData
+            blockData,
           );
 
           await syncStatusService.save({
@@ -72,8 +79,7 @@ export async function startStreaming(network: string, retryCount: number = 0): P
       }
     });
 
-    res.on("end", () => 
-      handleRetry(network, retryCount));
+    res.on("end", () => handleRetry(network, retryCount));
   });
 
   req.on("error", (e) => {

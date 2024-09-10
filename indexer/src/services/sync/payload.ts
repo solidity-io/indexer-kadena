@@ -7,15 +7,17 @@ import { eventService } from "../eventService";
 import { transferService } from "../transferService";
 import { getNftTransfers, getCoinTransfers } from "./transfers";
 import { Transaction } from "sequelize";
-import { delay, getDecoded, getRequiredEnvNumber, getRequiredEnvString } from "../../utils/helpers";
+import { delay, getDecoded, getRequiredEnvNumber } from "../../utils/helpers";
 import { syncErrorService } from "../syncErrorService";
 import { SOURCE_API } from "../../models/syncStatus";
 import { saveHeader } from "../s3Service";
 import { fetchPayloads } from "./fetch";
+import Signer from "../../models/signer";
+import { publicKeysAccountService } from "../publicKeysAccountService";
 
 const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
 const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
-  "SYNC_ATTEMPTS_INTERVAL_IN_MS"
+  "SYNC_ATTEMPTS_INTERVAL_IN_MS",
 );
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
@@ -25,14 +27,14 @@ export async function fetchAndSavePayloadWithRetry(
   chainId: any,
   height: any,
   payloadHash: any,
-  blockData: any
+  blockData: any,
 ): Promise<boolean> {
   const payload = await fetchPayloadWithRetry(
     network,
     chainId,
     height,
     height,
-    [payloadHash]
+    [payloadHash],
   );
 
   if (payload.length === 0) {
@@ -61,43 +63,53 @@ export async function processPayloadKey(
   network: string,
   block: BlockAttributes,
   payloadData: any,
-  options?: Transaction
+  options?: Transaction,
 ) {
-  const start = new Date().getTime();
   const payloadHash = payloadData.payloadHash;
   const transactions = payloadData.transactions || [];
 
   const transactionPromises = transactions.map((transactionArray: any) =>
-    processTransaction(transactionArray, block, payloadHash, network, options)
+    processTransaction(transactionArray, block, payloadHash, network, options),
   );
 
   await Promise.all(transactionPromises);
 
-  const end = new Date().getTime();
-  const time = end - start;
+  // will be disabled during the backfill process
+  // const end = new Date().getTime();
+  // const time = end - start;
 
-  if (transactions.length > 0) {
-    console.log("Chain Id:", block.chainId,
-      "| Height:", block.height, "| Number of transactions:", transactions.length,
-      "| Average time per transaction:", time / transactions.length, "ms");
-  }
+  // if (transactions.length > 0) {
+  //   console.log(
+  //     "Chain Id:",
+  //     block.chainId,
+  //     "| Height:",
+  //     block.height,
+  //     "| Number of transactions:",
+  //     transactions.length,
+  //     "| Average time per transaction:",
+  //     time / transactions.length,
+  //     "ms",
+  //   );
+  // }
 }
 
-export async function processTransaction(transactionArray: any,
+export async function processTransaction(
+  transactionArray: any,
   block: BlockAttributes,
   payloadHash: string,
   network: string,
-  options?: Transaction) {
+  options?: Transaction,
+) {
   const transactionInfo = transactionArray[TRANSACTION_INDEX];
   const receiptInfo = transactionArray[RECEIPT_INDEX];
 
   let sigsData = transactionInfo.sigs;
-  let cmdData;
+  let cmdData: any;
   try {
     cmdData = JSON.parse(transactionInfo.cmd);
   } catch (error) {
     console.error(
-      `Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`
+      `Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`,
     );
   }
 
@@ -153,7 +165,7 @@ export async function processTransaction(transactionArray: any,
     eventsData,
     payloadHash,
     transactionAttributes,
-    receiptInfo
+    receiptInfo,
   );
 
   const transfersNftAttributes = await getNftTransfers(
@@ -162,20 +174,17 @@ export async function processTransaction(transactionArray: any,
     eventsData,
     payloadHash,
     transactionAttributes,
-    receiptInfo
+    receiptInfo,
   );
 
-  const transfersAttributes = [
-    transfersCoinAttributes,
-    transfersNftAttributes,
-  ]
+  const transfersAttributes = [transfersCoinAttributes, transfersNftAttributes]
     .flat()
     .filter((transfer) => transfer.amount !== undefined);
 
   try {
     let transactionInstance = await transactionService.save(
       transactionAttributes,
-      options
+      options,
     );
 
     let transactionId = transactionInstance.id;
@@ -187,14 +196,28 @@ export async function processTransaction(transactionArray: any,
 
     await eventService.saveMany(eventsWithTransactionId, options);
 
-    const transfersWithTransactionId = transfersAttributes.map(
-      (transfer) => ({
-        ...transfer,
-        tokenId: transfer.tokenId,
-        contractId: transfer.contractId,
-        transactionId: transactionId,
-      })
-    ) as TransferAttributes[];
+    const signers = cmdData.signers.map((signer: any, index: number) => ({
+      pubkey: signer.pubKey,
+      clist: signer.clist,
+      orderIndex: index,
+      transactionId: transactionId,
+    }));
+
+    await Signer.bulkCreate(signers);
+
+    await publicKeysAccountService.saveMany(
+      cmdData.payload?.exec?.data?.keyset?.keys ?? [],
+      transfersAttributes,
+      transactionAttributes.chainId,
+      options,
+    );
+
+    const transfersWithTransactionId = transfersAttributes.map((transfer) => ({
+      ...transfer,
+      tokenId: transfer.tokenId,
+      contractId: transfer.contractId,
+      transactionId: transactionId,
+    })) as TransferAttributes[];
 
     await transferService.saveMany(transfersWithTransactionId, options);
   } catch (error) {
@@ -217,9 +240,8 @@ export async function fetchPayloadWithRetry(
   fromHeight: number,
   toHeight: number,
   payloadHashes: string[],
-  attempt = 1
+  attempt = 1,
 ): Promise<any> {
-
   try {
     const payloads = await fetchPayloads(network, chainId, payloadHashes);
 
@@ -232,8 +254,9 @@ export async function fetchPayloadWithRetry(
     if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
       if (attempt > 2) {
         console.log(
-          `Retrying... Attempt ${attempt + 1
-          } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`
+          `Retrying... Attempt ${
+            attempt + 1
+          } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`,
         );
       }
       await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
@@ -243,7 +266,7 @@ export async function fetchPayloadWithRetry(
         fromHeight,
         toHeight,
         payloadHashes,
-        attempt + 1
+        attempt + 1,
       );
     } else {
       await syncErrorService.save({
@@ -257,12 +280,11 @@ export async function fetchPayloadWithRetry(
 
       console.log(
         "Max retry attempts reached. Unable to fetch transactions for",
-        { network, chainId, fromHeight, toHeight }
+        { network, chainId, fromHeight, toHeight },
       );
     }
   }
 }
-
 
 /**
  * Processes an array of payloads for a specific blockchain network and chain ID.
