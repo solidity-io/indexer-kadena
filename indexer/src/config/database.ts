@@ -1,51 +1,58 @@
 const fs = require("fs");
 
-import { Sequelize } from "sequelize";
+import { Sequelize, Transaction } from "sequelize";
 
 export const sequelize = new Sequelize(
-  process.env.DB_NAME as string,
-  process.env.DB_USERNAME as string,
-  process.env.DB_PASSWORD as string,
-  {
-    host: process.env.DB_HOST || "localhost",
-    dialect: "postgres",
-    pool: {
-      max: 20,
-      min: 1,
-      acquire: 60000,
-      idle: 10000,
-    },
-    retry: {
-      max: 10,
-    },
-    logging: false,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: true,
-        ca: fs.readFileSync(__dirname + "/global-bundle.pem").toString(),
-      },
-    },
-  }
+    process.env.DB_NAME as string,
+    process.env.DB_USERNAME as string,
+    process.env.DB_PASSWORD as string,
+    {
+        host: process.env.DB_HOST || "localhost",
+        dialect: "postgres",
+        pool: {
+            max: 20,
+            min: 1,
+            acquire: 60000,
+            idle: 10000,
+        },
+        retry: {
+            max: 10,
+        },
+        logging: false,
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: true,
+                ca: fs.readFileSync(__dirname + "/global-bundle.pem").toString(),
+            },
+        },
+        isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED,
+    }
 );
 
 export async function initializeDatabase(): Promise<void> {
-  try {
-    await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-    throw error;
-  }
+    try {
+        await sequelize.authenticate();
+        console.log("Connection has been established successfully.");
+    } catch (error) {
+        console.error("Unable to connect to the database:", error);
+        throw error;
+    }
 
-  try {
-    await sequelize.sync({ force: false });
+    try {
+        await sequelize.sync({ force: false });
 
-    console.log("Tables have been synchronized successfully.");
+        console.log("Tables have been synchronized successfully.");
 
-    // Create the update_balances function
-    await sequelize.query(`
-  CREATE OR REPLACE FUNCTION update_balances() RETURNS TRIGGER AS $$
+        // --------------------------------
+        // Balances
+        // --------------------------------
+
+        console.log("Sync update_balances()...")
+
+        // Create the update_balances function
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION update_balances() RETURNS TRIGGER AS $$
   DECLARE
       sender_balance numeric;
       recipient_balance numeric;
@@ -71,17 +78,28 @@ export async function initializeDatabase(): Promise<void> {
       FOR UPDATE;
 
       IF FOUND THEN
-          UPDATE public."Balances"
-          SET balance = sender_balance - NEW.amount,
-              "contractId" = contract_id
-          WHERE "account" = NEW.from_acct
-            AND "chainId" = NEW."chainId"
-            AND "qualname" = NEW.modulename
-            AND "network" = NEW.network
-            AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
+          IF NEW."canonical" IS FALSE THEN
+              UPDATE public."Balances"
+              SET balance = sender_balance + NEW.amount, -- Revert operation
+                  "contractId" = contract_id
+              WHERE "account" = NEW.from_acct
+                AND "chainId" = NEW."chainId"
+                AND "qualname" = NEW.modulename
+                AND "network" = NEW.network
+                AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
+          ELSE
+              UPDATE public."Balances"
+              SET balance = sender_balance - NEW.amount,
+                  "contractId" = contract_id
+              WHERE "account" = NEW.from_acct
+                AND "chainId" = NEW."chainId"
+                AND "qualname" = NEW.modulename
+                AND "network" = NEW.network
+                AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
+          END IF;
       ELSE
           INSERT INTO public."Balances" (account, "chainId", balance, module, qualname, "tokenId", network, "createdAt", "updatedAt", "hasTokenId", "contractId")
-          VALUES (NEW.from_acct, NEW."chainId", -NEW.amount, NEW.modulename, NEW.modulename, NEW."tokenId", NEW.network, NEW."createdAt", NEW."updatedAt", 
+          VALUES (NEW.from_acct, NEW."chainId", CASE WHEN NEW."canonical" IS FALSE THEN NEW.amount ELSE -NEW.amount END, NEW.modulename, NEW.modulename, NEW."tokenId", NEW.network, NEW."createdAt", NEW."updatedAt", 
           CASE WHEN NEW."tokenId" IS NOT NULL THEN true ELSE false END, contract_id);
       END IF;
 
@@ -96,17 +114,28 @@ export async function initializeDatabase(): Promise<void> {
       FOR UPDATE;
 
       IF FOUND THEN
-          UPDATE public."Balances"
-          SET balance = recipient_balance + NEW.amount,
-              "contractId" = contract_id
-          WHERE "account" = NEW.to_acct
-            AND "chainId" = NEW."chainId"
-            AND "qualname" = NEW.modulename
-            AND "network" = NEW.network
-            AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
+          IF NEW."canonical" IS FALSE THEN
+              UPDATE public."Balances"
+              SET balance = recipient_balance - NEW.amount, -- Revert operation
+                  "contractId" = contract_id
+              WHERE "account" = NEW.to_acct
+                AND "chainId" = NEW."chainId"
+                AND "qualname" = NEW.modulename
+                AND "network" = NEW.network
+                AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
+          ELSE
+              UPDATE public."Balances"
+              SET balance = recipient_balance + NEW.amount,
+                  "contractId" = contract_id
+              WHERE "account" = NEW.to_acct
+                AND "chainId" = NEW."chainId"
+                AND "qualname" = NEW.modulename
+                AND "network" = NEW.network
+                AND "tokenId" IS NOT DISTINCT FROM NEW."tokenId";
+          END IF;
       ELSE
           INSERT INTO public."Balances" (account, "chainId", balance, module, qualname, "tokenId", network, "createdAt", "updatedAt", "hasTokenId", "contractId")
-          VALUES (NEW.to_acct, NEW."chainId", NEW.amount, NEW.modulename, NEW.modulename, NEW."tokenId", NEW.network, NEW."createdAt", NEW."updatedAt", 
+          VALUES (NEW.to_acct, NEW."chainId", CASE WHEN NEW."canonical" IS FALSE THEN -NEW.amount ELSE NEW.amount END, NEW.modulename, NEW.modulename, NEW."tokenId", NEW.network, NEW."createdAt", NEW."updatedAt", 
           CASE WHEN NEW."tokenId" IS NOT NULL THEN true ELSE false END, contract_id);
       END IF;
 
@@ -115,16 +144,20 @@ export async function initializeDatabase(): Promise<void> {
   $$ LANGUAGE plpgsql;
 `);
 
-    // Create the trigger
-    await sequelize.query(`
+        console.log("Sync update_balances_trigger()...")
+
+        // Create the trigger
+        await sequelize.query(`
 CREATE OR REPLACE TRIGGER update_balances_trigger
-AFTER INSERT ON public."Transfers"
+AFTER UPDATE ON public."Transfers"
 FOR EACH ROW
 EXECUTE FUNCTION update_balances();
 `);
 
-    // Create the Balances table
-    await sequelize.query(`
+        console.log("Sync public.\"Balances\"...");
+
+        // Create the balances table
+        await sequelize.query(`
   CREATE TABLE IF NOT EXISTS public."Balances" (
     id serial4 NOT NULL,
     account varchar(255) NOT NULL,
@@ -155,8 +188,14 @@ EXECUTE FUNCTION update_balances();
   END $$;
 `);
 
-    // Create missing_block_ranges view
-    await sequelize.query(`
+        // --------------------------------
+        // Missing blocks
+        // --------------------------------
+
+        console.log("Sync missing_block_ranges...");
+
+        // Create missing blocks view
+        await sequelize.query(`
 CREATE OR REPLACE VIEW missing_block_ranges AS
 WITH missing_ranges AS (
   SELECT DISTINCT 
@@ -185,19 +224,425 @@ where (missing_end - missing_start) >= 0
 ORDER BY "chainId", "chainwebVersion", missing_start ASC;
 `);
 
-    console.log("Trigger function and trigger have been created successfully.");
-  } catch (error) {
-    console.error("Unable to create tables:", error);
-    throw error;
-  }
+        // --------------------------------
+        // Orphan blocks
+        // --------------------------------
+
+        console.log("Sync public.check_canonical()...");
+
+        // Create the check canonical function
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION public.check_canonical(new_hash character varying, target_height integer, chain_id integer, chainweb_version character varying, current_depth integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+AS $function$
+  DECLARE
+      parent_block RECORD;
+  BEGIN
+      -- Get the parent of the new block
+      SELECT * INTO parent_block 
+      FROM public."Blocks" 
+      WHERE hash = (SELECT parent FROM public."Blocks" WHERE hash = new_hash AND "chainId" = chain_id AND "chainwebVersion" = chainweb_version)
+	    FOR UPDATE;
+
+      -- Base case: If parent block is not found
+      IF parent_block IS NULL THEN
+          RETURN FALSE;
+      ELSIF parent_block.height = target_height THEN
+          -- Update the parent block to be canonical if height matches
+          UPDATE public."Blocks" 
+          SET canonical = TRUE 
+          WHERE hash = parent_block.hash;
+
+          UPDATE public."Blocks"
+          SET canonical = FALSE
+          WHERE height = target_height
+            AND "chainId" = chain_id
+            AND "chainwebVersion" = chainweb_version
+            AND hash != parent_block.hash;
+        
+          RETURN TRUE;
+      ELSE
+          -- Recursive case: Check the parent
+          IF current_depth > 0 THEN
+              RETURN check_canonical(parent_block.hash, target_height, chain_id, chainweb_version, current_depth - 1);
+          ELSE
+              RETURN FALSE;
+          END IF;
+      END IF;
+  END;
+  $function$
+  ;`);
+
+        console.log("Sync public.check_backward_orphans()...");
+
+        // Create the check backward orphans function
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION public.check_backward_orphans()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    recent_blocks RECORD;
+    previous_block RECORD;
+    first_block RECORD;
+    block_count INT := 0;
+    depth CONSTANT INT := 10; -- Default the depth constant
+    buffer CONSTANT INT := 5; -- Number of heights to buffer, because some blocks can arrive out of order
+BEGIN
+    -- Check the last 'depth' blocks
+    FOR recent_blocks IN 
+        SELECT * FROM public."Blocks"
+        WHERE height >= ((NEW.height - buffer) - depth) AND height < (NEW.height - buffer)
+	        AND "chainId" = NEW."chainId"
+        	AND "chainwebVersion" = NEW."chainwebVersion"
+            AND (canonical IS NULL OR canonical = TRUE)
+        ORDER BY height DESC
+		FOR UPDATE
+    LOOP
+        -- Set the first block
+        IF block_count = 0 THEN
+            first_block := recent_blocks;
+        END IF;
+	    
+        IF previous_block IS NULL THEN
+	    ELSE
+	    -- Check for non-duplicated block
+		    IF previous_block.height = recent_blocks.height
+		    	AND (recent_blocks.canonical = FALSE OR recent_blocks.canonical IS NULL) THEN
+	            PERFORM check_canonical(first_block.hash, recent_blocks.height, recent_blocks."chainId", recent_blocks."chainwebVersion", depth);
+            ELSE
+                UPDATE public."Blocks"
+                SET canonical = TRUE
+                WHERE hash = recent_blocks.hash
+                AND "chainId" = NEW."chainId" 
+                AND "chainwebVersion" = NEW."chainwebVersion";
+	        END IF;
+	    END IF;
+	   
+	    -- Check for gaps
+        IF recent_blocks.height <> (NEW.height - buffer) - block_count - 1 THEN
+            -- If there are gaps, do not change canonical status
+            RETURN NEW;
+        END IF;
+
+        previous_block := recent_blocks;
+        block_count := block_count + 1;
+    END LOOP;
+
+    IF previous_block IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    RETURN NEW;
+END;
+$function$
+;`);
+
+        console.log("Sync public.check_upward_orphans()...");
+
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION public.check_upward_orphans()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+    recent_blocks RECORD;
+    previous_block RECORD;
+    first_block RECORD;
+    block_count INT := 0;
+    depth CONSTANT INT := 10; -- Default the depth constant
+    buffer CONSTANT INT := 5; -- Number of heights to buffer, because some blocks can arrive out of order
+    no_duplicates BOOLEAN := TRUE;
+    total_rows INT := 0;
+BEGIN
+    -- Calculate the total number of rows in the range
+    SELECT count(*) INTO total_rows FROM public."Blocks"
+    WHERE height >= NEW.height AND height < ((NEW.height + buffer) + depth)
+        AND "chainId" = NEW."chainId"
+        AND "chainwebVersion" = NEW."chainwebVersion";
+
+    -- No sufficient blocks to validate
+    IF total_rows < (buffer + depth) THEN
+        RETURN NEW;
+    END IF;
+
+    -- Check the last 'depth' blocks
+    FOR recent_blocks IN 
+        SELECT * FROM public."Blocks"
+        WHERE height >= NEW.height AND height <((NEW.height + buffer) + depth)
+            AND "chainId" = NEW."chainId"
+            AND "chainwebVersion" = NEW."chainwebVersion"
+        ORDER BY height DESC
+    LOOP
+        -- Set the first block
+        IF block_count = 0 THEN
+            first_block := recent_blocks;
+        END IF;
+
+        IF previous_block IS NOT NULL THEN
+            -- Check for non-duplicated block
+            IF previous_block.height = recent_blocks.height 
+                AND previous_block.canonical = FALSE
+                AND recent_blocks.canonical = FALSE THEN
+                -- duplicated block
+                PERFORM check_canonical(first_block.hash, recent_blocks.height, recent_blocks."chainId", recent_blocks."chainwebVersion", depth);
+                no_duplicates := FALSE;
+            END IF;
+        END IF;
+
+        -- Check for gaps
+        IF recent_blocks.height <> (NEW.height + buffer) - block_count - 1 THEN
+            -- If there are gaps, do not change canonical status
+            RETURN NEW;
+        END IF;
+
+        previous_block := recent_blocks;
+        block_count := block_count + 1;
+    END LOOP;
+   
+    -- If there are no gaps and no duplicates, update the last block to canonical
+    IF no_duplicates THEN
+        UPDATE public."Blocks"
+        SET canonical = TRUE
+        WHERE hash = NEW.hash
+        AND "chainId" = NEW."chainId" 
+        AND "chainwebVersion" = NEW."chainwebVersion";
+    END IF;
+
+    RETURN NEW;
+END;
+$function$
+;`);
+
+        console.log("Sync blocks_propagate_canonical_function()...");
+
+        // Propagate canonical trigger to transactions
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION blocks_propagate_canonical_function()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE public."Transactions"
+    SET canonical = NEW.canonical
+    WHERE "blockId" = NEW.id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;`);
+
+        console.log("Sync blocks_propagate_canonical...");
+
+        await sequelize.query(`
+CREATE OR REPLACE TRIGGER blocks_propagate_canonical
+AFTER UPDATE ON public."Blocks"
+FOR EACH ROW
+EXECUTE FUNCTION blocks_propagate_canonical_function();`);
+
+        console.log("Sync transactions_propagate_canonical_function...");
+
+        // Propagate canonical trigger to transfers
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION transactions_propagate_canonical_function()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE public."Transfers"
+    SET canonical = NEW.canonical
+    WHERE "transactionId" = NEW.id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;`);
+
+        console.log("Sync transactions_propagate_canonical...");
+
+        await sequelize.query(`
+CREATE OR REPLACE TRIGGER transactions_propagate_canonical
+AFTER UPDATE ON public."Transactions"
+FOR EACH ROW
+EXECUTE FUNCTION transactions_propagate_canonical_function();`);
+
+        console.log("Sync check_orphan_blocks_backward...");
+
+        // Create orphan blocks trigger
+        await sequelize.query(`
+CREATE OR REPLACE TRIGGER check_orphan_blocks_backward
+AFTER INSERT ON public."Blocks" 
+FOR EACH ROW
+EXECUTE FUNCTION check_backward_orphans();`);
+
+        console.log("Sync check_orphan_blocks_upward...");
+
+        await sequelize.query(`
+CREATE OR REPLACE TRIGGER check_orphan_blocks_upward
+AFTER INSERT ON public."Blocks" 
+FOR EACH ROW
+EXECUTE FUNCTION check_upward_orphans();`);
+
+        console.log("Sync public.update_transactions_count()...");
+
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION public.update_transactions_count()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    UPDATE public."Balances"
+    SET "transactionsCount" = COALESCE("transactionsCount", 0) + 1
+    WHERE account = NEW.sender
+      AND "chainId" = NEW."chainId";
+   
+    RETURN NEW;
+END;
+$function$
+;`);
+
+        console.log("Sync trigger_update_transactions_count...");
+
+        await sequelize.query(`
+CREATE OR REPLACE TRIGGER trigger_update_transactions_count after
+insert
+    on
+    public."Transactions" for each row execute function update_transactions_count()
+;`);
+
+        // Update fungibles count
+
+        console.log("Sync public.update_fungibles_count()...");
+
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION public.update_fungibles_count()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    
+	UPDATE public."Balances" b
+	SET "fungiblesCount" = (
+	    SELECT COUNT(DISTINCT qualname)
+	    FROM public."Balances"
+	    WHERE account = b.account AND "tokenId" IS NULL
+	);
+    
+    RETURN NEW;
+END;
+$function$
+;`);
+
+        console.log("Sync trigger_update_fungibles_count...");
+
+        await sequelize.query(`
+create or replace trigger trigger_update_fungibles_count after
+insert
+    on
+    public."Balances" for each row execute function update_fungibles_count()
+;`);
+
+        // Update polyfungibles count
+
+        console.log("Sync public.update_polyfungibles_count()...");
+
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION public.update_polyfungibles_count()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    
+	UPDATE public."Balances" b
+	SET "polyfungiblesCount" = (
+	    SELECT COUNT(DISTINCT qualname)
+	    FROM public."Balances"
+	    WHERE account = b.account AND "tokenId" IS not NULL
+	);
+    
+    RETURN NEW;
+END;
+$function$
+;
+`);
+
+        console.log("Sync trigger_update_polyfungibles_count...");
+
+        await sequelize.query(`
+create or replace trigger trigger_update_polyfungibles_count after
+insert
+    on
+    public."Balances" for each row execute function update_polyfungibles_count()
+;`);
+
+        console.log("Sync public.get_holders_by_module...");
+
+        await sequelize.query(`
+CREATE OR REPLACE FUNCTION public.get_holders_by_module(
+    module_name VARCHAR(255),
+    before VARCHAR(255) DEFAULT NULL,
+    after VARCHAR(255) DEFAULT NULL,
+    first INT DEFAULT NULL,
+    last INT DEFAULT NULL
+)
+RETURNS TABLE (
+    row_id BIGINT,
+    address VARCHAR(255),
+    quantity NUMERIC,
+    percentage NUMERIC,
+    total_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    WITH ranked_balances AS (
+        SELECT 
+            ROW_NUMBER() OVER (ORDER BY SUM(balance) DESC) AS rn,
+            COUNT(*) OVER () AS total_count,  -- Calculate total count of all matching rows
+            b.account AS address,
+            SUM(b.balance) AS quantity,
+            SUM(b.balance) * 100.0 / (SELECT SUM(balance) FROM public."Balances" WHERE "module" = module_name AND balance > 0) AS percentage
+        FROM 
+            public."Balances" b
+        WHERE 
+            b."module" = module_name AND b.balance > 0
+        GROUP BY 
+            b.account
+        ORDER BY
+            percentage DESC
+    )
+    SELECT 
+        ranked_balances.rn AS row_id,
+        ranked_balances.address,
+        ranked_balances.quantity,
+        ranked_balances.percentage,
+        ranked_balances.total_count
+    FROM 
+        ranked_balances
+    WHERE
+        (after IS NULL OR ranked_balances.rn > CAST(CONVERT_FROM(DECODE(after, 'base64'), 'UTF8') AS BIGINT))
+        AND (before IS NULL OR ranked_balances.rn < CAST(CONVERT_FROM(DECODE(before, 'base64'), 'UTF8') AS BIGINT))
+    ORDER BY
+        ranked_balances.rn ASC
+    OFFSET 
+        COALESCE(
+            CASE 
+                WHEN last IS NOT NULL THEN 
+                    (SELECT GREATEST(COUNT(*) - last, 0) FROM ranked_balances)
+                ELSE 
+                    0 
+            END, 
+            0
+        )
+    FETCH FIRST COALESCE(first, last) ROWS ONLY;
+END;
+$$ LANGUAGE plpgsql;`);
+
+        console.log("Trigger function and trigger have been created successfully.");
+    } catch (error) {
+        console.error("Unable to create tables:", error);
+        throw error;
+    }
 }
 
 export async function closeDatabase(): Promise<void> {
-  try {
-    await sequelize.close();
-    console.log("Connection has been closed successfully.");
-  } catch (error) {
-    console.error("Unable to close the connection:", error);
-    throw error;
-  }
+    try {
+        await sequelize.close();
+        console.log("Connection has been closed successfully.");
+    } catch (error) {
+        console.error("Unable to close the connection:", error);
+        throw error;
+    }
 }

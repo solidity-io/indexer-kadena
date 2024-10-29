@@ -10,7 +10,7 @@ import { initializeDatabase } from "./config/database";
 import { getRequiredEnvString } from "./utils/helpers";
 import { startStreaming } from "./services/sync/streaming";
 import { processS3HeadersDaemon } from "./services/sync/header";
-import { usePostgraphile } from "./server/metrics";
+import { usePostgraphile, useKadenaExtension } from "./server/metrics";
 
 program
   .option("-s, --streaming", "Start streaming blockchain data")
@@ -38,8 +38,11 @@ async function main() {
   try {
     console.log("Loading environment variables...");
     dotenv.config();
-    console.log("Initializing database...");
-    await initializeDatabase();
+
+    if (process.env.RUN_GRAPHQL_ON_START !== "true") {
+      console.log("Initializing database...");
+      await initializeDatabase();
+    }
 
     if (options.streaming) {
       await startStreaming(SYNC_NETWORK);
@@ -53,6 +56,7 @@ async function main() {
       await processS3HeadersDaemon(SYNC_NETWORK);
     } else if (options.graphql) {
       await usePostgraphile();
+      await useKadenaExtension();
     } else if (options.run) {
       if (process.env.RUN_GRAPHQL_ON_START === "true") {
         await usePostgraphile();
@@ -60,6 +64,9 @@ async function main() {
       if (process.env.RUN_STREAMING_ON_START === "true") {
         startStreaming(SYNC_NETWORK);
         processS3HeadersDaemon(SYNC_NETWORK);
+      }
+      if (process.env.RUN_MISSING_BLOCKS_ON_START === "true") {
+        await startMissingBlocksDaemon(SYNC_NETWORK);
       }
     } else {
       console.log("No specific task requested.");

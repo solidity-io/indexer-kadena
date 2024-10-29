@@ -11,14 +11,14 @@ export async function syncContract(network: string, chainId: number, modulename:
   );
   let contractId;
   if (manifestData) {
-    contractId = await saveContract(network, chainId, modulename, contractId, "poly-fungible", tokenId, manifestData);
+    contractId = await saveContract(network, chainId, modulename, "poly-fungible", tokenId, manifestData);
   } else {
     console.log("No manifest URI found for token ID:", tokenId);
   }
   return contractId;
 }
 
-export async function saveContract(network: string, chainId: number, modulename: any, contractId: any, type: string, tokenId?: any, manifestData?: any, precision?: number) {
+export async function saveContract(network: string, chainId: number, modulename: any, type: string, tokenId?: any, manifestData?: any, precision?: number) {
   const contractData = {
     network: network,
     chainId: chainId,
@@ -28,7 +28,7 @@ export async function saveContract(network: string, chainId: number, modulename:
     tokenId: tokenId,
     precision: precision,
   } as ContractAttributes;
-
+  let contractId;
   const existingContract = await Contract.findOne({
     where: {
       network: contractData.network,
@@ -46,3 +46,15 @@ export async function saveContract(network: string, chainId: number, modulename:
   }
   return contractId;
 }
+
+export async function getContract(network: string, chainId: number, modulename: any) {
+  const contract = await Contract.findOne({
+    where: {
+      network: network,
+      chainId: chainId,
+      module: modulename,
+    },
+  });
+  return contract;
+}
+

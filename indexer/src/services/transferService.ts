@@ -1,4 +1,4 @@
-import { Transaction, BulkCreateOptions } from "sequelize";
+import { Transaction } from "sequelize";
 import Transfer, { TransferAttributes } from "../models/transfer";
 
 export class TransferService {

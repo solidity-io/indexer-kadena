@@ -39,7 +39,6 @@ export async function fetchCut(network: string): Promise<any> {
  */
 export async function fetchPayloads(network: string, chainId: number, payloadHashes: string[]) {
   const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
-  console.log("Fetching payloads from:", endpoint);
   const response = (await axios.post(endpoint, payloadHashes, {
     headers: {
       "Content-Type": "application/json",
@@ -60,7 +59,6 @@ export async function fetchPayloads(network: string, chainId: number, payloadHas
  */
 export async function fetchHeaders(network: string, chainId: number, minHeight: number, maxHeight: number) {
   const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/header?minheight=${minHeight}&maxheight=${maxHeight}`;
-  console.log("Fetching headers from:", endpoint);
   const response = await axios.get(endpoint, {
     headers: { Accept: "application/json;blockheader-encoding=object" },
   });

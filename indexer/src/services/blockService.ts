@@ -7,10 +7,11 @@ export class BlockService {
    * If the block already exists (based on primary key or unique constraints), it updates the existing block.
    * Otherwise, it creates a new block entry.
    *
-   * @param blockData The block data to save or update.
-   * @param transaction An optional transaction to use for this operation.
-   * @returns A Promise containing the block data as saved in the database
+   * @param {BlockAttributes} blockData - The block data to save or update.
+   * @param {Transaction} [transaction] - An optional transaction to use for this operation.
+   * @returns {Promise<[BlockAttributes, boolean]>} A Promise containing the block data as saved in the database
    * and a boolean indicating whether a new block was created (true) or an existing block was updated (false).
+   * @throws {Error} If there is an error saving the block to the database.
    */
   async save(
     blockData: BlockAttributes,
@@ -36,9 +37,10 @@ export class BlockService {
   /**
    * Finds a block by its height and chain ID.
    *
-   * @param height The height of the block to find.
-   * @param chainId The chain ID of the block to find.
-   * @returns A Promise resolving to the block data if found, otherwise null.
+   * @param {number} height - The height of the block to find.
+   * @param {number} chainId - The chain ID of the block to find.
+   * @returns {Promise<BlockAttributes | null>} A Promise resolving to the block data if found, otherwise null.
+   * @throws {Error} If there is an error finding the block.
    */
   async findByHeightAndChainId(
     height: number,
@@ -56,8 +58,9 @@ export class BlockService {
   /**
    * Lists all blocks associated with a given chain ID.
    *
-   * @param chainId The chain ID of the blocks to list.
-   * @returns A Promise resolving to an array of block data.
+   * @param {number} chainId - The chain ID of the blocks to list.
+   * @returns {Promise<BlockAttributes[]>} A Promise resolving to an array of block data.
+   * @throws {Error} If there is an error listing the blocks.
    */
   async listByChainId(chainId: number): Promise<BlockAttributes[]> {
     try {
@@ -69,6 +72,12 @@ export class BlockService {
     }
   }
 
+  /**
+   * Finds a block by its payload hash.
+   *
+   * @param {string} payloadHash - The payload hash of the block to find.
+   * @returns {Promise<BlockAttributes | null>} A Promise resolving to the block data if found, otherwise null.
+   */
   async findBlockByPayloadHash(
     payloadHash: string
   ): Promise<BlockAttributes | null> {

@@ -1,17 +1,19 @@
 import { TransactionAttributes } from "../../models/transaction";
 import { TransferAttributes } from "../../models/transfer";
 import { getPrecision, } from "../../utils/pact";
-import { saveContract, syncContract } from "./contract";
+import { getContract, saveContract, syncContract } from "./contract";
 
 /**
  * Filters and processes NFT transfer events from a payload's event data. It identifies NFT transfer events based on
  * predefined criteria (e.g., event name and parameter structure), and constructs transfer attribute objects for each.
  *
- * @param eventsData The array of event data from a transaction payload.
- * @param payloadHash The hash of the payload containing these events.
- * @param transactionAttributes Transaction attributes associated with the events.
- * @param receiptInfo Receipt information associated with the events.
- * @returns An array of transfer attributes specifically for NFT transfers.
+ * @param {string} network - The identifier of the network (e.g., 'mainnet').
+ * @param {number} chainId - The ID of the blockchain chain.
+ * @param {Array} eventsData - The array of event data from a transaction payload.
+ * @param {string | undefined} payloadHash - The hash of the payload containing these events.
+ * @param {TransactionAttributes} transactionAttributes - Transaction attributes associated with the events.
+ * @param {any} receiptInfo - Receipt information associated with the events.
+ * @returns {Promise<TransferAttributes[]>} A Promise that resolves to an array of transfer attributes specifically for NFT transfers.
  */
 export function getNftTransfers(
   network: string,
@@ -72,11 +74,12 @@ export function getNftTransfers(
  * Filters and processes coin transfer events from a payload's event data. Similar to `getNftTransfers`, but focuses on
  * coin-based transactions. It identifies events that represent coin transfers and constructs transfer attribute objects.
  *
- * @param eventsData The array of event data from a transaction payload.
- * @param payloadHash The hash of the payload containing these events.
- * @param transactionAttributes Transaction attributes associated with the events.
- * @param receiptInfo Receipt information associated with the events.
- * @returns An array of transfer attributes specifically for coin transfers.
+ * @param {string} network - The identifier of the network (e.g., 'mainnet').
+ * @param {Array} eventsData - The array of event data from a transaction payload.
+ * @param {string} payloadHash - The hash of the payload containing these events.
+ * @param {TransactionAttributes} transactionAttributes - Transaction attributes associated with the events.
+ * @param {any} receiptInfo - Receipt information associated with the events.
+ * @returns {Promise<TransferAttributes[]>} A Promise that resolves to an array of transfer attributes specifically for coin transfers.
  */
 export function getCoinTransfers(
   network: string,
@@ -103,17 +106,22 @@ export function getCoinTransfers(
         : eventData.module.name;
       const chainId = transactionAttributes.chainId;
 
-      const precisionData = await getPrecision(
-        network,
-        chainId,
-        modulename
-      );
-
       let contractId;
-      if (precisionData) {
-        contractId = await saveContract(network, chainId, modulename, contractId, "fungible", null, null, precisionData);
-      } else {
-        console.log("No precision found for module:", modulename);
+      let contract = await getContract(network, chainId, modulename);
+
+      if (contract) {
+        contractId = contract.id;
+      }
+      else {
+        console.log("Getting precision for module from Pact:", modulename, chainId);
+        const precisionData = await getPrecision(
+          network,
+          chainId,
+          modulename
+        );
+        if (precisionData) {
+          contractId = await saveContract(network, chainId, modulename, "fungible", null, null, precisionData);
+        }
       }
 
       const params = eventData.params;
@@ -135,7 +143,7 @@ export function getCoinTransfers(
         hasTokenId: false,
         tokenId: undefined,
         type: "fungible",
-        contractId: undefined,
+        contractId: contractId,
       } as TransferAttributes;
     }) as TransferAttributes[];
   return Promise.all(transferPromises);

@@ -106,10 +106,6 @@ export class SyncStatusService {
         return existingBlock.toJSON() as SyncStatusAttributes;
       } else {
         const block = await SyncStatus.create(parsedData);
-        console.log(
-          "Sync status saved in database:",
-          block.toHeight || block.key
-        );
         return block.toJSON() as SyncStatusAttributes;
       }
     } catch (error) {
@@ -251,8 +247,9 @@ export class SyncStatusService {
  */
   async getNextMissingBlock(
     network: string,
-    chainId: number
-  ): Promise<MissingBlocksAttributes | null> {
+    chainId: number,
+    limit: number = 1
+  ): Promise<MissingBlocksAttributes[] | null> {
     try {
       const query = `
         SELECT 
@@ -264,15 +261,15 @@ export class SyncStatusService {
         FROM missing_block_ranges
         WHERE "chainId" = :chainId AND "chainwebVersion" = :network
         ORDER BY from_height DESC
-        LIMIT 1;
+        LIMIT :limit
       `;
 
       const records = await sequelize.query<MissingBlocksAttributes>(query, {
-        replacements: { chainId, network },
+        replacements: { chainId, network, limit },
         type: QueryTypes.SELECT,
       });
 
-      return records.length > 0 ? records[0] : null;
+      return records.length > 0 ? records : null;
     } catch (error) {
       console.error("Error getting the next missing block:", error);
       throw error;

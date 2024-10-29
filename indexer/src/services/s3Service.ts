@@ -45,7 +45,7 @@ export async function saveHeader(
   height: number,
   data: any
 ): Promise<boolean> {
-  const objectKey = `${network}/chains/${chainId}/headers/${height}.json`;
+  const objectKey = `${network}/chains/${chainId}/headers/${height}-${data.header.hash}.json`;
   const jsonData = JSON.stringify(data);
   const params = {
     Bucket: AWS_S3_BUCKET_NAME,
@@ -69,46 +69,6 @@ export async function saveHeader(
   } catch (error) {
     console.error("Error saving header to S3:", error);
     return false;
-  }
-}
-
-/**
- * Saves payload data to an S3 bucket
- *
- * @param network The network identifier.
- * @param chainId The chain ID associated with the payload.
- * @param payloadHash The hash of the payload.
- * @param data The payload data.
- */
-export async function savePayload(
-  network: string,
-  chainId: number,
-  payloadHash: string,
-  data: any
-) {
-  const timestamp = new Date().getTime();
-  const objectKey = `${network}/chains/${chainId}/payloads/${timestamp}-${payloadHash}.json`;
-  const jsonData = JSON.stringify(data);
-
-  try {
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: AWS_S3_BUCKET_NAME,
-        Key: objectKey,
-        Body: jsonData,
-      })
-    );
-    metrics.dataVolume.set(
-      {
-        network,
-        chainId: chainId.toString(),
-        payloadHash,
-        type: "payload",
-      },
-      calculateDataSize(jsonData)
-    );
-  } catch (error) {
-    console.error("Error saving payload to S3:", error);
   }
 }
 
@@ -143,7 +103,6 @@ export async function listS3Objects(
 
     const { Contents } = await s3Client.send(command);
     if (!Contents) {
-      // console.log(`Objects not found for prefix: ${prefix}`);
       return [];
     } else {
       console.log(`Objects found for prefix: ${prefix}:`, Contents.length);
