@@ -1,57 +1,103 @@
-const fs = require("fs");
+import fs from "fs";
 
-import { Sequelize, Transaction } from "sequelize";
+import { Sequelize, QueryTypes, Transaction } from "sequelize";
+
+import { getRequiredEnvString } from "../utils/helpers";
+import { Pool } from "pg";
+
+const DB_USERNAME = getRequiredEnvString("DB_USERNAME");
+const DB_PASSWORD = getRequiredEnvString("DB_PASSWORD");
+const DB_NAME = getRequiredEnvString("DB_NAME");
+const DB_HOST = getRequiredEnvString("DB_HOST");
+const DB_SSL_ENABLED = getRequiredEnvString("DB_SSL_ENABLED");
+const DB_CONNECTION = `postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}`;
+
+const isSslEnabled = DB_SSL_ENABLED === "true";
+
+export const rootPgPool = new Pool({
+  connectionString: DB_CONNECTION,
+  ...(isSslEnabled && {
+    ssl: {
+      rejectUnauthorized: true,
+      ca: fs.readFileSync(__dirname + "/global-bundle.pem").toString(),
+    },
+  }),
+});
 
 export const sequelize = new Sequelize(
-    process.env.DB_NAME as string,
-    process.env.DB_USERNAME as string,
-    process.env.DB_PASSWORD as string,
-    {
-        host: process.env.DB_HOST || "localhost",
-        dialect: "postgres",
-        pool: {
-            max: 20,
-            min: 1,
-            acquire: 60000,
-            idle: 10000,
+  process.env.DB_NAME as string,
+  process.env.DB_USERNAME as string,
+  process.env.DB_PASSWORD as string,
+  {
+    host: process.env.DB_HOST || "localhost",
+    dialect: "postgres",
+    pool: {
+      max: 20,
+      min: 1,
+      acquire: 60000,
+      idle: 10000,
+    },
+    retry: {
+      max: 10,
+    },
+    logging: false,
+    ...(isSslEnabled && {
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: true,
+          ca: fs.readFileSync(__dirname + "/global-bundle.pem").toString(),
         },
-        retry: {
-            max: 10,
-        },
-        logging: false,
-        dialectOptions: {
-            ssl: {
-                require: true,
-                rejectUnauthorized: true,
-                ca: fs.readFileSync(__dirname + "/global-bundle.pem").toString(),
-            },
-        },
-        isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED,
-    }
+      },
+    }),
+    isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED,
+  },
 );
 
-export async function initializeDatabase(): Promise<void> {
-    try {
-        await sequelize.authenticate();
-        console.log("Connection has been established successfully.");
-    } catch (error) {
-        console.error("Unable to connect to the database:", error);
-        throw error;
-    }
+export async function initializeDatabase(noTrigger = true): Promise<void> {
+  try {
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    throw error;
+  }
 
-    try {
-        await sequelize.sync({ force: false });
+  const [row] = await sequelize.query<{ exists: boolean }>(
+    `
+    SELECT EXISTS (
+      SELECT 1 FROM pg_catalog.pg_class c
+      JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+      WHERE c.relname = 'SequelizeMeta' AND n.nspname = 'public'
+    )
+  `,
+    { type: QueryTypes.SELECT },
+  );
 
-        console.log("Tables have been synchronized successfully.");
+  if (row?.exists) {
+    console.log("Creation skipped.");
+    return;
+  }
 
-        // --------------------------------
-        // Balances
-        // --------------------------------
+  try {
+    await sequelize.query(`
+        CREATE EXTENSION pg_trgm;
+        CREATE EXTENSION btree_gin;
+    `);
+    await sequelize.sync({ force: false });
 
-        console.log("Sync update_balances()...")
+    console.log("Tables have been synchronized successfully.");
 
-        // Create the update_balances function
-        await sequelize.query(`
+    if (noTrigger) return;
+
+    // --------------------------------
+    // Balances
+    // --------------------------------
+
+    console.log("Sync update_balances()...");
+
+    // Create the update_balances function
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION update_balances() RETURNS TRIGGER AS $$
   DECLARE
       sender_balance numeric;
@@ -144,20 +190,20 @@ CREATE OR REPLACE FUNCTION update_balances() RETURNS TRIGGER AS $$
   $$ LANGUAGE plpgsql;
 `);
 
-        console.log("Sync update_balances_trigger()...")
+    console.log("Sync update_balances_trigger()...");
 
-        // Create the trigger
-        await sequelize.query(`
+    // Create the trigger
+    await sequelize.query(`
 CREATE OR REPLACE TRIGGER update_balances_trigger
 AFTER UPDATE ON public."Transfers"
 FOR EACH ROW
 EXECUTE FUNCTION update_balances();
 `);
 
-        console.log("Sync public.\"Balances\"...");
+    console.log('Sync public."Balances"...');
 
-        // Create the balances table
-        await sequelize.query(`
+    // Create the balances table
+    await sequelize.query(`
   CREATE TABLE IF NOT EXISTS public."Balances" (
     id serial4 NOT NULL,
     account varchar(255) NOT NULL,
@@ -188,14 +234,14 @@ EXECUTE FUNCTION update_balances();
   END $$;
 `);
 
-        // --------------------------------
-        // Missing blocks
-        // --------------------------------
+    // --------------------------------
+    // Missing blocks
+    // --------------------------------
 
-        console.log("Sync missing_block_ranges...");
+    console.log("Sync missing_block_ranges...");
 
-        // Create missing blocks view
-        await sequelize.query(`
+    // Create missing blocks view
+    await sequelize.query(`
 CREATE OR REPLACE VIEW missing_block_ranges AS
 WITH missing_ranges AS (
   SELECT DISTINCT 
@@ -224,14 +270,14 @@ where (missing_end - missing_start) >= 0
 ORDER BY "chainId", "chainwebVersion", missing_start ASC;
 `);
 
-        // --------------------------------
-        // Orphan blocks
-        // --------------------------------
+    // --------------------------------
+    // Orphan blocks
+    // --------------------------------
 
-        console.log("Sync public.check_canonical()...");
+    console.log("Sync public.check_canonical()...");
 
-        // Create the check canonical function
-        await sequelize.query(`
+    // Create the check canonical function
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION public.check_canonical(new_hash character varying, target_height integer, chain_id integer, chainweb_version character varying, current_depth integer)
  RETURNS boolean
  LANGUAGE plpgsql
@@ -274,10 +320,10 @@ AS $function$
   $function$
   ;`);
 
-        console.log("Sync public.check_backward_orphans()...");
+    console.log("Sync public.check_backward_orphans()...");
 
-        // Create the check backward orphans function
-        await sequelize.query(`
+    // Create the check backward orphans function
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION public.check_backward_orphans()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -339,9 +385,9 @@ END;
 $function$
 ;`);
 
-        console.log("Sync public.check_upward_orphans()...");
+    console.log("Sync public.check_upward_orphans()...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION public.check_upward_orphans()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -415,10 +461,10 @@ END;
 $function$
 ;`);
 
-        console.log("Sync blocks_propagate_canonical_function()...");
+    console.log("Sync blocks_propagate_canonical_function()...");
 
-        // Propagate canonical trigger to transactions
-        await sequelize.query(`
+    // Propagate canonical trigger to transactions
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION blocks_propagate_canonical_function()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -429,18 +475,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;`);
 
-        console.log("Sync blocks_propagate_canonical...");
+    console.log("Sync blocks_propagate_canonical...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE TRIGGER blocks_propagate_canonical
 AFTER UPDATE ON public."Blocks"
 FOR EACH ROW
 EXECUTE FUNCTION blocks_propagate_canonical_function();`);
 
-        console.log("Sync transactions_propagate_canonical_function...");
+    console.log("Sync transactions_propagate_canonical_function...");
 
-        // Propagate canonical trigger to transfers
-        await sequelize.query(`
+    // Propagate canonical trigger to transfers
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION transactions_propagate_canonical_function()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -451,34 +497,34 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;`);
 
-        console.log("Sync transactions_propagate_canonical...");
+    console.log("Sync transactions_propagate_canonical...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE TRIGGER transactions_propagate_canonical
 AFTER UPDATE ON public."Transactions"
 FOR EACH ROW
 EXECUTE FUNCTION transactions_propagate_canonical_function();`);
 
-        console.log("Sync check_orphan_blocks_backward...");
+    console.log("Sync check_orphan_blocks_backward...");
 
-        // Create orphan blocks trigger
-        await sequelize.query(`
-CREATE OR REPLACE TRIGGER check_orphan_blocks_backward
-AFTER INSERT ON public."Blocks" 
-FOR EACH ROW
-EXECUTE FUNCTION check_backward_orphans();`);
+    // Create orphan blocks trigger
+    await sequelize.query(`
+    CREATE OR REPLACE TRIGGER check_orphan_blocks_backward
+    AFTER INSERT ON public."Blocks"
+    FOR EACH ROW
+    EXECUTE FUNCTION check_backward_orphans();`);
 
-        console.log("Sync check_orphan_blocks_upward...");
+    console.log("Sync check_orphan_blocks_upward...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE TRIGGER check_orphan_blocks_upward
 AFTER INSERT ON public."Blocks" 
 FOR EACH ROW
 EXECUTE FUNCTION check_upward_orphans();`);
 
-        console.log("Sync public.update_transactions_count()...");
+    console.log("Sync public.update_transactions_count()...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION public.update_transactions_count()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -494,20 +540,20 @@ END;
 $function$
 ;`);
 
-        console.log("Sync trigger_update_transactions_count...");
+    console.log("Sync trigger_update_transactions_count...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE TRIGGER trigger_update_transactions_count after
 insert
     on
     public."Transactions" for each row execute function update_transactions_count()
 ;`);
 
-        // Update fungibles count
+    // Update fungibles count
 
-        console.log("Sync public.update_fungibles_count()...");
+    console.log("Sync public.update_fungibles_count()...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION public.update_fungibles_count()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -526,20 +572,20 @@ END;
 $function$
 ;`);
 
-        console.log("Sync trigger_update_fungibles_count...");
+    console.log("Sync trigger_update_fungibles_count...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 create or replace trigger trigger_update_fungibles_count after
 insert
     on
     public."Balances" for each row execute function update_fungibles_count()
 ;`);
 
-        // Update polyfungibles count
+    // Update polyfungibles count
 
-        console.log("Sync public.update_polyfungibles_count()...");
+    console.log("Sync public.update_polyfungibles_count()...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION public.update_polyfungibles_count()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -559,18 +605,18 @@ $function$
 ;
 `);
 
-        console.log("Sync trigger_update_polyfungibles_count...");
+    console.log("Sync trigger_update_polyfungibles_count...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 create or replace trigger trigger_update_polyfungibles_count after
 insert
     on
     public."Balances" for each row execute function update_polyfungibles_count()
 ;`);
 
-        console.log("Sync public.get_holders_by_module...");
+    console.log("Sync public.get_holders_by_module...");
 
-        await sequelize.query(`
+    await sequelize.query(`
 CREATE OR REPLACE FUNCTION public.get_holders_by_module(
     module_name VARCHAR(255),
     before VARCHAR(255) DEFAULT NULL,
@@ -630,19 +676,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;`);
 
-        console.log("Trigger function and trigger have been created successfully.");
-    } catch (error) {
-        console.error("Unable to create tables:", error);
-        throw error;
-    }
+    console.log("Trigger function and trigger have been created successfully.");
+  } catch (error) {
+    console.error("Unable to create tables:", error);
+    throw error;
+  }
 }
 
 export async function closeDatabase(): Promise<void> {
-    try {
-        await sequelize.close();
-        console.log("Connection has been closed successfully.");
-    } catch (error) {
-        console.error("Unable to close the connection:", error);
-        throw error;
-    }
+  try {
+    await sequelize.close();
+    console.log("Connection has been closed successfully.");
+  } catch (error) {
+    console.error("Unable to close the connection:", error);
+    throw error;
+  }
 }

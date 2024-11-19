@@ -1,3 +1,7 @@
+import { getRequiredEnvString } from "./helpers";
+
+const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
+
 /**
  * Fetches the precision value of a module from the blockchain.
  *
@@ -12,7 +16,7 @@
 export async function getPrecision(
   network: string,
   chainId: number,
-  module: string
+  module: string,
 ): Promise<number | undefined> {
   const now = new Date();
 
@@ -26,7 +30,7 @@ export async function getPrecision(
   const { jsonResponse } = await callLocal(
     network,
     chainId,
-    createBody(hashFromResponse)
+    createBody(hashFromResponse),
   );
 
   const precision = jsonResponse?.result.data;
@@ -54,7 +58,7 @@ export async function getManifest(
   network: string,
   chainId: number,
   module: string,
-  tokenId: string
+  tokenId: string,
 ): Promise<any> {
   const now = new Date();
 
@@ -68,7 +72,7 @@ export async function getManifest(
   const { jsonResponse } = await callLocal(
     network,
     chainId,
-    createBody(hashFromResponse)
+    createBody(hashFromResponse),
   );
 
   const manifest = jsonResponse?.result.data;
@@ -89,20 +93,20 @@ export async function getManifest(
  * @param {string} network - The network identifier (e.g., 'mainnet').
  * @param {number} chainId - The ID of the blockchain chain.
  * @param {string} body - The request body to be sent in the POST request.
- * @returns {Promise<{ textResponse: string | undefined; jsonResponse: { result: { data: any } } | undefined; response: Response; }>} 
+ * @returns {Promise<{ textResponse: string | undefined; jsonResponse: { result: { data: any } } | undefined; response: Response; }>}
  * A Promise that resolves to an object containing the text response, JSON response, and the original response object.
  */
 export async function callLocal(
   network: string,
   chainId: number,
-  body: string
+  body: string,
 ): Promise<{
   textResponse: string | undefined;
   jsonResponse: { result: { data: any } } | undefined;
   response: Response;
 }> {
   const response = await fetch(
-    `https://api.chainweb.com/chainweb/0.0/${network}/chain/${chainId}/pact/api/v1/local?signatureVerification=false`,
+    `${SYNC_BASE_URL}/${network}/chain/${chainId}/pact/api/v1/local?signatureVerification=false`,
     {
       headers: {
         accept: "application/json;charset=utf-8, application/json",
@@ -112,7 +116,7 @@ export async function callLocal(
       },
       body,
       method: "POST",
-    }
+    },
   );
 
   let jsonResponse;

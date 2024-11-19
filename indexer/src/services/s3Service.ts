@@ -13,6 +13,7 @@ const AWS_S3_BUCKET_NAME = getRequiredEnvString("AWS_S3_BUCKET_NAME");
 const REGION = getRequiredEnvString("AWS_S3_REGION");
 const ACCESS_KEY_ID = getRequiredEnvString("AWS_ACCESS_KEY_ID");
 const SECRET_ACCESS_KEY = getRequiredEnvString("AWS_SECRET_ACCESS_KEY");
+const AWS_S3_ENDPOINT_LOCAL_STACK = process.env.AWS_S3_ENDPOINT_LOCAL_STACK;
 
 const metrics = {
   dataVolume: new Gauge({
@@ -24,6 +25,10 @@ const metrics = {
 };
 
 const s3Client = new S3Client({
+  ...(!!AWS_S3_ENDPOINT_LOCAL_STACK && {
+    endpoint: AWS_S3_ENDPOINT_LOCAL_STACK,
+    forcePathStyle: true,
+  }),
   region: REGION,
   credentials: {
     accessKeyId: ACCESS_KEY_ID,
@@ -43,7 +48,7 @@ export async function saveHeader(
   network: string,
   chainId: number,
   height: number,
-  data: any
+  data: any,
 ): Promise<boolean> {
   const objectKey = `${network}/chains/${chainId}/headers/${height}-${data.header.hash}.json`;
   const jsonData = JSON.stringify(data);
@@ -63,7 +68,7 @@ export async function saveHeader(
         height: height.toString(),
         type: "header",
       },
-      calculateDataSize(jsonData)
+      calculateDataSize(jsonData),
     );
     return true;
   } catch (error) {
@@ -85,7 +90,7 @@ export async function saveHeader(
 export async function listS3Objects(
   prefix: string,
   maxKeys?: number,
-  startAfter?: string
+  startAfter?: string,
 ): Promise<string[]> {
   try {
     let command = new ListObjectsV2Command({
@@ -104,8 +109,6 @@ export async function listS3Objects(
     const { Contents } = await s3Client.send(command);
     if (!Contents) {
       return [];
-    } else {
-      console.log(`Objects found for prefix: ${prefix}:`, Contents.length);
     }
 
     return Contents.map((obj) => obj.Key ?? "");

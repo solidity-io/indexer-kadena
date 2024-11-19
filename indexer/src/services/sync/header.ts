@@ -9,10 +9,13 @@ import { syncStatusService } from "../syncStatusService";
 import { register } from "../../server/metrics";
 import { Histogram } from "prom-client";
 import { fetchHeaders } from "./fetch";
+import { DispatchInfo, startPublisher } from "../../jobs/publisher-job";
 
 const shutdownSignal = createSignal();
 const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
-const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber("SYNC_ATTEMPTS_INTERVAL_IN_MS");
+const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
+  "SYNC_ATTEMPTS_INTERVAL_IN_MS",
+);
 
 /**
  * Initializes a set of metrics for monitoring the performance and behavior of the synchronization process.
@@ -57,7 +60,7 @@ export async function fetchHeadersWithRetry(
   chainId: number,
   minHeight: number,
   maxHeight: number,
-  attempt: number = 1
+  attempt: number = 1,
 ): Promise<void> {
   const end = metrics.syncDuration.startTimer({
     network: network,
@@ -88,8 +91,9 @@ export async function fetchHeadersWithRetry(
     if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
       if (attempt > 2) {
         console.log(
-          `Retrying fetch headers... Attempt ${attempt + 1
-          } of ${SYNC_ATTEMPTS_MAX_RETRY}`
+          `Retrying fetch headers... Attempt ${
+            attempt + 1
+          } of ${SYNC_ATTEMPTS_MAX_RETRY}`,
         );
       }
       await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
@@ -98,7 +102,7 @@ export async function fetchHeadersWithRetry(
         chainId,
         minHeight,
         maxHeight,
-        attempt + 1
+        attempt + 1,
       );
     } else {
       await syncErrorService.save({
@@ -133,19 +137,21 @@ export async function fetchHeadersWithRetry(
 export async function processHeader(
   network: string,
   chainId: number,
-  header: any
-): Promise<void> {
-  await fetchAndSavePayloadWithRetry(
+  header: any,
+): Promise<DispatchInfo | null> {
+  return fetchAndSavePayloadWithRetry(
     network,
     chainId,
     header.height,
     header.payloadHash,
-    { header: header }
+    { header: header },
   ).then(async (success) => {
     if (success) {
       const objectKey = `${network}/chains/${chainId}/headers/${header.height}-${header.hash}.json`;
-      await processHeaderKey(network, objectKey);
+      return processHeaderKey(network, objectKey);
     }
+    console.log("Failed to fetch and save payload for header:", header);
+    return null;
   });
 }
 
@@ -160,6 +166,7 @@ export async function processHeader(
 export async function processS3HeadersDaemon(network: string): Promise<void> {
   console.log("Daemon: Starting to process headers...");
 
+  startPublisher();
   const sleepInterval = parseInt(process.env.SLEEP_INTERVAL_MS || "15000", 10);
 
   process.on("SIGINT", () => shutdownSignal.trigger());
@@ -169,15 +176,17 @@ export async function processS3HeadersDaemon(network: string): Promise<void> {
     try {
       await processS3Headers(network);
       console.log(
-        `Daemon: Waiting for ${sleepInterval / 1000
-        } seconds before the next iteration...`
+        `Daemon: Waiting for ${
+          sleepInterval / 1000
+        } seconds before the next iteration...`,
       );
       await delay(sleepInterval);
     } catch (error) {
       console.error("Daemon: Error occurred in processS3Headers -", error);
       console.log(
-        `Daemon: Attempting to restart after waiting ${sleepInterval / 1000
-        } seconds...`
+        `Daemon: Attempting to restart after waiting ${
+          sleepInterval / 1000
+        } seconds...`,
       );
       await delay(sleepInterval);
     }
@@ -199,10 +208,19 @@ export async function processS3Headers(network: string): Promise<void> {
   console.log("Starting processing headers...");
 
   const chains = await syncStatusService.getChains(network);
-  const lastKeysProcessed = new Map<number, number>();
 
   const MAX_KEYS = 20;
   const MAX_ITERATIONS = 5;
+
+  const chainIdMapping: Record<string, number> = chains.reduce(
+    (acum, chainId) => {
+      return {
+        ...acum,
+        [chainId]: 0,
+      };
+    },
+    {},
+  );
 
   while (chains.length > 0) {
     let remainingChains: number[] = [];
@@ -214,15 +232,16 @@ export async function processS3Headers(network: string): Promise<void> {
         prefix,
         processHeaderKey,
         MAX_KEYS,
-        MAX_ITERATIONS
+        MAX_ITERATIONS,
       );
 
-      lastKeysProcessed.set(chainId, totalKeysProcessed);
+      chainIdMapping[chainId] = totalKeysProcessed;
 
       if (totalKeysProcessed > 0) {
         remainingChains.push(chainId);
       }
     }
+    console.log("Chains: ", chainIdMapping);
     chains.splice(0, chains.length, ...remainingChains);
   }
 
@@ -248,12 +267,15 @@ export async function processS3Headers(network: string): Promise<void> {
  *                       including reading, parsing, saving the block data, and updating the sync status.
  * @throws {Error} If there is an error reading, parsing, or saving the block data.
  */
-export async function processHeaderKey(network: string, key: string): Promise<void> {
+export async function processHeaderKey(
+  network: string,
+  key: string,
+): Promise<DispatchInfo | null> {
   const parsedData = await readAndParseS3Object(key);
 
   if (!parsedData) {
     console.error("No parsed data found for key:", key);
-    return;
+    return null;
   }
 
   let headerData = parsedData.header;
@@ -288,7 +310,43 @@ export async function processHeaderKey(network: string, key: string): Promise<vo
     const createdBlock = await Block.create(blockAttribute);
 
     await processPayloadKey(network, createdBlock, payloadData);
+
+    const transactions: Array<{
+      requestKey: string;
+      qualifiedEventNames: string[];
+    }> = payloadData.transactions.map((t: any) => {
+      const qualifiedEventNames = t[1].events.map((e: any) => {
+        const module = e.module.namespace
+          ? `${e.module.namespace}.${e.module.name}`
+          : e.module.name;
+        const name = e.name;
+        return `${module}.${name}`;
+      });
+      return {
+        requestKey: t[1].reqKey,
+        qualifiedEventNames,
+      };
+    });
+
+    const events = transactions.flatMap((t: any) => t.qualifiedEventNames);
+    const qualifiedEventNamesSet = new Set();
+    const uniqueQualifiedEventNames = events.filter(
+      (qualifiedEventName: any) => {
+        const isDuplicate = qualifiedEventNamesSet.has(qualifiedEventName);
+        qualifiedEventNamesSet.add(qualifiedEventName);
+        return !isDuplicate;
+      },
+    );
+
+    return {
+      hash: createdBlock.hash,
+      chainId: createdBlock.chainId.toString(),
+      height: createdBlock.height,
+      requestKeys: transactions.map((t) => t.requestKey),
+      qualifiedEventNames: uniqueQualifiedEventNames,
+    };
   } catch (error) {
     console.error(`Error saving block to the database: ${error}`);
+    return null;
   }
 }

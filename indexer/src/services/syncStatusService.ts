@@ -8,10 +8,10 @@ import SyncStatus, {
 } from "../models/syncStatus";
 import { getRequiredEnvNumber } from "../utils/helpers";
 import { sequelize } from "../config/database";
-import { QueryTypes } from 'sequelize'; // import QueryTypes
+import { QueryTypes } from "sequelize"; // import QueryTypes
 
 const SYNC_FETCH_INTERVAL_IN_BLOCKS_FILLING = getRequiredEnvNumber(
-  "SYNC_FETCH_INTERVAL_IN_BLOCKS"
+  "SYNC_FETCH_INTERVAL_IN_BLOCKS",
 );
 
 const SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING = 1;
@@ -25,7 +25,7 @@ const SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING = 1;
  */
 export class SyncStatusService {
   async save(
-    lastSyncData: SyncStatusAttributes
+    lastSyncData: SyncStatusAttributes,
   ): Promise<SyncStatusAttributes> {
     try {
       const parsedData = {
@@ -99,10 +99,15 @@ export class SyncStatusService {
           parsedData.fromHeight = existingBlock.fromHeight;
         }
         await existingBlock.update(parsedData);
-        console.log(
-          "Sync status updated in database:",
-          existingBlock.toHeight || existingBlock.key
-        );
+        // if (existingBlock.toHeight) {
+        //   console.log(
+        //     `[chainId: ${lastSyncData.chainId} height: ${existingBlock.toHeight}] - Sync updated. (${parsedData.source})`,
+        //   );
+        // } else {
+        //   console.log(
+        //     `[${existingBlock.key}] - Sync updated. (${parsedData.source})`,
+        //   );
+        // }
         return existingBlock.toJSON() as SyncStatusAttributes;
       } else {
         const block = await SyncStatus.create(parsedData);
@@ -124,7 +129,7 @@ export class SyncStatusService {
   async find(
     chainId: number,
     network: string,
-    source: string
+    source: string,
   ): Promise<SyncStatusAttributes | null> {
     try {
       const block = await SyncStatus.findOne({
@@ -141,7 +146,7 @@ export class SyncStatusService {
     chainId: number,
     network: string,
     prefix: string,
-    source: string
+    source: string,
   ): Promise<SyncStatusAttributes | null> {
     try {
       const block = await SyncStatus.findOne({
@@ -164,7 +169,7 @@ export class SyncStatusService {
    */
   async getLastSyncForAllChains(
     network: string,
-    source: string[]
+    source: string[],
   ): Promise<SyncStatusAttributes[]> {
     try {
       const block = await SyncStatus.findAll({
@@ -213,7 +218,7 @@ export class SyncStatusService {
    */
   async getMissingBlocks(
     network: string,
-    chainId: number
+    chainId: number,
   ): Promise<MissingBlocksAttributes[]> {
     try {
       const query = `
@@ -239,16 +244,16 @@ export class SyncStatusService {
   }
 
   /**
- * Calculates and returns the gaps (missing blocks) in the sync status records for a given chain and network.
- * This method identifies ranges of blocks that have not been synced based on the existing records.
- * @param network The network of the chain to check for missing blocks.
- * @param chainId The chain ID to check for missing blocks.
- * @returns The next missing block range to process.
- */
+   * Calculates and returns the gaps (missing blocks) in the sync status records for a given chain and network.
+   * This method identifies ranges of blocks that have not been synced based on the existing records.
+   * @param network The network of the chain to check for missing blocks.
+   * @param chainId The chain ID to check for missing blocks.
+   * @returns The next missing block range to process.
+   */
   async getNextMissingBlock(
     network: string,
     chainId: number,
-    limit: number = 1
+    limit: number = 1,
   ): Promise<MissingBlocksAttributes[] | null> {
     try {
       const query = `
@@ -276,7 +281,5 @@ export class SyncStatusService {
     }
   }
 }
-
-
 
 export const syncStatusService = new SyncStatusService();

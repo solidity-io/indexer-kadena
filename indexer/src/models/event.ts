@@ -1,6 +1,6 @@
 import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database";
-import Transaction from "./transaction";
+import Transaction, { TransactionAttributes } from "./transaction";
 
 export interface EventAttributes {
   id: number;
@@ -52,6 +52,7 @@ class Event extends Model<EventAttributes> implements EventAttributes {
 
   /** The request key of the event (e.g., "vyL1rMR_qbkoi8yUW3ktEeBU9XzdWSEaoe1GdPLL3j4"). */
   declare requestkey: string;
+  declare transaction: Transaction;
 }
 
 Event.init(

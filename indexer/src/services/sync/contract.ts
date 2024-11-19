@@ -1,24 +1,43 @@
-
+import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
 import Contract, { ContractAttributes } from "../../models/contract";
 import { getManifest } from "../../utils/pact";
 
-export async function syncContract(network: string, chainId: number, modulename: any, tokenId: any) {
-  const manifestData = await getManifest(
-    network,
-    chainId,
-    modulename,
-    tokenId
-  );
+export async function syncContract(
+  network: string,
+  chainId: number,
+  modulename: any,
+  tokenId: any,
+) {
+  const manifestData = await handleSingleQuery({
+    chainId: chainId.toString(),
+    code: `(${modulename}.get-manifest "${tokenId}")`,
+  });
+  console.log("manifestData", manifestData);
   let contractId;
   if (manifestData) {
-    contractId = await saveContract(network, chainId, modulename, "poly-fungible", tokenId, manifestData);
+    contractId = await saveContract(
+      network,
+      chainId,
+      modulename,
+      "poly-fungible",
+      tokenId,
+      manifestData,
+    );
   } else {
     console.log("No manifest URI found for token ID:", tokenId);
   }
   return contractId;
 }
 
-export async function saveContract(network: string, chainId: number, modulename: any, type: string, tokenId?: any, manifestData?: any, precision?: number) {
+export async function saveContract(
+  network: string,
+  chainId: number,
+  modulename: any,
+  type: string,
+  tokenId?: any,
+  manifestData?: any,
+  precision?: number,
+) {
   const contractData = {
     network: network,
     chainId: chainId,
@@ -47,7 +66,11 @@ export async function saveContract(network: string, chainId: number, modulename:
   return contractId;
 }
 
-export async function getContract(network: string, chainId: number, modulename: any) {
+export async function getContract(
+  network: string,
+  chainId: number,
+  modulename: any,
+) {
   const contract = await Contract.findOne({
     where: {
       network: network,
@@ -57,4 +80,3 @@ export async function getContract(network: string, chainId: number, modulename: 
   });
   return contract;
 }
-

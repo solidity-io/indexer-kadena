@@ -1,6 +1,11 @@
 import "dotenv/config";
 import { listS3Objects } from "./s3Service";
-import { delay, splitIntoChunks, getRequiredEnvNumber, createSignal } from "../utils/helpers";
+import {
+  delay,
+  splitIntoChunks,
+  getRequiredEnvNumber,
+  createSignal,
+} from "../utils/helpers";
 import { syncStatusService } from "./syncStatusService";
 import { syncErrorService } from "./syncErrorService";
 import { fetchHeadersWithRetry } from "./sync/header";
@@ -13,12 +18,16 @@ import {
   SOURCE_STREAMING,
 } from "../models/syncStatus";
 
+import { addPublishEvents, DispatchInfo } from "../jobs/publisher-job";
+
+import { fetchHeadersWithRetryForBackfill } from "./sync/backfill";
+
 const SYNC_MIN_HEIGHT = getRequiredEnvNumber("SYNC_MIN_HEIGHT");
 const SYNC_FETCH_INTERVAL_IN_BLOCKS = getRequiredEnvNumber(
-  "SYNC_FETCH_INTERVAL_IN_BLOCKS"
+  "SYNC_FETCH_INTERVAL_IN_BLOCKS",
 );
 const SYNC_TIME_BETWEEN_REQUESTS_IN_MS = getRequiredEnvNumber(
-  "SYNC_TIME_BETWEEN_REQUESTS_IN_MS"
+  "SYNC_TIME_BETWEEN_REQUESTS_IN_MS",
 );
 
 const shutdownSignal = createSignal();
@@ -32,8 +41,8 @@ const shutdownSignal = createSignal();
  */
 type ProcessKeyFunction = (
   network: string,
-  key: string
-) => Promise<void>;
+  key: string,
+) => Promise<DispatchInfo | null>;
 
 /**
  * Processes keys from S3 for a specific network and chainId.
@@ -55,7 +64,7 @@ export async function processKeys(
   prefix: string,
   processKey: ProcessKeyFunction,
   maxKeys: number = 20,
-  maxIterations?: number
+  maxIterations?: number,
 ): Promise<number> {
   let totalKeysProcessed = 0;
 
@@ -64,24 +73,22 @@ export async function processKeys(
       chainId,
       network,
       prefix,
-      SOURCE_S3
+      SOURCE_S3,
     );
 
     let startAfter = lastSync ? lastSync.key : undefined;
     let isFinished = false;
     let iterationCount = 0;
 
-    while (
-      !isFinished &&
-      (!maxIterations || iterationCount < maxIterations)
-    ) {
+    while (!isFinished && (!maxIterations || iterationCount < maxIterations)) {
       const keys = await listS3Objects(prefix, maxKeys, startAfter);
       if (keys.length > 0) {
-        await Promise.all(
+        const res = await Promise.all(
           keys.map(async (key) => {
-            processKey(network, key);
-          })
+            return processKey(network, key);
+          }),
         );
+        addPublishEvents(res.filter((r) => r !== null) as DispatchInfo[]);
         totalKeysProcessed += keys.length;
         startAfter = keys[keys.length - 1];
         iterationCount++;
@@ -121,46 +128,51 @@ export async function processKeys(
  *
  * @param {string} network - The identifier of the Chainweb network from which to synchronize data (e.g., 'mainnet01').
  */
-export async function startBackFill(network: string): Promise<void> {
+export async function startBackFill(
+  network: string,
+  offset = 0,
+): Promise<void> {
   try {
     console.log("Starting filling...");
-    let chains = await getLastSync(network);
+    const [chain] = (await getLastSync(network)).slice(0 + offset, 1 + offset);
 
-    console.info("Starting backfill process for chains:", { chains });
+    console.info(
+      "Starting backfill process for chain: ",
+      chain,
+      SYNC_MIN_HEIGHT,
+    );
+    while (chain.currentHeight > SYNC_MIN_HEIGHT) {
+      console.info(`Processing chain:`, {
+        chainId: chain.chainId,
+        currentHeight: chain.currentHeight,
+      });
 
-    while (chains.length > 0) {
-      for (let i = chains.length - 1; i >= 0; i--) {
-        const chain = chains[i];
+      let nextHeight = Math.max(
+        chain.currentHeight - SYNC_FETCH_INTERVAL_IN_BLOCKS,
+        SYNC_MIN_HEIGHT + 1,
+      );
 
-        console.info(`Processing chain:`, {
+      const start = new Date().getTime();
+
+      const counters = await fetchHeadersWithRetryForBackfill(
+        network,
+        chain.chainId,
+        nextHeight,
+        chain.currentHeight,
+      );
+
+      chain.currentHeight = nextHeight - 1;
+
+      const end = new Date().getTime();
+      const time = end - start;
+      console.log(
+        {
           chainId: chain.chainId,
           currentHeight: chain.currentHeight,
-        });
-
-        let nextHeight = Math.max(
-          chain.currentHeight - SYNC_FETCH_INTERVAL_IN_BLOCKS,
-          SYNC_MIN_HEIGHT + 1
-        );
-
-        console.info(`Fetching headers for chain: ${chain.chainId}`, {
-          nextHeight,
-        });
-
-        await fetchHeadersWithRetry(
-          network,
-          chain.chainId,
-          nextHeight,
-          chain.currentHeight
-        );
-
-        chain.currentHeight = nextHeight - 1;
-
-        if (chain.currentHeight <= SYNC_MIN_HEIGHT) {
-          chains.splice(i, 1);
-        }
-
-        await delay(SYNC_TIME_BETWEEN_REQUESTS_IN_MS);
-      }
+        },
+        `processed in ${time / 1000}s.`,
+      );
+      console.log("Counters: ", counters);
     }
 
     console.log("All chains have been processed to the minimum height.");
@@ -180,7 +192,9 @@ export async function startBackFill(network: string): Promise<void> {
  * @param {string} network - The identifier of the Chainweb network from which to retrieve the last sync status.
  * @returns {Promise<Array<{ chainId: number, currentHeight: number }>>} - A promise that resolves to an array of objects, each representing a chain with its chain ID and the current height from which the synchronization should start.
  */
-async function getLastSync(network: string): Promise<Array<{ chainId: number, currentHeight: number }>> {
+async function getLastSync(
+  network: string,
+): Promise<Array<{ chainId: number; currentHeight: number }>> {
   const lastCutResult = (await fetchCut(network)) as FetchCutResult;
 
   let lastSyncs = await syncStatusService.getLastSyncForAllChains(network, [
@@ -191,7 +205,7 @@ async function getLastSync(network: string): Promise<Array<{ chainId: number, cu
   return Object.entries(lastCutResult.hashes)
     .map(([chainId, lastCut]) => {
       const lastSync = lastSyncs.find(
-        (sync) => sync.chainId === parseInt(chainId)
+        (sync) => sync.chainId === parseInt(chainId),
       );
       let currentHeight = lastSync ? lastSync.toHeight - 1 : lastCut.height;
 
@@ -229,15 +243,17 @@ export async function startMissingBlocksDaemon(network: string): Promise<void> {
     try {
       await startMissingBlocks(network);
       console.log(
-        `Daemon: Waiting for ${sleepInterval / 1000
-        } seconds before the next iteration...`
+        `Daemon: Waiting for ${
+          sleepInterval / 1000
+        } seconds before the next iteration...`,
       );
       await delay(sleepInterval);
     } catch (error) {
       console.error("Daemon: Error occurred in startMissingBlocks -", error);
       console.log(
-        `Daemon: Attempting to restart after waiting ${sleepInterval / 1000
-        } seconds...`
+        `Daemon: Attempting to restart after waiting ${
+          sleepInterval / 1000
+        } seconds...`,
       );
       await delay(sleepInterval);
     }
@@ -262,12 +278,12 @@ export async function startMissingBlocks(network: string): Promise<void> {
     const missingBlocks = await syncStatusService.getNextMissingBlock(
       network,
       chainId,
-      limit
+      limit,
     );
 
     if (missingBlocks) {
       const missingBlockPromises = missingBlocks.map((missingBlock) =>
-        processMissingBlock(network, chainId, missingBlock)
+        processMissingBlock(network, chainId, missingBlock),
       );
 
       await Promise.all(missingBlockPromises);
@@ -291,20 +307,24 @@ export async function startMissingBlocks(network: string): Promise<void> {
 export async function processMissingBlock(
   network: string,
   chainId: number,
-  missingBlock: any
+  missingBlock: any,
 ): Promise<void> {
   if (missingBlock) {
     const chunks = splitIntoChunks(
       missingBlock.toHeight,
       missingBlock.fromHeight,
-      SYNC_FETCH_INTERVAL_IN_BLOCKS
+      SYNC_FETCH_INTERVAL_IN_BLOCKS,
     );
 
     const chunkPromises = chunks.map((chunk) => {
-      console.info(`*** [Missing] Processing missing block range`, {
-        fromHeight: chunk[1],
-        toHeight: chunk[0],
-      }, `for chain ID ${chainId}`);
+      console.info(
+        `*** [Missing] Processing missing block range`,
+        {
+          fromHeight: chunk[1],
+          toHeight: chunk[0],
+        },
+        `for chain ID ${chainId}`,
+      );
       return fetchHeadersWithRetry(network, chainId, chunk[1], chunk[0]);
     });
 
@@ -331,7 +351,7 @@ export async function startRetryErrors(network: string): Promise<void> {
           error.network,
           error.chainId,
           error.fromHeight,
-          error.toHeight
+          error.toHeight,
         );
         await syncErrorService.delete(error.id);
       } catch (err) {
