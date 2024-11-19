@@ -1,7 +1,6 @@
 import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
 import { TransactionAttributes } from "../../models/transaction";
 import { TransferAttributes } from "../../models/transfer";
-import { getPrecision } from "../../utils/pact";
 import { getContract, saveContract, syncContract } from "./contract";
 
 /**
@@ -37,7 +36,7 @@ export function getNftTransfers(
 
   const transferPromises = eventsData
     .filter(transferNftSignature)
-    .map(async (eventData: any): Promise<TransferAttributes> => {
+    .map(async (eventData: any, index: number): Promise<TransferAttributes> => {
       const params = eventData.params;
       const tokenId = params[0];
       const from_acct = params[1];
@@ -64,11 +63,11 @@ export function getNftTransfers(
         modulename: modulename,
         requestkey: receiptInfo.reqKey,
         to_acct: to_acct,
-        network: network,
         hasTokenId: true,
         tokenId: tokenId,
         type: "poly-fungible",
         contractId: contractId,
+        orderIndex: index,
       } as TransferAttributes;
     }) as TransferAttributes[];
   return Promise.all(transferPromises);
@@ -106,7 +105,7 @@ export function getCoinTransfers(
 
   const transferPromises = eventsData
     .filter(transferCoinSignature)
-    .map(async (eventData: any): Promise<TransferAttributes> => {
+    .map(async (eventData: any, index: number): Promise<TransferAttributes> => {
       const modulename = eventData.module.namespace
         ? `${eventData.module.namespace}.${eventData.module.name}`
         : eventData.module.name;
@@ -153,11 +152,11 @@ export function getCoinTransfers(
           : eventData.module.name,
         requestkey: receiptInfo.reqKey,
         to_acct: to_acct,
-        network: network,
         hasTokenId: false,
         tokenId: undefined,
         type: "fungible",
         contractId: contractId,
+        orderIndex: index,
       } as TransferAttributes;
     }) as TransferAttributes[];
   return Promise.all(transferPromises);
