@@ -4,13 +4,13 @@
 module.exports = {
   async up(queryInterface) {
     await queryInterface.addIndex("PublicKeysAccounts", {
-      name: "publickeysaccounts_publicKey_chainId_account_module_unique_idx",
+      name: "publickeysaccounts_publickey_chainid_account_module_unique_idx",
       fields: ["publicKey", "chainId", "account", "module"],
       unique: true,
     });
 
     await queryInterface.addIndex("PublicKeysAccounts", {
-      name: "publicKey_idx",
+      name: "publickeysaccounts_publickey_idx",
       fields: ["publicKey"],
     });
   },
@@ -21,6 +21,9 @@ module.exports = {
       "publickeysaccounts_publicKey_chainId_account_module_unique_idx",
     );
 
-    await queryInterface.removeIndex("PublicKeysAccounts", "publicKey_idx");
+    await queryInterface.removeIndex(
+      "PublicKeysAccounts",
+      "publickeysaccounts_publickey_idx",
+    );
   },
 };

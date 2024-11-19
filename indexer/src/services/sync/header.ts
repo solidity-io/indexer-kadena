@@ -285,6 +285,7 @@ export async function processHeaderKey(
 
   const payloadData = parsedData.payload;
 
+  const transactions = payloadData.transactions || [];
   try {
     const blockAttribute = {
       nonce: headerData.nonce,
@@ -304,17 +305,17 @@ export async function processHeaderKey(
       transactionsHash: payloadData.transactionsHash,
       outputsHash: payloadData.outputsHash,
       coinbase: payloadData.coinbase,
-      transactionsCount: payloadData.transactions.length,
+      transactionsCount: transactions.length,
     } as BlockAttributes;
 
     const createdBlock = await Block.create(blockAttribute);
 
     await processPayloadKey(network, createdBlock, payloadData);
 
-    const transactions: Array<{
+    const txs: Array<{
       requestKey: string;
       qualifiedEventNames: string[];
-    }> = payloadData.transactions.map((t: any) => {
+    }> = transactions.map((t: any) => {
       const qualifiedEventNames = t[1].events.map((e: any) => {
         const module = e.module.namespace
           ? `${e.module.namespace}.${e.module.name}`
@@ -342,7 +343,7 @@ export async function processHeaderKey(
       hash: createdBlock.hash,
       chainId: createdBlock.chainId.toString(),
       height: createdBlock.height,
-      requestKeys: transactions.map((t) => t.requestKey),
+      requestKeys: txs.map((t) => t.requestKey),
       qualifiedEventNames: uniqueQualifiedEventNames,
     };
   } catch (error) {

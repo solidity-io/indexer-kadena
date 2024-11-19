@@ -60,8 +60,6 @@ Signer.init(
         model: "Transactions",
         key: "id",
       },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
       comment: "Foreign key referencing the related transaction ID",
     },
   },
@@ -70,6 +68,12 @@ Signer.init(
     modelName: "Signer",
     tableName: "Signers",
     timestamps: true,
+    indexes: [
+      {
+        name: "signers_pubkey_transactionid_idx",
+        fields: ["pubkey", "transactionId"],
+      },
+    ],
   },
 );
 

@@ -125,6 +125,7 @@ export async function processTransaction(
     gasprice: cmdData.meta.gasPrice,
     hash: transactionInfo.hash,
     nonce: cmdData.nonce || "",
+    pactid: receiptInfo.continuation?.pactId || "",
     continuation: receiptInfo.continuation || "",
     gas: receiptInfo.gas,
     result: receiptInfo.result || null,

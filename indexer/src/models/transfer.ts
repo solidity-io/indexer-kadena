@@ -16,11 +16,11 @@ export interface TransferAttributes {
   modulename: string;
   requestkey: string;
   to_acct: string;
-  network: string;
   hasTokenId: boolean;
   tokenId?: string;
   contractId?: number;
   canonical?: boolean;
+  orderIndex?: number;
 }
 
 /**
@@ -60,9 +60,6 @@ class Transfer extends Model<TransferAttributes> implements TransferAttributes {
   /** The account to which the transfer was made (e.g., "k:251efb06f3b798dbe7bb3f58f535b67b0a9ed2da9aa4e2367be4abc07cc927fa"). */
   declare to_acct: string;
 
-  /** The network name (e.g., "mainnet01"). */
-  declare network: string;
-
   /** Whether the transfer has a token ID (e.g., false). */
   declare hasTokenId: boolean;
 
@@ -74,26 +71,100 @@ class Transfer extends Model<TransferAttributes> implements TransferAttributes {
 
   /* Whether the transfer is canonical */
   declare canonical?: boolean;
+
+  /* The transfer order */
+  declare orderIndex?: number;
 }
 
 Transfer.init(
   {
-    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true, comment: "The unique identifier for the transfer record (e.g., 1799984)." },
-    transactionId: { type: DataTypes.INTEGER, allowNull: true, comment: "The ID of the associated transaction (e.g., 2022215)." },
-    type: { type: DataTypes.STRING, allowNull: false, comment: "The type of the transfer (e.g., 'fungible')." },
-    amount: { type: DataTypes.DECIMAL, allowNull: false, comment: "The amount transferred (e.g., 0.0003112)." },
-    payloadHash: { type: DataTypes.STRING, allowNull: false, comment: "The payload hash of the transfer (e.g., 'UVboyJrggtoJBUSgCvTfCMrfGjxiZ7tvRQ_k_f5Mr6I')." },
-    chainId: { type: DataTypes.INTEGER, allowNull: false, comment: "The ID of the blockchain network (e.g., 0)." },
-    from_acct: { type: DataTypes.STRING, allowNull: false, comment: "The account from which the transfer was made (e.g., 'k:6fdc4bdbd5bd319466d7b83d85465d8a5a5546bf3b9aababb77aac7bb44241aa')." },
-    modulehash: { type: DataTypes.STRING, allowNull: false, comment: "The hash of the module (e.g., 'klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s')." },
-    modulename: { type: DataTypes.STRING, allowNull: false, comment: "The name of the module (e.g., 'coin')." },
-    requestkey: { type: DataTypes.STRING, allowNull: false, comment: "The request key of the transfer (e.g., 'y2XuhnGPkvptF-scYTnMfdcD2zokQf-HyOu-qngAm9s')." },
-    to_acct: { type: DataTypes.STRING, allowNull: false, comment: "The account to which the transfer was made (e.g., 'k:251efb06f3b798dbe7bb3f58f535b67b0a9ed2da9aa4e2367be4abc07cc927fa')." },
-    network: { type: DataTypes.STRING, allowNull: false, comment: "The network name (e.g., 'mainnet01')." },
-    hasTokenId: { type: DataTypes.BOOLEAN, allowNull: true, comment: "Whether the transfer has a token ID (e.g., true)." },
-    tokenId: { type: DataTypes.STRING, allowNull: true, comment: "The token ID associated with the transfer (optional, e.g., 't:DowR5LB9h6n96kxFRXDLSuSs1yh100Pk6STuUQNpseM')." },
-    contractId: { type: DataTypes.INTEGER, allowNull: true, comment: "The ID of the associated contract (optional, e.g., 1)." },
-    canonical: { type: DataTypes.BOOLEAN, allowNull: true, comment: "Whether the transfer is canonical" },
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      comment: "The unique identifier for the transfer record (e.g., 1799984).",
+    },
+    transactionId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "The ID of the associated transaction (e.g., 2022215).",
+    },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment: "The type of the transfer (e.g., 'fungible').",
+    },
+    amount: {
+      type: DataTypes.DECIMAL,
+      allowNull: false,
+      comment: "The amount transferred (e.g., 0.0003112).",
+    },
+    payloadHash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment:
+        "The payload hash of the transfer (e.g., 'UVboyJrggtoJBUSgCvTfCMrfGjxiZ7tvRQ_k_f5Mr6I').",
+    },
+    chainId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      comment: "The ID of the blockchain network (e.g., 0).",
+    },
+    from_acct: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment:
+        "The account from which the transfer was made (e.g., 'k:6fdc4bdbd5bd319466d7b83d85465d8a5a5546bf3b9aababb77aac7bb44241aa').",
+    },
+    modulehash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment:
+        "The hash of the module (e.g., 'klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s').",
+    },
+    modulename: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment: "The name of the module (e.g., 'coin').",
+    },
+    requestkey: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment:
+        "The request key of the transfer (e.g., 'y2XuhnGPkvptF-scYTnMfdcD2zokQf-HyOu-qngAm9s').",
+    },
+    to_acct: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment:
+        "The account to which the transfer was made (e.g., 'k:251efb06f3b798dbe7bb3f58f535b67b0a9ed2da9aa4e2367be4abc07cc927fa').",
+    },
+    hasTokenId: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      comment: "Whether the transfer has a token ID (e.g., true).",
+    },
+    tokenId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment:
+        "The token ID associated with the transfer (optional, e.g., 't:DowR5LB9h6n96kxFRXDLSuSs1yh100Pk6STuUQNpseM').",
+    },
+    contractId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "The ID of the associated contract (optional, e.g., 1).",
+    },
+    canonical: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      comment: "Whether the transfer is canonical",
+    },
+    orderIndex: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "The transfer order",
+    },
   },
   {
     sequelize,
@@ -119,8 +190,12 @@ Transfer.init(
         name: "transfers_modulename_idx",
         fields: ["modulename"],
       },
+      {
+        name: "transfers_from_acct_modulename_idx",
+        fields: ["from_acct", "modulename"],
+      },
     ],
-  }
+  },
 );
 
 Transfer.belongsTo(Transaction, {

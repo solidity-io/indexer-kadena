@@ -1,6 +1,5 @@
 import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
 import Contract, { ContractAttributes } from "../../models/contract";
-import { getManifest } from "../../utils/pact";
 
 export async function syncContract(
   network: string,

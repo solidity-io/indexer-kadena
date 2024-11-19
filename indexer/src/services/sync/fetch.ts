@@ -31,13 +31,17 @@ export async function fetchCut(network: string): Promise<any> {
 
 /**
  * Fetches the payloads for the given hashes from the network.
- * 
+ *
  * @param network The network to fetch payloads from (e.g., "mainnet01").
  * @param chainId The ID of the chain to fetch payloads for.
  * @param payloadHashes The hashes of the payloads to fetch.
  * @returns A promise resolving to the payloads.
  */
-export async function fetchPayloads(network: string, chainId: number, payloadHashes: string[]) {
+export async function fetchPayloads(
+  network: string,
+  chainId: number,
+  payloadHashes: string[],
+) {
   const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/payload/outputs/batch`;
   const response = (await axios.post(endpoint, payloadHashes, {
     headers: {
@@ -50,14 +54,19 @@ export async function fetchPayloads(network: string, chainId: number, payloadHas
 
 /**
  * Fetches the headers for the given range of heights from the network.
- * 
+ *
  * @param network The network to fetch payloads from (e.g., "mainnet01").
  * @param chainId The ID of the chain to fetch payloads for.
  * @param minHeight The minimum height of the headers to fetch.
  * @param maxHeight The maximum height of the headers to fetch.
  * @returns A promise resolving to the headers.
  */
-export async function fetchHeaders(network: string, chainId: number, minHeight: number, maxHeight: number) {
+export async function fetchHeaders(
+  network: string,
+  chainId: number,
+  minHeight: number,
+  maxHeight: number,
+) {
   const endpoint = `${SYNC_BASE_URL}/${network}/chain/${chainId}/header?minheight=${minHeight}&maxheight=${maxHeight}`;
   const response = await axios.get(endpoint, {
     headers: { Accept: "application/json;blockheader-encoding=object" },

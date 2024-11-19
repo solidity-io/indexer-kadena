@@ -9,7 +9,6 @@ import { SOURCE_API, SOURCE_BACKFILL } from "../../models/syncStatus";
 import Transaction, { TransactionAttributes } from "../../models/transaction";
 import Transfer, { TransferAttributes } from "../../models/transfer";
 import { delay, getRequiredEnvNumber } from "../../utils/helpers";
-import { publicKeysAccountService } from "../publicKeysAccountService";
 import { readAndParseS3Object } from "../s3Service";
 import { syncErrorService } from "../syncErrorService";
 import { syncStatusService } from "../syncStatusService";
@@ -131,10 +130,10 @@ export async function fetchHeadersWithRetryForBackfill(
   signersCount: number;
   publicKeysAccountCount: number;
 }> {
+  const tx = await sequelize.transaction();
   try {
     const data: { items: Array<{ height: number; hash: string }> } =
       await fetchHeaders(network, chainId, minHeight, maxHeight);
-    const tx = await sequelize.transaction();
 
     const headerPromises = data.items.map(async (item: any) => {
       await fetchAndSavePayloadWithRetry(
@@ -231,6 +230,7 @@ export async function fetchHeadersWithRetryForBackfill(
       );
       return counters;
     } else {
+      await tx.rollback();
       await syncErrorService.save({
         network: network,
         chainId: chainId,
@@ -263,7 +263,6 @@ async function processTransaction(
   block: BlockAttributes,
   payloadHash: string,
   network: string,
-  options?: Transaction,
 ): Promise<{
   transaction: TransactionAttributes;
   events: EventAttributes[];
@@ -298,6 +297,7 @@ async function processTransaction(
     gasprice: cmdData.meta.gasPrice,
     hash: transactionInfo.hash,
     nonce: cmdData.nonce || "",
+    pactid: receiptInfo.continuation?.pactId || "",
     continuation: receiptInfo.continuation || "",
     gas: receiptInfo.gas,
     result: receiptInfo.result || null,
