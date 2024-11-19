@@ -336,15 +336,17 @@ DECLARE
     depth CONSTANT INT := 10; -- Default the depth constant
     buffer CONSTANT INT := 5; -- Number of heights to buffer, because some blocks can arrive out of order
 BEGIN
+    PERFORM pg_advisory_xact_lock(hashtext(NEW."chainId"::text || NEW."chainwebVersion"::text));
+
     -- Check the last 'depth' blocks
     FOR recent_blocks IN 
         SELECT * FROM public."Blocks"
-        WHERE height >= ((NEW.height - buffer) - depth) AND height < (NEW.height - buffer)
-	        AND "chainId" = NEW."chainId"
-        	AND "chainwebVersion" = NEW."chainwebVersion"
-            AND (canonical IS NULL OR canonical = TRUE)
-        ORDER BY height DESC
-		FOR UPDATE
+        WHERE height BETWEEN (NEW.height - buffer - depth) AND (NEW.height - buffer - 1)
+            AND "chainId" = NEW."chainId"
+            AND "chainwebVersion" = NEW."chainwebVersion"
+            AND COALESCE(canonical, TRUE)
+        ORDER BY height ASC
+        FOR NO KEY UPDATE
     LOOP
         -- Set the first block
         IF block_count = 0 THEN
