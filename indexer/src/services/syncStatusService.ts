@@ -1,4 +1,4 @@
-import { Op, Sequelize } from "sequelize";
+import { Op, Sequelize, Transaction } from "sequelize";
 import SyncStatus, {
   SyncStatusAttributes,
   SOURCE_BACKFILL,
@@ -26,6 +26,7 @@ const SYNC_FETCH_INTERVAL_IN_BLOCKS_STREAMING = 1;
 export class SyncStatusService {
   async save(
     lastSyncData: SyncStatusAttributes,
+    tx?: Transaction,
   ): Promise<SyncStatusAttributes> {
     try {
       const parsedData = {
@@ -98,7 +99,7 @@ export class SyncStatusService {
         } else if (lastSyncData.source == SOURCE_BACKFILL) {
           parsedData.fromHeight = existingBlock.fromHeight;
         }
-        await existingBlock.update(parsedData);
+        await existingBlock.update(parsedData, { transaction: tx });
         // if (existingBlock.toHeight) {
         //   console.log(
         //     `[chainId: ${lastSyncData.chainId} height: ${existingBlock.toHeight}] - Sync updated. (${parsedData.source})`,
@@ -110,7 +111,7 @@ export class SyncStatusService {
         // }
         return existingBlock.toJSON() as SyncStatusAttributes;
       } else {
-        const block = await SyncStatus.create(parsedData);
+        const block = await SyncStatus.create(parsedData, { transaction: tx });
         return block.toJSON() as SyncStatusAttributes;
       }
     } catch (error) {

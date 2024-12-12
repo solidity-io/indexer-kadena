@@ -8,6 +8,7 @@ export interface SignerAttributes {
   orderIndex?: number;
   pubkey: string;
   clist: object;
+  scheme?: string;
   transactionId: number;
 }
 
@@ -22,6 +23,7 @@ class Signer
   public orderIndex?: number;
   public pubkey!: string;
   public clist!: object;
+  public scheme?: string;
   public transactionId!: number;
 }
 
@@ -52,6 +54,11 @@ Signer.init(
       type: DataTypes.JSONB,
       allowNull: true,
       comment: "The capabilities list (clist) associated with the signer",
+    },
+    scheme: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "The scheme associated with the signer, eg. ED25519",
     },
     transactionId: {
       type: DataTypes.INTEGER,

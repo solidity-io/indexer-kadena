@@ -77,7 +77,7 @@ export default class BalanceDbRepository implements BalanceRepository {
   ): Promise<FungibleAccountOutput[]> {
     const publicKeyQuery = `
       SELECT p.id, p."chainId", p.account, p.module
-      FROM "PublicKeysAccounts" p
+      FROM "Guards" p
       WHERE p."publicKey" = $1
       AND p.module = $2
     `;
@@ -122,7 +122,7 @@ export default class BalanceDbRepository implements BalanceRepository {
   ): Promise<FungibleChainAccountOutput[]> {
     const publicKeyQuery = `
       SELECT p.id, p."chainId", p.account, p.module
-      FROM "PublicKeysAccounts" p
+      FROM "Guards" p
       WHERE p."publicKey" = $1
       AND p.module = $2
       AND p."chainId" = $3

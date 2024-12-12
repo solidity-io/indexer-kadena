@@ -37,7 +37,7 @@ export function delay(ms: number): Promise<void> {
 export function splitIntoChunks(
   min: number,
   max: number,
-  rangeSize: number
+  rangeSize: number,
 ): number[][] {
   const chunks = [];
   let current = max;
@@ -99,7 +99,6 @@ export function getRequiredEnvNumber(key: string): number {
   return parsed;
 }
 
-
 /**
  * Creates a signal object that can be used to manage shutdown or interrupt signals in asynchronous operations.
  * It provides a mechanism to gracefully exit from a loop or terminate a process when an external signal is received.
@@ -120,4 +119,21 @@ export function createSignal() {
       isTriggered = true;
     },
   };
+}
+
+export function uint64ToInt64(uint64Value: any): bigint {
+  const bigIntValue = BigInt(uint64Value);
+  const int64Max = BigInt("9223372036854775807"); // 2^63 - 1
+  const uint64Max = BigInt("18446744073709551615"); // 2^64 - 1
+
+  // Ensure the value is in the valid uint64 range
+  if (bigIntValue < 0n || bigIntValue > uint64Max) {
+    throw new Error("Value is out of range for uint64");
+  }
+
+  if (bigIntValue <= int64Max) {
+    return bigIntValue;
+  } else {
+    return bigIntValue - uint64Max - 1n;
+  }
 }

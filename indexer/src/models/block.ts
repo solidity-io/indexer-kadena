@@ -15,7 +15,7 @@ export interface BlockAttributes {
   height: number;
   chainwebVersion: string;
   epochStart: bigint | null;
-  featureFlags: number;
+  featureFlags: bigint;
   hash: string;
   minerData: object;
   transactionsHash: string;
@@ -63,7 +63,7 @@ class Block extends Model<BlockAttributes> implements BlockAttributes {
   declare epochStart: bigint;
 
   /** The feature flags of the block (e.g., 0). */
-  declare featureFlags: number;
+  declare featureFlags: bigint;
 
   /** The hash of the block (e.g., "XZXKrN7DzWnzEX2oZp5HOjr6R0zapn-XxtsYOdtfYFY"). */
   declare hash: string;
@@ -145,8 +145,8 @@ Block.init(
       comment: "The epoch start time of the block (e.g., 1718886629458176).",
     },
     featureFlags: {
-      type: DataTypes.INTEGER,
-      comment: "The feature flags of the block (e.g., 0).",
+      type: DataTypes.BIGINT,
+      comment: "The feature flags of the block (e.g., 56646198189039183).",
     },
     hash: {
       type: DataTypes.STRING,

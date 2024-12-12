@@ -1,4 +1,4 @@
-import { Transaction, BulkCreateOptions } from "sequelize";
+import { Transaction, BulkCreateOptions, TransactionOptions } from "sequelize";
 import Event, { EventAttributes } from "../models/event";
 
 export class EventService {
@@ -36,12 +36,10 @@ export class EventService {
    */
   async saveMany(
     eventsData: EventAttributes[],
-    options?: Transaction
+    txOptions?: TransactionOptions,
   ): Promise<void> {
     try {
-      await Event.bulkCreate(eventsData, {
-        transaction: options,
-      });
+      await Event.bulkCreate(eventsData, txOptions);
     } catch (error) {
       console.error("Error saving events to database:", error);
       throw error;

@@ -10,7 +10,6 @@ import { getContract, saveContract, syncContract } from "./contract";
  * @param {string} network - The identifier of the network (e.g., 'mainnet').
  * @param {number} chainId - The ID of the blockchain chain.
  * @param {Array} eventsData - The array of event data from a transaction payload.
- * @param {string | undefined} payloadHash - The hash of the payload containing these events.
  * @param {TransactionAttributes} transactionAttributes - Transaction attributes associated with the events.
  * @param {any} receiptInfo - Receipt information associated with the events.
  * @returns {Promise<TransferAttributes[]>} A Promise that resolves to an array of transfer attributes specifically for NFT transfers.
@@ -19,7 +18,6 @@ export function getNftTransfers(
   network: string,
   chainId: number,
   eventsData: any,
-  payloadHash: string | undefined,
   transactionAttributes: TransactionAttributes,
   receiptInfo: any,
 ) {
@@ -56,7 +54,6 @@ export function getNftTransfers(
 
       return {
         amount: amount,
-        payloadHash: payloadHash,
         chainId: transactionAttributes.chainId,
         from_acct: from_acct,
         modulehash: eventData.moduleHash,
@@ -81,7 +78,6 @@ const requests: Record<string, undefined | boolean> = {};
  *
  * @param {string} network - The identifier of the network (e.g., 'mainnet').
  * @param {Array} eventsData - The array of event data from a transaction payload.
- * @param {string} payloadHash - The hash of the payload containing these events.
  * @param {TransactionAttributes} transactionAttributes - Transaction attributes associated with the events.
  * @param {any} receiptInfo - Receipt information associated with the events.
  * @returns {Promise<TransferAttributes[]>} A Promise that resolves to an array of transfer attributes specifically for coin transfers.
@@ -89,7 +85,6 @@ const requests: Record<string, undefined | boolean> = {};
 export function getCoinTransfers(
   network: string,
   eventsData: any,
-  payloadHash: string,
   transactionAttributes: TransactionAttributes,
   receiptInfo: any,
 ) {
@@ -143,7 +138,6 @@ export function getCoinTransfers(
       const amount = params[2];
       return {
         amount: amount,
-        payloadHash: payloadHash,
         chainId: transactionAttributes.chainId,
         from_acct: from_acct,
         modulehash: eventData.moduleHash,

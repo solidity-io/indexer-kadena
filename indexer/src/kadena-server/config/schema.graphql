@@ -563,7 +563,6 @@ type TransactionResult {
 
     # Identifier to retrieve the logs for the execution of the transaction.
     logs: String
-    metadata: String
     transactionId: BigInt
 
     block: Block!

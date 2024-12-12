@@ -1,6 +1,11 @@
 import Block, { BlockAttributes } from "../../models/block";
 import { SOURCE_API, SOURCE_BACKFILL } from "../../models/syncStatus";
-import { createSignal, delay, getRequiredEnvNumber } from "../../utils/helpers";
+import {
+  createSignal,
+  delay,
+  getRequiredEnvNumber,
+  uint64ToInt64,
+} from "../../utils/helpers";
 import { readAndParseS3Object } from "../s3Service";
 import { syncErrorService } from "../syncErrorService";
 import { processKeys } from "../syncService";
@@ -10,6 +15,7 @@ import { register } from "../../server/metrics";
 import { Histogram } from "prom-client";
 import { fetchHeaders } from "./fetch";
 import { DispatchInfo, startPublisher } from "../../jobs/publisher-job";
+import { Transaction } from "sequelize";
 
 const shutdownSignal = createSignal();
 const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
@@ -270,6 +276,7 @@ export async function processS3Headers(network: string): Promise<void> {
 export async function processHeaderKey(
   network: string,
   key: string,
+  tx?: Transaction,
 ): Promise<DispatchInfo | null> {
   const parsedData = await readAndParseS3Object(key);
 
@@ -299,7 +306,7 @@ export async function processHeaderKey(
       height: headerData.height,
       chainwebVersion: headerData.chainwebVersion,
       epochStart: headerData.epochStart,
-      featureFlags: headerData.featureFlags,
+      featureFlags: uint64ToInt64(headerData.featureFlags),
       hash: headerData.hash,
       minerData: payloadData.minerData,
       transactionsHash: payloadData.transactionsHash,
@@ -308,9 +315,11 @@ export async function processHeaderKey(
       transactionsCount: transactions.length,
     } as BlockAttributes;
 
-    const createdBlock = await Block.create(blockAttribute);
+    const createdBlock = await Block.create(blockAttribute, {
+      transaction: tx,
+    });
 
-    await processPayloadKey(network, createdBlock, payloadData);
+    await processPayloadKey(network, createdBlock, payloadData, tx);
 
     const txs: Array<{
       requestKey: string;

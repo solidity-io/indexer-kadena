@@ -138,7 +138,6 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.code as code,
       t.logs as "logs",
       t.result as "result",
-      t.metadata as "metadata",
       t.requestkey as "requestKey"
       FROM "Blocks" b
       JOIN "Transactions" t on b.id = t."blockId"
@@ -182,7 +181,6 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.code as code,
       t.logs as "logs",
       t.result as "result",
-      t.metadata as "metadata",
       t.requestkey as "requestKey"
       FROM "Transactions" t
       JOIN "Blocks" b on t."blockId" = b.id
@@ -256,7 +254,6 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.data as data,
       t.code as code,
       t.logs as "logs",
-      t.metadata as "metadata",
       t.requestkey as "requestKey"
       FROM "Transactions" t
       JOIN "Blocks" b on t."blockId" = b.id 
@@ -310,7 +307,6 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.data as data,
       t.code as code,
       t.logs as "logs",
-      t.metadata as "metadata",
       t.result as "result",
       t.requestkey as "requestKey"
       FROM "Transactions" t
@@ -476,7 +472,6 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.code as code,
       t.logs as "logs",
       t.result as "result",
-      t.metadata as "metadata",
       e.id as "eventId",
       t.requestkey as "requestKey"
       FROM "Transactions" t

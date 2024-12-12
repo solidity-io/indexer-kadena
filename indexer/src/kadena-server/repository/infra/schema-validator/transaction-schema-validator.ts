@@ -16,7 +16,6 @@ const schema = zod.object({
   gas: zod.string(),
   height: zod.number(),
   logs: zod.string(),
-  metadata: zod.any(),
   code: zod.any(),
   data: zod.any(),
   pactId: zod.string().nullable(),
@@ -53,7 +52,6 @@ function validate(row: any): TransactionOutput {
       goodResult: isSuccess ? res.result.data : null,
       height: res.height,
       logs: res.logs,
-      metadata: res.metadata,
     },
     cmd: {
       payload: {
