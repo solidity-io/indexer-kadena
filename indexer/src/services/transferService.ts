@@ -1,4 +1,4 @@
-import { Transaction } from "sequelize";
+import { Transaction, TransactionOptions } from "sequelize";
 import Transfer, { TransferAttributes } from "../models/transfer";
 
 export class TransferService {
@@ -12,7 +12,7 @@ export class TransferService {
    * and a boolean indicating whether a new transfer was created (true) or an existing transfer was updated (false).
    */
   async save(
-    transferData: TransferAttributes
+    transferData: TransferAttributes,
   ): Promise<[TransferAttributes, boolean]> {
     try {
       const parsedData = {
@@ -38,12 +38,10 @@ export class TransferService {
    */
   async saveMany(
     transfersData: TransferAttributes[],
-    options?: Transaction
+    txOptions?: TransactionOptions,
   ): Promise<void> {
     try {
-      await Transfer.bulkCreate(transfersData, {
-        transaction: options,
-      });
+      await Transfer.bulkCreate(transfersData, txOptions);
     } catch (error) {
       console.error("Error saving transfers to database:", error);
       throw error;

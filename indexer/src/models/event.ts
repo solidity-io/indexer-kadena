@@ -5,13 +5,10 @@ import Transaction, { TransactionAttributes } from "./transaction";
 export interface EventAttributes {
   id: number;
   transactionId: number;
-  payloadHash: string;
   chainId: number;
   module: string;
-  modulehash: string;
   name: string;
   params: object;
-  paramtext: object;
   qualname: string;
   requestkey: string;
   orderIndex: number;
@@ -27,26 +24,17 @@ class Event extends Model<EventAttributes> implements EventAttributes {
   /** The ID of the associated transaction (e.g., 4134355). */
   declare transactionId: number;
 
-  /** The payload hash of the event (e.g., "3NzEURi0GMMMEwbAbNMrjAwoPR7hDwLROe5aLityoBo"). */
-  declare payloadHash: string;
-
   /** The ID of the blockchain network (e.g., 0). */
   declare chainId: number;
 
   /** The module associated with the event (e.g., "coin"). */
   declare module: string;
 
-  /** The hash of the module (e.g., "klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s"). */
-  declare modulehash: string;
-
   /** The name of the event (e.g., "TRANSFER"). */
   declare name: string;
 
   /** The parameters of the event (e.g., ["k:ec48fcadd0649a4230800668ca5bb17d1a91f14daf87a56cb954964055994031", "k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3", 0.000969]). */
   declare params: object;
-
-  /** The text representation of the parameters (e.g., ["k:ec48fcadd0649a4230800668ca5bb17d1a91f14daf87a56cb954964055994031", "k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3", 0.000969]). */
-  declare paramtext: object;
 
   /** The qualified name of the event (e.g., "coin"). */
   declare qualname: string;
@@ -71,12 +59,6 @@ Event.init(
       allowNull: true,
       comment: "The ID of the associated transaction (e.g., 4134355).",
     },
-    payloadHash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      comment:
-        "The payload hash of the event (e.g., '3NzEURi0GMMMEwbAbNMrjAwoPR7hDwLROe5aLityoBo').",
-    },
     chainId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -86,12 +68,6 @@ Event.init(
       type: DataTypes.STRING,
       allowNull: false,
       comment: "The module associated with the event (e.g., 'coin').",
-    },
-    modulehash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      comment:
-        "The hash of the module (e.g., 'klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s').",
     },
     name: {
       type: DataTypes.STRING,
@@ -103,12 +79,6 @@ Event.init(
       allowNull: false,
       comment:
         "The parameters of the event (e.g., ['k:ec48fcadd0649a4230800668ca5bb17d1a91f14daf87a56cb954964055994031', 'k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3', 0.000969]).",
-    },
-    paramtext: {
-      type: DataTypes.JSONB,
-      allowNull: false,
-      comment:
-        "The text representation of the parameters (e.g., ['k:ec48fcadd0649a4230800668ca5bb17d1a91f14daf87a56cb954964055994031', 'k:e7f7130f359fb1f8c87873bf858a0e9cbc3c1059f62ae715ec72e760b055e9f3', 0.000969]).",
     },
     qualname: {
       type: DataTypes.STRING,

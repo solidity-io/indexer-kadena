@@ -9,7 +9,6 @@ export interface TransferAttributes {
   transactionId: number;
   type: string;
   amount: number;
-  payloadHash: string;
   chainId: number;
   from_acct: string;
   modulehash: string;
@@ -38,9 +37,6 @@ class Transfer extends Model<TransferAttributes> implements TransferAttributes {
 
   /** The amount transferred (e.g., 0.0003112). */
   declare amount: number;
-
-  /** The payload hash of the transfer (e.g., "UVboyJrggtoJBUSgCvTfCMrfGjxiZ7tvRQ_k_f5Mr6I"). */
-  declare payloadHash: string;
 
   /** The ID of the blockchain network (e.g., 0). */
   declare chainId: number;
@@ -98,12 +94,6 @@ Transfer.init(
       type: DataTypes.DECIMAL,
       allowNull: false,
       comment: "The amount transferred (e.g., 0.0003112).",
-    },
-    payloadHash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      comment:
-        "The payload hash of the transfer (e.g., 'UVboyJrggtoJBUSgCvTfCMrfGjxiZ7tvRQ_k_f5Mr6I').",
     },
     chainId: {
       type: DataTypes.INTEGER,

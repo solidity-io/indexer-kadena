@@ -19,8 +19,8 @@ import {
 } from "../models/syncStatus";
 
 import { addPublishEvents, DispatchInfo } from "../jobs/publisher-job";
-
-import { fetchHeadersWithRetryForBackfill } from "./sync/backfill";
+import { sequelize } from "../config/database";
+import { Transaction } from "sequelize";
 
 const SYNC_MIN_HEIGHT = getRequiredEnvNumber("SYNC_MIN_HEIGHT");
 const SYNC_FETCH_INTERVAL_IN_BLOCKS = getRequiredEnvNumber(
@@ -42,6 +42,7 @@ const shutdownSignal = createSignal();
 type ProcessKeyFunction = (
   network: string,
   key: string,
+  tx: Transaction,
 ) => Promise<DispatchInfo | null>;
 
 /**
@@ -68,6 +69,7 @@ export async function processKeys(
 ): Promise<number> {
   let totalKeysProcessed = 0;
 
+  const tx = await sequelize.transaction();
   try {
     const lastSync = await syncStatusService.findWithPrefix(
       chainId,
@@ -85,7 +87,7 @@ export async function processKeys(
       if (keys.length > 0) {
         const res = await Promise.all(
           keys.map(async (key) => {
-            return processKey(network, key);
+            return processKey(network, key, tx);
           }),
         );
         addPublishEvents(res.filter((r) => r !== null) as DispatchInfo[]);
@@ -97,14 +99,19 @@ export async function processKeys(
       }
     }
 
-    await syncStatusService.save({
-      chainId: chainId,
-      network: network,
-      key: startAfter,
-      prefix: prefix,
-      source: SOURCE_S3,
-    } as any);
+    await syncStatusService.save(
+      {
+        chainId: chainId,
+        network: network,
+        key: startAfter,
+        prefix: prefix,
+        source: SOURCE_S3,
+      } as any,
+      tx,
+    );
+    await tx.commit();
   } catch (error) {
+    await tx.rollback();
     console.error("Error processing block headers from storage:", error);
   }
 
@@ -130,12 +137,15 @@ export async function processKeys(
  */
 export async function startBackFill(
   network: string,
-  offset = 0,
+  chainId = 0,
 ): Promise<void> {
   try {
     console.log("Starting filling...");
-    const [chain] = (await getLastSync(network)).slice(0 + offset, 1 + offset);
-
+    const chains = await getLastSync(network);
+    const chain = chains.find((c) => c.chainId === chainId);
+    if (!chain) {
+      throw new Error("Chain not found in the list of chains.");
+    }
     console.info(
       "Starting backfill process for chain: ",
       chain,
@@ -154,7 +164,7 @@ export async function startBackFill(
 
       const start = new Date().getTime();
 
-      const counters = await fetchHeadersWithRetryForBackfill(
+      const counters = await fetchHeadersWithRetry(
         network,
         chain.chainId,
         nextHeight,
@@ -177,7 +187,7 @@ export async function startBackFill(
 
     console.log("All chains have been processed to the minimum height.");
   } catch (error) {
-    console.error("Error during backfilling:", error);
+    console.error("Error during backfilling: ", error);
   }
 }
 

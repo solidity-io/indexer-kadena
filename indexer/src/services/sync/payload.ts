@@ -13,7 +13,6 @@ import { SOURCE_API } from "../../models/syncStatus";
 import { saveHeader } from "../s3Service";
 import { fetchPayloads } from "./fetch";
 import Signer from "../../models/signer";
-import { publicKeysAccountService } from "../publicKeysAccountService";
 
 const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
 const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
@@ -37,7 +36,7 @@ export async function fetchAndSavePayloadWithRetry(
     [payloadHash],
   );
 
-  if (payload.length === 0) {
+  if (!payload?.length) {
     console.error("No payload found for height and chain:", {
       height,
       chainId,
@@ -63,42 +62,22 @@ export async function processPayloadKey(
   network: string,
   block: BlockAttributes,
   payloadData: any,
-  options?: Transaction,
+  tx?: Transaction,
 ) {
-  const payloadHash = payloadData.payloadHash;
   const transactions = payloadData.transactions || [];
 
   const transactionPromises = transactions.map((transactionArray: any) =>
-    processTransaction(transactionArray, block, payloadHash, network, options),
+    processTransaction(transactionArray, block, network, tx),
   );
 
   await Promise.all(transactionPromises);
-
-  // will be disabled during the backfill process
-  // const end = new Date().getTime();
-  // const time = end - start;
-
-  // if (transactions.length > 0) {
-  //   console.log(
-  //     "Chain Id:",
-  //     block.chainId,
-  //     "| Height:",
-  //     block.height,
-  //     "| Number of transactions:",
-  //     transactions.length,
-  //     "| Average time per transaction:",
-  //     time / transactions.length,
-  //     "ms",
-  //   );
-  // }
 }
 
 export async function processTransaction(
   transactionArray: any,
   block: BlockAttributes,
-  payloadHash: string,
   network: string,
-  options?: Transaction,
+  tx?: Transaction,
 ) {
   const transactionInfo = transactionArray[TRANSACTION_INDEX];
   const receiptInfo = transactionArray[RECEIPT_INDEX];
@@ -111,49 +90,47 @@ export async function processTransaction(
     console.error(
       `Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`,
     );
+    throw error;
   }
 
+  let nonce = (cmdData.Nonce || "").replace(/\\"/g, "");
+  nonce = nonce.replace(/"/g, "");
   const eventsData = receiptInfo.events || [];
   const transactionAttributes = {
     blockId: block.id,
-    payloadHash: payloadHash,
-    code: cmdData.payload.exec ? cmdData.payload.exec.code : null,
-    data: cmdData.payload.exec ? cmdData.payload.exec.data : null,
+    code: cmdData.payload.exec ? cmdData.payload?.exec?.code : {},
+    data: cmdData.payload.exec ? cmdData.payload?.exec?.data : {},
     chainId: cmdData.meta.chainId,
-    creationtime: cmdData.meta.creationTime,
+    creationtime: cmdData.meta.creationTime.toString(),
     gaslimit: cmdData.meta.gasLimit,
     gasprice: cmdData.meta.gasPrice,
     hash: transactionInfo.hash,
-    nonce: cmdData.nonce || "",
-    pactid: receiptInfo.continuation?.pactId || "",
-    continuation: receiptInfo.continuation || "",
+    nonce,
+    pactid: receiptInfo.continuation?.pactId || null,
+    continuation: receiptInfo.continuation || {},
     gas: receiptInfo.gas,
     result: receiptInfo.result || null,
     logs: receiptInfo.logs || null,
-    metadata: receiptInfo.metaData || null,
     num_events: eventsData ? eventsData.length : 0,
     requestkey: receiptInfo.reqKey,
     rollback: receiptInfo.result
       ? receiptInfo.result.status != "success"
       : true,
-    sender: cmdData.meta.sender || null,
+    sender: cmdData?.meta?.sender || null,
     sigs: sigsData,
-    step: receiptInfo.step || null,
+    step: cmdData?.payload?.cont?.step || 0,
     ttl: cmdData.meta.ttl,
     txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
   } as TransactionAttributes;
 
   const eventsAttributes = eventsData.map((eventData: any) => {
     return {
-      payloadHash: payloadHash,
       chainId: transactionAttributes.chainId,
       module: eventData.module.namespace
         ? `${eventData.module.namespace}.${eventData.module.name}`
         : eventData.module.name,
-      modulehash: eventData.moduleHash,
       name: eventData.name,
       params: eventData.params,
-      paramtext: eventData.params,
       qualname: eventData.module.namespace
         ? `${eventData.module.namespace}.${eventData.module.name}`
         : eventData.module.name,
@@ -164,7 +141,6 @@ export async function processTransaction(
   const transfersCoinAttributes = await getCoinTransfers(
     network,
     eventsData,
-    payloadHash,
     transactionAttributes,
     receiptInfo,
   );
@@ -173,7 +149,6 @@ export async function processTransaction(
     network,
     transactionAttributes.chainId,
     eventsData,
-    payloadHash,
     transactionAttributes,
     receiptInfo,
   );
@@ -185,7 +160,7 @@ export async function processTransaction(
   try {
     let transactionInstance = await transactionService.save(
       transactionAttributes,
-      options,
+      { transaction: tx },
     );
 
     let transactionId = transactionInstance.id;
@@ -195,23 +170,20 @@ export async function processTransaction(
       transactionId: transactionId,
     })) as EventAttributes[];
 
-    await eventService.saveMany(eventsWithTransactionId, options);
+    await eventService.saveMany(eventsWithTransactionId, { transaction: tx });
 
-    const signers = cmdData.signers.map((signer: any, index: number) => ({
-      pubkey: signer.pubKey,
-      clist: signer.clist,
-      orderIndex: index,
-      transactionId: transactionId,
-    }));
-
-    await Signer.bulkCreate(signers);
-
-    await publicKeysAccountService.saveMany(
-      cmdData.payload?.exec?.data?.keyset?.keys ?? [],
-      transfersAttributes,
-      transactionAttributes.chainId,
-      options,
+    const signers = (cmdData.signers ?? []).map(
+      (signer: any, index: number) => ({
+        address: signer.address,
+        orderIndex: index,
+        pubkey: signer.pubKey,
+        clist: signer.clist,
+        scheme: signer.scheme,
+        transactionId: transactionId,
+      }),
     );
+
+    await Signer.bulkCreate(signers, { transaction: tx });
 
     const transfersWithTransactionId = transfersAttributes.map((transfer) => ({
       ...transfer,
@@ -220,7 +192,9 @@ export async function processTransaction(
       transactionId: transactionId,
     })) as TransferAttributes[];
 
-    await transferService.saveMany(transfersWithTransactionId, options);
+    await transferService.saveMany(transfersWithTransactionId, {
+      transaction: tx,
+    });
   } catch (error) {
     console.error(`Error saving transaction to the database: ${error}`);
   }
@@ -246,7 +220,7 @@ export async function fetchPayloadWithRetry(
   try {
     const payloads = await fetchPayloads(network, chainId, payloadHashes);
 
-    if (payloads.length === 0) {
+    if (payloads?.length) {
       throw new Error("No payloads found, retrying...");
     }
 

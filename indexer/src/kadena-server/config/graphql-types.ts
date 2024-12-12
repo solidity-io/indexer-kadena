@@ -781,7 +781,6 @@ export type TransactionResult = {
   goodResult?: Maybe<Scalars['String']['output']>;
   height: Scalars['BigInt']['output'];
   logs?: Maybe<Scalars['String']['output']>;
-  metadata?: Maybe<Scalars['String']['output']>;
   transactionId?: Maybe<Scalars['BigInt']['output']>;
   transfers: TransactionResultTransfersConnection;
 };
@@ -1563,7 +1562,6 @@ export type TransactionResultResolvers<ContextType = any, ParentType extends Res
   goodResult?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   height?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   logs?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  metadata?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   transactionId?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
   transfers?: Resolver<ResolversTypes['TransactionResultTransfersConnection'], ParentType, ContextType, RequireFields<TransactionResultTransfersArgs, 'first' | 'last'>>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

@@ -1,32 +1,28 @@
 import { Model, DataTypes, Optional } from "sequelize";
 import { sequelize } from "../config/database";
 
-export interface PublicKeysAccountAttributes {
+export interface GuardAttributes {
   id: number;
   publicKey: string;
   chainId: string;
   account: string;
-  module: string;
+  predicate: string;
 }
 
-interface PublicKeysAccountCreationAttributes
-  extends Optional<PublicKeysAccountAttributes, "id"> {}
+interface GuardCreationAttributes extends Optional<GuardAttributes, "id"> {}
 
-class PublicKeysAccount
-  extends Model<
-    PublicKeysAccountAttributes,
-    PublicKeysAccountCreationAttributes
-  >
-  implements PublicKeysAccountAttributes
+class Guard
+  extends Model<GuardAttributes, GuardCreationAttributes>
+  implements GuardAttributes
 {
   public id!: number;
   public publicKey!: string;
   public chainId!: string;
   public account!: string;
-  public module!: string;
+  public predicate!: string;
 }
 
-PublicKeysAccount.init(
+Guard.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -40,7 +36,7 @@ PublicKeysAccount.init(
       comment: "The public key associated with the account",
     },
     chainId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false,
       comment: "The chain ID associated with the account",
     },
@@ -49,18 +45,19 @@ PublicKeysAccount.init(
       allowNull: false,
       comment: "The account associated with the public key",
     },
-    module: {
+    predicate: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: "The module associated with the public key",
+      comment:
+        "The predicate associated with the account, public key and chain",
     },
   },
   {
     sequelize,
-    modelName: "PublicKeysAccount",
-    tableName: "PublicKeysAccounts", // optional, specifies the table name
+    modelName: "Guard",
+    tableName: "Guards", // optional, specifies the table name
     timestamps: true, // automatically adds `createdAt` and `updatedAt` fields
   },
 );
 
-export default PublicKeysAccount;
+export default Guard;

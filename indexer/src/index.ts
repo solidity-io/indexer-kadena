@@ -14,7 +14,8 @@ import { startStreaming } from "./services/sync/streaming";
 import { processS3HeadersDaemon } from "./services/sync/header";
 import { usePostgraphile, useKadenaExtension } from "./server/metrics";
 import { useKadenaGraphqlServer } from "./kadena-server/server";
-import { closeDatabase, initializeDatabase } from "./config/database";
+import { closeDatabase } from "./config/database";
+import { initializeDatabase } from "./config/init";
 
 program
   .option("-s, --streaming", "Start streaming blockchain data")

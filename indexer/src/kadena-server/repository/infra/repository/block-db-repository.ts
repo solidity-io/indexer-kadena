@@ -35,7 +35,7 @@ export default class BlockDbRepository implements BlockRepository {
         ...(!!chainIds?.length && { chainId: { [Op.in]: chainIds } }),
       },
       limit: before ? last : first,
-      order: [["id", before ? "DESC" : "ASC"]],
+      order: [["height", before ? "DESC" : "ASC"]],
     };
 
     const rows = await BlockModel.findAll(query);
@@ -66,7 +66,7 @@ export default class BlockDbRepository implements BlockRepository {
         ...(!!chainIds?.length && { chainId: { [Op.in]: chainIds } }),
       },
       limit: before ? last : first,
-      order: [["id", before ? "DESC" : "ASC"]],
+      order: [["height", before ? "DESC" : "ASC"]],
     };
 
     const rows = await BlockModel.findAll(query);
@@ -184,7 +184,7 @@ export default class BlockDbRepository implements BlockRepository {
           WHERE "chainId" = ANY($2)
           AND (height = ANY($3) OR height > $4)
           ${conditions}
-          ORDER BY id ${before ? "DESC" : "ASC"}
+          ORDER BY height ${before ? "DESC" : "ASC"}
           LIMIT $1
         `;
 
@@ -245,7 +245,7 @@ export default class BlockDbRepository implements BlockRepository {
       WHERE "chainId" = ANY($2)
       AND height = ANY($3)
       ${conditions}
-      ORDER BY id ${before ? "DESC" : "ASC"}
+      ORDER BY height ${before ? "DESC" : "ASC"}
       LIMIT $1
     `;
 

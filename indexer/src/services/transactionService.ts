@@ -1,5 +1,5 @@
 import TransactionModel, { TransactionAttributes } from "../models/transaction";
-import { Transaction } from "sequelize";
+import { Transaction, TransactionOptions } from "sequelize";
 
 export class TransactionService {
   /**
@@ -13,16 +13,14 @@ export class TransactionService {
    */
   async save(
     transactionData: TransactionAttributes,
-    options?: Transaction
+    txOptions?: TransactionOptions,
   ): Promise<TransactionAttributes> {
     try {
       const parsedData = {
         ...transactionData,
       };
 
-      const tx = await TransactionModel.create(parsedData, {
-        transaction: options,
-      });
+      const tx = await TransactionModel.create(parsedData, txOptions);
       return tx.toJSON();
     } catch (error) {
       console.error("Error saving transaction to database:", error);
