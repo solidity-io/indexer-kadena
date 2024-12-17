@@ -197,6 +197,10 @@ Block.init(
         fields: ["height"],
       },
       {
+        name: "blocks_hash_idx",
+        fields: ["hash"],
+      },
+      {
         name: "blocks_chainid_height_idx",
         fields: ["chainId", "height"],
       },

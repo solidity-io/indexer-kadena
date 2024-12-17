@@ -1,11 +1,6 @@
 import Block, { BlockAttributes } from "../../models/block";
 import { SOURCE_API, SOURCE_BACKFILL } from "../../models/syncStatus";
-import {
-  createSignal,
-  delay,
-  getRequiredEnvNumber,
-  uint64ToInt64,
-} from "../../utils/helpers";
+import { createSignal, delay, getRequiredEnvNumber } from "../../utils/helpers";
 import { readAndParseS3Object } from "../s3Service";
 import { syncErrorService } from "../syncErrorService";
 import { processKeys } from "../syncService";
@@ -16,6 +11,7 @@ import { Histogram } from "prom-client";
 import { fetchHeaders } from "./fetch";
 import { DispatchInfo, startPublisher } from "../../jobs/publisher-job";
 import { Transaction } from "sequelize";
+import { uint64ToInt64 } from "../../utils/int-uint-64";
 
 const shutdownSignal = createSignal();
 const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
