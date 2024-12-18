@@ -26,9 +26,6 @@ const SYNC_MIN_HEIGHT = getRequiredEnvNumber("SYNC_MIN_HEIGHT");
 const SYNC_FETCH_INTERVAL_IN_BLOCKS = getRequiredEnvNumber(
   "SYNC_FETCH_INTERVAL_IN_BLOCKS",
 );
-const SYNC_TIME_BETWEEN_REQUESTS_IN_MS = getRequiredEnvNumber(
-  "SYNC_TIME_BETWEEN_REQUESTS_IN_MS",
-);
 
 const shutdownSignal = createSignal();
 
@@ -116,79 +113,6 @@ export async function processKeys(
   }
 
   return totalKeysProcessed;
-}
-
-/**
- * Initiates the process of synchronizing blockchain data from a specific point, either from the latest block cut or from the
- * last recorded synchronization status for each chain.
- *
- * The synchronization process involves the following steps:
- * 1. Fetching the latest cut from the Chainweb network to determine the current highest block heights across all chains.
- * 2. Retrieving the last synchronization status for all chains to identify the starting point of the fill process.
- *    If no previous synchronization status is found for a chain, the process starts from the height provided by the latest cut.
- * 3. Processing each chain individually in a round-robin fashion, fetching headers and their corresponding payloads from
- *    the last height down to a specified minimum height. This ensures that the load is evenly distributed across all chains and
- *    that the system remains responsive during the synchronization process.
- * 4. For each chain, headers and payloads are fetched in descending order (from higher blocks to lower blocks), allowing for
- *    efficient catch-up to the current state of the blockchain.
- * 5. The process continues iteratively, moving through each chain in turn, until all chains have reached the minimum required block height.
- *
- * @param {string} network - The identifier of the Chainweb network from which to synchronize data (e.g., 'mainnet01').
- */
-export async function startBackFill(
-  network: string,
-  chainId = 0,
-): Promise<void> {
-  try {
-    console.log("Starting filling...");
-    const chains = await getLastSync(network);
-    const chain = chains.find((c) => c.chainId === chainId);
-    if (!chain) {
-      throw new Error("Chain not found in the list of chains.");
-    }
-    console.info(
-      "Starting backfill process for chain: ",
-      chain,
-      SYNC_MIN_HEIGHT,
-    );
-    while (chain.currentHeight > SYNC_MIN_HEIGHT) {
-      console.info(`Processing chain:`, {
-        chainId: chain.chainId,
-        currentHeight: chain.currentHeight,
-      });
-
-      let nextHeight = Math.max(
-        chain.currentHeight - SYNC_FETCH_INTERVAL_IN_BLOCKS,
-        SYNC_MIN_HEIGHT + 1,
-      );
-
-      const start = new Date().getTime();
-
-      const counters = await fetchHeadersWithRetry(
-        network,
-        chain.chainId,
-        nextHeight,
-        chain.currentHeight,
-      );
-
-      chain.currentHeight = nextHeight - 1;
-
-      const end = new Date().getTime();
-      const time = end - start;
-      console.log(
-        {
-          chainId: chain.chainId,
-          currentHeight: chain.currentHeight,
-        },
-        `processed in ${time / 1000}s.`,
-      );
-      console.log("Counters: ", counters);
-    }
-
-    console.log("All chains have been processed to the minimum height.");
-  } catch (error) {
-    console.error("Error during backfilling: ", error);
-  }
 }
 
 /**

@@ -1,10 +1,9 @@
 import { BlockAttributes } from "../../models/block";
-import { TransactionAttributes } from "../../models/transaction";
-import { EventAttributes } from "../../models/event";
-import { TransferAttributes } from "../../models/transfer";
-import { transactionService } from "../transactionService";
-import { eventService } from "../eventService";
-import { transferService } from "../transferService";
+import TransactionModel, {
+  TransactionAttributes,
+} from "../../models/transaction";
+import Event, { EventAttributes } from "../../models/event";
+import Transfer, { TransferAttributes } from "../../models/transfer";
 import { getNftTransfers, getCoinTransfers } from "./transfers";
 import { Transaction } from "sequelize";
 import { delay, getDecoded, getRequiredEnvNumber } from "../../utils/helpers";
@@ -158,19 +157,18 @@ export async function processTransaction(
     .filter((transfer) => transfer.amount !== undefined);
 
   try {
-    let transactionInstance = await transactionService.save(
+    const { id: transactionId } = await TransactionModel.create(
       transactionAttributes,
-      { transaction: tx },
+      {
+        transaction: tx,
+      },
     );
-
-    let transactionId = transactionInstance.id;
 
     const eventsWithTransactionId = eventsAttributes.map((event) => ({
       ...event,
-      transactionId: transactionId,
+      transactionId,
     })) as EventAttributes[];
-
-    await eventService.saveMany(eventsWithTransactionId, { transaction: tx });
+    await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
 
     const signers = (cmdData.signers ?? []).map(
       (signer: any, index: number) => ({
@@ -179,20 +177,16 @@ export async function processTransaction(
         pubkey: signer.pubKey,
         clist: signer.clist,
         scheme: signer.scheme,
-        transactionId: transactionId,
+        transactionId,
       }),
     );
-
     await Signer.bulkCreate(signers, { transaction: tx });
 
     const transfersWithTransactionId = transfersAttributes.map((transfer) => ({
       ...transfer,
-      tokenId: transfer.tokenId,
-      contractId: transfer.contractId,
-      transactionId: transactionId,
+      transactionId,
     })) as TransferAttributes[];
-
-    await transferService.saveMany(transfersWithTransactionId, {
+    await Transfer.bulkCreate(transfersWithTransactionId, {
       transaction: tx,
     });
   } catch (error) {
