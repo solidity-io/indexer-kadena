@@ -7,7 +7,7 @@ export const fungibleAccountQueryResolver: QueryResolvers<ResolverContext>["fung
     console.log("fungibleAccountQueryResolver");
     const account = await context.balanceRepository.getAccountInfo(
       args.accountName,
-      args.fungibleName
+      args.fungibleName,
     );
     return buildFungibleAccount(account);
   };

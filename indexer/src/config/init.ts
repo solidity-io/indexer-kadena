@@ -148,75 +148,75 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   EXECUTE FUNCTION update_balances();
   `);
 
-    console.log('Sync public."Balances"...');
+    //   console.log('Sync public."Balances"...');
 
-    // Create the balances table
-    await sequelize.query(`
-    CREATE TABLE IF NOT EXISTS public."Balances" (
-      id serial4 NOT NULL,
-      account varchar(255) NOT NULL,
-      "chainId" int4 NOT NULL,
-      balance numeric(50) DEFAULT 0 NOT NULL,
-      "module" varchar(255) NOT NULL,
-      qualname varchar(255) NOT NULL,
-      "tokenId" varchar(255) NULL,
-      network varchar(255) NOT NULL,
-      "hasTokenId" boolean DEFAULT false NOT NULL,
-      "contractId" int4 NULL,
-      "createdAt" timestamptz NOT NULL,
-      "updatedAt" timestamptz NOT NULL,
-      CONSTRAINT "Balances_pkey" PRIMARY KEY (id)
-    );
-    
-    DO $$
-    BEGIN
-        IF NOT EXISTS (
-            SELECT 1
-            FROM pg_indexes
-            WHERE schemaname = 'public'
-              AND tablename = 'Balances'
-              AND indexname = 'balance_unique_constraint'
-        ) THEN
-            CREATE UNIQUE INDEX balance_unique_constraint ON public."Balances" USING btree (network, "chainId", account, qualname, "tokenId");
-        END IF;
-    END $$;
-  `);
+    //   // Create the balances table
+    //   await sequelize.query(`
+    //   CREATE TABLE IF NOT EXISTS public."Balances" (
+    //     id serial4 NOT NULL,
+    //     account varchar(255) NOT NULL,
+    //     "chainId" int4 NOT NULL,
+    //     balance numeric(50) DEFAULT 0 NOT NULL,
+    //     "module" varchar(255) NOT NULL,
+    //     qualname varchar(255) NOT NULL,
+    //     "tokenId" varchar(255) NULL,
+    //     network varchar(255) NOT NULL,
+    //     "hasTokenId" boolean DEFAULT false NOT NULL,
+    //     "contractId" int4 NULL,
+    //     "createdAt" timestamptz NOT NULL,
+    //     "updatedAt" timestamptz NOT NULL,
+    //     CONSTRAINT "Balances_pkey" PRIMARY KEY (id)
+    //   );
+
+    //   DO $$
+    //   BEGIN
+    //       IF NOT EXISTS (
+    //           SELECT 1
+    //           FROM pg_indexes
+    //           WHERE schemaname = 'public'
+    //             AND tablename = 'Balances'
+    //             AND indexname = 'balance_unique_constraint'
+    //       ) THEN
+    //           CREATE UNIQUE INDEX balance_unique_constraint ON public."Balances" USING btree (network, "chainId", account, qualname, "tokenId");
+    //       END IF;
+    //   END $$;
+    // `);
 
     // --------------------------------
     // Missing blocks
     // --------------------------------
 
-    console.log("Sync missing_block_ranges...");
+    // console.log("Sync missing_block_ranges...");
 
-    // Create missing blocks view
-    await sequelize.query(`
-  CREATE OR REPLACE VIEW missing_block_ranges AS
-  WITH missing_ranges AS (
-    SELECT DISTINCT 
-      "chainId", 
-      "chainwebVersion", 
-      height + 1 AS missing_start, 
-      next_height - 1 AS missing_end
-    FROM (
-      SELECT 
-        "chainId", 
-        "chainwebVersion", 
-        height, 
-        LEAD(height) OVER (PARTITION BY "chainId", "chainwebVersion" ORDER BY height) AS next_height
-      FROM "Blocks"
-    ) AS t
-    WHERE next_height IS NOT NULL AND next_height <> height + 1
-  )
-  SELECT DISTINCT 
-    "chainId", 
-    "chainwebVersion", 
-    missing_start AS from_height, 
-    missing_end AS to_height, 
-    (missing_end - missing_start) AS diff
-  FROM missing_ranges
-  where (missing_end - missing_start) >= 0
-  ORDER BY "chainId", "chainwebVersion", missing_start ASC;
-  `);
+    //   // Create missing blocks view
+    //   await sequelize.query(`
+    // CREATE OR REPLACE VIEW missing_block_ranges AS
+    // WITH missing_ranges AS (
+    //   SELECT DISTINCT
+    //     "chainId",
+    //     "chainwebVersion",
+    //     height + 1 AS missing_start,
+    //     next_height - 1 AS missing_end
+    //   FROM (
+    //     SELECT
+    //       "chainId",
+    //       "chainwebVersion",
+    //       height,
+    //       LEAD(height) OVER (PARTITION BY "chainId", "chainwebVersion" ORDER BY height) AS next_height
+    //     FROM "Blocks"
+    //   ) AS t
+    //   WHERE next_height IS NOT NULL AND next_height <> height + 1
+    // )
+    // SELECT DISTINCT
+    //   "chainId",
+    //   "chainwebVersion",
+    //   missing_start AS from_height,
+    //   missing_end AS to_height,
+    //   (missing_end - missing_start) AS diff
+    // FROM missing_ranges
+    // where (missing_end - missing_start) >= 0
+    // ORDER BY "chainId", "chainwebVersion", missing_start ASC;
+    // `);
 
     // --------------------------------
     // Orphan blocks
@@ -268,72 +268,72 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
     $function$
     ;`);
 
-    console.log("Sync public.check_backward_orphans()...");
+    //   console.log("Sync public.check_backward_orphans()...");
 
-    // Create the check backward orphans function
-    await sequelize.query(`
-  CREATE OR REPLACE FUNCTION public.check_backward_orphans()
-   RETURNS trigger
-   LANGUAGE plpgsql
-  AS $function$
-  DECLARE
-      recent_blocks RECORD;
-      previous_block RECORD;
-      first_block RECORD;
-      block_count INT := 0;
-      depth CONSTANT INT := 10; -- Default the depth constant
-      buffer CONSTANT INT := 5; -- Number of heights to buffer, because some blocks can arrive out of order
-  BEGIN
-      PERFORM pg_advisory_xact_lock(hashtext(NEW."chainId"::text || NEW."chainwebVersion"::text));
-  
-      -- Check the last 'depth' blocks
-      FOR recent_blocks IN 
-          SELECT * FROM public."Blocks"
-          WHERE height BETWEEN (NEW.height - buffer - depth) AND (NEW.height - buffer - 1)
-              AND "chainId" = NEW."chainId"
-              AND "chainwebVersion" = NEW."chainwebVersion"
-              AND COALESCE(canonical, TRUE)
-          ORDER BY height ASC
-          FOR NO KEY UPDATE
-      LOOP
-          -- Set the first block
-          IF block_count = 0 THEN
-              first_block := recent_blocks;
-          END IF;
-          
-          IF previous_block IS NULL THEN
-          ELSE
-          -- Check for non-duplicated block
-              IF previous_block.height = recent_blocks.height
-                  AND (recent_blocks.canonical = FALSE OR recent_blocks.canonical IS NULL) THEN
-                  PERFORM check_canonical(first_block.hash, recent_blocks.height, recent_blocks."chainId", recent_blocks."chainwebVersion", depth);
-              ELSE
-                  UPDATE public."Blocks"
-                  SET canonical = TRUE
-                  WHERE hash = recent_blocks.hash
-                  AND "chainId" = NEW."chainId" 
-                  AND "chainwebVersion" = NEW."chainwebVersion";
-              END IF;
-          END IF;
-         
-          -- Check for gaps
-          IF recent_blocks.height <> (NEW.height - buffer) - block_count - 1 THEN
-              -- If there are gaps, do not change canonical status
-              RETURN NEW;
-          END IF;
-  
-          previous_block := recent_blocks;
-          block_count := block_count + 1;
-      END LOOP;
-  
-      IF previous_block IS NULL THEN
-          RETURN NEW;
-      END IF;
-  
-      RETURN NEW;
-  END;
-  $function$
-  ;`);
+    //   // Create the check backward orphans function
+    //   await sequelize.query(`
+    // CREATE OR REPLACE FUNCTION public.check_backward_orphans()
+    //  RETURNS trigger
+    //  LANGUAGE plpgsql
+    // AS $function$
+    // DECLARE
+    //     recent_blocks RECORD;
+    //     previous_block RECORD;
+    //     first_block RECORD;
+    //     block_count INT := 0;
+    //     depth CONSTANT INT := 10; -- Default the depth constant
+    //     buffer CONSTANT INT := 5; -- Number of heights to buffer, because some blocks can arrive out of order
+    // BEGIN
+    //     PERFORM pg_advisory_xact_lock(hashtext(NEW."chainId"::text || NEW."chainwebVersion"::text));
+
+    //     -- Check the last 'depth' blocks
+    //     FOR recent_blocks IN
+    //         SELECT * FROM public."Blocks"
+    //         WHERE height BETWEEN (NEW.height - buffer - depth) AND (NEW.height - buffer - 1)
+    //             AND "chainId" = NEW."chainId"
+    //             AND "chainwebVersion" = NEW."chainwebVersion"
+    //             AND COALESCE(canonical, TRUE)
+    //         ORDER BY height ASC
+    //         FOR NO KEY UPDATE
+    //     LOOP
+    //         -- Set the first block
+    //         IF block_count = 0 THEN
+    //             first_block := recent_blocks;
+    //         END IF;
+
+    //         IF previous_block IS NULL THEN
+    //         ELSE
+    //         -- Check for non-duplicated block
+    //             IF previous_block.height = recent_blocks.height
+    //                 AND (recent_blocks.canonical = FALSE OR recent_blocks.canonical IS NULL) THEN
+    //                 PERFORM check_canonical(first_block.hash, recent_blocks.height, recent_blocks."chainId", recent_blocks."chainwebVersion", depth);
+    //             ELSE
+    //                 UPDATE public."Blocks"
+    //                 SET canonical = TRUE
+    //                 WHERE hash = recent_blocks.hash
+    //                 AND "chainId" = NEW."chainId"
+    //                 AND "chainwebVersion" = NEW."chainwebVersion";
+    //             END IF;
+    //         END IF;
+
+    //         -- Check for gaps
+    //         IF recent_blocks.height <> (NEW.height - buffer) - block_count - 1 THEN
+    //             -- If there are gaps, do not change canonical status
+    //             RETURN NEW;
+    //         END IF;
+
+    //         previous_block := recent_blocks;
+    //         block_count := block_count + 1;
+    //     END LOOP;
+
+    //     IF previous_block IS NULL THEN
+    //         RETURN NEW;
+    //     END IF;
+
+    //     RETURN NEW;
+    // END;
+    // $function$
+    // ;`);
 
     console.log("Sync public.check_upward_orphans()...");
 
@@ -455,14 +455,14 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   FOR EACH ROW
   EXECUTE FUNCTION transactions_propagate_canonical_function();`);
 
-    console.log("Sync check_orphan_blocks_backward...");
+    // console.log("Sync check_orphan_blocks_backward...");
 
-    // Create orphan blocks trigger
-    await sequelize.query(`
-      CREATE OR REPLACE TRIGGER check_orphan_blocks_backward
-      AFTER INSERT ON public."Blocks"
-      FOR EACH ROW
-      EXECUTE FUNCTION check_backward_orphans();`);
+    // // Create orphan blocks trigger
+    // await sequelize.query(`
+    //   CREATE OR REPLACE TRIGGER check_orphan_blocks_backward
+    //   AFTER INSERT ON public."Blocks"
+    //   FOR EACH ROW
+    //   EXECUTE FUNCTION check_backward_orphans();`);
 
     console.log("Sync check_orphan_blocks_upward...");
 

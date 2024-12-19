@@ -7,7 +7,6 @@ import { getContract, saveContract, syncContract } from "./contract";
  * Filters and processes NFT transfer events from a payload's event data. It identifies NFT transfer events based on
  * predefined criteria (e.g., event name and parameter structure), and constructs transfer attribute objects for each.
  *
- * @param {string} network - The identifier of the network (e.g., 'mainnet').
  * @param {number} chainId - The ID of the blockchain chain.
  * @param {Array} eventsData - The array of event data from a transaction payload.
  * @param {TransactionAttributes} transactionAttributes - Transaction attributes associated with the events.
@@ -15,7 +14,6 @@ import { getContract, saveContract, syncContract } from "./contract";
  * @returns {Promise<TransferAttributes[]>} A Promise that resolves to an array of transfer attributes specifically for NFT transfers.
  */
 export function getNftTransfers(
-  network: string,
   chainId: number,
   eventsData: any,
   transactionAttributes: TransactionAttributes,
@@ -45,12 +43,7 @@ export function getNftTransfers(
         ? `${eventData.module.namespace}.${eventData.module.name}`
         : eventData.module.name;
 
-      let contractId = await syncContract(
-        network,
-        chainId,
-        modulename,
-        tokenId,
-      );
+      let contractId = await syncContract(chainId, modulename, tokenId);
 
       return {
         amount: amount,
@@ -76,14 +69,12 @@ const requests: Record<string, undefined | boolean> = {};
  * Filters and processes coin transfer events from a payload's event data. Similar to `getNftTransfers`, but focuses on
  * coin-based transactions. It identifies events that represent coin transfers and constructs transfer attribute objects.
  *
- * @param {string} network - The identifier of the network (e.g., 'mainnet').
  * @param {Array} eventsData - The array of event data from a transaction payload.
  * @param {TransactionAttributes} transactionAttributes - Transaction attributes associated with the events.
  * @param {any} receiptInfo - Receipt information associated with the events.
  * @returns {Promise<TransferAttributes[]>} A Promise that resolves to an array of transfer attributes specifically for coin transfers.
  */
 export function getCoinTransfers(
-  network: string,
   eventsData: any,
   transactionAttributes: TransactionAttributes,
   receiptInfo: any,
@@ -107,7 +98,7 @@ export function getCoinTransfers(
       const chainId = transactionAttributes.chainId;
 
       let contractId;
-      let contract = await getContract(network, chainId, modulename);
+      let contract = await getContract(chainId, modulename);
 
       if (contract) {
         contractId = contract.id;
@@ -119,7 +110,6 @@ export function getCoinTransfers(
         });
         if (precisionData.result) {
           contractId = await saveContract(
-            network,
             chainId,
             modulename,
             "fungible",
