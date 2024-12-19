@@ -2,7 +2,6 @@ import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
 import Contract, { ContractAttributes } from "../../models/contract";
 
 export async function syncContract(
-  network: string,
   chainId: number,
   modulename: any,
   tokenId: any,
@@ -13,14 +12,13 @@ export async function syncContract(
   });
   console.log("manifestData", manifestData);
   let contractId;
-  if (manifestData) {
+  if (!manifestData.error) {
     contractId = await saveContract(
-      network,
       chainId,
       modulename,
       "poly-fungible",
       tokenId,
-      manifestData,
+      manifestData.result,
     );
   } else {
     console.log("No manifest URI found for token ID:", tokenId);
@@ -29,7 +27,6 @@ export async function syncContract(
 }
 
 export async function saveContract(
-  network: string,
   chainId: number,
   modulename: any,
   type: string,
@@ -38,7 +35,6 @@ export async function saveContract(
   precision?: number,
 ) {
   const contractData = {
-    network: network,
     chainId: chainId,
     module: modulename,
     type: type,
@@ -49,7 +45,6 @@ export async function saveContract(
   let contractId;
   const existingContract = await Contract.findOne({
     where: {
-      network: contractData.network,
       chainId: contractData.chainId,
       module: contractData.module,
       tokenId: tokenId,
@@ -65,14 +60,9 @@ export async function saveContract(
   return contractId;
 }
 
-export async function getContract(
-  network: string,
-  chainId: number,
-  modulename: any,
-) {
+export async function getContract(chainId: number, modulename: any) {
   const contract = await Contract.findOne({
     where: {
-      network: network,
       chainId: chainId,
       module: modulename,
     },

@@ -1,105 +1,167 @@
-import https from "https";
-import { fetchAndSavePayloadWithRetry } from "./payload";
-import { syncStatusService } from "../syncStatusService";
-import { SOURCE_STREAMING } from "../../models/syncStatus";
-import { getRequiredEnvString } from "../../utils/helpers";
-
-const MAX_RETRIES = 50;
-const RETRY_DELAY = 10000; // 10 seconds
+import { processPayloadKey } from "./payload";
+import { getDecoded, getRequiredEnvString } from "../../utils/helpers";
+import { EventSource } from "eventsource";
+import { DispatchInfo } from "../../jobs/publisher-job";
+import { uint64ToInt64 } from "../../utils/int-uint-64";
+import Block, { BlockAttributes } from "../../models/block";
+import { sequelize } from "../../config/database";
 
 const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
 const SYNC_NETWORK = getRequiredEnvString("SYNC_NETWORK");
 
-const url = new URL(`${SYNC_BASE_URL}/${SYNC_NETWORK}/header/updates`);
-/**
- * Starts streaming headers from the Chainweb P2P network.
- * This method establishes a connection to the Chainweb node's header stream and listens for new headers.
- * Upon receiving a header, it saves the header and its payload to S3 and attempts to fetch the payload's transactions.
- * It retries fetching the payload up to a maximum number of attempts if necessary.
- *
- * @param {string} network - The network identifier (e.g., 'mainnet01').
- * @param {number} retryCount - The current retry attempt count.
- */
-export async function startStreaming(
-  network: string,
-  retryCount: number = 0,
-): Promise<void> {
+export async function startStreaming() {
   console.log("Starting streaming...");
-  const options = {
-    method: "GET",
-    hostname: url.hostname,
-    port: 443,
-    path: url.pathname,
+
+  const blocksAlreadyReceived = new Set<string>();
+  const blocksQueue: Array<any> = [];
+
+  const eventSource = new EventSource(
+    `${SYNC_BASE_URL}/${SYNC_NETWORK}/block/updates`,
+  );
+
+  eventSource.onerror = (error) => {
+    console.error("Connection error:", error);
   };
 
-  const req = https.request(options, (res) => {
-    console.log(`Status Code: ${res.statusCode}`);
-    console.log(`Status Message: ${res.statusMessage}`);
+  eventSource.addEventListener("BlockHeader", (event) => {
+    try {
+      const block = JSON.parse(event.data);
+      const payload = processPayload(block.payloadWithOutputs);
+      if (blocksAlreadyReceived.has(block.header.hash)) {
+        return;
+      }
+      blocksAlreadyReceived.add(block.header.hash);
+      blocksQueue.push({ header: block.header, payload });
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
-    res.on("data", async (chunk) => {
-      retryCount = 0;
+  setInterval(async () => {
+    const blocksToProcess = [];
+    while (blocksQueue.length > 0) {
+      const b = blocksQueue.shift();
+      blocksToProcess.push(b);
+    }
 
-      const chunkStr = chunk.toString();
-      const dataLine = chunkStr
-        .split("\n")
-        .find((line: any) => line.startsWith("data:"));
-
-      if (dataLine) {
-        const jsonData = dataLine.replace("data:", "").trim();
-
-        try {
-          const blockData = JSON.parse(jsonData);
-          const height = blockData.header.height;
-          const chainId = blockData.header.chainId;
-
-          console.log(
-            `[chainId: ${chainId} height: ${height}] - Fetching payload ...`,
-          );
-
-          const payloadHash = blockData.header.payloadHash;
-
-          await fetchAndSavePayloadWithRetry(
-            network,
-            chainId,
-            height,
-            payloadHash,
-            blockData,
-          );
-
-          await syncStatusService.save({
-            chainId: chainId,
-            fromHeight: height,
-            toHeight: height,
-            network: network,
-            source: SOURCE_STREAMING,
-          } as any);
-        } catch (e) {
-          console.error("Error parsing JSON:", e);
-        }
+    const promises = blocksToProcess.map(async (block: any) => {
+      try {
+        await saveBlock(block);
+      } catch (error) {
+        console.error("Error saving block:", error);
       }
     });
 
-    res.on("end", () => handleRetry(network, retryCount));
-  });
+    await Promise.all(promises);
+    console.log("Done processing blocks: ", blocksToProcess.length);
+  }, 1000 * 10);
 
-  req.on("error", (e) => {
-    handleRetry(network, retryCount);
-  });
-
-  req.end();
+  setInterval(
+    () => {
+      console.log("Clearing blocks already received.");
+      blocksAlreadyReceived.clear();
+    },
+    1000 * 60 * 5,
+  );
 }
 
-/**
- * Handles retry logic for reconnecting the stream.
- *
- * @param {string} network - The network identifier (e.g., 'mainnet01').
- * @param {number} retryCount - The current retry attempt count.
- */
-function handleRetry(network: string, retryCount: number): void {
-  if (retryCount < MAX_RETRIES) {
-    console.log(`Retrying in ${RETRY_DELAY / 1000} seconds...`);
-    setTimeout(() => startStreaming(network, retryCount + 1), RETRY_DELAY);
-  } else {
-    console.error("Max retries reached. Giving up.");
+function processPayload(payload: any) {
+  const transactions = payload.transactions;
+  transactions.forEach((transaction: any) => {
+    transaction[0] = getDecoded(transaction[0]);
+    transaction[1] = getDecoded(transaction[1]);
+  });
+
+  const minerData = getDecoded(payload.minerData);
+  const transactionsHash = payload.transactionsHash;
+  const outputsHash = payload.outputsHash;
+  const coinbase = getDecoded(payload.coinbase);
+
+  const payloadData = {
+    transactions: transactions,
+    minerData: minerData,
+    transactionsHash: transactionsHash,
+    outputsHash: outputsHash,
+    payloadHash: payload.payloadHash,
+    coinbase: coinbase,
+  };
+
+  return payloadData;
+}
+
+async function saveBlock(parsedData: any): Promise<DispatchInfo | null> {
+  const headerData = parsedData.header;
+  const payloadData = parsedData.payload;
+  const transactions = payloadData.transactions || [];
+
+  const tx = await sequelize.transaction();
+
+  try {
+    const blockAttribute = {
+      nonce: headerData.nonce,
+      creationTime: headerData.creationTime,
+      parent: headerData.parent,
+      adjacents: headerData.adjacents,
+      target: headerData.target,
+      payloadHash: headerData.payloadHash,
+      chainId: headerData.chainId,
+      weight: headerData.weight,
+      height: headerData.height,
+      chainwebVersion: headerData.chainwebVersion,
+      epochStart: headerData.epochStart,
+      featureFlags: uint64ToInt64(headerData.featureFlags),
+      hash: headerData.hash,
+      minerData: payloadData.minerData,
+      transactionsHash: payloadData.transactionsHash,
+      outputsHash: payloadData.outputsHash,
+      coinbase: payloadData.coinbase,
+      transactionsCount: transactions.length,
+    } as BlockAttributes;
+
+    const createdBlock = await Block.create(blockAttribute, {
+      transaction: tx,
+    });
+
+    await processPayloadKey(createdBlock, payloadData, tx);
+
+    const txs: Array<{
+      requestKey: string;
+      qualifiedEventNames: string[];
+    }> = transactions.map((t: any) => {
+      const qualifiedEventNames = t[1].events.map((e: any) => {
+        const module = e.module.namespace
+          ? `${e.module.namespace}.${e.module.name}`
+          : e.module.name;
+        const name = e.name;
+        return `${module}.${name}`;
+      });
+      return {
+        requestKey: t[1].reqKey,
+        qualifiedEventNames,
+      };
+    });
+
+    const events = transactions.flatMap((t: any) => t.qualifiedEventNames);
+    const qualifiedEventNamesSet = new Set();
+    const uniqueQualifiedEventNames = events.filter(
+      (qualifiedEventName: any) => {
+        const isDuplicate = qualifiedEventNamesSet.has(qualifiedEventName);
+        qualifiedEventNamesSet.add(qualifiedEventName);
+        return !isDuplicate;
+      },
+    );
+
+    await tx.commit();
+    return {
+      hash: createdBlock.hash,
+      chainId: createdBlock.chainId.toString(),
+      height: createdBlock.height,
+      requestKeys: txs.map((t) => t.requestKey),
+      qualifiedEventNames: uniqueQualifiedEventNames,
+    };
+  } catch (error) {
+    await tx.rollback();
+    console.error(`Error saving block to the database: ${error}`);
+    return null;
   }
 }

@@ -3,6 +3,7 @@ import zod from "zod";
 import { BlockOutput } from "../../application/block-repository";
 import { convertStringToDate } from "../../../utils/date";
 import { calculateBlockDifficulty } from "../../../utils/difficulty";
+import { int64ToUint64String } from "../../../../utils/int-uint-64";
 
 const schema = zod.object({
   id: zod.number(),
@@ -10,7 +11,7 @@ const schema = zod.object({
   chainId: zod.number(),
   creationTime: zod.string(),
   epochStart: zod.string(),
-  featureFlags: zod.number(),
+  featureFlags: zod.string(),
   height: zod.number(),
   nonce: zod.string(),
   payloadHash: zod.string(),
@@ -33,7 +34,7 @@ const validate = (row: any): BlockOutput => {
     parentHash: res.parent,
     creationTime: convertStringToDate(res.creationTime),
     epoch: convertStringToDate(res.epochStart),
-    flags: res.featureFlags.toString(),
+    flags: int64ToUint64String(res.featureFlags),
     powHash: "...", // TODO (STREAMING)
     hash: res.hash,
     height: res.height,
@@ -62,7 +63,7 @@ const mapFromSequelize = (blockModel: BlockAttributes): BlockOutput => {
     powHash: "...", // TODO (STREAMING)
     difficulty: JSONbig.parse(calculateBlockDifficulty(blockModel.target)),
     epoch: convertStringToDate(blockModel.epochStart),
-    flags: blockModel.featureFlags.toString(),
+    flags: int64ToUint64String(blockModel.featureFlags),
     height: blockModel.height,
     nonce: blockModel.nonce,
     payloadHash: blockModel.payloadHash,

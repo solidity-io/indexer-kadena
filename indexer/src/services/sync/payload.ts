@@ -1,65 +1,28 @@
 import { BlockAttributes } from "../../models/block";
-import { TransactionAttributes } from "../../models/transaction";
-import { EventAttributes } from "../../models/event";
-import { TransferAttributes } from "../../models/transfer";
-import { transactionService } from "../transactionService";
-import { eventService } from "../eventService";
-import { transferService } from "../transferService";
+import TransactionModel, {
+  TransactionAttributes,
+} from "../../models/transaction";
+import Event, { EventAttributes } from "../../models/event";
+import Transfer, { TransferAttributes } from "../../models/transfer";
 import { getNftTransfers, getCoinTransfers } from "./transfers";
-import { Transaction } from "sequelize";
-import { delay, getDecoded, getRequiredEnvNumber } from "../../utils/helpers";
-import { syncErrorService } from "../syncErrorService";
-import { SOURCE_API } from "../../models/syncStatus";
-import { saveHeader } from "../s3Service";
-import { fetchPayloads } from "./fetch";
+import { Op, QueryTypes, Transaction } from "sequelize";
 import Signer from "../../models/signer";
+import Guard, { GuardAttributes } from "../../models/guard";
+import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
+import Balance from "../../models/balance";
+import { sequelize } from "../../config/database";
 
-const SYNC_ATTEMPTS_MAX_RETRY = getRequiredEnvNumber("SYNC_ATTEMPTS_MAX_RETRY");
-const SYNC_ATTEMPTS_INTERVAL_IN_MS = getRequiredEnvNumber(
-  "SYNC_ATTEMPTS_INTERVAL_IN_MS",
-);
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
 
-export async function fetchAndSavePayloadWithRetry(
-  network: string,
-  chainId: any,
-  height: any,
-  payloadHash: any,
-  blockData: any,
-): Promise<boolean> {
-  const payload = await fetchPayloadWithRetry(
-    network,
-    chainId,
-    height,
-    height,
-    [payloadHash],
-  );
-
-  if (!payload?.length) {
-    console.error("No payload found for height and chain:", {
-      height,
-      chainId,
-      blockData,
-    });
-    return false;
-  }
-
-  blockData.payload = payload[0];
-
-  return await saveHeader(network, chainId, height, blockData);
+interface BalanceInsertResult {
+  id: number;
+  chainId: number;
+  account: string;
+  module: string;
 }
 
-/**
- * Processes a single S3 payload key, extracting transaction and event information from the payload data.
- * It parses the payload to save transaction attributes and related events into the database.
- *
- * @param network The blockchain network identifier.
- * @param prefix The S3 object prefix used to locate blockchain data.
- * @param key The specific S3 object key pointing to the payload data to be processed.
- */
 export async function processPayloadKey(
-  network: string,
   block: BlockAttributes,
   payloadData: any,
   tx?: Transaction,
@@ -67,7 +30,7 @@ export async function processPayloadKey(
   const transactions = payloadData.transactions || [];
 
   const transactionPromises = transactions.map((transactionArray: any) =>
-    processTransaction(transactionArray, block, network, tx),
+    processTransaction(transactionArray, block, tx),
   );
 
   await Promise.all(transactionPromises);
@@ -76,7 +39,6 @@ export async function processPayloadKey(
 export async function processTransaction(
   transactionArray: any,
   block: BlockAttributes,
-  network: string,
   tx?: Transaction,
 ) {
   const transactionInfo = transactionArray[TRANSACTION_INDEX];
@@ -139,14 +101,12 @@ export async function processTransaction(
   }) as EventAttributes[];
 
   const transfersCoinAttributes = await getCoinTransfers(
-    network,
     eventsData,
     transactionAttributes,
     receiptInfo,
   );
 
   const transfersNftAttributes = await getNftTransfers(
-    network,
     transactionAttributes.chainId,
     eventsData,
     transactionAttributes,
@@ -158,19 +118,18 @@ export async function processTransaction(
     .filter((transfer) => transfer.amount !== undefined);
 
   try {
-    let transactionInstance = await transactionService.save(
+    const { id: transactionId } = await TransactionModel.create(
       transactionAttributes,
-      { transaction: tx },
+      {
+        transaction: tx,
+      },
     );
-
-    let transactionId = transactionInstance.id;
 
     const eventsWithTransactionId = eventsAttributes.map((event) => ({
       ...event,
-      transactionId: transactionId,
+      transactionId,
     })) as EventAttributes[];
-
-    await eventService.saveMany(eventsWithTransactionId, { transaction: tx });
+    await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
 
     const signers = (cmdData.signers ?? []).map(
       (signer: any, index: number) => ({
@@ -179,122 +138,98 @@ export async function processTransaction(
         pubkey: signer.pubKey,
         clist: signer.clist,
         scheme: signer.scheme,
-        transactionId: transactionId,
+        transactionId,
       }),
     );
-
     await Signer.bulkCreate(signers, { transaction: tx });
 
     const transfersWithTransactionId = transfersAttributes.map((transfer) => ({
       ...transfer,
-      tokenId: transfer.tokenId,
-      contractId: transfer.contractId,
-      transactionId: transactionId,
+      transactionId,
     })) as TransferAttributes[];
-
-    await transferService.saveMany(transfersWithTransactionId, {
+    await Transfer.bulkCreate(transfersWithTransactionId, {
       transaction: tx,
     });
+
+    const balancesFrom = transfersAttributes
+      .filter((t) => t.from_acct !== "")
+      .map((t) => ({
+        account: t.from_acct,
+        chainId: t.chainId,
+        module: t.modulename,
+        hasTokenId: t.hasTokenId,
+        tokenId: t.tokenId ?? "", // Normalize tokenId
+      }));
+
+    const balancesTo = transfersAttributes
+      .filter((t) => t.to_acct !== "")
+      .map((t) => ({
+        account: t.to_acct,
+        chainId: t.chainId,
+        module: t.modulename,
+        hasTokenId: t.hasTokenId,
+        tokenId: t.tokenId ?? "", // Normalize tokenId
+      }));
+
+    const balances = [...balancesFrom, ...balancesTo];
+
+    const values = balances
+      .map(
+        (balance) =>
+          `(${balance.chainId}, '${balance.account}', '${balance.module}', '${balance.tokenId}', ${balance.hasTokenId}, NOW(), NOW())`,
+      )
+      .join(", ");
+
+    const query = `
+      INSERT INTO "Balances" ("chainId", account, module, "tokenId", "hasTokenId", "createdAt", "updatedAt")
+      VALUES ${values}
+      ON CONFLICT ("chainId", account, module, "tokenId") DO NOTHING
+      RETURNING id, "chainId", account, module;
+    `;
+
+    const insertedBalances = await sequelize.query<BalanceInsertResult>(query, {
+      type: QueryTypes.SELECT, // Use SELECT to retrieve rows with RETURNING
+      transaction: tx,
+    });
+
+    await saveGuards(insertedBalances ?? [], tx);
   } catch (error) {
     console.error(`Error saving transaction to the database: ${error}`);
   }
 }
 
-/**
- * Attempts to fetch payload data for a given block with retries.
- *
- * @param network The network to fetch payload from (e.g., "mainnet01").
- * @param chainId The ID of the chain to fetch payload for.
- * @param height The height of the block to fetch payload for.
- * @param payloadHash The hash of the payload to fetch.
- * @param attempt The current retry attempt.
- */
-export async function fetchPayloadWithRetry(
-  network: string,
-  chainId: number,
-  fromHeight: number,
-  toHeight: number,
-  payloadHashes: string[],
-  attempt = 1,
-): Promise<any> {
-  try {
-    const payloads = await fetchPayloads(network, chainId, payloadHashes);
+async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
+  const guardPromises: Array<Promise<GuardAttributes | null>> = balances.map(
+    async (balance) => {
+      const res = await handleSingleQuery({
+        chainId: balance.chainId.toString(),
+        code: `(${balance.module}.details \"${balance.account}\")`,
+      });
 
-    if (payloads?.length) {
-      throw new Error("No payloads found, retrying...");
-    }
+      if (res.error || !res.result) return null;
 
-    return await processPayloads(payloads);
-  } catch (error) {
-    if (attempt < SYNC_ATTEMPTS_MAX_RETRY) {
-      if (attempt > 2) {
-        console.log(
-          `Retrying... Attempt ${
-            attempt + 1
-          } of ${SYNC_ATTEMPTS_MAX_RETRY} for payloadHash from height ${fromHeight} to ${toHeight}`,
-        );
-      }
-      await delay(SYNC_ATTEMPTS_INTERVAL_IN_MS);
-      return await fetchPayloadWithRetry(
-        network,
-        chainId,
-        fromHeight,
-        toHeight,
-        payloadHashes,
-        attempt + 1,
-      );
-    } else {
-      await syncErrorService.save({
-        network: network,
-        chainId: chainId,
-        fromHeight: fromHeight,
-        toHeight: toHeight,
-        data: error,
-        source: SOURCE_API,
-      } as any);
+      const result = JSON.parse(res.result ?? "{}");
+      const withKeys = (result.guard.keys ?? []).map((key: any) => ({
+        account: balance.account,
+        chainId: balance.chainId,
+        fungible: balance.module,
+        publicKey: key,
+        predicate: result.guard.pred,
+      }));
 
-      console.log(
-        "Max retry attempts reached. Unable to fetch transactions for",
-        { network, chainId, fromHeight, toHeight },
-      );
-    }
-  }
-}
+      return withKeys;
+    },
+  );
 
-/**
- * Processes an array of payloads for a specific blockchain network and chain ID.
- * Each payload typically includes transaction data that needs to be decoded and then saved.
- *
- * @param network The blockchain network identifier (e.g., "mainnet01").
- * @param chainId The specific chain ID within the blockchain network.
- * @param payloads An array of payload objects to be processed.
- * @returns A Promise that resolves when all payloads have been processed.
- */
-async function processPayloads(payloads: any[]): Promise<any[]> {
-  const saveOperations = payloads.map(async (payload) => {
-    const transactions = payload.transactions;
-    // console.log("Number of transactions:", transactions.length);
-    transactions.forEach((transaction: any) => {
-      transaction[0] = getDecoded(transaction[0]);
-      transaction[1] = getDecoded(transaction[1]);
-    });
+  const guards = await Promise.all(guardPromises);
+  const filteredGuards = guards
+    .flat()
+    .filter(
+      (g) => g !== null && `k:${g.publicKey}` !== g.account,
+    ) as GuardAttributes[];
 
-    const minerData = getDecoded(payload.minerData);
-    const transactionsHash = payload.transactionsHash;
-    const outputsHash = payload.outputsHash;
-    const coinbase = getDecoded(payload.coinbase);
-
-    const payloadData = {
-      transactions: transactions,
-      minerData: minerData,
-      transactionsHash: transactionsHash,
-      outputsHash: outputsHash,
-      payloadHash: payload.payloadHash,
-      coinbase: coinbase,
-    };
-
-    return payloadData;
+  await Guard.bulkCreate(filteredGuards, {
+    transaction: tx,
+    ignoreDuplicates: true,
   });
-
-  return await Promise.all(saveOperations);
 }
