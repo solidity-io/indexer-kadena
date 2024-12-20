@@ -5,11 +5,10 @@ import TransactionModel, {
 import Event, { EventAttributes } from "../../models/event";
 import Transfer, { TransferAttributes } from "../../models/transfer";
 import { getNftTransfers, getCoinTransfers } from "./transfers";
-import { Op, QueryTypes, Transaction } from "sequelize";
+import { QueryTypes, Transaction } from "sequelize";
 import Signer from "../../models/signer";
 import Guard, { GuardAttributes } from "../../models/guard";
 import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
-import Balance from "../../models/balance";
 import { sequelize } from "../../config/database";
 
 const TRANSACTION_INDEX = 0;
@@ -199,7 +198,7 @@ export async function processTransaction(
 }
 
 async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
-  const guardPromises: Array<Promise<GuardAttributes | null>> = balances.map(
+  const guardPromises: Array<Promise<any | null>> = balances.map(
     async (balance) => {
       const res = await handleSingleQuery({
         chainId: balance.chainId.toString(),
@@ -210,9 +209,8 @@ async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
 
       const result = JSON.parse(res.result ?? "{}");
       const withKeys = (result.guard.keys ?? []).map((key: any) => ({
+        balanceId: balance.id,
         account: balance.account,
-        chainId: balance.chainId,
-        fungible: balance.module,
         publicKey: key,
         predicate: result.guard.pred,
       }));
@@ -224,9 +222,12 @@ async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
   const guards = await Promise.all(guardPromises);
   const filteredGuards = guards
     .flat()
-    .filter(
-      (g) => g !== null && `k:${g.publicKey}` !== g.account,
-    ) as GuardAttributes[];
+    .filter((g) => g !== null && `k:${g.publicKey}` !== g.account)
+    .map((g) => ({
+      balanceId: g.balanceId,
+      publicKey: g.publicKey,
+      predicate: g.predicate,
+    }));
 
   await Guard.bulkCreate(filteredGuards, {
     transaction: tx,

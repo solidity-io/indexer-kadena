@@ -1,6 +1,6 @@
 import { processPayloadKey } from "./payload";
 import { getDecoded, getRequiredEnvString } from "../../utils/helpers";
-import { EventSource } from "eventsource";
+import EventSource from "eventsource";
 import { DispatchInfo } from "../../jobs/publisher-job";
 import { uint64ToInt64 } from "../../utils/int-uint-64";
 import Block, { BlockAttributes } from "../../models/block";
@@ -19,11 +19,11 @@ export async function startStreaming() {
     `${SYNC_BASE_URL}/${SYNC_NETWORK}/block/updates`,
   );
 
-  eventSource.onerror = (error) => {
+  eventSource.onerror = (error: any) => {
     console.error("Connection error:", error);
   };
 
-  eventSource.addEventListener("BlockHeader", (event) => {
+  eventSource.addEventListener("BlockHeader", (event: any) => {
     try {
       const block = JSON.parse(event.data);
       const payload = processPayload(block.payloadWithOutputs);

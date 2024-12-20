@@ -1,12 +1,12 @@
 import { Model, DataTypes, Optional } from "sequelize";
 import { sequelize } from "../config/database";
+import Balance from "./balance";
 
 export interface GuardAttributes {
   id: number;
   publicKey: string;
-  chainId: string;
-  account: string;
   predicate: string;
+  balanceId: number;
 }
 
 interface GuardCreationAttributes extends Optional<GuardAttributes, "id"> {}
@@ -17,9 +17,8 @@ class Guard
 {
   public id!: number;
   public publicKey!: string;
-  public chainId!: string;
-  public account!: string;
   public predicate!: string;
+  public balanceId!: number;
 }
 
 Guard.init(
@@ -35,29 +34,34 @@ Guard.init(
       allowNull: false,
       comment: "The public key associated with the account",
     },
-    chainId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      comment: "The chain ID associated with the account",
-    },
-    account: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      comment: "The account associated with the public key",
-    },
     predicate: {
       type: DataTypes.STRING,
       allowNull: false,
       comment:
         "The predicate associated with the account, public key and chain",
     },
+    balanceId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: "The ID of the associated balance (e.g., 204).",
+    },
   },
   {
     sequelize,
     modelName: "Guard",
-    tableName: "Guards", // optional, specifies the table name
-    timestamps: true, // automatically adds `createdAt` and `updatedAt` fields
+    tableName: "Guards",
+    indexes: [
+      {
+        name: "guards_publickey_idx",
+        fields: ["publicKey"],
+      },
+    ],
   },
 );
+
+Guard.belongsTo(Balance, {
+  foreignKey: "balanceId",
+  as: "balance",
+});
 
 export default Guard;
