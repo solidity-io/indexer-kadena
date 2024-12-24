@@ -80,6 +80,10 @@ Signer.init(
         name: "signers_pubkey_transactionid_idx",
         fields: ["pubkey", "transactionId"],
       },
+      {
+        name: "signers_transaction_id_idx",
+        fields: ["transactionId"],
+      },
     ],
   },
 );

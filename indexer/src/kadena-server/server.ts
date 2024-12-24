@@ -139,9 +139,9 @@ export async function useKadenaGraphqlServer() {
     });
   });
 
+  await initCache(context);
   await new Promise<void>((resolve) =>
     httpServer.listen({ port: KADENA_GRAPHQL_API_PORT }, resolve),
   );
-  initCache(context);
   console.log(`Server running on port ${KADENA_GRAPHQL_API_PORT}.`);
 }

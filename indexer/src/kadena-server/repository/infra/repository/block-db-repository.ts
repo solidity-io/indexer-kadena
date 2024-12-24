@@ -12,6 +12,9 @@ import { blockValidator } from "../schema-validator/block-schema-validator";
 import Balance from "../../../../models/balance";
 import { handleSingleQuery } from "../../../utils/raw-query";
 import { formatGuard_NODE } from "../../../../utils/chainweb-node";
+import { MEMORY_CACHE } from "../../../../cache/init";
+import { NODE_INFO_KEY } from "../../../../cache/keys";
+import { GetNodeInfo } from "../../application/network-repository";
 
 export default class BlockDbRepository implements BlockRepository {
   async getBlockByHash(hash: string) {
@@ -127,12 +130,8 @@ export default class BlockDbRepository implements BlockRepository {
   }
 
   async getChainIds() {
-    const query = `
-      SELECT DISTINCT b."chainId"
-      FROM "Blocks" b
-    `;
-    const { rows } = await rootPgPool.query(query);
-    return rows.map((r) => Number(r.chainId));
+    const nodeInfo = MEMORY_CACHE.get(NODE_INFO_KEY) as GetNodeInfo;
+    return nodeInfo.nodeChains.map((chainId) => Number(chainId));
   }
 
   async getCompletedBlocks(params: GetCompletedBlocksParams) {
