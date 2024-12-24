@@ -6,10 +6,11 @@ export const fungibleAccountsByPublicKeyQueryResolver: QueryResolvers<ResolverCo
   async (_parent, args, context) => {
     console.log("fungibleAccountsByPublicKeyQueryResolver");
     const { publicKey, fungibleName } = args;
-    const accounts = await context.balanceRepository.getAccountsByPublicKey(
-      publicKey,
-      fungibleName
-    );
+    const accounts =
+      await context.balanceRepository.getAccountsByPublicKey_NODE(
+        publicKey,
+        fungibleName,
+      );
 
     const output = accounts.map((acc) => buildFungibleAccount(acc));
 

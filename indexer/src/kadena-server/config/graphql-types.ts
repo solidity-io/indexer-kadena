@@ -182,6 +182,7 @@ export type FungibleChainAccount = Node & {
   balance: Scalars['Float']['output'];
   chainId: Scalars['String']['output'];
   fungibleName: Scalars['String']['output'];
+  guard: Guard;
   id: Scalars['ID']['output'];
   transactions: FungibleChainAccountTransactionsConnection;
   transfers: FungibleChainAccountTransfersConnection;
@@ -248,6 +249,13 @@ export type GraphConfiguration = {
   __typename?: 'GraphConfiguration';
   /** The lowest block-height that is indexed in this endpoint. */
   minimumBlockHeight?: Maybe<Scalars['BigInt']['output']>;
+};
+
+export type Guard = {
+  __typename?: 'Guard';
+  keys: Array<Scalars['String']['output']>;
+  predicate: Scalars['String']['output'];
+  raw: Scalars['String']['output'];
 };
 
 /** Information about the network. */
@@ -922,7 +930,7 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = {
-  Node: ( Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & { events: _RefType['BlockEventsConnection'], minerAccount: _RefType['FungibleChainAccount'], parent?: Maybe<_RefType['Block']>, transactions: _RefType['BlockTransactionsConnection'] } ) | ( Omit<Event, 'block' | 'transaction'> & { block: _RefType['Block'], transaction?: Maybe<_RefType['Transaction']> } ) | ( Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & { chainAccounts: Array<_RefType['FungibleChainAccount']>, transactions: _RefType['FungibleAccountTransactionsConnection'], transfers: _RefType['FungibleAccountTransfersConnection'] } ) | ( Omit<FungibleChainAccount, 'transactions' | 'transfers'> & { transactions: _RefType['FungibleChainAccountTransactionsConnection'], transfers: _RefType['FungibleChainAccountTransfersConnection'] } ) | ( Omit<NonFungibleAccount, 'transactions'> & { transactions: _RefType['NonFungibleAccountTransactionsConnection'] } ) | ( Omit<NonFungibleChainAccount, 'transactions'> & { transactions: _RefType['NonFungibleChainAccountTransactionsConnection'] } ) | ( NonFungibleTokenBalance ) | ( Signer ) | ( Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & { cmd: _RefType['TransactionCommand'], orphanedTransactions?: Maybe<Array<Maybe<_RefType['Transaction']>>>, result: _RefType['TransactionInfo'] } ) | ( Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & { block: _RefType['Block'], crossChainTransfer?: Maybe<_RefType['Transfer']>, transaction?: Maybe<_RefType['Transaction']> } );
+  Node: ( Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & { events: _RefType['BlockEventsConnection'], minerAccount: _RefType['FungibleChainAccount'], parent?: Maybe<_RefType['Block']>, transactions: _RefType['BlockTransactionsConnection'] } ) | ( Omit<Event, 'block' | 'transaction'> & { block: _RefType['Block'], transaction?: Maybe<_RefType['Transaction']> } ) | ( Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & { chainAccounts: Array<_RefType['FungibleChainAccount']>, transactions: _RefType['FungibleAccountTransactionsConnection'], transfers: _RefType['FungibleAccountTransfersConnection'] } ) | ( Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: _RefType['Guard'], transactions: _RefType['FungibleChainAccountTransactionsConnection'], transfers: _RefType['FungibleChainAccountTransfersConnection'] } ) | ( Omit<NonFungibleAccount, 'transactions'> & { transactions: _RefType['NonFungibleAccountTransactionsConnection'] } ) | ( Omit<NonFungibleChainAccount, 'transactions'> & { transactions: _RefType['NonFungibleChainAccountTransactionsConnection'] } ) | ( NonFungibleTokenBalance ) | ( Signer ) | ( Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & { cmd: _RefType['TransactionCommand'], orphanedTransactions?: Maybe<Array<Maybe<_RefType['Transaction']>>>, result: _RefType['TransactionInfo'] } ) | ( Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & { block: _RefType['Block'], crossChainTransfer?: Maybe<_RefType['Transfer']>, transaction?: Maybe<_RefType['Transaction']> } );
 };
 
 /** Mapping between all available schema types and the resolvers types */
@@ -946,7 +954,7 @@ export type ResolversTypes = {
   FungibleAccountTransactionsConnectionEdge: ResolverTypeWrapper<Omit<FungibleAccountTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
   FungibleAccountTransfersConnection: ResolverTypeWrapper<Omit<FungibleAccountTransfersConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleAccountTransfersConnectionEdge']> }>;
   FungibleAccountTransfersConnectionEdge: ResolverTypeWrapper<Omit<FungibleAccountTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }>;
-  FungibleChainAccount: ResolverTypeWrapper<Omit<FungibleChainAccount, 'transactions' | 'transfers'> & { transactions: ResolversTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversTypes['FungibleChainAccountTransfersConnection'] }>;
+  FungibleChainAccount: ResolverTypeWrapper<Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: ResolversTypes['Guard'], transactions: ResolversTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversTypes['FungibleChainAccountTransfersConnection'] }>;
   FungibleChainAccountTransactionsConnection: ResolverTypeWrapper<Omit<FungibleChainAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleChainAccountTransactionsConnectionEdge']> }>;
   FungibleChainAccountTransactionsConnectionEdge: ResolverTypeWrapper<Omit<FungibleChainAccountTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
   FungibleChainAccountTransfersConnection: ResolverTypeWrapper<Omit<FungibleChainAccountTransfersConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleChainAccountTransfersConnectionEdge']> }>;
@@ -954,6 +962,7 @@ export type ResolversTypes = {
   GasLimitEstimation: ResolverTypeWrapper<GasLimitEstimation>;
   GenesisHeight: ResolverTypeWrapper<GenesisHeight>;
   GraphConfiguration: ResolverTypeWrapper<GraphConfiguration>;
+  Guard: ResolverTypeWrapper<Guard>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   NetworkInfo: ResolverTypeWrapper<NetworkInfo>;
@@ -1025,7 +1034,7 @@ export type ResolversParentTypes = {
   FungibleAccountTransactionsConnectionEdge: Omit<FungibleAccountTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
   FungibleAccountTransfersConnection: Omit<FungibleAccountTransfersConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleAccountTransfersConnectionEdge']> };
   FungibleAccountTransfersConnectionEdge: Omit<FungibleAccountTransfersConnectionEdge, 'node'> & { node: ResolversParentTypes['Transfer'] };
-  FungibleChainAccount: Omit<FungibleChainAccount, 'transactions' | 'transfers'> & { transactions: ResolversParentTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversParentTypes['FungibleChainAccountTransfersConnection'] };
+  FungibleChainAccount: Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: ResolversParentTypes['Guard'], transactions: ResolversParentTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversParentTypes['FungibleChainAccountTransfersConnection'] };
   FungibleChainAccountTransactionsConnection: Omit<FungibleChainAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleChainAccountTransactionsConnectionEdge']> };
   FungibleChainAccountTransactionsConnectionEdge: Omit<FungibleChainAccountTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
   FungibleChainAccountTransfersConnection: Omit<FungibleChainAccountTransfersConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleChainAccountTransfersConnectionEdge']> };
@@ -1033,6 +1042,7 @@ export type ResolversParentTypes = {
   GasLimitEstimation: GasLimitEstimation;
   GenesisHeight: GenesisHeight;
   GraphConfiguration: GraphConfiguration;
+  Guard: Guard;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   NetworkInfo: NetworkInfo;
@@ -1221,6 +1231,7 @@ export type FungibleChainAccountResolvers<ContextType = any, ParentType extends 
   balance?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   fungibleName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  guard?: Resolver<ResolversTypes['Guard'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   transactions?: Resolver<ResolversTypes['FungibleChainAccountTransactionsConnection'], ParentType, ContextType, RequireFields<FungibleChainAccountTransactionsArgs, 'first' | 'last'>>;
   transfers?: Resolver<ResolversTypes['FungibleChainAccountTransfersConnection'], ParentType, ContextType, RequireFields<FungibleChainAccountTransfersArgs, 'first' | 'last'>>;
@@ -1270,6 +1281,13 @@ export type GenesisHeightResolvers<ContextType = any, ParentType extends Resolve
 
 export type GraphConfigurationResolvers<ContextType = any, ParentType extends ResolversParentTypes['GraphConfiguration'] = ResolversParentTypes['GraphConfiguration']> = {
   minimumBlockHeight?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type GuardResolvers<ContextType = any, ParentType extends ResolversParentTypes['Guard'] = ResolversParentTypes['Guard']> = {
+  keys?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  predicate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1639,6 +1657,7 @@ export type Resolvers<ContextType = any> = {
   GasLimitEstimation?: GasLimitEstimationResolvers<ContextType>;
   GenesisHeight?: GenesisHeightResolvers<ContextType>;
   GraphConfiguration?: GraphConfigurationResolvers<ContextType>;
+  Guard?: GuardResolvers<ContextType>;
   NetworkInfo?: NetworkInfoResolvers<ContextType>;
   Node?: NodeResolvers<ContextType>;
   NonFungibleAccount?: NonFungibleAccountResolvers<ContextType>;

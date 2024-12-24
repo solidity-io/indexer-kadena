@@ -197,7 +197,7 @@ export async function processTransaction(
   }
 }
 
-async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
+export async function getGuardsFromBalances(balances: BalanceInsertResult[]) {
   const guardPromises: Array<Promise<any | null>> = balances.map(
     async (balance) => {
       const res = await handleSingleQuery({
@@ -205,14 +205,18 @@ async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
         code: `(${balance.module}.details \"${balance.account}\")`,
       });
 
-      if (res.error || !res.result) return null;
+      if (res.status !== "success" || !res.result) return null;
 
       const result = JSON.parse(res.result ?? "{}");
-      const withKeys = (result.guard.keys ?? []).map((key: any) => ({
+      const keys = result?.guard?.keys ?? [];
+      const pred = result?.guard?.pred;
+      if (!keys?.length || !pred) return null;
+
+      const withKeys = keys.map((key: any) => ({
         balanceId: balance.id,
         account: balance.account,
         publicKey: key,
-        predicate: result.guard.pred,
+        predicate: pred,
       }));
 
       return withKeys;
@@ -229,6 +233,11 @@ async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
       predicate: g.predicate,
     }));
 
+  return filteredGuards;
+}
+
+async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
+  const filteredGuards = await getGuardsFromBalances(balances);
   await Guard.bulkCreate(filteredGuards, {
     transaction: tx,
     ignoreDuplicates: true,

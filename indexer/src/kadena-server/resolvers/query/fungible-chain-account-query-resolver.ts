@@ -6,7 +6,7 @@ export const fungibleChainAccountQueryResolver: QueryResolvers<ResolverContext>[
   async (_parent, args, context) => {
     const { accountName, chainIds, fungibleName } = args;
     console.log("fungibleChainAccountQueryResolver");
-    const accounts = await context.balanceRepository.getChainsAccountInfo(
+    const accounts = await context.balanceRepository.getChainsAccountInfo_NODE(
       accountName,
       fungibleName,
       chainIds?.map((c) => c.toString()),

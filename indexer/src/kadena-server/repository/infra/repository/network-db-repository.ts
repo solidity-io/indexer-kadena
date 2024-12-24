@@ -27,8 +27,7 @@ const NODE_INFO_KEY = "NODE_INFO_KEY";
 export default class NetworkDbRepository implements NetworkRepository {
   async getNetworkStatistics() {
     const totalTransactionsCountQuery = `
-      select sum(transactionscount) as "totalTransactionsCount"
-      from "balances_aggregate"
+      SELECT last_value as "totalTransactionsCount" from "Transactions_id_seq"
     `;
 
     const { rows: totalTransactionsCountRows } = await rootPgPool.query(

@@ -7,11 +7,12 @@ export const fungibleChainAccountsByPublicKeyQueryResolver: QueryResolvers<Resol
     console.log("fungibleChainAccountsByPublicKeyQueryResolver");
     const { publicKey, fungibleName, chainId } = args;
 
-    const output = await context.balanceRepository.getChainAccountsByPublicKey(
-      publicKey,
-      fungibleName,
-      chainId,
-    );
+    const output =
+      await context.balanceRepository.getChainAccountsByPublicKey_NODE(
+        publicKey,
+        fungibleName,
+        chainId,
+      );
 
     const res = output.map((acc) => buildFungibleChainAccount(acc));
     return res;

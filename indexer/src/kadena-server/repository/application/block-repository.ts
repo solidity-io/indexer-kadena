@@ -48,7 +48,10 @@ export default interface BlockRepository {
     pageInfo: PageInfo;
     edges: ConnectionEdge<BlockOutput>[];
   }>;
-  getMinerData(hash: string): Promise<FungibleChainAccountOutput>;
+  getMinerData(
+    hash: string,
+    chainId: string,
+  ): Promise<FungibleChainAccountOutput>;
 
   getLowestBlockHeight(): Promise<number>;
 

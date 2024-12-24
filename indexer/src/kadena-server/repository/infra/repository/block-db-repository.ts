@@ -10,6 +10,8 @@ import BlockRepository, {
 import { getPageInfo } from "../../pagination";
 import { blockValidator } from "../schema-validator/block-schema-validator";
 import Balance from "../../../../models/balance";
+import { handleSingleQuery } from "../../../utils/raw-query";
+import { formatGuard_NODE } from "../../../../utils/chainweb-node";
 
 export default class BlockDbRepository implements BlockRepository {
   async getBlockByHash(hash: string) {
@@ -84,7 +86,7 @@ export default class BlockDbRepository implements BlockRepository {
     };
   }
 
-  async getMinerData(hash: string) {
+  async getMinerData(hash: string, chainId: string) {
     const balanceRows = await sequelize.query(
       `SELECT ba.id,
               ba.account,
@@ -93,11 +95,12 @@ export default class BlockDbRepository implements BlockRepository {
               ba.module
         FROM "Blocks" b
         JOIN "Balances" ba ON ba.account = b."minerData"->>'account'
-        WHERE b.hash = :hash`,
+        WHERE b.hash = :hash
+        AND ba."chainId" = :chainId`,
       {
         model: Balance,
         mapToModel: true,
-        replacements: { hash },
+        replacements: { hash, chainId },
         type: QueryTypes.SELECT,
       },
     );
@@ -108,12 +111,18 @@ export default class BlockDbRepository implements BlockRepository {
       throw new Error("Miner didn't exist.");
     }
 
+    const res = await handleSingleQuery({
+      chainId: chainId.toString(),
+      code: `(${balanceRow.module}.details \"${balanceRow.account}\")`,
+    });
+
     return {
       id: balanceRow.id.toString(),
       accountName: balanceRow.account,
       balance: Number(balanceRow.balance),
       chainId: balanceRow.chainId.toString(),
       fungibleName: balanceRow.module,
+      guard: formatGuard_NODE(res),
     };
   }
 

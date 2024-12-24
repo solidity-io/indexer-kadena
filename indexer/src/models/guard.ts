@@ -52,8 +52,9 @@ Guard.init(
     tableName: "Guards",
     indexes: [
       {
-        name: "guards_publickey_idx",
-        fields: ["publicKey"],
+        name: "guards_publickey_predicate_balanceid_idx",
+        fields: ["publicKey", "predicate", "balanceId"],
+        unique: true,
       },
     ],
   },

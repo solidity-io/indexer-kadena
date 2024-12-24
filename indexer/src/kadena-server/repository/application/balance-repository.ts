@@ -71,4 +71,27 @@ export default interface BalanceRepository {
     chainId: string,
     tokenId: string,
   ): Promise<INonFungibleTokenBalance | null>;
+
+  /** methods below use balance from node */
+  getAccountInfo_NODE(
+    accountName: string,
+    fungibleName?: string | null,
+  ): Promise<FungibleAccountOutput>;
+
+  getChainsAccountInfo_NODE(
+    accountName: string,
+    fungibleName: string,
+    chainIds?: string[],
+  ): Promise<FungibleChainAccountOutput[]>;
+
+  getAccountsByPublicKey_NODE(
+    publicKey: string,
+    fungibleName: string,
+  ): Promise<FungibleAccountOutput[]>;
+
+  getChainAccountsByPublicKey_NODE(
+    publicKey: string,
+    fungibleName: string,
+    chainId: string,
+  ): Promise<FungibleChainAccountOutput[]>;
 }
