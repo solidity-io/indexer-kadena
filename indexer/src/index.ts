@@ -34,7 +34,6 @@ async function main() {
     }
 
     if (options.streaming) {
-      await initializeDatabase();
       await startStreaming();
     } else if (options.guards) {
       await startGuardsBackfill();

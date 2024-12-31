@@ -25,21 +25,21 @@ export async function processPayloadKey(
   block: BlockAttributes,
   payloadData: any,
   tx?: Transaction,
-) {
+): Promise<EventAttributes[]> {
   const transactions = payloadData.transactions || [];
 
   const transactionPromises = transactions.map((transactionArray: any) =>
     processTransaction(transactionArray, block, tx),
   );
 
-  await Promise.all(transactionPromises);
+  return (await Promise.all(transactionPromises)).flat();
 }
 
 export async function processTransaction(
   transactionArray: any,
   block: BlockAttributes,
   tx?: Transaction,
-) {
+): Promise<EventAttributes[]> {
   const transactionInfo = transactionArray[TRANSACTION_INDEX];
   const receiptInfo = transactionArray[RECEIPT_INDEX];
 
@@ -192,8 +192,11 @@ export async function processTransaction(
     });
 
     await saveGuards(insertedBalances ?? [], tx);
+
+    return eventsAttributes;
   } catch (error) {
     console.error(`Error saving transaction to the database: ${error}`);
+    return [];
   }
 }
 
