@@ -159,7 +159,7 @@ export default class EventDbRepository implements EventRepository {
 
     if (requestKey) {
       queryParams.push(requestKey);
-      conditions += `\nAND e."requestkey" = $${queryParams.length}`;
+      conditions += `\nAND t."requestkey" = $${queryParams.length}`;
     }
 
     if (before) {
@@ -174,7 +174,7 @@ export default class EventDbRepository implements EventRepository {
 
     const query = `
       select e.id as id,
-        e.requestkey as "requestKey",
+        t.requestkey as "requestKey",
         b."chainId" as "chainId",
         b.height as height,
         e.module as "moduleName",

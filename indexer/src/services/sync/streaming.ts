@@ -1,7 +1,7 @@
 import { processPayloadKey } from "./payload";
-import { getDecoded, getRequiredEnvString } from "../../utils/helpers";
+import { delay, getDecoded, getRequiredEnvString } from "../../utils/helpers";
 import EventSource from "eventsource";
-import { DispatchInfo } from "../../jobs/publisher-job";
+import { dispatch, DispatchInfo } from "../../jobs/publisher-job";
 import { uint64ToInt64 } from "../../utils/int-uint-64";
 import Block, { BlockAttributes } from "../../models/block";
 import { sequelize } from "../../config/database";
@@ -46,13 +46,23 @@ export async function startStreaming() {
 
     const promises = blocksToProcess.map(async (block: any) => {
       try {
-        await saveBlock(block);
+        return saveBlock(block);
       } catch (error) {
         console.error("Error saving block:", error);
       }
     });
 
-    await Promise.all(promises);
+    const res = (await Promise.all(promises)).filter(
+      (r) => r !== null,
+    ) as DispatchInfo[];
+
+    const dispatches = res.map(async (r, index) => {
+      await dispatch(r);
+      await delay(500);
+      console.log("Dispatched block:", index);
+    });
+
+    await Promise.all(dispatches);
     console.log("Done processing blocks: ", blocksToProcess.length);
   }, 1000 * 10);
 
@@ -122,33 +132,18 @@ async function saveBlock(parsedData: any): Promise<DispatchInfo | null> {
       transaction: tx,
     });
 
-    await processPayloadKey(createdBlock, payloadData, tx);
+    const eventsCreated = await processPayloadKey(
+      createdBlock,
+      payloadData,
+      tx,
+    );
 
-    const txs: Array<{
-      requestKey: string;
-      qualifiedEventNames: string[];
-    }> = transactions.map((t: any) => {
-      const qualifiedEventNames = t[1].events.map((e: any) => {
-        const module = e.module.namespace
-          ? `${e.module.namespace}.${e.module.name}`
-          : e.module.name;
-        const name = e.name;
-        return `${module}.${name}`;
-      });
-      return {
-        requestKey: t[1].reqKey,
-        qualifiedEventNames,
-      };
-    });
+    const uniqueRequestKeys = new Set(
+      eventsCreated.map((t) => t.requestkey).filter(Boolean),
+    );
 
-    const events = transactions.flatMap((t: any) => t.qualifiedEventNames);
-    const qualifiedEventNamesSet = new Set();
-    const uniqueQualifiedEventNames = events.filter(
-      (qualifiedEventName: any) => {
-        const isDuplicate = qualifiedEventNamesSet.has(qualifiedEventName);
-        qualifiedEventNamesSet.add(qualifiedEventName);
-        return !isDuplicate;
-      },
+    const uniqueQualifiedEventNames = new Set(
+      eventsCreated.map((t) => `${t.module}.${t.name}`).filter(Boolean),
     );
 
     await tx.commit();
@@ -156,8 +151,8 @@ async function saveBlock(parsedData: any): Promise<DispatchInfo | null> {
       hash: createdBlock.hash,
       chainId: createdBlock.chainId.toString(),
       height: createdBlock.height,
-      requestKeys: txs.map((t) => t.requestKey),
-      qualifiedEventNames: uniqueQualifiedEventNames,
+      requestKeys: Array.from(uniqueRequestKeys),
+      qualifiedEventNames: Array.from(uniqueQualifiedEventNames),
     };
   } catch (error) {
     await tx.rollback();

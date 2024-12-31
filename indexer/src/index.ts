@@ -8,11 +8,13 @@ import { usePostgraphile } from "./server/metrics";
 import { useKadenaGraphqlServer } from "./kadena-server/server";
 import { closeDatabase } from "./config/database";
 import { initializeDatabase } from "./config/init";
+import { startGuardsBackfill } from "./services/sync/guards";
 
 program
   .option("-s, --streaming", "Start streaming blockchain data")
   .option("-g, --oldGraphql", "Start GraphQL server based on Postgraphile")
   .option("-t, --graphql", "Start GraphQL server based on kadena schema")
+  .option("-f, --guards", "Backfill the guards")
   .option("-z, --database", "Init the database");
 
 program.parse(process.argv);
@@ -32,8 +34,9 @@ async function main() {
     }
 
     if (options.streaming) {
-      await initializeDatabase();
       await startStreaming();
+    } else if (options.guards) {
+      await startGuardsBackfill();
     } else if (options.oldGraphql) {
       await usePostgraphile();
     } else if (options.graphql) {

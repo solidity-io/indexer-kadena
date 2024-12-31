@@ -432,6 +432,7 @@ type FungibleChainAccount implements Node {
     balance: Float!
     chainId: String!
     fungibleName: String!
+    guard: Guard!
 
     transactions(
         after: String
@@ -789,4 +790,10 @@ type NonFungibleChainAccountTransactionsConnection {
 type NonFungibleChainAccountTransactionsConnectionEdge {
     cursor: String!
     node: Transaction!
+}
+
+type Guard {
+    keys: [String!]!
+    predicate: String!
+    raw: String!
 }

@@ -1,5 +1,10 @@
 import { rootPgPool } from "../../../../config/database";
 import BalanceModel from "../../../../models/balance";
+import {
+  formatBalance_NODE,
+  formatGuard_NODE,
+} from "../../../../utils/chainweb-node";
+import { handleSingleQuery } from "../../../utils/raw-query";
 import BalanceRepository, {
   FungibleAccountOutput,
   FungibleChainAccountOutput,
@@ -245,6 +250,271 @@ export default class BalanceDbRepository implements BalanceRepository {
 
     const output = nonFungibleTokenBalanceValidator.validate(rows[0]);
 
+    return output;
+  }
+
+  async getAccountInfo_NODE(
+    accountName: string,
+    fungibleName = "coin",
+  ): Promise<FungibleAccountOutput> {
+    const query = `
+      SELECT DISTINCT b."chainId"
+      FROM "Balances" b
+      WHERE b.account = $1
+      AND b.module = $2
+    `;
+    const { rows } = await rootPgPool.query(query, [accountName, fungibleName]);
+
+    const chainIds = rows.map((r) => Number(r.chainId));
+
+    const balancePromises = chainIds.map((c) => {
+      const query = {
+        chainId: c.toString(),
+        code: `(${fungibleName}.details \"${accountName}\")`,
+      };
+      return handleSingleQuery(query);
+    });
+
+    const balances = (await Promise.all(balancePromises)).filter(
+      (b) => b.status === "success",
+    );
+    const balancesNumber = balances.map((b) => formatBalance_NODE(b));
+    const totalBalance = balancesNumber.reduce((acc, cur) => acc + cur, 0);
+
+    const accountInfo = fungibleAccountValidator.mapFromSequelize({
+      account: accountName,
+      module: fungibleName,
+      chainId: -1,
+      balance: BigInt(-1),
+      hasTokenId: false,
+    });
+    return { ...accountInfo, totalBalance };
+  }
+
+  async getChainsAccountInfo_NODE(
+    accountName: string,
+    fungibleName: string,
+    chainIds?: string[],
+  ): Promise<FungibleChainAccountOutput[]> {
+    let chainIdsParam = [];
+    if (!chainIds?.length) {
+      const query = `
+      SELECT DISTINCT b."chainId"
+      FROM "Balances" b
+      WHERE b.account = $1
+      AND b.module = $2
+    `;
+      const { rows } = await rootPgPool.query(query, [
+        accountName,
+        fungibleName,
+      ]);
+      const chainIds = rows.map((r) => Number(r.chainId));
+      chainIdsParam.push(...chainIds);
+    } else {
+      chainIdsParam.push(...chainIds.map((c) => Number(c)));
+    }
+
+    const balancePromises = chainIdsParam.map((c) => {
+      const query = {
+        chainId: c.toString(),
+        code: `(${fungibleName}.details \"${accountName}\")`,
+      };
+      return handleSingleQuery(query);
+    });
+
+    const rows = (await Promise.all(balancePromises)).filter(
+      (b) => b.status === "success",
+    );
+
+    const rowsMapped = rows.map((row, index) => {
+      const balance = formatBalance_NODE(row);
+      const guard = formatGuard_NODE(row);
+      return {
+        id: index,
+        accountName,
+        chainId: chainIdsParam[index],
+        balance: balance.toString(),
+        module: fungibleName,
+        guard,
+      };
+    });
+
+    const output = rowsMapped.map((r) =>
+      fungibleChainAccountValidator.validate(r),
+    );
+
+    return output;
+  }
+
+  async getAccountsByPublicKey_NODE(
+    publicKey: string,
+    fungibleName: string,
+  ): Promise<FungibleAccountOutput[]> {
+    const guardsQuery = `
+      SELECT g."publicKey", g."balanceId"
+      FROM "Guards" g
+      WHERE g."publicKey" = $1
+    `;
+
+    const { rows: guardRows } = await rootPgPool.query(guardsQuery, [
+      publicKey,
+    ]);
+
+    if (!guardRows?.length) {
+      const params = [publicKey, fungibleName];
+      const query = `
+        SELECT b.account, b."chainId"
+        FROM "Balances" b
+        WHERE b.account = $1
+        AND b.module = $2
+      `;
+      const { rows } = await rootPgPool.query(query, params);
+
+      if (!rows.length) return [];
+
+      const balancePromises = rows.map((r) => {
+        const query = {
+          chainId: r.chainId.toString(),
+          code: `(${fungibleName}.details \"${r.account}\")`,
+        };
+        return handleSingleQuery(query);
+      });
+
+      const balances = (await Promise.all(balancePromises)).filter(
+        (b) => b.status === "success",
+      );
+      const balancesNumber = balances.map((q) => formatBalance_NODE(q));
+      const totalBalance = balancesNumber.reduce((acc, cur) => acc + cur, 0);
+
+      const accountInfo = fungibleAccountValidator.mapFromSequelize({
+        account: publicKey,
+        module: fungibleName,
+        chainId: -1,
+        balance: BigInt(-1),
+        hasTokenId: false,
+      });
+      return [{ ...accountInfo, totalBalance }];
+    } else {
+      const params = [publicKey, fungibleName];
+      const query = `
+        SELECT b.account, b."chainId"
+        FROM "Balances" b
+        JOIN "Guards" g ON b.id = g."balanceId"
+        WHERE g."publicKey" = $1
+        AND b.module = $2
+      `;
+      const { rows } = await rootPgPool.query(query, params);
+
+      const groupedByAccount: Record<string, string[]> = rows.reduce(
+        (acc, cur) => {
+          if (!acc[cur.account]) {
+            acc[cur.account] = [];
+          }
+          acc[cur.account].push(cur.chainId);
+          return acc;
+        },
+        {} as Record<string, string[]>,
+      );
+
+      const accountsPromises = Object.entries(groupedByAccount).map(
+        async ([account, chainIds], index) => {
+          const balances = chainIds.map(async (c) => {
+            const query = {
+              chainId: c.toString(),
+              code: `(${fungibleName}.details \"${account}\")`,
+            };
+            const result = await handleSingleQuery(query);
+            return formatBalance_NODE(result);
+          });
+
+          const balancesNumber = await Promise.all(balances);
+          const totalBalance: Number = balancesNumber.reduce(
+            (acc, cur) => acc + cur,
+            0,
+          );
+
+          return {
+            id: index.toString(),
+            accountName: account,
+            totalBalance,
+            fungibleName,
+          };
+        },
+      );
+
+      const accounts = await Promise.all(accountsPromises);
+      return accounts;
+    }
+  }
+
+  async getChainAccountsByPublicKey_NODE(
+    publicKey: string,
+    fungibleName: string,
+    chainId: string,
+  ): Promise<FungibleChainAccountOutput[]> {
+    const guardsQuery = `
+      SELECT g."publicKey", g."balanceId"
+      FROM "Guards" g
+      WHERE g."publicKey" = $1
+    `;
+
+    const { rows: guardRows } = await rootPgPool.query(guardsQuery, [
+      publicKey,
+    ]);
+
+    const params = [publicKey, fungibleName, chainId];
+    let query = "";
+    if (!guardRows?.length) {
+      query = `
+        SELECT b.id, b.account, b."chainId", b.module
+        FROM "Balances" b
+        WHERE b.account = $1
+        AND b.module = $2
+        AND b."chainId" = $3
+      `;
+    } else {
+      query = `
+        SELECT b.id, b.account, b."chainId", b.module
+        FROM "Balances" b
+        JOIN "Guards" g ON b.id = g."balanceId"
+        WHERE g."publicKey" = $1
+        AND b.module = $2
+        AND b."chainId" = $3
+      `;
+    }
+
+    const { rows } = await rootPgPool.query(query, params);
+    const balancesWithQuery = rows.map(async (r) => {
+      const query = {
+        chainId: r.chainId.toString(),
+        code: `(${fungibleName}.details \"${r.account}\")`,
+      };
+
+      return {
+        id: r.id,
+        accountName: r.account,
+        chainId: r.chainId,
+        balanceQuery: await handleSingleQuery(query),
+        module: r.module,
+      };
+    });
+
+    const queries = (await Promise.all(balancesWithQuery)).filter(
+      (b) => b.balanceQuery.status === "success",
+    );
+
+    const balances = queries.map((b) => {
+      const balance = formatBalance_NODE(b.balanceQuery).toString();
+      return {
+        ...b,
+        balance,
+        guard: formatGuard_NODE(b.balanceQuery),
+      };
+    });
+
+    const output = balances.map((r) =>
+      fungibleChainAccountValidator.validate(r),
+    );
     return output;
   }
 }

@@ -1,4 +1,3 @@
-import { BalanceAttributes } from "../../../../models/balance";
 import zod from "zod";
 import { FungibleChainAccountOutput } from "../../application/block-repository";
 
@@ -28,26 +27,17 @@ const validate = (row: any): FungibleChainAccountOutput => {
     fungibleName: res.module,
     chainId: res.chainId.toString(),
     balance: Number(res.balance),
-  };
-};
-
-const mapFromSequelize = (
-  balanceModel: BalanceAttributes,
-): FungibleChainAccountOutput => {
-  return {
-    id: getBase64IDChain(
-      balanceModel.chainId,
-      balanceModel.module,
-      balanceModel.account,
-    ),
-    chainId: balanceModel.chainId.toString(),
-    accountName: balanceModel.account,
-    fungibleName: balanceModel.module,
-    balance: Number(balanceModel.balance),
+    guard: {
+      keys: row.guard.keys,
+      predicate: row.guard.predicate,
+      raw: JSON.stringify({
+        keys: row.guard.keys,
+        predicate: row.guard.predicate,
+      }),
+    },
   };
 };
 
 export const fungibleChainAccountValidator = {
   validate,
-  mapFromSequelize,
 };

@@ -184,6 +184,14 @@ Transfer.init(
         name: "transfers_from_acct_modulename_idx",
         fields: ["from_acct", "modulename"],
       },
+      {
+        name: "transfers_chainid_from_acct_modulename_idx",
+        fields: ["chainId", "from_acct", "modulename"],
+      },
+      {
+        name: "transfers_chainid_to_acct_modulename_idx",
+        fields: ["chainId", "to_acct", "modulename"],
+      },
     ],
   },
 );

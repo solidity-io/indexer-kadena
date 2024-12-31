@@ -6,7 +6,10 @@ export const minerAccountBlockResolver: BlockResolvers<ResolverContext>["minerAc
   async (parent, _args, context) => {
     console.log("minerAccountBlockResolver");
 
-    const output = await context.blockRepository.getMinerData(parent.hash);
+    const output = await context.blockRepository.getMinerData(
+      parent.hash,
+      parent.chainId,
+    );
 
     return buildFungibleChainAccount(output);
   };

@@ -14,4 +14,4 @@ COPY --from=builder /app/src/config/global-bundle.pem ./dist/config/global-bundl
 COPY --from=builder /app/src/kadena-server/config/schema.graphql ./dist/kadena-server/config/schema.graphql
 EXPOSE 3001
 
-CMD ["node", "dist/index.js", "--graphqlServer"]
+CMD ["node", "dist/index.js", "--graphql"]

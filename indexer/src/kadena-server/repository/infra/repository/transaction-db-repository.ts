@@ -4,7 +4,6 @@ import TransactionRepository, {
   GetTransactionsByRequestKey,
   GetTransactionsCountParams,
   GetTransactionsParams,
-  SignerOutput,
   TransactionOutput,
 } from "../../application/transaction-repository";
 import { getPageInfo } from "../../pagination";
@@ -257,7 +256,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.requestkey as "requestKey"
       FROM "Transactions" t
       JOIN "Blocks" b on t."blockId" = b.id 
-      WHERE t.requestkey = $1
+      WHERE t.requestkey::text = $1
       ${conditions}
       `;
 
@@ -290,32 +289,33 @@ export default class TransactionDbRepository implements TransactionRepository {
     }
 
     const query = `
-      SELECT t.id as id,
-      t.hash as "hashTransaction",
-      t.nonce as "nonceTransaction",
-      t.sigs as sigs,
-      t.continuation as continuation,
-      t.num_events as "eventCount",
-      t.pactid as "pactId",
-      t.proof as proof,
-      t.rollback as rollback,
-      b.height as "height",
-      b."hash" as "blockHash",
-      b."chainId" as "chainId",
-      t.gas as "gas",
-      t.step as step,
-      t.data as data,
-      t.code as code,
-      t.logs as "logs",
-      t.result as "result",
-      t.requestkey as "requestKey"
+      SELECT
+        t.id as id,
+        t.hash as "hashTransaction",
+        t.nonce as "nonceTransaction",
+        t.sigs as sigs,
+        t.continuation as continuation,
+        t.num_events as "eventCount",
+        t.pactid as "pactId",
+        t.proof as proof,
+        t.rollback as rollback,
+        b.height as "height",
+        b."hash" as "blockHash",
+        b."chainId" as "chainId",
+        t.gas as "gas",
+        t.step as step,
+        t.data as data,
+        t.code as code,
+        t.logs as "logs",
+        t.result as "result",
+        t.requestkey as "requestKey"
       FROM "Transactions" t
-      JOIN "Blocks" b on t."blockId" = b.id
-      WHERE t.id IN (
+      JOIN "Blocks" b ON t."blockId" = b.id
+      JOIN (
         SELECT DISTINCT s."transactionId"
         FROM "Signers" s
         WHERE s."pubkey" = $2
-      )
+      ) filtered_signers ON t.id = filtered_signers."transactionId"
       ${cursorCondition}
       ORDER BY t.id ${before ? "DESC" : "ASC"}
       LIMIT $1;
@@ -508,7 +508,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         t.requestkey as "requestKey"
       FROM "Signers" s
       JOIN "Transactions" t on s."transactionId" = t.id
-      WHERE s."transactionId" = $1
+      WHERE t.id = $1
     `;
 
     if (orderIndex) {
