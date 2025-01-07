@@ -2,7 +2,6 @@ import pLimit from "p-limit";
 import { rootPgPool, sequelize } from "../../config/database";
 import { getGuardsFromBalances } from "./payload";
 import Guard from "../../models/guard";
-import { delay } from "../../utils/helpers";
 
 const CONCURRENCY_LIMIT = 4; // Number of concurrent fetches allowed
 const limitFetch = pLimit(CONCURRENCY_LIMIT);
