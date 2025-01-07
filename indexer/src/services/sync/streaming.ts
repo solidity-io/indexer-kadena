@@ -5,6 +5,7 @@ import { dispatch, DispatchInfo } from "../../jobs/publisher-job";
 import { uint64ToInt64 } from "../../utils/int-uint-64";
 import Block, { BlockAttributes } from "../../models/block";
 import { sequelize } from "../../config/database";
+import StreamingError from "../../models/streaming-error";
 
 const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
 const SYNC_NETWORK = getRequiredEnvString("SYNC_NETWORK");
@@ -44,26 +45,39 @@ export async function startStreaming() {
       blocksToProcess.push(b);
     }
 
+    console.log("Processing blocks:", blocksToProcess.length);
     const promises = blocksToProcess.map(async (block: any) => {
+      const blockData = await saveBlock(block);
+      if (blockData === null) {
+        await StreamingError.create({
+          hash: block.header.hash,
+          chainId: block.header.chainId,
+        });
+      }
+      return blockData;
+    });
+
+    const processed = (await Promise.all(promises)).filter(
+      (r) => r !== null || r !== undefined,
+    ) as DispatchInfo[];
+
+    const dispatches = processed.map(async (r) => {
       try {
-        return saveBlock(block);
-      } catch (error) {
-        console.error("Error saving block:", error);
+        await delay(500);
+        await dispatch(r);
+      } catch (err) {
+        console.error("Error dispatching block:", err);
       }
     });
 
-    const res = (await Promise.all(promises)).filter(
-      (r) => r !== null,
-    ) as DispatchInfo[];
-
-    const dispatches = res.map(async (r, index) => {
-      await dispatch(r);
-      await delay(500);
-      console.log("Dispatched block:", index);
-    });
-
     await Promise.all(dispatches);
-    console.log("Done processing blocks: ", blocksToProcess.length);
+    console.log(
+      "Processed:",
+      processed.length,
+      "|",
+      "Dispatched:",
+      dispatches.length,
+    );
   }, 1000 * 10);
 
   setInterval(
