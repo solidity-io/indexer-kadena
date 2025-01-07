@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  indexer-db:
+    image: postgres
+    container_name: kad-indexer-postgres
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db-migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+    container_name: db-migration
+    environment:
+      DB_HOST: indexer-db
+    command: >
+      /bin/sh -c "
+      rm -f /app/shared/db-migration-complete &&
+      rm -f /app/shared/graphql-running &&
+      yarn create:database &&
+      touch /app/shared/db-migration-complete"
+    depends_on:
+      indexer-db:
+        condition: service_healthy
+    volumes:
+      - shared-data:/app/shared
+
+  graphql-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+    container_name: kad-indexer-graphql
+    environment:
+      DB_HOST: indexer-db
+    command: >
+      /bin/sh -c "
+      while [ ! -f /app/shared/db-migration-complete ]; do
+        echo 'Waiting for db-migration...';
+        sleep 6;
+      done &&
+      touch /app/shared/graphql-running &&
+      yarn dev:graphql"
+    ports:
+      - "3001:3001"
+    depends_on:
+      db-migration:
+        condition: service_started
+    volumes:
+      - shared-data:/app/shared
+
+  streaming-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.development
+    container_name: kad-indexer-streaming
+    environment:
+      DB_HOST: indexer-db
+      KADENA_GRAPHQL_API_URL: http://graphql-app
+    command: >
+      /bin/sh -c "
+      while [ ! -f /app/shared/graphql-running ]; do
+        echo 'Waiting for graphql-app...';
+        sleep 6;
+      done &&
+      yarn dev:streaming"
+    depends_on:
+      graphql-app:
+        condition: service_started
+    volumes:
+      - shared-data:/app/shared
+
+volumes:
+  shared-data:
