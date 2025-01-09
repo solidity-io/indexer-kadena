@@ -35,117 +35,129 @@ export default class TransactionDbRepository implements TransactionRepository {
       hasTokenId = false,
     } = params;
 
-    const queryParams: (string | number)[] = [before ? last : first];
-    let conditions = "";
+    const transactionParams: (string | number)[] = [before ? last : first];
+    const blockParams: (string | number)[] = [];
+    let transactionsConditions = "";
+    let blocksConditions = "";
 
     if (accountName) {
-      queryParams.push(accountName);
-      const op = operator(queryParams.length);
-      conditions += `${op} t.sender = $${queryParams.length}`;
-    }
-
-    if (blockHash) {
-      queryParams.push(blockHash);
-      const op = operator(queryParams.length);
-      conditions += `${op} b.hash = $${queryParams.length}`;
+      transactionParams.push(accountName);
+      const op = operator(transactionParams.length);
+      transactionsConditions += `${op} t.sender = $${transactionParams.length}`;
     }
 
     if (after) {
-      queryParams.push(after);
-      const op = operator(queryParams.length);
-      conditions += `${op} t.id > $${queryParams.length}`;
+      transactionParams.push(after);
+      const op = operator(transactionParams.length);
+      transactionsConditions += `${op} t.id > $${transactionParams.length}`;
     }
 
     if (before) {
-      queryParams.push(before);
-      const op = operator(queryParams.length);
-      conditions += `${op} t.id < $${queryParams.length}`;
-    }
-
-    if (chainId) {
-      queryParams.push(chainId);
-      const op = operator(queryParams.length);
-      conditions += `${op} b."chainId" = $${queryParams.length}`;
+      transactionParams.push(before);
+      const op = operator(transactionParams.length);
+      transactionsConditions += `${op} t.id < $${transactionParams.length}`;
     }
 
     if (requestKey) {
-      queryParams.push(requestKey);
-      const op = operator(queryParams.length);
-      conditions += `${op} t."requestkey" = $${queryParams.length}`;
-    }
-
-    if (maxHeight) {
-      queryParams.push(maxHeight);
-      const op = operator(queryParams.length);
-      conditions += `${op} b."height" <= $${queryParams.length}`;
-    }
-
-    if (minHeight) {
-      queryParams.push(minHeight);
-      const op = operator(queryParams.length);
-      conditions += `${op} b."height" >= $${queryParams.length}`;
-    }
-
-    if (minimumDepth) {
-      queryParams.push(minimumDepth);
-      const op = operator(queryParams.length);
-      conditions += `${op} b."minimumDepth" >= $${queryParams.length}`;
+      transactionParams.push(requestKey);
+      const op = operator(transactionParams.length);
+      transactionsConditions += `${op} t."requestkey" = $${transactionParams.length}`;
     }
 
     if (fungibleName) {
-      queryParams.push(fungibleName);
-      const op = operator(queryParams.length);
-      conditions += `
+      transactionParams.push(fungibleName);
+      const op = operator(transactionParams.length);
+      transactionsConditions += `
         ${op} EXISTS
         (
           SELECT 1
           FROM "Events" e
           WHERE e."transactionId" = t.id
-          AND e."module" = $${queryParams.length}
+          AND e."module" = $${transactionParams.length}
         )`;
     }
 
     if (accountName && hasTokenId) {
-      queryParams.push(accountName);
-      const op = operator(queryParams.length + 1);
-      conditions += `
+      transactionParams.push(accountName);
+      const op = operator(transactionParams.length + 1);
+      transactionsConditions += `
         ${op} EXISTS
         (
           SELECT 1
           FROM "Transfers" t
-          WHERE t."from_acct" = $${queryParams.length}
+          WHERE t."from_acct" = $${transactionParams.length}
           AND t."hasTokenId" = true
         )`;
     }
 
+    const paramsOffset = transactionParams.length;
+    if (blockHash) {
+      blockParams.push(blockHash);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b.hash = $${paramsOffset + blockParams.length}`;
+    }
+
+    if (chainId) {
+      blockParams.push(chainId);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."chainId" = $${paramsOffset + blockParams.length}`;
+    }
+
+    if (maxHeight) {
+      blockParams.push(maxHeight);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."height" <= $${paramsOffset + blockParams.length}`;
+    }
+
+    if (minHeight) {
+      blockParams.push(minHeight);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."height" >= $${paramsOffset + blockParams.length}`;
+    }
+
+    if (minimumDepth) {
+      blockParams.push(minimumDepth);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."minimumDepth" >= $${paramsOffset + blockParams.length}`;
+    }
+
     const query = `
-      SELECT t.id as id,
-      t.hash as "hashTransaction",
-      t.nonce as "nonceTransaction",
-      t.sigs as sigs,
-      t.continuation as continuation,
-      t.num_events as "eventCount",
-      t.pactid as "pactId",
-      t.proof as proof,
-      t.rollback as rollback,
-      b.height as "height",
-      b."hash" as "blockHash",
-      b."chainId" as "chainId",
-      t.gas as "gas",
-      t.step as step,
-      t.data as data,
-      t.code as code,
-      t.logs as "logs",
-      t.result as "result",
-      t.requestkey as "requestKey"
-      FROM "Blocks" b
-      JOIN "Transactions" t on b.id = t."blockId"
-      ${conditions}
-      ORDER BY t.id ${before ? "DESC" : "ASC"}
-      LIMIT $1;
+      WITH filtered_transactions AS (
+        SELECT id, "blockId", hash, nonce, sigs, continuation, num_events, pactid, proof, rollback, gas, step, data, code, logs, result, requestkey
+        FROM "Transactions" t
+        ${transactionsConditions}
+        ORDER BY t.id ${before ? "DESC" : "ASC"}
+        LIMIT $1
+      )
+      SELECT
+        t.id AS id,
+        t.hash AS "hashTransaction",
+        t.nonce AS "nonceTransaction",
+        t.sigs AS sigs,
+        t.continuation AS continuation,
+        t.num_events AS "eventCount",
+        t.pactid AS "pactId",
+        t.proof AS proof,
+        t.rollback AS rollback,
+        b.height AS "height",
+        b."hash" AS "blockHash",
+        b."chainId" AS "chainId",
+        t.gas AS "gas",
+        t.step AS step,
+        t.data AS data,
+        t.code AS code,
+        t.logs AS "logs",
+        t.result AS "result",
+        t.requestkey AS "requestKey"
+      FROM filtered_transactions t
+      JOIN "Blocks" b ON b.id = t."blockId"
+      ${blocksConditions}
     `;
 
-    const { rows } = await rootPgPool.query(query, queryParams);
+    const { rows } = await rootPgPool.query(query, [
+      ...transactionParams,
+      ...blockParams,
+    ]);
 
     const edges = rows.map((row) => ({
       cursor: row.id.toString(),
@@ -258,7 +270,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       JOIN "Blocks" b on t."blockId" = b.id 
       WHERE t.requestkey::text = $1
       ${conditions}
-      `;
+    `;
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
@@ -338,9 +350,12 @@ export default class TransactionDbRepository implements TransactionRepository {
 
   async getTransactionsByPublicKeyCount(publicKey: string) {
     const query = `
-      SELECT COUNT(DISTINCT s."transactionId") as count
-      FROM "Signers" s
-      WHERE s.pubkey = $1;
+      SELECT COUNT(*) as count
+        FROM (
+        SELECT DISTINCT s."transactionId"
+        FROM "Signers" s
+        WHERE s.pubkey = $1
+      ) subquery;
     `;
 
     const { rows } = await rootPgPool.query(query, [publicKey]);
@@ -369,80 +384,102 @@ export default class TransactionDbRepository implements TransactionRepository {
       minHeight,
       maxHeight,
       minimumDepth,
+      hasTokenId,
     } = params;
 
-    const queryParams: (string | number)[] = [];
-    let conditions = "";
+    const transactionsParams: (string | number)[] = [];
+    const blockParams: (string | number)[] = [];
+    let transactionsConditions = "";
+    let blocksConditions = "";
 
     const localOperator = (paramsLength: number) =>
       paramsLength > 1 ? `\nAND` : "WHERE";
 
     if (accountName) {
-      queryParams.push(accountName);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} t.sender = $${queryParams.length}`;
-    }
-
-    if (blockHash) {
-      queryParams.push(blockHash);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b.hash = $${queryParams.length}`;
-    }
-
-    if (chainId) {
-      queryParams.push(chainId);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b."chainId" = $${queryParams.length}`;
+      transactionsParams.push(accountName);
+      const op = localOperator(transactionsParams.length);
+      transactionsConditions += `${op} t.sender = $${transactionsParams.length}`;
     }
 
     if (requestKey) {
-      queryParams.push(requestKey);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} t."requestkey" = $${queryParams.length}`;
-    }
-
-    if (maxHeight) {
-      queryParams.push(maxHeight);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b."height" <= $${queryParams.length}`;
-    }
-
-    if (minHeight) {
-      queryParams.push(minHeight);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b."height" >= $${queryParams.length}`;
-    }
-
-    if (minimumDepth) {
-      queryParams.push(minimumDepth);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b."minimumDepth" >= $${queryParams.length}`;
+      transactionsParams.push(requestKey);
+      const op = localOperator(transactionsParams.length);
+      transactionsConditions += `${op} t."requestkey" = $${transactionsParams.length}`;
     }
 
     if (fungibleName) {
-      queryParams.push(fungibleName);
-      const op = localOperator(queryParams.length);
-      conditions += `
+      transactionsParams.push(fungibleName);
+      const op = localOperator(transactionsParams.length);
+      transactionsConditions += `
         ${op} EXISTS
         (
           SELECT 1
           FROM "Events" e
           WHERE e."transactionId" = t.id
-          AND e."module" = $${queryParams.length}
+          AND e."module" = $${transactionsParams.length}
         )`;
     }
 
+    if (accountName && hasTokenId) {
+      transactionsParams.push(accountName);
+      const op = localOperator(transactionsParams.length);
+      transactionsConditions += `
+        ${op} EXISTS
+        (
+          SELECT 1
+          FROM "Transfers" t
+          WHERE t."from_acct" = $${transactionsParams.length}
+          AND t."hasTokenId" = true
+        )`;
+    }
+
+    const paramsOffset = transactionsParams.length;
+    if (blockHash) {
+      blockParams.push(blockHash);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b.hash = $${paramsOffset + blockParams.length}`;
+    }
+
+    if (chainId) {
+      blockParams.push(chainId);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b."chainId" = $${paramsOffset + blockParams.length}`;
+    }
+
+    if (maxHeight) {
+      blockParams.push(maxHeight);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b."height" <= $${paramsOffset + blockParams.length}`;
+    }
+
+    if (minHeight) {
+      blockParams.push(minHeight);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b."height" >= $${paramsOffset + blockParams.length}`;
+    }
+
+    if (minimumDepth) {
+      blockParams.push(minimumDepth);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b."minimumDepth" >= $${paramsOffset + blockParams.length}`;
+    }
+
     const totalCountQuery = `
+      WITH filtered_transactions AS (
+        SELECT id, "blockId"
+        FROM "Transactions" t
+        ${transactionsConditions}
+      )
       SELECT COUNT(*) as count
-      FROM "Blocks" b
-      JOIN "Transactions" t ON b.id = t."blockId"
-      ${conditions}
+      FROM filtered_transactions t
+      ${blocksConditions ? `JOIN "Blocks" b ON b.id = t."blockId"` : ""}
+      ${blocksConditions}
     `;
 
-    const { rows: countResult } = await rootPgPool.query(
-      totalCountQuery,
-      queryParams,
-    );
+    const { rows: countResult } = await rootPgPool.query(totalCountQuery, [
+      ...transactionsParams,
+      ...blockParams,
+    ]);
 
     const totalCount = parseInt(countResult[0].count, 10);
     return totalCount;

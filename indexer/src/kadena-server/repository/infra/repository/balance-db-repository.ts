@@ -361,7 +361,7 @@ export default class BalanceDbRepository implements BalanceRepository {
     ]);
 
     if (!guardRows?.length) {
-      const params = [publicKey, fungibleName];
+      const params = [`k:${publicKey}`, fungibleName];
       const query = `
         SELECT b.account, b."chainId"
         FROM "Balances" b
@@ -387,7 +387,7 @@ export default class BalanceDbRepository implements BalanceRepository {
       const totalBalance = balancesNumber.reduce((acc, cur) => acc + cur, 0);
 
       const accountInfo = fungibleAccountValidator.mapFromSequelize({
-        account: publicKey,
+        account: `k:${publicKey}`,
         module: fungibleName,
         chainId: -1,
         balance: BigInt(-1),
@@ -462,7 +462,11 @@ export default class BalanceDbRepository implements BalanceRepository {
       publicKey,
     ]);
 
-    const params = [publicKey, fungibleName, chainId];
+    const params = [
+      guardRows?.length ? publicKey : `k:${publicKey}`,
+      fungibleName,
+      chainId,
+    ];
     let query = "";
     if (!guardRows?.length) {
       query = `

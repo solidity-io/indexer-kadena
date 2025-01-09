@@ -153,6 +153,17 @@ export default class TransferDbRepository implements TransferRepository {
   }
 
   async getTotalCountOfTransfers(params: GetTotalCountParams): Promise<number> {
+    const hasNoParams = Object.values(params).every((v) => !v);
+
+    if (hasNoParams) {
+      const totalTransfersCountQuery = `
+        SELECT last_value as "totalTransfersCount" from "Transfers_id_seq"
+      `;
+      const { rows } = await rootPgPool.query(totalTransfersCountQuery);
+      const transfersCount = parseInt(rows[0].totalTransfersCount, 10);
+      return transfersCount;
+    }
+
     const {
       blockHash,
       accountName,
