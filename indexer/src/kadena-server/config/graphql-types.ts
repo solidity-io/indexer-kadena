@@ -23,12 +23,16 @@ export type Scalars = {
   Decimal: { input: any; output: any; }
 };
 
+/** A unit of information that stores a set of verified transactions. */
 export type Block = Node & {
   __typename?: 'Block';
   chainId: Scalars['BigInt']['output'];
   creationTime: Scalars['DateTime']['output'];
-  difficulty?: Maybe<Scalars['BigInt']['output']>;
+  /** The difficulty of the block. */
+  difficulty: Scalars['BigInt']['output'];
+  /** The moment the difficulty is adjusted to maintain a block validation time of 30 seconds. */
   epoch: Scalars['DateTime']['output'];
+  /** Default page size is 20. */
   events: BlockEventsConnection;
   flags: Scalars['Decimal']['output'];
   hash: Scalars['String']['output'];
@@ -39,13 +43,16 @@ export type Block = Node & {
   nonce: Scalars['Decimal']['output'];
   parent?: Maybe<Block>;
   payloadHash: Scalars['String']['output'];
+  /** The proof of work hash. */
   powHash: Scalars['String']['output'];
   target: Scalars['String']['output'];
+  /** Default page size is 20. */
   transactions: BlockTransactionsConnection;
   weight: Scalars['String']['output'];
 };
 
 
+/** A unit of information that stores a set of verified transactions. */
 export type BlockEventsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -54,6 +61,7 @@ export type BlockEventsArgs = {
 };
 
 
+/** A unit of information that stores a set of verified transactions. */
 export type BlockTransactionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -74,6 +82,7 @@ export type BlockEventsConnectionEdge = {
   node: Event;
 };
 
+/** The neighbor of a block. */
 export type BlockNeighbor = {
   __typename?: 'BlockNeighbor';
   chainId: Scalars['String']['output'];
@@ -93,36 +102,50 @@ export type BlockTransactionsConnectionEdge = {
   node: Transaction;
 };
 
+/** The payload of an cont transaction. */
 export type ContinuationPayload = {
   __typename?: 'ContinuationPayload';
+  /** The environment data made available to the transaction. Formatted as raw JSON. */
   data: Scalars['String']['output'];
+  /** A unique id when a pact (defpact) is initiated. See the "Pact execution scope and pact-id" explanation in the docs for more information. */
   pactId?: Maybe<Scalars['String']['output']>;
+  /** The proof provided to continue the cross-chain transaction. */
   proof?: Maybe<Scalars['String']['output']>;
+  /** Whether or not this transaction can be rolled back. */
   rollback?: Maybe<Scalars['Boolean']['output']>;
+  /** The step-number when this is an execution of a `defpact`, aka multi-step transaction. */
   step?: Maybe<Scalars['Int']['output']>;
 };
 
+/** An event emitted by the execution of a smart-contract function. */
 export type Event = Node & {
   __typename?: 'Event';
   block: Block;
   chainId: Scalars['BigInt']['output'];
+  /** The height of the block where the event was emitted. */
   height: Scalars['BigInt']['output'];
   id: Scalars['ID']['output'];
   moduleName: Scalars['String']['output'];
-  name?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  /** The order index of this event, in the case that there are multiple events in one transaction. */
   orderIndex: Scalars['BigInt']['output'];
   parameters?: Maybe<Scalars['String']['output']>;
+  /** The full eventname, containing module and eventname, e.g. coin.TRANSFER */
   qualifiedName: Scalars['String']['output'];
   requestKey: Scalars['String']['output'];
   transaction?: Maybe<Transaction>;
 };
 
+/** The payload of an exec transaction. */
 export type ExecutionPayload = {
   __typename?: 'ExecutionPayload';
+  /** The Pact expressions executed in this transaction when it is an `exec` transaction. */
   code?: Maybe<Scalars['String']['output']>;
+  /** The environment data made available to the transaction. Formatted as raw JSON. */
   data: Scalars['String']['output'];
 };
 
+/** A fungible-specific account. */
 export type FungibleAccount = Node & {
   __typename?: 'FungibleAccount';
   accountName: Scalars['String']['output'];
@@ -130,11 +153,14 @@ export type FungibleAccount = Node & {
   fungibleName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   totalBalance: Scalars['Decimal']['output'];
+  /** Default page size is 20. */
   transactions: FungibleAccountTransactionsConnection;
+  /** Default page size is 20. */
   transfers: FungibleAccountTransfersConnection;
 };
 
 
+/** A fungible-specific account. */
 export type FungibleAccountTransactionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -143,6 +169,7 @@ export type FungibleAccountTransactionsArgs = {
 };
 
 
+/** A fungible-specific account. */
 export type FungibleAccountTransfersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -176,19 +203,23 @@ export type FungibleAccountTransfersConnectionEdge = {
   node: Transfer;
 };
 
+/** A fungible specific chain-account. */
 export type FungibleChainAccount = Node & {
   __typename?: 'FungibleChainAccount';
   accountName: Scalars['String']['output'];
   balance: Scalars['Float']['output'];
   chainId: Scalars['String']['output'];
   fungibleName: Scalars['String']['output'];
-  guard: Guard;
+  guard: KeysetGuard;
   id: Scalars['ID']['output'];
+  /** Transactions that the current account is sender of. Default page size is 20. */
   transactions: FungibleChainAccountTransactionsConnection;
+  /** Default page size is 20. */
   transfers: FungibleChainAccountTransfersConnection;
 };
 
 
+/** A fungible specific chain-account. */
 export type FungibleChainAccountTransactionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -197,6 +228,7 @@ export type FungibleChainAccountTransactionsArgs = {
 };
 
 
+/** A fungible specific chain-account. */
 export type FungibleChainAccountTransfersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -245,14 +277,22 @@ export type GenesisHeight = {
   height: Scalars['Int']['output'];
 };
 
+/** General information about the graph and chainweb-data. */
 export type GraphConfiguration = {
   __typename?: 'GraphConfiguration';
   /** The lowest block-height that is indexed in this endpoint. */
   minimumBlockHeight?: Maybe<Scalars['BigInt']['output']>;
+  /** The version of the graphl api. */
+  version: Scalars['String']['output'];
 };
 
-export type Guard = {
-  __typename?: 'Guard';
+/** A guard. Has values `keys`, `predicate` to provide backwards compatibility for `KeysetGuard`. */
+export type IGuard = {
+  raw: Scalars['String']['output'];
+};
+
+export type KeysetGuard = IGuard & {
+  __typename?: 'KeysetGuard';
   keys: Array<Scalars['String']['output']>;
   predicate: Scalars['String']['output'];
   raw: Scalars['String']['output'];
@@ -320,16 +360,19 @@ export type NonFungibleAccountTransactionsConnectionEdge = {
   node: Transaction;
 };
 
+/** A chain and non-fungible-specific account. */
 export type NonFungibleChainAccount = Node & {
   __typename?: 'NonFungibleChainAccount';
   accountName: Scalars['String']['output'];
   chainId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   nonFungibleTokenBalances: Array<NonFungibleTokenBalance>;
+  /** Default page size is 20. Note that custom token related transactions are not included. */
   transactions: NonFungibleChainAccountTransactionsConnection;
 };
 
 
+/** A chain and non-fungible-specific account. */
 export type NonFungibleChainAccountTransactionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -350,6 +393,7 @@ export type NonFungibleChainAccountTransactionsConnectionEdge = {
   node: Transaction;
 };
 
+/** Information related to a token. */
 export type NonFungibleToken = {
   __typename?: 'NonFungibleToken';
   precision: Scalars['Int']['output'];
@@ -357,6 +401,7 @@ export type NonFungibleToken = {
   uri: Scalars['String']['output'];
 };
 
+/** The token identifier and its balance. */
 export type NonFungibleTokenBalance = Node & {
   __typename?: 'NonFungibleTokenBalance';
   accountName: Scalars['String']['output'];
@@ -399,32 +444,43 @@ export type PageInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  /** Retrieve a block by hash. */
   block?: Maybe<Block>;
+  /** Retrieve blocks by chain and minimal depth. Default page size is 20. */
   blocksFromDepth?: Maybe<QueryBlocksFromDepthConnection>;
+  /** Retrieve blocks by chain and minimal height. Default page size is 20. */
   blocksFromHeight: QueryBlocksFromHeightConnection;
+  /** Retrieve all completed blocks from a given height. Default page size is 20. */
   completedBlockHeights: QueryCompletedBlockHeightsConnection;
+  /**
+   * Retrieve events by qualifiedName (e.g. `coin.TRANSFER`). Default page size is 20.
+   *
+   *       The parametersFilter is a stringified JSON object that matches the [JSON object property filters](https://www.prisma.io/docs/orm/prisma-client/special-fields-and-types/working-with-json-fields#filter-on-object-property) from Prisma.
+   *
+   *       An example of such a filter parameter value: `events(parametersFilter: "{\"array_starts_with\": \"k:abcdefg\"}")`
+   */
   events: QueryEventsConnection;
   /** Retrieve an fungible specific account by its name and fungible, such as coin. */
   fungibleAccount?: Maybe<FungibleAccount>;
   /** Retrieve an account by public key. */
   fungibleAccountsByPublicKey: Array<FungibleAccount>;
   /** Retrieve an account by its name and fungible, such as coin, on a specific chain. */
-  fungibleChainAccount: Array<FungibleChainAccount>;
+  fungibleChainAccount?: Maybe<Array<FungibleChainAccount>>;
   /** Retrieve a chain account by public key. */
   fungibleChainAccountsByPublicKey: Array<FungibleChainAccount>;
   /**
    * Estimate the gas limit for one or more transactions. Throws an error when the transaction fails or is invalid. The input accepts a JSON object and based on the parameters passed it will determine what type of format it is and return the gas limit estimation. The following types are supported:
-   *
-   *     - `full-transaction`: A complete transaction object. Required parameters: `cmd`, `hash` and `sigs`.
-   *     - `stringified-command`: A JSON stringified command. Required parameters: `cmd`. It also optionally accepts `sigs`.
-   *     - `full-command`: A full command. Required parameters: `payload`, `meta` and `signers`.
-   *     - `partial-command`: A partial command. Required parameters: `payload` and either `meta` or `signers`. In case `meta` is not given, but `signers` is given, you can also add `chainId` as a parameter.
-   *     - `payload`: A just the payload of a command. Required parameters: `payload` and `chainId`.
-   *     - `code`: The code of an execution. Required parameters: `code` and `chainId`.
-   *
-   *     Every type accepts an optional parameter called `networkId` to override the default value from the environment variables.
-   *
-   *     Example of the input needed for a type `code` query: `gasLimitEstimate(input: "{\"code\":\"(coin.details \\\"k:1234\\\")\",\"chainId\":\"3\"}")`
+   *        
+   *       - `full-transaction`: A complete transaction object. Required parameters: `cmd`, `hash` and `sigs`.
+   *       - `stringified-command`: A JSON stringified command. Required parameters: `cmd`. It also optionally accepts `sigs`.
+   *       - `full-command`: A full command. Required parameters: `payload`, `meta` and `signers`.
+   *       - `partial-command`: A partial command. Required parameters: `payload` and either `meta` or `signers`. In case `meta` is not given, but `signers` is given, you can also add `chainId` as a parameter.
+   *       - `payload`: A just the payload of a command. Required parameters: `payload` and `chainId`.
+   *       - `code`: The code of an execution. Required parameters: `code` and `chainId`.
+   *        
+   *       Every type accepts an optional parameter called `networkId` to override the default value from the environment variables.
+   *        
+   *       Example of the input needed for a type `code` query: `gasLimitEstimate(input: "{\"code\":\"(coin.details \\\"k:1234\\\")\",\"chainId\":\"3\"}")`
    */
   gasLimitEstimate: Array<GasLimitEstimation>;
   /** Get the configuration of the graph. */
@@ -441,9 +497,16 @@ export type Query = {
   nonFungibleChainAccount?: Maybe<NonFungibleChainAccount>;
   /** Execute arbitrary Pact code via a local call without gas-estimation or signature-verification (e.g. (+ 1 2) or (coin.get-details <account>)). */
   pactQuery: Array<PactQueryResponse>;
+  /** Retrieve one transaction by its unique key. Throws an error if multiple transactions are found. */
   transaction?: Maybe<Transaction>;
+  /**
+   * Retrieve transactions. Default page size is 20.
+   *  At least one of accountName, fungibleName, blockHash, or requestKey must be provided.
+   */
   transactions: QueryTransactionsConnection;
+  /** Retrieve all transactions by a given public key. */
   transactionsByPublicKey: QueryTransactionsByPublicKeyConnection;
+  /** Retrieve transfers. Default page size is 20. */
   transfers: QueryTransfersConnection;
 };
 
@@ -691,21 +754,34 @@ export type QueryTransfersConnectionEdge = {
   node: Transfer;
 };
 
+/** A signer for a specific transaction. */
 export type Signer = Node & {
   __typename?: 'Signer';
+  /** The signer for the gas. */
   address?: Maybe<Scalars['String']['output']>;
   clist: Array<TransactionCapability>;
   id: Scalars['ID']['output'];
   orderIndex?: Maybe<Scalars['Int']['output']>;
   pubkey: Scalars['String']['output'];
+  /** The signature scheme that was used to sign. */
   scheme?: Maybe<Scalars['String']['output']>;
 };
 
 export type Subscription = {
   __typename?: 'Subscription';
+  /**
+   * Listen for events by qualifiedName (e.g. `coin.TRANSFER`).
+   *        
+   *       The parametersFilter is a stringified JSON object that matches the [JSON object property filters](https://www.prisma.io/docs/orm/prisma-client/special-fields-and-types/working-with-json-fields#filter-on-object-property) from Prisma.
+   *        
+   *       An example of such a filter parameter value: `events(parametersFilter: "{\"array_starts_with\": \"k:abcdefg\"}")`
+   */
   events?: Maybe<Array<Event>>;
+  /** Subscribe to new blocks. */
   newBlocks?: Maybe<Array<Block>>;
+  /** Subscribe to new blocks from a specific depth. */
   newBlocksFromDepth?: Maybe<Array<Block>>;
+  /** Listen for a transaction by request key. */
   transaction?: Maybe<Transaction>;
 };
 
@@ -718,12 +794,12 @@ export type SubscriptionEventsArgs = {
 
 
 export type SubscriptionNewBlocksArgs = {
-  chainIds: Array<InputMaybe<Scalars['String']['input']>>;
+  chainIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
 export type SubscriptionNewBlocksFromDepthArgs = {
-  chainIds: Array<Scalars['String']['input']>;
+  chainIds?: InputMaybe<Array<Scalars['String']['input']>>;
   minimumDepth: Scalars['Int']['input'];
 };
 
@@ -733,6 +809,7 @@ export type SubscriptionTransactionArgs = {
   requestKey: Scalars['String']['input'];
 };
 
+/** A transaction. */
 export type Transaction = Node & {
   __typename?: 'Transaction';
   cmd: TransactionCommand;
@@ -743,12 +820,14 @@ export type Transaction = Node & {
   sigs: Array<TransactionSignature>;
 };
 
+/** List of capabilities associated with/installed by this signer. */
 export type TransactionCapability = {
   __typename?: 'TransactionCapability';
   args: Scalars['String']['output'];
   name: Scalars['String']['output'];
 };
 
+/** A transaction command. */
 export type TransactionCommand = {
   __typename?: 'TransactionCommand';
   meta: TransactionMeta;
@@ -759,13 +838,17 @@ export type TransactionCommand = {
   signers: Array<Signer>;
 };
 
+/** The result of a transaction. */
 export type TransactionInfo = TransactionMempoolInfo | TransactionResult;
 
+/** The mempool information. */
 export type TransactionMempoolInfo = {
   __typename?: 'TransactionMempoolInfo';
+  /** The status of the mempool. */
   status?: Maybe<Scalars['String']['output']>;
 };
 
+/** The metadata of a transaction. */
 export type TransactionMeta = {
   __typename?: 'TransactionMeta';
   chainId: Scalars['BigInt']['output'];
@@ -776,24 +859,30 @@ export type TransactionMeta = {
   ttl: Scalars['BigInt']['output'];
 };
 
+/** The payload of a transaction. */
 export type TransactionPayload = ContinuationPayload | ExecutionPayload;
 
+/** The result of a transaction. */
 export type TransactionResult = {
   __typename?: 'TransactionResult';
+  /** The transaction result when it was successful. Formatted as raw JSON. */
   badResult?: Maybe<Scalars['String']['output']>;
   block: Block;
+  /** The JSON stringified continuation in the case that it is a continuation. */
   continuation?: Maybe<Scalars['String']['output']>;
   eventCount?: Maybe<Scalars['BigInt']['output']>;
   events: TransactionResultEventsConnection;
   gas: Scalars['BigInt']['output'];
+  /** The transaction result when it was successful. Formatted as raw JSON. */
   goodResult?: Maybe<Scalars['String']['output']>;
-  height: Scalars['BigInt']['output'];
+  /** Identifier to retrieve the logs for the execution of the transaction. */
   logs?: Maybe<Scalars['String']['output']>;
   transactionId?: Maybe<Scalars['BigInt']['output']>;
   transfers: TransactionResultTransfersConnection;
 };
 
 
+/** The result of a transaction. */
 export type TransactionResultEventsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -802,6 +891,7 @@ export type TransactionResultEventsArgs = {
 };
 
 
+/** The result of a transaction. */
 export type TransactionResultTransfersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -814,7 +904,6 @@ export type TransactionResultEventsConnection = {
   edges: Array<Maybe<TransactionResultEventsConnectionEdge>>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
-  transactionId: Scalars['String']['output'];
 };
 
 export type TransactionResultEventsConnectionEdge = {
@@ -828,7 +917,6 @@ export type TransactionResultTransfersConnection = {
   edges: Array<Maybe<TransactionResultTransfersConnectionEdge>>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
-  transactionId?: Maybe<Scalars['String']['output']>;
 };
 
 export type TransactionResultTransfersConnectionEdge = {
@@ -837,21 +925,26 @@ export type TransactionResultTransfersConnectionEdge = {
   node: Transfer;
 };
 
+/** List of capabilities associated with/installed by this signer. */
 export type TransactionSignature = {
   __typename?: 'TransactionSignature';
   sig: Scalars['String']['output'];
 };
 
+/** A transfer of funds from a fungible between two accounts. */
 export type Transfer = Node & {
   __typename?: 'Transfer';
   amount: Scalars['Decimal']['output'];
   block: Block;
+  /** The counterpart of the crosschain-transfer. `null` when it is not a cross-chain-transfer. */
   crossChainTransfer?: Maybe<Transfer>;
   id: Scalars['ID']['output'];
   moduleName: Scalars['String']['output'];
+  /** The order of the transfer when it is a `defpact` (multi-step transaction) execution. */
   orderIndex: Scalars['BigInt']['output'];
   receiverAccount: Scalars['String']['output'];
   senderAccount: Scalars['String']['output'];
+  /** The transaction that initiated this transfer. */
   transaction?: Maybe<Transaction>;
 };
 
@@ -930,7 +1023,8 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = {
-  Node: ( Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & { events: _RefType['BlockEventsConnection'], minerAccount: _RefType['FungibleChainAccount'], parent?: Maybe<_RefType['Block']>, transactions: _RefType['BlockTransactionsConnection'] } ) | ( Omit<Event, 'block' | 'transaction'> & { block: _RefType['Block'], transaction?: Maybe<_RefType['Transaction']> } ) | ( Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & { chainAccounts: Array<_RefType['FungibleChainAccount']>, transactions: _RefType['FungibleAccountTransactionsConnection'], transfers: _RefType['FungibleAccountTransfersConnection'] } ) | ( Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: _RefType['Guard'], transactions: _RefType['FungibleChainAccountTransactionsConnection'], transfers: _RefType['FungibleChainAccountTransfersConnection'] } ) | ( Omit<NonFungibleAccount, 'transactions'> & { transactions: _RefType['NonFungibleAccountTransactionsConnection'] } ) | ( Omit<NonFungibleChainAccount, 'transactions'> & { transactions: _RefType['NonFungibleChainAccountTransactionsConnection'] } ) | ( NonFungibleTokenBalance ) | ( Signer ) | ( Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & { cmd: _RefType['TransactionCommand'], orphanedTransactions?: Maybe<Array<Maybe<_RefType['Transaction']>>>, result: _RefType['TransactionInfo'] } ) | ( Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & { block: _RefType['Block'], crossChainTransfer?: Maybe<_RefType['Transfer']>, transaction?: Maybe<_RefType['Transaction']> } );
+  IGuard: ( KeysetGuard );
+  Node: ( Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & { events: _RefType['BlockEventsConnection'], minerAccount: _RefType['FungibleChainAccount'], parent?: Maybe<_RefType['Block']>, transactions: _RefType['BlockTransactionsConnection'] } ) | ( Omit<Event, 'block' | 'transaction'> & { block: _RefType['Block'], transaction?: Maybe<_RefType['Transaction']> } ) | ( Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & { chainAccounts: Array<_RefType['FungibleChainAccount']>, transactions: _RefType['FungibleAccountTransactionsConnection'], transfers: _RefType['FungibleAccountTransfersConnection'] } ) | ( Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: _RefType['KeysetGuard'], transactions: _RefType['FungibleChainAccountTransactionsConnection'], transfers: _RefType['FungibleChainAccountTransfersConnection'] } ) | ( Omit<NonFungibleAccount, 'transactions'> & { transactions: _RefType['NonFungibleAccountTransactionsConnection'] } ) | ( Omit<NonFungibleChainAccount, 'transactions'> & { transactions: _RefType['NonFungibleChainAccountTransactionsConnection'] } ) | ( NonFungibleTokenBalance ) | ( Signer ) | ( Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & { cmd: _RefType['TransactionCommand'], orphanedTransactions?: Maybe<Array<Maybe<_RefType['Transaction']>>>, result: _RefType['TransactionInfo'] } ) | ( Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & { block: _RefType['Block'], crossChainTransfer?: Maybe<_RefType['Transfer']>, transaction?: Maybe<_RefType['Transaction']> } );
 };
 
 /** Mapping between all available schema types and the resolvers types */
@@ -954,7 +1048,7 @@ export type ResolversTypes = {
   FungibleAccountTransactionsConnectionEdge: ResolverTypeWrapper<Omit<FungibleAccountTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
   FungibleAccountTransfersConnection: ResolverTypeWrapper<Omit<FungibleAccountTransfersConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleAccountTransfersConnectionEdge']> }>;
   FungibleAccountTransfersConnectionEdge: ResolverTypeWrapper<Omit<FungibleAccountTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }>;
-  FungibleChainAccount: ResolverTypeWrapper<Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: ResolversTypes['Guard'], transactions: ResolversTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversTypes['FungibleChainAccountTransfersConnection'] }>;
+  FungibleChainAccount: ResolverTypeWrapper<Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: ResolversTypes['KeysetGuard'], transactions: ResolversTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversTypes['FungibleChainAccountTransfersConnection'] }>;
   FungibleChainAccountTransactionsConnection: ResolverTypeWrapper<Omit<FungibleChainAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleChainAccountTransactionsConnectionEdge']> }>;
   FungibleChainAccountTransactionsConnectionEdge: ResolverTypeWrapper<Omit<FungibleChainAccountTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
   FungibleChainAccountTransfersConnection: ResolverTypeWrapper<Omit<FungibleChainAccountTransfersConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleChainAccountTransfersConnectionEdge']> }>;
@@ -962,9 +1056,10 @@ export type ResolversTypes = {
   GasLimitEstimation: ResolverTypeWrapper<GasLimitEstimation>;
   GenesisHeight: ResolverTypeWrapper<GenesisHeight>;
   GraphConfiguration: ResolverTypeWrapper<GraphConfiguration>;
-  Guard: ResolverTypeWrapper<Guard>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
+  IGuard: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['IGuard']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  KeysetGuard: ResolverTypeWrapper<KeysetGuard>;
   NetworkInfo: ResolverTypeWrapper<NetworkInfo>;
   Node: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Node']>;
   NonFungibleAccount: ResolverTypeWrapper<Omit<NonFungibleAccount, 'transactions'> & { transactions: ResolversTypes['NonFungibleAccountTransactionsConnection'] }>;
@@ -1034,7 +1129,7 @@ export type ResolversParentTypes = {
   FungibleAccountTransactionsConnectionEdge: Omit<FungibleAccountTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
   FungibleAccountTransfersConnection: Omit<FungibleAccountTransfersConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleAccountTransfersConnectionEdge']> };
   FungibleAccountTransfersConnectionEdge: Omit<FungibleAccountTransfersConnectionEdge, 'node'> & { node: ResolversParentTypes['Transfer'] };
-  FungibleChainAccount: Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: ResolversParentTypes['Guard'], transactions: ResolversParentTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversParentTypes['FungibleChainAccountTransfersConnection'] };
+  FungibleChainAccount: Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: ResolversParentTypes['KeysetGuard'], transactions: ResolversParentTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversParentTypes['FungibleChainAccountTransfersConnection'] };
   FungibleChainAccountTransactionsConnection: Omit<FungibleChainAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleChainAccountTransactionsConnectionEdge']> };
   FungibleChainAccountTransactionsConnectionEdge: Omit<FungibleChainAccountTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
   FungibleChainAccountTransfersConnection: Omit<FungibleChainAccountTransfersConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleChainAccountTransfersConnectionEdge']> };
@@ -1042,9 +1137,10 @@ export type ResolversParentTypes = {
   GasLimitEstimation: GasLimitEstimation;
   GenesisHeight: GenesisHeight;
   GraphConfiguration: GraphConfiguration;
-  Guard: Guard;
   ID: Scalars['ID']['output'];
+  IGuard: ResolversInterfaceTypes<ResolversParentTypes>['IGuard'];
   Int: Scalars['Int']['output'];
+  KeysetGuard: KeysetGuard;
   NetworkInfo: NetworkInfo;
   Node: ResolversInterfaceTypes<ResolversParentTypes>['Node'];
   NonFungibleAccount: Omit<NonFungibleAccount, 'transactions'> & { transactions: ResolversParentTypes['NonFungibleAccountTransactionsConnection'] };
@@ -1100,7 +1196,7 @@ export interface BigIntScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
 export type BlockResolvers<ContextType = any, ParentType extends ResolversParentTypes['Block'] = ResolversParentTypes['Block']> = {
   chainId?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   creationTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  difficulty?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
+  difficulty?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   epoch?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   events?: Resolver<ResolversTypes['BlockEventsConnection'], ParentType, ContextType, RequireFields<BlockEventsArgs, 'first' | 'last'>>;
   flags?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
@@ -1174,7 +1270,7 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   height?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   moduleName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   orderIndex?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   parameters?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   qualifiedName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1231,7 +1327,7 @@ export type FungibleChainAccountResolvers<ContextType = any, ParentType extends 
   balance?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   fungibleName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  guard?: Resolver<ResolversTypes['Guard'], ParentType, ContextType>;
+  guard?: Resolver<ResolversTypes['KeysetGuard'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   transactions?: Resolver<ResolversTypes['FungibleChainAccountTransactionsConnection'], ParentType, ContextType, RequireFields<FungibleChainAccountTransactionsArgs, 'first' | 'last'>>;
   transfers?: Resolver<ResolversTypes['FungibleChainAccountTransfersConnection'], ParentType, ContextType, RequireFields<FungibleChainAccountTransfersArgs, 'first' | 'last'>>;
@@ -1281,10 +1377,16 @@ export type GenesisHeightResolvers<ContextType = any, ParentType extends Resolve
 
 export type GraphConfigurationResolvers<ContextType = any, ParentType extends ResolversParentTypes['GraphConfiguration'] = ResolversParentTypes['GraphConfiguration']> = {
   minimumBlockHeight?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
+  version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GuardResolvers<ContextType = any, ParentType extends ResolversParentTypes['Guard'] = ResolversParentTypes['Guard']> = {
+export type IGuardResolvers<ContextType = any, ParentType extends ResolversParentTypes['IGuard'] = ResolversParentTypes['IGuard']> = {
+  __resolveType: TypeResolveFn<'KeysetGuard', ParentType, ContextType>;
+  raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type KeysetGuardResolvers<ContextType = any, ParentType extends ResolversParentTypes['KeysetGuard'] = ResolversParentTypes['KeysetGuard']> = {
   keys?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   predicate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1400,7 +1502,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   events?: Resolver<ResolversTypes['QueryEventsConnection'], ParentType, ContextType, RequireFields<QueryEventsArgs, 'first' | 'last' | 'qualifiedEventName'>>;
   fungibleAccount?: Resolver<Maybe<ResolversTypes['FungibleAccount']>, ParentType, ContextType, RequireFields<QueryFungibleAccountArgs, 'accountName' | 'fungibleName'>>;
   fungibleAccountsByPublicKey?: Resolver<Array<ResolversTypes['FungibleAccount']>, ParentType, ContextType, RequireFields<QueryFungibleAccountsByPublicKeyArgs, 'fungibleName' | 'publicKey'>>;
-  fungibleChainAccount?: Resolver<Array<ResolversTypes['FungibleChainAccount']>, ParentType, ContextType, RequireFields<QueryFungibleChainAccountArgs, 'accountName' | 'fungibleName'>>;
+  fungibleChainAccount?: Resolver<Maybe<Array<ResolversTypes['FungibleChainAccount']>>, ParentType, ContextType, RequireFields<QueryFungibleChainAccountArgs, 'accountName' | 'fungibleName'>>;
   fungibleChainAccountsByPublicKey?: Resolver<Array<ResolversTypes['FungibleChainAccount']>, ParentType, ContextType, RequireFields<QueryFungibleChainAccountsByPublicKeyArgs, 'chainId' | 'fungibleName' | 'publicKey'>>;
   gasLimitEstimate?: Resolver<Array<ResolversTypes['GasLimitEstimation']>, ParentType, ContextType, RequireFields<QueryGasLimitEstimateArgs, 'input'>>;
   graphConfiguration?: Resolver<ResolversTypes['GraphConfiguration'], ParentType, ContextType>;
@@ -1517,8 +1619,8 @@ export type SignerResolvers<ContextType = any, ParentType extends ResolversParen
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   events?: SubscriptionResolver<Maybe<Array<ResolversTypes['Event']>>, "events", ParentType, ContextType, RequireFields<SubscriptionEventsArgs, 'qualifiedEventName'>>;
-  newBlocks?: SubscriptionResolver<Maybe<Array<ResolversTypes['Block']>>, "newBlocks", ParentType, ContextType, RequireFields<SubscriptionNewBlocksArgs, 'chainIds'>>;
-  newBlocksFromDepth?: SubscriptionResolver<Maybe<Array<ResolversTypes['Block']>>, "newBlocksFromDepth", ParentType, ContextType, RequireFields<SubscriptionNewBlocksFromDepthArgs, 'chainIds' | 'minimumDepth'>>;
+  newBlocks?: SubscriptionResolver<Maybe<Array<ResolversTypes['Block']>>, "newBlocks", ParentType, ContextType, Partial<SubscriptionNewBlocksArgs>>;
+  newBlocksFromDepth?: SubscriptionResolver<Maybe<Array<ResolversTypes['Block']>>, "newBlocksFromDepth", ParentType, ContextType, RequireFields<SubscriptionNewBlocksFromDepthArgs, 'minimumDepth'>>;
   transaction?: SubscriptionResolver<Maybe<ResolversTypes['Transaction']>, "transaction", ParentType, ContextType, RequireFields<SubscriptionTransactionArgs, 'requestKey'>>;
 };
 
@@ -1578,7 +1680,6 @@ export type TransactionResultResolvers<ContextType = any, ParentType extends Res
   events?: Resolver<ResolversTypes['TransactionResultEventsConnection'], ParentType, ContextType, RequireFields<TransactionResultEventsArgs, 'first' | 'last'>>;
   gas?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   goodResult?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  height?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   logs?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   transactionId?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
   transfers?: Resolver<ResolversTypes['TransactionResultTransfersConnection'], ParentType, ContextType, RequireFields<TransactionResultTransfersArgs, 'first' | 'last'>>;
@@ -1589,7 +1690,6 @@ export type TransactionResultEventsConnectionResolvers<ContextType = any, Parent
   edges?: Resolver<Array<Maybe<ResolversTypes['TransactionResultEventsConnectionEdge']>>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  transactionId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1603,7 +1703,6 @@ export type TransactionResultTransfersConnectionResolvers<ContextType = any, Par
   edges?: Resolver<Array<Maybe<ResolversTypes['TransactionResultTransfersConnectionEdge']>>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  transactionId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -1657,7 +1756,8 @@ export type Resolvers<ContextType = any> = {
   GasLimitEstimation?: GasLimitEstimationResolvers<ContextType>;
   GenesisHeight?: GenesisHeightResolvers<ContextType>;
   GraphConfiguration?: GraphConfigurationResolvers<ContextType>;
-  Guard?: GuardResolvers<ContextType>;
+  IGuard?: IGuardResolvers<ContextType>;
+  KeysetGuard?: KeysetGuardResolvers<ContextType>;
   NetworkInfo?: NetworkInfoResolvers<ContextType>;
   Node?: NodeResolvers<ContextType>;
   NonFungibleAccount?: NonFungibleAccountResolvers<ContextType>;

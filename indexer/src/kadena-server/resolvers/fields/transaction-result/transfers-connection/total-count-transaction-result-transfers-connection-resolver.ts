@@ -1,12 +1,19 @@
 import { ResolverContext } from "../../../../config/apollo-server-config";
 import { TransactionResultTransfersConnectionResolvers } from "../../../../config/graphql-types";
+import zod from "zod";
+
+const schema = zod.object({
+  transactionId: zod.string(),
+});
 
 export const totalCountTransactionResultTransfersConnectionResolver: TransactionResultTransfersConnectionResolvers<ResolverContext>["totalCount"] =
   async (parent, _args, context) => {
     console.log("totalCountTransactionResultTransfersConnectionResolver");
 
+    const { transactionId } = schema.parse(parent);
+
     const output = await context.transferRepository.getTotalCountOfTransfers({
-      transactionId: parent.transactionId,
+      transactionId,
     });
     return output;
   };

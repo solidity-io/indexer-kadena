@@ -50,11 +50,7 @@ import { newBlocksSubscriptionResolver } from "./subscription/new-blocks-subscri
 import { eventsSubscriptionResolver } from "./subscription/events-subscription-resolver";
 import { newBlocksFromDepthSubscriptionResolver } from "./subscription/new-blocks-from-depth-subscription-resolver";
 import { blockTransferResolver } from "./fields/transfer/block-transfer-resolver";
-import {
-  BigIntResolver,
-  DateTimeResolver,
-  NonNegativeFloatResolver,
-} from "graphql-scalars";
+import { DateTimeResolver } from "graphql-scalars";
 import { fungibleChainAccountsByPublicKeyQueryResolver } from "./query/fungible-chain-accounts-by-public-key-query-resolver";
 import { completedBlockHeightsQueryResolver } from "./query/completed-block-heights-query-resolver";
 import { pactQueryResolver } from "./query/pact-query-resolver";
@@ -69,8 +65,6 @@ import { totalCountNonFungibleChainAccountTransactionsConnectionResolver } from 
 
 export const resolvers: Resolvers<ResolverContext> = {
   DateTime: DateTimeResolver,
-  BigInt: BigIntResolver,
-  Decimal: NonNegativeFloatResolver,
   Subscription: {
     transaction: transactionSubscriptionResolver,
     newBlocks: newBlocksSubscriptionResolver,

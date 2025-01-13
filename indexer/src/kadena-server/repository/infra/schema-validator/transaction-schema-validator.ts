@@ -50,7 +50,6 @@ function validate(row: any): TransactionOutput {
 
       gas: res.gas,
       goodResult: isSuccess ? res.result.data : null,
-      height: res.height,
       logs: res.logs,
     },
     cmd: {

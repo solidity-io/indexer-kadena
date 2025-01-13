@@ -10,5 +10,6 @@ export const graphConfigurationQueryResolver: QueryResolvers<ResolverContext>["g
 
     return {
       minimumBlockHeight,
+      version: "0.1.0",
     };
   };

@@ -19,6 +19,9 @@ export const newBlocksSubscriptionResolver: SubscriptionResolvers<ResolverContex
           () => context.pubSub.asyncIterator(NEW_BLOCKS_EVENT),
           (payload) => {
             const { chainId } = payload;
+            if (!args.chainIds) {
+              return true;
+            }
             return args.chainIds.includes(chainId);
           },
         ),
