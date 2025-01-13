@@ -22,10 +22,13 @@ export async function startGuardsBackfill() {
             SELECT "chainId", "to_acct" AS "account", "modulename" AS "module"
             FROM "Transfers"
         )
-        INSERT INTO "Balances" ("chainId", "account", "module", "createdAt", "updatedAt")
-        SELECT "chainId", "account", "module", NOW() AS "createdAt", NOW() AS "updatedAt"
+        INSERT INTO "Balances" ("chainId", "account", "module", "createdAt", "updatedAt", "tokenId")
+        SELECT "chainId", "account", "module", NOW() AS "createdAt", NOW() AS "updatedAt", '' AS "tokenId"
         FROM combined
-        GROUP BY "chainId", "account", "module";
+        GROUP BY "chainId", "account", "module"
+        ON CONFLICT ("chainId", "account", "module", "tokenId") DO NOTHING;
+        DELETE FROM "Guards";
+        SELECT SETVAL('"Guards_id_seq"', 1);
         COMMIT;
       `,
     );
@@ -33,7 +36,7 @@ export async function startGuardsBackfill() {
     console.log("Balances backfilled successfully.");
     console.log("Starting guards backfill ...");
 
-    const limit = 500; // Number of rows to process in one batch
+    const limit = 3000; // Number of rows to process in one batch
     let offset = 0;
 
     while (true) {
