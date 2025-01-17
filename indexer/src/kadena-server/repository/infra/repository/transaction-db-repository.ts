@@ -121,38 +121,74 @@ export default class TransactionDbRepository implements TransactionRepository {
       blocksConditions += `${op} b."minimumDepth" >= $${paramsOffset + blockParams.length}`;
     }
 
-    const query = `
-      WITH filtered_transactions AS (
-        SELECT id, "blockId", hash, nonce, sigs, continuation, num_events, pactid, proof, rollback, gas, step, data, code, logs, result, requestkey
-        FROM "Transactions" t
+    let query = "";
+    if (blockHash || minHeight || maxHeight || minimumDepth || chainId) {
+      query = `
+        WITH filtered_block AS (
+          SELECT b.id, b.hash, b."chainId", b.height
+          FROM "Blocks" b
+          ${blocksConditions}
+        )
+        SELECT
+          t.id AS id,
+          t.hash AS "hashTransaction",
+          t.nonce AS "nonceTransaction",
+          t.sigs AS sigs,
+          t.continuation AS continuation,
+          t.num_events AS "eventCount",
+          t.pactid AS "pactId",
+          t.proof AS proof,
+          t.rollback AS rollback,
+          b.height AS "height",
+          b."hash" AS "blockHash",
+          b."chainId" AS "chainId",
+          t.gas AS "gas",
+          t.step AS step,
+          t.data AS data,
+          t.code AS code,
+          t.logs AS "logs",
+          t.result AS "result",
+          t.requestkey AS "requestKey"
+        FROM filtered_block b
+        JOIN "Transactions" t ON b.id = t."blockId"
         ${transactionsConditions}
         ORDER BY t.id ${before ? "DESC" : "ASC"}
         LIMIT $1
-      )
-      SELECT
-        t.id AS id,
-        t.hash AS "hashTransaction",
-        t.nonce AS "nonceTransaction",
-        t.sigs AS sigs,
-        t.continuation AS continuation,
-        t.num_events AS "eventCount",
-        t.pactid AS "pactId",
-        t.proof AS proof,
-        t.rollback AS rollback,
-        b.height AS "height",
-        b."hash" AS "blockHash",
-        b."chainId" AS "chainId",
-        t.gas AS "gas",
-        t.step AS step,
-        t.data AS data,
-        t.code AS code,
-        t.logs AS "logs",
-        t.result AS "result",
-        t.requestkey AS "requestKey"
-      FROM filtered_transactions t
-      JOIN "Blocks" b ON b.id = t."blockId"
-      ${blocksConditions}
-    `;
+      `;
+    } else {
+      query = `
+        WITH filtered_transactions AS (
+          SELECT id, "blockId", hash, nonce, sigs, continuation, num_events, pactid, proof, rollback, gas, step, data, code, logs, result, requestkey, "chainId"
+          FROM "Transactions" t
+          ${transactionsConditions}
+          ORDER BY t.id ${before ? "DESC" : "ASC"}
+          LIMIT $1
+        )
+        SELECT
+          t.id AS id,
+          t.hash AS "hashTransaction",
+          t.nonce AS "nonceTransaction",
+          t.sigs AS sigs,
+          t.continuation AS continuation,
+          t.num_events AS "eventCount",
+          t.pactid AS "pactId",
+          t.proof AS proof,
+          t.rollback AS rollback,
+          b.height AS "height",
+          b."hash" AS "blockHash",
+          b."chainId" AS "chainId",
+          t.gas AS "gas",
+          t.step AS step,
+          t.data AS data,
+          t.code AS code,
+          t.logs AS "logs",
+          t.result AS "result",
+          t.requestkey AS "requestKey"
+        FROM filtered_transactions t
+        JOIN "Blocks" b ON b.id = t."blockId"
+        ${blocksConditions}
+      `;
+    }
 
     const { rows } = await rootPgPool.query(query, [
       ...transactionParams,

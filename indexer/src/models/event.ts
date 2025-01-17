@@ -105,6 +105,10 @@ Event.init(
         name: "events_transactionid_idx",
         fields: ["transactionId"],
       },
+      {
+        name: "events_module_name_idx",
+        fields: ["module", "name"],
+      },
     ],
   },
 );

@@ -1,5 +1,8 @@
+import { getRequiredEnvString } from "../../../../utils/helpers";
 import { TransactionOutput } from "../../application/transaction-repository";
 import zod from "zod";
+
+const NETWORK_ID = getRequiredEnvString("SYNC_NETWORK");
 
 const getBase64ID = (blockHash: string, requestKey: string): string => {
   const inputString = `Transaction:[\"${blockHash}\",\"${requestKey}\"]`;
@@ -26,7 +29,6 @@ const schema = zod.object({
   blockHash: zod.string(),
   requestKey: zod.string(),
   result: zod.any(),
-  // networkId: zod.string(), TODO (STREAMING)
 });
 
 function validate(row: any): TransactionOutput {
@@ -66,7 +68,7 @@ function validate(row: any): TransactionOutput {
         rollback: res.rollback,
         step: res.step,
       },
-      networkId: "mainnet", // TODO (STREAMING)
+      networkId: NETWORK_ID,
       nonce: row.nonceTransaction,
     },
   };

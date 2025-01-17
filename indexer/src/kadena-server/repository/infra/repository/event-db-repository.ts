@@ -16,7 +16,7 @@ import { eventValidator } from "../schema-validator/event-schema-validator";
 export default class EventDbRepository implements EventRepository {
   async getEvent(params: GetEventParams): Promise<EventOutput> {
     const { hash, requestKey, orderIndex } = params;
-    const queryParams = [hash, requestKey];
+    const queryParams = [hash, requestKey, orderIndex];
 
     const query = `
       SELECT e.id as id,
@@ -24,6 +24,7 @@ export default class EventDbRepository implements EventRepository {
         e.requestkey as "requestKey",
         b."chainId" as "chainId",
         b.height as height,
+        e."orderIndex" as "orderIndex",
         e.module as "moduleName",
         e.params as parameters,
         b.hash as "blockHash"
@@ -32,9 +33,9 @@ export default class EventDbRepository implements EventRepository {
       JOIN "Events" e ON t.id = e."transactionId"
       WHERE b.hash = $1
       AND e.requestkey = $2
+      AND e."orderIndex" = $3
       LIMIT 1;
     `;
-    // AND e."orderIndex" = $3 TODO (STREAMING)
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
@@ -63,6 +64,7 @@ export default class EventDbRepository implements EventRepository {
         e.requestkey as "requestKey",
         b."chainId" as "chainId",
         b.height as height,
+        e."orderIndex" as "orderIndex",
         e.module as "moduleName",
         e.params as parameters,
         b.hash as "blockHash"
@@ -122,7 +124,9 @@ export default class EventDbRepository implements EventRepository {
       requestKey,
     } = params;
 
-    const [module, name] = qualifiedEventName.split(".");
+    const splitted = qualifiedEventName.split(".");
+    const name = splitted.pop() ?? "";
+    const module = splitted.join(".");
 
     const queryParams: (string | number)[] = [before ? last : first];
     let conditions = "";
@@ -177,6 +181,7 @@ export default class EventDbRepository implements EventRepository {
         t.requestkey as "requestKey",
         b."chainId" as "chainId",
         b.height as height,
+        e."orderIndex" as "orderIndex",
         e.module as "moduleName",
         e.name as name,
         e.params as parameters,
@@ -215,7 +220,9 @@ export default class EventDbRepository implements EventRepository {
       requestKey,
     } = params;
 
-    const [module, name] = qualifiedEventName.split(".");
+    const splitted = qualifiedEventName.split(".");
+    const name = splitted.pop() ?? "";
+    const module = splitted.join(".");
 
     const queryParams: (string | number)[] = [];
     let conditions = "";
@@ -298,6 +305,7 @@ export default class EventDbRepository implements EventRepository {
         b."chainId" as "chainId",
         b.height as height,
         e.module as "moduleName",
+        e."orderIndex" as "orderIndex",
         e.name as name,
         e.params as parameters,
         b.hash as "blockHash"
