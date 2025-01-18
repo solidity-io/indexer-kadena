@@ -1,7 +1,7 @@
 import { ApolloServer, ApolloServerPlugin } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import http from "http";
 import cors from "cors";
 import { resolvers } from "./resolvers";
@@ -25,6 +25,7 @@ import {
 import { dispatchInfoSchema } from "../jobs/publisher-job";
 import initCache from "../cache/init";
 import { getRequiredEnvString } from "../utils/helpers";
+import ipRangeCheck from "ip-range-check";
 
 const typeDefs = readFileSync(
   join(__dirname, "./config/schema.graphql"),
@@ -47,6 +48,20 @@ const validatePaginationParamsPlugin: ApolloServerPlugin = {
       }
     },
   }),
+};
+
+const allowedCIDRs = ["10.0.2.0/24", "10.0.3.0/24"];
+
+const ipFilterMiddleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (req.ip && ipRangeCheck(req.ip, allowedCIDRs)) {
+    next(); // Allow access
+  } else {
+    res.status(403).json({ message: "Access denied: IP not allowed" });
+  }
 };
 
 export async function useKadenaGraphqlServer() {
@@ -97,7 +112,7 @@ export async function useKadenaGraphqlServer() {
     }),
   );
 
-  app.post("/new-block", async (req, res) => {
+  app.post("/new-block", ipFilterMiddleware, async (req, res) => {
     const payload = await dispatchInfoSchema.safeParseAsync(req.body);
     if (!payload.success) {
       return res.status(400).json({ message: "Invalid input" });

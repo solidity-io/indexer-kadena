@@ -1,5 +1,5 @@
 import { processPayloadKey } from "./payload";
-import { delay, getDecoded, getRequiredEnvString } from "../../utils/helpers";
+import { getDecoded, getRequiredEnvString } from "../../utils/helpers";
 import EventSource from "eventsource";
 import { dispatch, DispatchInfo } from "../../jobs/publisher-job";
 import { uint64ToInt64 } from "../../utils/int-uint-64";
@@ -61,22 +61,15 @@ export async function startStreaming() {
       (r) => r !== null || r !== undefined,
     ) as DispatchInfo[];
 
-    const dispatches = processed.map(async (r) => {
-      try {
-        await delay(500);
-        await dispatch(r);
-      } catch (err) {
-        console.error("Error dispatching block:", err);
-      }
-    });
+    const allDispatches = await Promise.all(processed.map((r) => dispatch(r)));
+    const succeededDispatches = allDispatches.filter((success) => success);
 
-    await Promise.all(dispatches);
     console.log(
       "Processed:",
       processed.length,
       "|",
       "Dispatched:",
-      dispatches.length,
+      succeededDispatches.length,
     );
   }, 1000 * 10);
 
