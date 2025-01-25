@@ -6,7 +6,7 @@ import TransactionRepository, {
   GetTransactionsParams,
   TransactionOutput,
 } from "../../application/transaction-repository";
-import { getPageInfo } from "../../pagination";
+import { getPageInfo, getPaginationParams } from "../../pagination";
 import { transactionMetaValidator } from "../schema-validator/transaction-meta-schema-validator";
 import { transactionValidator } from "../schema-validator/transaction-schema-validator";
 import { signerMetaValidator } from "../schema-validator/signer-schema-validator";
@@ -18,56 +18,89 @@ const operator = (paramsLength: number) =>
   paramsLength > 2 ? `\nAND` : "WHERE";
 
 export default class TransactionDbRepository implements TransactionRepository {
-  async getTransactions(params: GetTransactionsParams) {
+  private createBlockConditions(
+    params: GetTransactionsParams,
+    queryParams: Array<string | number>,
+  ) {
+    const { blockHash, chainId, maxHeight, minHeight, minimumDepth } = params;
+    let blocksConditions = "";
+    const blockParams: (string | number)[] = [...queryParams];
+
+    if (blockHash) {
+      blockParams.push(blockHash);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b.hash = $${blockParams.length}`;
+    }
+
+    if (chainId) {
+      blockParams.push(chainId);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."chainId" = $${blockParams.length}`;
+    }
+
+    if (maxHeight) {
+      blockParams.push(maxHeight);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."height" <= $${blockParams.length}`;
+    }
+
+    if (minHeight) {
+      blockParams.push(minHeight);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."height" >= $${blockParams.length}`;
+    }
+
+    if (minimumDepth) {
+      blockParams.push(minimumDepth);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."minimumDepth" >= $${blockParams.length}`;
+    }
+
+    return { blocksConditions, blockParams };
+  }
+
+  private createTransactionConditions(
+    params: GetTransactionsParams,
+    queryParams: Array<string | number>,
+  ) {
     const {
-      blockHash,
+      accountName,
       after,
       before,
-      accountName,
-      chainId,
-      first,
-      last,
-      fungibleName,
       requestKey,
-      maxHeight,
-      minHeight,
-      minimumDepth,
+      fungibleName,
       hasTokenId = false,
     } = params;
-
-    const transactionParams: (string | number)[] = [before ? last : first];
-    const blockParams: (string | number)[] = [];
-    let transactionsConditions = "";
-    let blocksConditions = "";
-
+    let conditions = "";
+    const transactionParams: (string | number)[] = [...queryParams];
     if (accountName) {
       transactionParams.push(accountName);
       const op = operator(transactionParams.length);
-      transactionsConditions += `${op} t.sender = $${transactionParams.length}`;
+      conditions += `${op} t.sender = $${transactionParams.length}`;
     }
 
     if (after) {
       transactionParams.push(after);
       const op = operator(transactionParams.length);
-      transactionsConditions += `${op} t.id > $${transactionParams.length}`;
+      conditions += `${op} t.id > $${transactionParams.length}`;
     }
 
     if (before) {
       transactionParams.push(before);
       const op = operator(transactionParams.length);
-      transactionsConditions += `${op} t.id < $${transactionParams.length}`;
+      conditions += `${op} t.id < $${transactionParams.length}`;
     }
 
     if (requestKey) {
       transactionParams.push(requestKey);
       const op = operator(transactionParams.length);
-      transactionsConditions += `${op} t."requestkey" = $${transactionParams.length}`;
+      conditions += `${op} t."requestkey" = $${transactionParams.length}`;
     }
 
     if (fungibleName) {
       transactionParams.push(fungibleName);
       const op = operator(transactionParams.length);
-      transactionsConditions += `
+      conditions += `
         ${op} EXISTS
         (
           SELECT 1
@@ -80,7 +113,7 @@ export default class TransactionDbRepository implements TransactionRepository {
     if (accountName && hasTokenId) {
       transactionParams.push(accountName);
       const op = operator(transactionParams.length + 1);
-      transactionsConditions += `
+      conditions += `
         ${op} EXISTS
         (
           SELECT 1
@@ -90,39 +123,59 @@ export default class TransactionDbRepository implements TransactionRepository {
         )`;
     }
 
-    const paramsOffset = transactionParams.length;
-    if (blockHash) {
-      blockParams.push(blockHash);
-      const op = operator(blockParams.length);
-      blocksConditions += `${op} b.hash = $${paramsOffset + blockParams.length}`;
-    }
+    return { conditions, params: transactionParams };
+  }
 
-    if (chainId) {
-      blockParams.push(chainId);
-      const op = operator(blockParams.length);
-      blocksConditions += `${op} b."chainId" = $${paramsOffset + blockParams.length}`;
-    }
+  async getTransactions(params: GetTransactionsParams) {
+    const {
+      blockHash,
+      after,
+      before,
+      chainId,
+      first,
+      last,
+      maxHeight,
+      minHeight,
+      minimumDepth,
+    } = params;
 
-    if (maxHeight) {
-      blockParams.push(maxHeight);
-      const op = operator(blockParams.length);
-      blocksConditions += `${op} b."height" <= $${paramsOffset + blockParams.length}`;
-    }
+    const { limit, order } = getPaginationParams({
+      after,
+      before,
+      first,
+      last,
+    });
+    const isBlockQueryFirst =
+      blockHash || minHeight || maxHeight || minimumDepth || chainId;
 
-    if (minHeight) {
-      blockParams.push(minHeight);
-      const op = operator(blockParams.length);
-      blocksConditions += `${op} b."height" >= $${paramsOffset + blockParams.length}`;
-    }
+    const queryParams: (string | number)[] = [];
+    let blocksConditions = "";
+    let transactionsConditions = "";
+    if (isBlockQueryFirst) {
+      const { blockParams, blocksConditions: bConditions } =
+        this.createBlockConditions(params, [limit]);
 
-    if (minimumDepth) {
-      blockParams.push(minimumDepth);
-      const op = operator(blockParams.length);
-      blocksConditions += `${op} b."minimumDepth" >= $${paramsOffset + blockParams.length}`;
+      const { params: txParams, conditions: txConditions } =
+        this.createTransactionConditions(params, blockParams);
+
+      queryParams.push(...txParams);
+      transactionsConditions = txConditions;
+      blocksConditions = bConditions;
+    } else {
+      const { conditions, params: txParams } = this.createTransactionConditions(
+        params,
+        [limit],
+      );
+      const { blocksConditions: bConditions, blockParams } =
+        this.createBlockConditions(params, txParams);
+
+      queryParams.push(...blockParams);
+      transactionsConditions = conditions;
+      blocksConditions = bConditions;
     }
 
     let query = "";
-    if (blockHash || minHeight || maxHeight || minimumDepth || chainId) {
+    if (isBlockQueryFirst) {
       query = `
         WITH filtered_block AS (
           SELECT b.id, b.hash, b."chainId", b.height
@@ -139,6 +192,7 @@ export default class TransactionDbRepository implements TransactionRepository {
           t.pactid AS "pactId",
           t.proof AS proof,
           t.rollback AS rollback,
+          t.txid AS txid,
           b.height AS "height",
           b."hash" AS "blockHash",
           b."chainId" AS "chainId",
@@ -152,16 +206,16 @@ export default class TransactionDbRepository implements TransactionRepository {
         FROM filtered_block b
         JOIN "Transactions" t ON b.id = t."blockId"
         ${transactionsConditions}
-        ORDER BY t.id ${before ? "DESC" : "ASC"}
+        ORDER BY t.id ${order}
         LIMIT $1
       `;
     } else {
       query = `
         WITH filtered_transactions AS (
-          SELECT id, "blockId", hash, nonce, sigs, continuation, num_events, pactid, proof, rollback, gas, step, data, code, logs, result, requestkey, "chainId"
+          SELECT id, "blockId", hash, nonce, sigs, continuation, num_events, pactid, proof, rollback, gas, step, data, code, logs, result, requestkey, "chainId", txid
           FROM "Transactions" t
           ${transactionsConditions}
-          ORDER BY t.id ${before ? "DESC" : "ASC"}
+          ORDER BY t.id ${order}
           LIMIT $1
         )
         SELECT
@@ -174,6 +228,7 @@ export default class TransactionDbRepository implements TransactionRepository {
           t.pactid AS "pactId",
           t.proof AS proof,
           t.rollback AS rollback,
+          t.txid AS txid,
           b.height AS "height",
           b."hash" AS "blockHash",
           b."chainId" AS "chainId",
@@ -190,10 +245,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       `;
     }
 
-    const { rows } = await rootPgPool.query(query, [
-      ...transactionParams,
-      ...blockParams,
-    ]);
+    const { rows } = await rootPgPool.query(query, queryParams);
 
     const edges = rows.map((row) => ({
       cursor: row.id.toString(),
@@ -219,6 +271,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.pactid as "pactId",
       t.proof as proof,
       t.rollback as rollback,
+      t.txid AS txid,
       b.height as "height",
       b."hash" as "blockHash",
       b."chainId" as "chainId",
@@ -292,6 +345,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.pactid as "pactId",
       t.proof as proof,
       t.rollback as rollback,
+      t.txid AS txid,
       b.height as "height",
       b."hash" as "blockHash",
       b."chainId" as "chainId",
@@ -304,7 +358,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.requestkey as "requestKey"
       FROM "Transactions" t
       JOIN "Blocks" b on t."blockId" = b.id 
-      WHERE t.requestkey::text = $1
+      WHERE t.requestkey = $1
       ${conditions}
     `;
 
@@ -322,7 +376,13 @@ export default class TransactionDbRepository implements TransactionRepository {
     after,
     last,
   }: GetTransactionsByPublicKeyParams) {
-    const queryParams: (string | number)[] = [before ? last : first, publicKey];
+    const { limit, order } = getPaginationParams({
+      first,
+      last,
+      after,
+      before,
+    });
+    const queryParams: (string | number)[] = [limit, publicKey];
 
     let cursorCondition = "";
 
@@ -347,6 +407,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         t.pactid as "pactId",
         t.proof as proof,
         t.rollback as rollback,
+        t.txid AS txid,
         b.height as "height",
         b."hash" as "blockHash",
         b."chainId" as "chainId",
@@ -365,7 +426,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         WHERE s."pubkey" = $2
       ) filtered_signers ON t.id = filtered_signers."transactionId"
       ${cursorCondition}
-      ORDER BY t.id ${before ? "DESC" : "ASC"}
+      ORDER BY t.id ${order}
       LIMIT $1;
     `;
 
@@ -536,6 +597,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.pactid as "pactId",
       t.proof as proof,
       t.rollback as rollback,
+      t.txid AS txid,
       b.height as "height",
       b."hash" as "blockHash",
       b."chainId" as "chainId",

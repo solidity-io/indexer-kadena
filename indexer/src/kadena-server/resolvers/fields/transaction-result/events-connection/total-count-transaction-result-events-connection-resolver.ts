@@ -3,18 +3,18 @@ import { TransactionResultEventsConnectionResolvers } from "../../../../config/g
 import zod from "zod";
 
 const schema = zod.object({
-  transactionId: zod.string(),
+  databaseTransactionId: zod.string(),
 });
 
 export const totalCountTransactionResultEventsConnectionResolver: TransactionResultEventsConnectionResolvers<ResolverContext>["totalCount"] =
   async (parent, _args, context) => {
     console.log("totalCountTransactionResultEventsConnectionResolver");
 
-    const { transactionId } = schema.parse(parent);
+    const { databaseTransactionId } = schema.parse(parent);
 
     const output = await context.eventRepository.getTotalTransactionEventsCount(
       {
-        transactionId,
+        transactionId: databaseTransactionId,
       },
     );
     return output;

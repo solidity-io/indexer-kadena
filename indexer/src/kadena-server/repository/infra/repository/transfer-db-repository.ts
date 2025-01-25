@@ -5,7 +5,7 @@ import TransferRepository, {
   GetTransfersByTransactionIdParams,
   GetTransfersParams,
 } from "../../application/transfer-repository";
-import { getPageInfo } from "../../pagination";
+import { getPageInfo, getPaginationParams } from "../../pagination";
 import { transferSchemaValidator } from "../schema-validator/transfer-schema-validator";
 
 const operator = (paramsLength: number) => (paramsLength > 2 ? `AND` : "WHERE");
@@ -26,13 +26,19 @@ export default class TransferDbRepository implements TransferRepository {
       moduleHash,
     } = params;
 
-    const queryParams: (string | number)[] = [before ? last : first];
+    const { limit, order } = getPaginationParams({
+      after,
+      before,
+      first,
+      last,
+    });
+    const queryParams: (string | number)[] = [limit];
     let conditions = "";
 
     if (accountName) {
       queryParams.push(accountName);
       const op = operator(queryParams.length);
-      conditions += `\n${op} transfers.from_acct = $${queryParams.length} OR transfers.to_acct = $${queryParams.length}`;
+      conditions += `\n${op} (transfers.from_acct = $${queryParams.length} OR transfers.to_acct = $${queryParams.length})`;
     }
 
     if (after) {
@@ -94,12 +100,13 @@ export default class TransferDbRepository implements TransferRepository {
         transfers.modulename as "moduleName",
         transfers.modulehash as "moduleHash",
         transfers.requestkey as "requestKey",
+        transfers."orderIndex" as "orderIndex",
         t.pactid as "pactId"
         from filtered_block b
         join "Transactions" t on b.id = t."blockId"
         join "Transfers" transfers on transfers."transactionId" = t.id
         ${conditions}
-        ORDER BY transfers.id ${before ? "DESC" : "ASC"}
+        ORDER BY transfers.id ${order}
         LIMIT $1
       `;
     } else if (requestKey) {
@@ -122,20 +129,50 @@ export default class TransferDbRepository implements TransferRepository {
         transfers.modulename as "moduleName",
         transfers.modulehash as "moduleHash",
         transfers.requestkey as "requestKey",
+        transfers."orderIndex" as "orderIndex",
         t.pactid as "pactId"
         from filtered_transaction t
         join "Blocks" b on b.id = t."blockId"
         join "Transfers" transfers on transfers."transactionId" = t.id
         ${conditions}
-        ORDER BY transfers.id ${before ? "DESC" : "ASC"}
+        ORDER BY transfers.id ${order}
+        LIMIT $1
+      `;
+    } else if (accountName) {
+      query = `
+        WITH filtered_transfers AS (
+          SELECT id, amount, "transactionId", "from_acct", "to_acct", modulename, modulehash, requestkey, "orderIndex"
+          FROM "Transfers" transfers
+          ${conditions}
+          ORDER BY transfers.id ${order}
+          LIMIT ALL
+        )
+        select transfers.id as id,
+        transfers.amount as "transferAmount",
+        t."chainId" as "chainId",
+        t."creationtime" as "creationTime",
+        t.id as "transactionId",
+        b.height as "height",
+        b.hash as "blockHash",
+        transfers."from_acct" as "senderAccount",
+        transfers."to_acct" as "receiverAccount",
+        transfers.modulename as "moduleName",
+        transfers.modulehash as "moduleHash",
+        transfers.requestkey as "requestKey",
+        transfers."orderIndex" as "orderIndex",
+        t.pactid as "pactId"
+        from filtered_transfers transfers
+        join "Transactions" t on t.id = transfers."transactionId"
+        join "Blocks" b on b."id" = t."blockId"
         LIMIT $1
       `;
     } else {
       query = `
         WITH filtered_transfers AS (
-          SELECT id, amount, "transactionId", "from_acct", "to_acct", modulename, modulehash, requestkey
+          SELECT id, amount, "transactionId", "from_acct", "to_acct", modulename, modulehash, requestkey, "orderIndex"
           FROM "Transfers" transfers
           ${conditions}
+          ORDER BY transfers.id ${order}
           LIMIT $1
         )
         select transfers.id as id,
@@ -150,6 +187,7 @@ export default class TransferDbRepository implements TransferRepository {
         transfers.modulename as "moduleName",
         transfers.modulehash as "moduleHash",
         transfers.requestkey as "requestKey",
+        transfers."orderIndex" as "orderIndex",
         t.pactid as "pactId"
         from filtered_transfers transfers
         join "Transactions" t on t.id = transfers."transactionId"
@@ -189,11 +227,12 @@ export default class TransferDbRepository implements TransferRepository {
       transfers.modulename as "moduleName",
       transfers.modulehash as "moduleHash",
       transfers.requestkey as "requestKey",
+      transfers."orderIndex" as "orderIndex",
       transactions.pactid as "pactId"
       from "Blocks" b
       join "Transactions" transactions on b.id = transactions."blockId"
       join "Transfers" transfers on transfers."transactionId" = transactions.id 
-      where transactions.requestKey = $1
+      where transactions.requestkey = $1
       and transfers.amount = $2
     `;
 
@@ -232,7 +271,7 @@ export default class TransferDbRepository implements TransferRepository {
     if (accountName) {
       queryParams.push(accountName);
       const op = localOperator(queryParams.length);
-      conditions += `\n${op} trans.from_acct = $${queryParams.length} OR trans.to_acct = $${queryParams.length}`;
+      conditions += `\n${op} (trans.from_acct = $${queryParams.length} OR trans.to_acct = $${queryParams.length})`;
     }
 
     if (blockHash) {
@@ -262,7 +301,7 @@ export default class TransferDbRepository implements TransferRepository {
     if (requestKey) {
       queryParams.push(requestKey);
       const op = localOperator(queryParams.length);
-      conditions += `${op} transactions."requestKey" = $${queryParams.length}`;
+      conditions += `${op} t.requestkey = $${queryParams.length}`;
     }
 
     const totalCountQuery = `
@@ -284,11 +323,14 @@ export default class TransferDbRepository implements TransferRepository {
 
   async getTransfersByTransactionId(params: GetTransfersByTransactionIdParams) {
     const { transactionId, after, before, first, last } = params;
+    const { limit, order } = getPaginationParams({
+      after,
+      before,
+      first,
+      last,
+    });
 
-    const queryParams: (string | number)[] = [
-      before ? last : first,
-      transactionId,
-    ];
+    const queryParams: (string | number)[] = [limit, transactionId];
     let conditions = "";
 
     if (before) {
@@ -313,13 +355,14 @@ export default class TransferDbRepository implements TransferRepository {
       transfers.modulename as "moduleName",
       transfers.modulehash as "moduleHash",
       transfers.requestkey as "requestKey",
+      transfers."orderIndex" as "orderIndex",
       transactions.pactid as "pactId"
       from "Blocks" b
       join "Transactions" transactions on b.id = transactions."blockId"
       join "Transfers" transfers on transfers."transactionId" = transactions.id 
       WHERE transactions.id = $2
       ${conditions}
-      ORDER BY transfers.id ${before ? "DESC" : "ASC"}
+      ORDER BY transfers.id ${order}
       LIMIT $1;
     `;
 

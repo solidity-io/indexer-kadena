@@ -18,6 +18,12 @@ export const buildNonFungibleAccount = (
     balance: acc.nonFungibleTokenBalances[index].balance,
     tokenId: acc.nonFungibleTokenBalances[index].tokenId,
     version: nft.version,
+    // TODO
+    guard: {
+      keys: [],
+      predicate: "",
+      raw: JSON.stringify("{}"),
+    },
     info: {
       precision: nft.precision,
       supply: nft.supply,
@@ -29,6 +35,8 @@ export const buildNonFungibleAccount = (
     id: acc.id,
     accountName: acc.accountName,
     nonFungibleTokenBalances,
+    // TODO
+    chainAccounts: [],
     // for resolvers
     transactions: {} as NonFungibleAccountTransactionsConnection,
   };

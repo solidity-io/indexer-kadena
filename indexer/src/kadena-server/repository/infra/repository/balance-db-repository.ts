@@ -21,7 +21,7 @@ import { fungibleChainAccountValidator } from "../schema-validator/fungible-chai
 import { nonFungibleTokenBalanceValidator } from "../schema-validator/non-fungible-token-balance-validator";
 
 export default class BalanceDbRepository implements BalanceRepository {
-  async getAccountInfo(accountName: string, fungibleName?: string) {
+  async getAccountInfo(accountName: string, fungibleName = "coin") {
     const account = await BalanceModel.findOne({
       where: {
         account: accountName,
@@ -196,6 +196,8 @@ export default class BalanceDbRepository implements BalanceRepository {
     return {
       id: getNonFungibleAccountBase64ID(accountName),
       accountName,
+      // TODO
+      chainAccounts: [],
       nonFungibleTokenBalances,
     };
   }

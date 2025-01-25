@@ -2,7 +2,7 @@ import { ResolverContext } from "../../../config/apollo-server-config";
 import { TransactionCommandResolvers } from "../../../config/graphql-types";
 import zod from "zod";
 
-const schema = zod.object({ transactionId: zod.string() });
+const schema = zod.object({ databaseTransactionId: zod.string() });
 
 export const signersTransactionCommandResolver: TransactionCommandResolvers<ResolverContext>["signers"] =
   async (parent, _args, context) => {
@@ -11,7 +11,7 @@ export const signersTransactionCommandResolver: TransactionCommandResolvers<Reso
     const parentArgs = schema.parse(parent);
 
     const output = await context.transactionRepository.getSigners(
-      parentArgs.transactionId,
+      parentArgs.databaseTransactionId,
     );
     return output;
   };

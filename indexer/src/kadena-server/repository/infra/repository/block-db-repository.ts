@@ -7,7 +7,7 @@ import BlockRepository, {
   GetBlocksFromDepthParams,
   GetCompletedBlocksParams,
 } from "../../application/block-repository";
-import { getPageInfo } from "../../pagination";
+import { getPageInfo, getPaginationParams } from "../../pagination";
 import { blockValidator } from "../schema-validator/block-schema-validator";
 import Balance from "../../../../models/balance";
 import { handleSingleQuery } from "../../../utils/raw-query";
@@ -32,6 +32,12 @@ export default class BlockDbRepository implements BlockRepository {
   async getBlocksFromDepth(params: GetBlocksFromDepthParams) {
     const { minimumDepth, after, before, first, last, chainIds } = params;
 
+    const { limit, order } = getPaginationParams({
+      first,
+      last,
+      after,
+      before,
+    });
     const query: FindOptions<BlockAttributes> = {
       where: {
         height: { [Op.gt]: minimumDepth ?? 0 },
@@ -39,8 +45,8 @@ export default class BlockDbRepository implements BlockRepository {
         ...(before && { id: { [Op.lt]: before } }),
         ...(!!chainIds?.length && { chainId: { [Op.in]: chainIds } }),
       },
-      limit: before ? last : first,
-      order: [["height", before ? "DESC" : "ASC"]],
+      limit,
+      order: [["id", order]],
     };
 
     const rows = await BlockModel.findAll(query);
@@ -62,6 +68,12 @@ export default class BlockDbRepository implements BlockRepository {
     const { startHeight, endHeight, after, before, first, chainIds, last } =
       params;
 
+    const { limit, order } = getPaginationParams({
+      first,
+      last,
+      after,
+      before,
+    });
     const query: FindOptions<BlockAttributes> = {
       where: {
         height: { [Op.gte]: startHeight },
@@ -70,8 +82,8 @@ export default class BlockDbRepository implements BlockRepository {
         ...(before && { id: { [Op.lt]: before } }),
         ...(!!chainIds?.length && { chainId: { [Op.in]: chainIds } }),
       },
-      limit: before ? last : first,
-      order: [["height", before ? "DESC" : "ASC"]],
+      limit,
+      order: [["id", order]],
     };
 
     const rows = await BlockModel.findAll(query);
@@ -145,6 +157,13 @@ export default class BlockDbRepository implements BlockRepository {
       heightCount,
     } = params;
 
+    const { limit, order } = getPaginationParams({
+      first,
+      last,
+      after,
+      before,
+    });
+
     const chainIds = chainIdsParam?.length
       ? chainIdsParam
       : await this.getChainIds();
@@ -168,7 +187,7 @@ export default class BlockDbRepository implements BlockRepository {
 
       if (totalCompletedHeights.length > 0) {
         const queryParams: any[] = [
-          before ? last : first,
+          limit,
           chainIds,
           totalCompletedHeights,
           totalCompletedHeights[0],
@@ -192,7 +211,7 @@ export default class BlockDbRepository implements BlockRepository {
           WHERE "chainId" = ANY($2)
           AND (height = ANY($3) OR height > $4)
           ${conditions}
-          ORDER BY height ${before ? "DESC" : "ASC"}
+          ORDER BY id ${order}
           LIMIT $1
         `;
 
@@ -229,11 +248,7 @@ export default class BlockDbRepository implements BlockRepository {
 
     const totalCompletedHeights = heightRows.map((r) => r.height) as number[];
 
-    const queryParams: any[] = [
-      before ? last : first,
-      chainIds,
-      totalCompletedHeights,
-    ];
+    const queryParams: any[] = [limit, chainIds, totalCompletedHeights];
 
     let conditions = "";
 
@@ -253,7 +268,7 @@ export default class BlockDbRepository implements BlockRepository {
       WHERE "chainId" = ANY($2)
       AND height = ANY($3)
       ${conditions}
-      ORDER BY height ${before ? "DESC" : "ASC"}
+      ORDER BY id ${order}
       LIMIT $1
     `;
 

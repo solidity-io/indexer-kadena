@@ -32,6 +32,7 @@ type Subscription {
     events(
         chainId: String
         minimumDepth: Int
+        parametersFilter: String
         qualifiedEventName: String!
     ): [Event!]
     """
@@ -55,8 +56,8 @@ type Query {
         Default: all chains
         """
         chainIds: [String!]
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
         minimumDepth: Int!
     ): QueryBlocksFromDepthConnection
 
@@ -71,8 +72,8 @@ type Query {
         """
         chainIds: [String!]
         endHeight: Int
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
         startHeight: Int!
     ): QueryBlocksFromHeightConnection!
 
@@ -90,9 +91,9 @@ type Query {
         Retrieve blocks from completed heights only. Default: true
         """
         completedHeights: Boolean = true
-        first: Int = 20
+        first: Int
         heightCount: Int = 3
-        last: Int = 20
+        last: Int
     ): QueryCompletedBlockHeightsConnection!
 
     """
@@ -107,8 +108,8 @@ type Query {
         before: String
         blockHash: String
         chainId: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
         maxHeight: Int
         minHeight: Int
         minimumDepth: Int
@@ -137,11 +138,11 @@ type Query {
     """
     Retrieve an account by its name and fungible, such as coin, on a specific chain.
     """
-    fungibleChainAccount(
+    fungibleChainAccounts(
         accountName: String!
         chainIds: [String!]
         fungibleName: String = "coin"
-    ): [FungibleChainAccount!]
+    ): [FungibleChainAccount!]!
 
     """
     Retrieve a chain account by public key.
@@ -223,9 +224,9 @@ type Query {
         before: String
         blockHash: String
         chainId: String
-        first: Int = 20
+        first: Int
         fungibleName: String
-        last: Int = 20
+        last: Int
         maxHeight: Int
         minHeight: Int
         minimumDepth: Int
@@ -238,8 +239,8 @@ type Query {
     transactionsByPublicKey(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
         publicKey: String!
     ): QueryTransactionsByPublicKeyConnection!
 
@@ -252,9 +253,9 @@ type Query {
         before: String
         blockHash: String
         chainId: String
-        first: Int = 20
+        first: Int
         fungibleName: String
-        last: Int = 20
+        last: Int
         requestKey: String
     ): QueryTransfersConnection!
 }
@@ -274,8 +275,8 @@ type FungibleAccount implements Node {
     transactions(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): FungibleAccountTransactionsConnection!
 
     """
@@ -284,8 +285,8 @@ type FungibleAccount implements Node {
     transfers(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): FungibleAccountTransfersConnection!
 }
 
@@ -326,8 +327,8 @@ type NonFungibleChainAccount implements Node {
     transactions(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): NonFungibleChainAccountTransactionsConnection!
 }
 
@@ -348,6 +349,7 @@ type NonFungibleTokenBalance implements Node {
     accountName: String!
     balance: Int!
     chainId: String!
+    guard: IGuard!
     id: ID!
     info: NonFungibleToken
     tokenId: String!
@@ -462,8 +464,8 @@ type Block implements Node {
     events(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): BlockEventsConnection!
     minerAccount: FungibleChainAccount!
     """
@@ -472,8 +474,8 @@ type Block implements Node {
     transactions(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): BlockTransactionsConnection!
 }
 
@@ -528,6 +530,7 @@ type Event implements Node {
     orderIndex: BigInt!
     requestKey: String!
     parameters: String
+    parameterText: String!
     """
     The full eventname, containing module and eventname, e.g. coin.TRANSFER
     """
@@ -545,7 +548,7 @@ type FungibleChainAccount implements Node {
     balance: Float!
     chainId: String!
     fungibleName: String!
-    guard: KeysetGuard!
+    guard: IGuard!
 
     """
     Transactions that the current account is sender of. Default page size is 20.
@@ -553,8 +556,8 @@ type FungibleChainAccount implements Node {
     transactions(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): FungibleChainAccountTransactionsConnection!
 
     """
@@ -563,8 +566,8 @@ type FungibleChainAccount implements Node {
     transfers(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): FungibleChainAccountTransfersConnection!
 }
 
@@ -729,20 +732,22 @@ type TransactionResult {
     logs: String
     transactionId: BigInt
 
+    metadata: String! @deprecated(reason: "Not used.")
+
     block: Block!
 
     transfers(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): TransactionResultTransfersConnection!
 
     events(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): TransactionResultEventsConnection!
 }
 
@@ -812,12 +817,17 @@ A transfer of funds from a fungible between two accounts.
 type Transfer implements Node {
     amount: Decimal!
     block: Block!
+    blockHash: String! @deprecated(reason: "Use `block.hash` field instead.")
+    chainId: BigInt! @deprecated(reason: "Use `block.chainId` field instead.")
+    creationTime: DateTime!
 
     """
     The counterpart of the crosschain-transfer. `null` when it is not a cross-chain-transfer.
     """
     crossChainTransfer: Transfer
+    height: BigInt! @deprecated(reason: "Use `block.height` field instead.")
     id: ID!
+    moduleHash: String!
     moduleName: String!
 
     """
@@ -825,6 +835,7 @@ type Transfer implements Node {
     """
     orderIndex: BigInt!
     receiverAccount: String!
+    requestKey: String!
     senderAccount: String!
 
     """
@@ -935,6 +946,7 @@ A non-fungible-specific account.
 """
 type NonFungibleAccount implements Node {
     accountName: String!
+    chainAccounts: [NonFungibleChainAccount!]!
     id: ID!
     nonFungibleTokenBalances: [NonFungibleTokenBalance!]!
 
@@ -944,8 +956,8 @@ type NonFungibleAccount implements Node {
     transactions(
         after: String
         before: String
-        first: Int = 20
-        last: Int = 20
+        first: Int
+        last: Int
     ): NonFungibleAccountTransactionsConnection!
 }
 
@@ -972,12 +984,38 @@ type NonFungibleChainAccountTransactionsConnectionEdge {
 }
 
 """
-A guard. Has values `keys`, `predicate` to provide backwards compatibility for `KeysetGuard`.
+A chain and non-fungible-specific account.
+"""
+type NonFungibleChainAccount implements Node {
+    accountName: String!
+    chainId: String!
+    id: ID!
+    nonFungibleTokenBalances: [NonFungibleTokenBalance!]!
+
+    """
+    Default page size is 20. Note that custom token related transactions are not included.
+    """
+    transactions(
+        after: String
+        before: String
+        first: Int
+        last: Int
+    ): NonFungibleChainAccountTransactionsConnection!
+}
+
+"""
+A guard. This is a union of all the different types of guards that can be used in a pact.
 """
 interface IGuard {
+    keys: [String!]! @deprecated(reason: "deprecated, use KeysetGuard.keys")
+    predicate: String!
+        @deprecated(reason: "deprecated, use KeysetGuard.predicate")
     raw: String!
 }
 
+"""
+A keyset guard.
+"""
 type KeysetGuard implements IGuard {
     keys: [String!]!
     predicate: String!

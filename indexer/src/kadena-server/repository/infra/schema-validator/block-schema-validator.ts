@@ -51,8 +51,6 @@ const validate = (row: any): BlockOutput => {
   };
 };
 
-const JSONbig = require("json-bigint");
-
 const mapFromSequelize = (blockModel: BlockAttributes): BlockOutput => {
   return {
     id: getBase64ID(blockModel.hash),

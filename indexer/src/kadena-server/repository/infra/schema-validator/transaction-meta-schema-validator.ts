@@ -1,6 +1,5 @@
 import zod from "zod";
 import { TransactionMetaOutput } from "../../application/transaction-repository";
-import { convertStringToDate } from "../../../utils/date";
 
 const schema = zod.object({
   chainId: zod.number(),
@@ -15,7 +14,7 @@ function validate(row: any): TransactionMetaOutput {
   const res = schema.parse(row);
   return {
     chainId: res.chainId,
-    creationTime: convertStringToDate(res.creationTime),
+    creationTime: new Date(Number(res.creationTime) * 1000),
     gasLimit: res.gasLimit,
     gasPrice: Number(res.gasPrice),
     sender: res.sender,

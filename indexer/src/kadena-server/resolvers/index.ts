@@ -29,7 +29,7 @@ import { lastBlockHeightQueryResolver } from "./query/last-block-height-query-re
 import { networkInfoQueryResolver } from "./query/network-info-query-resolver";
 import { chainAccountsFungibleAccountResolver } from "./fields/fungible-account/chain-accounts-fungible-account-resolver";
 import { nodeQueryResolver } from "./query/node-query-resolver";
-import { fungibleChainAccountQueryResolver } from "./query/fungible-chain-account-query-resolver";
+import { fungibleChainAccountsQueryResolver } from "./query/fungible-chain-account-query-resolver";
 import { transactionsFungibleChainAccountResolver } from "./fields/fungible-chain-account/transactions-fungible-chain-account-resolver";
 import { transfersFungibleChainAccountResolver } from "./fields/fungible-chain-account/transfers-fungible-chain-account-resolver";
 import { totalCountFungibleAccountTransfersConnectionResolver } from "./fields/fungible-account/transfers-connection/total-count-fungible-account-transfers-connection-resolver";
@@ -79,7 +79,7 @@ export const resolvers: Resolvers<ResolverContext> = {
     events: eventsQueryResolver,
     fungibleAccount: fungibleAccountQueryResolver,
     fungibleAccountsByPublicKey: fungibleAccountsByPublicKeyQueryResolver,
-    fungibleChainAccount: fungibleChainAccountQueryResolver,
+    fungibleChainAccounts: fungibleChainAccountsQueryResolver,
     fungibleChainAccountsByPublicKey:
       fungibleChainAccountsByPublicKeyQueryResolver,
     gasLimitEstimate: gasLimitEstimateQueryResolver,
@@ -179,7 +179,7 @@ export const resolvers: Resolvers<ResolverContext> = {
   },
   Node: {
     __resolveType(obj: any) {
-      if (obj.difficulty && obj.powHash && obj.chainId) {
+      if (obj.difficulty && obj.powHash) {
         return "Block";
       }
 
@@ -187,11 +187,11 @@ export const resolvers: Resolvers<ResolverContext> = {
         return "Event";
       }
 
-      if (obj.tokenId && obj.version) {
+      if (obj.tokenId !== undefined && obj.version) {
         return "NonFungibleTokenBalance";
       }
 
-      if (obj.chainId && obj.nonFungibleTokenBalances) {
+      if (obj.chainId !== undefined && obj.nonFungibleTokenBalances) {
         return "NonFungibleChainAccount";
       }
 
@@ -209,7 +209,7 @@ export const resolvers: Resolvers<ResolverContext> = {
 
       if (
         obj.accountName &&
-        obj.chainId &&
+        obj.chainId !== undefined &&
         obj.balance !== undefined &&
         obj.balance !== null
       ) {
@@ -224,7 +224,10 @@ export const resolvers: Resolvers<ResolverContext> = {
         return "Transaction";
       }
 
-      if (obj.senderAccount && obj.receiverAccount) {
+      if (
+        obj.senderAccount !== undefined &&
+        obj.receiverAccount !== undefined
+      ) {
         return "Transfer";
       }
 
@@ -245,6 +248,11 @@ export const resolvers: Resolvers<ResolverContext> = {
         return "ExecutionPayload";
       }
       return "ContinuationPayload";
+    },
+  },
+  IGuard: {
+    __resolveType: (obj: any) => {
+      return "KeysetGuard";
     },
   },
 };

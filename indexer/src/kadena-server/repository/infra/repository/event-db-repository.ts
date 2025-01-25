@@ -9,7 +9,7 @@ import EventRepository, {
   GetTotalTransactionEventsCount,
   GetTransactionEventsParams,
 } from "../../application/event-repository";
-import { getPageInfo } from "../../pagination";
+import { getPageInfo, getPaginationParams } from "../../pagination";
 import { ConnectionEdge } from "../../types";
 import { eventValidator } from "../schema-validator/event-schema-validator";
 
@@ -44,7 +44,14 @@ export default class EventDbRepository implements EventRepository {
   }
   async getBlockEvents(params: GetBlockEventsParams) {
     const { hash, after, before, first, last } = params;
-    const queryParams = [before ? last : first, hash];
+    const { limit, order } = getPaginationParams({
+      after,
+      before,
+      first,
+      last,
+    });
+
+    const queryParams = [limit, hash];
 
     let conditions = "";
 
@@ -73,7 +80,7 @@ export default class EventDbRepository implements EventRepository {
       JOIN "Events" e ON t.id = e."transactionId"
       WHERE b.hash = $2
       ${conditions}
-      ORDER BY e.id ${before ? "DESC" : "ASC"}
+      ORDER BY e.id ${order}
       LIMIT $1;
     `;
 
@@ -124,11 +131,18 @@ export default class EventDbRepository implements EventRepository {
       requestKey,
     } = params;
 
+    const { limit, order } = getPaginationParams({
+      after,
+      before,
+      first,
+      last,
+    });
+
     const splitted = qualifiedEventName.split(".");
     const name = splitted.pop() ?? "";
     const module = splitted.join(".");
 
-    const queryParams: (string | number)[] = [before ? last : first];
+    const queryParams: (string | number)[] = [limit];
     let conditions = "";
 
     queryParams.push(module);
@@ -190,7 +204,7 @@ export default class EventDbRepository implements EventRepository {
       join "Transactions" t on e."transactionId" = t.id 
       join "Blocks" b on b.id = t."blockId"
       ${conditions}
-      ORDER BY id ${before ? "DESC" : "ASC"}
+      ORDER BY id ${order}
       LIMIT $1
     `;
 
@@ -282,11 +296,14 @@ export default class EventDbRepository implements EventRepository {
     params: GetTransactionEventsParams,
   ): Promise<{ pageInfo: PageInfo; edges: ConnectionEdge<EventOutput>[] }> {
     const { transactionId, after, before, first, last } = params;
+    const { limit, order } = getPaginationParams({
+      after,
+      before,
+      first,
+      last,
+    });
 
-    const queryParams: (string | number)[] = [
-      before ? last : first,
-      transactionId,
-    ];
+    const queryParams: (string | number)[] = [limit, transactionId];
     let conditions = "";
 
     if (after) {
@@ -314,7 +331,7 @@ export default class EventDbRepository implements EventRepository {
       join "Blocks" b on b.id = t."blockId"
       where t.id = $2
       ${conditions}
-      ORDER BY id ${before ? "DESC" : "ASC"}
+      ORDER BY id ${order}
       LIMIT $1
     `;
 

@@ -3,17 +3,17 @@ import { TransactionResultTransfersConnectionResolvers } from "../../../../confi
 import zod from "zod";
 
 const schema = zod.object({
-  transactionId: zod.string(),
+  databaseTransactionId: zod.string(),
 });
 
 export const totalCountTransactionResultTransfersConnectionResolver: TransactionResultTransfersConnectionResolvers<ResolverContext>["totalCount"] =
   async (parent, _args, context) => {
     console.log("totalCountTransactionResultTransfersConnectionResolver");
 
-    const { transactionId } = schema.parse(parent);
+    const { databaseTransactionId } = schema.parse(parent);
 
     const output = await context.transferRepository.getTotalCountOfTransfers({
-      transactionId,
+      transactionId: databaseTransactionId,
     });
     return output;
   };

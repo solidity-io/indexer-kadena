@@ -34,7 +34,7 @@ export interface GetTransactionsByRequestKey {
 
 export type TransactionOutput = Omit<Transaction, "cmd"> & {
   cmd: Omit<Transaction["cmd"], "meta" | "signers">;
-} & { transactionId: string; blockHash: string; blockHeight: number };
+} & { databaseTransactionId: string; blockHash: string; blockHeight: number };
 
 export type TransactionMetaOutput = TransactionMeta;
 

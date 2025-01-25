@@ -13,6 +13,7 @@ const getBase64ID = (blockHash: string, requestKey: string): string => {
 const schema = zod.object({
   id: zod.number(),
   hashTransaction: zod.string(),
+  txid: zod.string().nullable(),
   sigs: zod.array(zod.any()),
   continuation: zod.any(),
   eventCount: zod.number(),
@@ -34,9 +35,10 @@ const schema = zod.object({
 function validate(row: any): TransactionOutput {
   const res = schema.parse(row);
   const isSuccess = res.result.status === "success";
+  const continuation = JSON.stringify(res.continuation);
   return {
     id: getBase64ID(res.blockHash, res.requestKey),
-    transactionId: res.id.toString(),
+    databaseTransactionId: res.id.toString(),
     blockHeight: res.height,
     blockHash: res.blockHash,
     hash: res.hashTransaction,
@@ -47,17 +49,18 @@ function validate(row: any): TransactionOutput {
 
       // TransactionResult
       badResult: !isSuccess ? res.result.data : null,
-      continuation: res.continuation.toString(),
+      continuation: continuation === "{}" ? null : continuation,
       eventCount: res.eventCount,
+      transactionId: res.txid ? res.txid : null,
 
       gas: res.gas,
-      goodResult: isSuccess ? res.result.data : null,
+      goodResult: isSuccess ? JSON.stringify(res.result.data) : null,
       logs: res.logs,
     },
     cmd: {
       payload: {
         // ExecutionPayload
-        code: res.code,
+        code: JSON.stringify(res.code),
 
         // ContinuationPayload and ExecutionPayload
         data: JSON.stringify(res.data),

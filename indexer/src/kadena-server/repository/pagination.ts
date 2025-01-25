@@ -4,13 +4,13 @@ import { ConnectionEdge } from "./types";
 export interface PaginationsParams {
   after?: InputMaybe<string>;
   before?: InputMaybe<string>;
-  first: number;
-  last: number;
+  first?: InputMaybe<number>;
+  last?: InputMaybe<number>;
 }
 
 interface Params {
   rows: ConnectionEdge<any>[];
-  first: number;
+  first?: number | null;
   last?: number | null;
 }
 
@@ -32,17 +32,55 @@ export const getPageInfo = ({ first, last, rows }: Params): PageInfo => {
   return pageInfo;
 };
 
-export const addPagination = (
-  query: string,
-  queryParams: Array<any>,
-  after?: InputMaybe<string>,
-) => {
-  let cursorCondition = "";
+const DEFAULT_LIMIT = 20;
+
+type PaginationInput = {
+  after?: InputMaybe<string>;
+  before?: InputMaybe<string>;
+  first?: InputMaybe<number>;
+  last?: InputMaybe<number>;
+};
+
+type PaginationOutput = {
+  limit: number;
+  order: "ASC" | "DESC";
+};
+
+export function getPaginationParams({
+  after,
+  before,
+  first,
+  last,
+}: PaginationInput): PaginationOutput {
   if (after) {
-    const decodedAfter = after; // This could just decode to a simple event ID
-    cursorCondition = `AND t.id > ${after}`;
-    queryParams.push(decodedAfter);
+    return {
+      limit: first ?? DEFAULT_LIMIT,
+      order: "ASC",
+    };
   }
 
-  return { query, queryParams };
-};
+  if (before) {
+    return {
+      limit: last ?? DEFAULT_LIMIT,
+      order: "DESC",
+    };
+  }
+
+  if (first) {
+    return {
+      limit: first,
+      order: "ASC",
+    };
+  }
+  if (last) {
+    return {
+      limit: last,
+      order: "DESC",
+    };
+  }
+
+  return {
+    limit: DEFAULT_LIMIT,
+    order: "ASC",
+  };
+}
