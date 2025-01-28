@@ -260,6 +260,10 @@ Transaction.init(
         name: "transactions_canonical_idx",
         fields: ["canonical"],
       },
+      {
+        name: "transactions_sender_id_idx",
+        fields: ["sender", "id"],
+      },
       // Search indexes
       {
         name: "transactions_trgm_requestkey_idx",

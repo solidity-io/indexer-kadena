@@ -212,6 +212,10 @@ Block.init(
         name: "blocks_canonical_idx",
         fields: ["canonical"],
       },
+      {
+        name: "blocks_height_id_idx",
+        fields: ["height", "id"],
+      },
       // Search indexes
       {
         name: "blocks_trgm_parent_idx",
