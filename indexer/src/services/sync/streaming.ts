@@ -1,7 +1,7 @@
 import { processPayloadKey } from "./payload";
 import { getDecoded, getRequiredEnvString } from "../../utils/helpers";
 import EventSource from "eventsource";
-import { dispatch, DispatchInfo } from "../../jobs/publisher-job";
+import { DispatchInfo } from "../../jobs/publisher-job";
 import { uint64ToInt64 } from "../../utils/int-uint-64";
 import Block, { BlockAttributes } from "../../models/block";
 import { sequelize } from "../../config/database";
@@ -24,7 +24,7 @@ export async function startStreaming() {
     console.error("Connection error:", error);
   };
 
-  eventSource.addEventListener("BlockHeader", (event: any) => {
+  eventSource.addEventListener("BlockHeader", async (event: any) => {
     try {
       const block = JSON.parse(event.data);
       const payload = processPayload(block.payloadWithOutputs);
@@ -32,53 +32,26 @@ export async function startStreaming() {
         return;
       }
       blocksAlreadyReceived.add(block.header.hash);
-      blocksQueue.push({ header: block.header, payload });
-    } catch (error) {
-      console.log(error);
-    }
-  });
-
-  setInterval(async () => {
-    const blocksToProcess = [];
-    while (blocksQueue.length > 0) {
-      const b = blocksQueue.shift();
-      blocksToProcess.push(b);
-    }
-
-    console.log("Processing blocks:", blocksToProcess.length);
-    const promises = blocksToProcess.map(async (block: any) => {
-      const blockData = await saveBlock(block);
+      const blockData = await saveBlock({ header: block.header, payload });
       if (blockData === null) {
         await StreamingError.create({
           hash: block.header.hash,
           chainId: block.header.chainId,
         });
+        return;
       }
-      return blockData;
-    });
-
-    const processed = (await Promise.all(promises)).filter(
-      (r) => r !== null || r !== undefined,
-    ) as DispatchInfo[];
-
-    const allDispatches = await Promise.all(processed.map((r) => dispatch(r)));
-    const succeededDispatches = allDispatches.filter((success) => success);
-
-    console.log(
-      "Processed:",
-      processed.length,
-      "|",
-      "Dispatched:",
-      succeededDispatches.length,
-    );
-  }, 1000 * 10);
+      blocksQueue.push(blockData);
+    } catch (error) {
+      console.log(error);
+    }
+  });
 
   setInterval(
     () => {
       console.log("Clearing blocks already received.");
       blocksAlreadyReceived.clear();
     },
-    1000 * 60 * 5,
+    1000 * 60 * 10,
   );
 }
 

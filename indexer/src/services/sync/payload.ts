@@ -54,7 +54,7 @@ export async function processTransaction(
     throw error;
   }
 
-  let nonce = (cmdData.Nonce || "").replace(/\\"/g, "");
+  let nonce = (cmdData.nonce || "").replace(/\\"/g, "");
   nonce = nonce.replace(/"/g, "");
   const eventsData = receiptInfo.events || [];
   const transactionAttributes = {
