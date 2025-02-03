@@ -14,8 +14,8 @@ export default class TransferDbRepository implements TransferRepository {
   async getTransfers(params: GetTransfersParams) {
     const {
       blockHash,
-      after,
-      before,
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
       chainId,
@@ -26,9 +26,9 @@ export default class TransferDbRepository implements TransferRepository {
       moduleHash,
     } = params;
 
-    const { limit, order } = getPaginationParams({
-      after,
-      before,
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
     });
@@ -44,13 +44,13 @@ export default class TransferDbRepository implements TransferRepository {
     if (after) {
       queryParams.push(after);
       const op = operator(queryParams.length);
-      conditions += `\n${op} transfers.id > $${queryParams.length}`;
+      conditions += `\n${op} transfers.id < $${queryParams.length}`;
     }
 
     if (before) {
       queryParams.push(before);
       const op = operator(queryParams.length);
-      conditions += `\n${op} transfers.id < $${queryParams.length}`;
+      conditions += `\n${op} transfers.id > $${queryParams.length}`;
     }
 
     if (chainId) {
@@ -202,12 +202,8 @@ export default class TransferDbRepository implements TransferRepository {
       node: transferSchemaValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getCrossChainTransferByPactId({
@@ -322,10 +318,17 @@ export default class TransferDbRepository implements TransferRepository {
   }
 
   async getTransfersByTransactionId(params: GetTransfersByTransactionIdParams) {
-    const { transactionId, after, before, first, last } = params;
-    const { limit, order } = getPaginationParams({
-      after,
-      before,
+    const {
+      transactionId,
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    } = params;
+
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
     });
@@ -335,12 +338,12 @@ export default class TransferDbRepository implements TransferRepository {
 
     if (before) {
       queryParams.push(before);
-      conditions += `\nAND transfers.id < $3`;
+      conditions += `\nAND transfers.id > $3`;
     }
 
     if (after) {
       queryParams.push(after);
-      conditions += `\nAND transfers.id > $3`;
+      conditions += `\nAND transfers.id < $3`;
     }
 
     const query = `
@@ -373,11 +376,7 @@ export default class TransferDbRepository implements TransferRepository {
       node: transferSchemaValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 }

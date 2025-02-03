@@ -43,10 +43,17 @@ export default class EventDbRepository implements EventRepository {
     return output;
   }
   async getBlockEvents(params: GetBlockEventsParams) {
-    const { hash, after, before, first, last } = params;
-    const { limit, order } = getPaginationParams({
-      after,
-      before,
+    const {
+      hash,
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    } = params;
+
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
     });
@@ -57,12 +64,12 @@ export default class EventDbRepository implements EventRepository {
 
     if (before) {
       queryParams.push(before);
-      conditions += `\nAND e.id < $3`;
+      conditions += `\nAND e.id > $3`;
     }
 
     if (after) {
       queryParams.push(after);
-      conditions += `\nAND e.id > $3`;
+      conditions += `\nAND e.id < $3`;
     }
 
     const query = `
@@ -91,12 +98,8 @@ export default class EventDbRepository implements EventRepository {
       node: eventValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTotalCountOfBlockEvents(hash: string): Promise<number> {
@@ -121,8 +124,8 @@ export default class EventDbRepository implements EventRepository {
       qualifiedEventName,
       blockHash,
       chainId,
-      after,
-      before,
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
       minHeight,
@@ -131,9 +134,9 @@ export default class EventDbRepository implements EventRepository {
       requestKey,
     } = params;
 
-    const { limit, order } = getPaginationParams({
-      after,
-      before,
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
     });
@@ -182,12 +185,12 @@ export default class EventDbRepository implements EventRepository {
 
     if (before) {
       queryParams.push(before);
-      conditions += `\nAND e.id < $${queryParams.length}`;
+      conditions += `\nAND e.id > $${queryParams.length}`;
     }
 
     if (after) {
       queryParams.push(after);
-      conditions += `\nAND e.id > $${queryParams.length}`;
+      conditions += `\nAND e.id < $${queryParams.length}`;
     }
 
     const query = `
@@ -215,12 +218,8 @@ export default class EventDbRepository implements EventRepository {
       node: eventValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTotalEventsCount(params: GetTotalEventsCount): Promise<number> {
@@ -295,10 +294,17 @@ export default class EventDbRepository implements EventRepository {
   async getTransactionEvents(
     params: GetTransactionEventsParams,
   ): Promise<{ pageInfo: PageInfo; edges: ConnectionEdge<EventOutput>[] }> {
-    const { transactionId, after, before, first, last } = params;
-    const { limit, order } = getPaginationParams({
-      after,
-      before,
+    const {
+      transactionId,
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    } = params;
+
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
     });
@@ -308,12 +314,12 @@ export default class EventDbRepository implements EventRepository {
 
     if (after) {
       queryParams.push(after);
-      conditions += `\nAND e.id > $3`;
+      conditions += `\nAND e.id < $3`;
     }
 
     if (before) {
       queryParams.push(before);
-      conditions += `\nAND e.id < $3`;
+      conditions += `\nAND e.id > $3`;
     }
 
     const query = `
@@ -342,12 +348,8 @@ export default class EventDbRepository implements EventRepository {
       node: eventValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTotalTransactionEventsCount(params: GetTotalTransactionEventsCount) {

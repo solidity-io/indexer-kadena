@@ -82,13 +82,13 @@ export default class TransactionDbRepository implements TransactionRepository {
     if (after) {
       transactionParams.push(after);
       const op = operator(transactionParams.length);
-      conditions += `${op} t.id > $${transactionParams.length}`;
+      conditions += `${op} t.id < $${transactionParams.length}`;
     }
 
     if (before) {
       transactionParams.push(before);
       const op = operator(transactionParams.length);
-      conditions += `${op} t.id < $${transactionParams.length}`;
+      conditions += `${op} t.id > $${transactionParams.length}`;
     }
 
     if (requestKey) {
@@ -129,8 +129,8 @@ export default class TransactionDbRepository implements TransactionRepository {
   async getTransactions(params: GetTransactionsParams) {
     const {
       blockHash,
-      after,
-      before,
+      after: afterEncoded,
+      before: beforeEncoded,
       chainId,
       first,
       last,
@@ -139,9 +139,9 @@ export default class TransactionDbRepository implements TransactionRepository {
       minimumDepth,
     } = params;
 
-    const { limit, order } = getPaginationParams({
-      after,
-      before,
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
     });
@@ -252,12 +252,8 @@ export default class TransactionDbRepository implements TransactionRepository {
       node: transactionValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTransactionByTransferId(transferId: string) {
@@ -372,27 +368,27 @@ export default class TransactionDbRepository implements TransactionRepository {
   async getTransactionsByPublicKey({
     publicKey,
     first,
-    before,
-    after,
+    before: beforeEncoded,
+    after: afterEncoded,
     last,
   }: GetTransactionsByPublicKeyParams) {
-    const { limit, order } = getPaginationParams({
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
-      after,
-      before,
     });
     const queryParams: (string | number)[] = [limit, publicKey];
 
     let cursorCondition = "";
 
     if (after) {
-      cursorCondition = `\nAND t.id > $3`;
+      cursorCondition = `\nAND t.id < $3`;
       queryParams.push(after);
     }
 
     if (before) {
-      cursorCondition = `\nAND t.id < $3`;
+      cursorCondition = `\nAND t.id > $3`;
       queryParams.push(before);
     }
 
@@ -437,12 +433,8 @@ export default class TransactionDbRepository implements TransactionRepository {
       node: transactionValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTransactionsByPublicKeyCount(publicKey: string) {

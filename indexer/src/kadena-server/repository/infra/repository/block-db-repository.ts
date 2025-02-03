@@ -30,19 +30,27 @@ export default class BlockDbRepository implements BlockRepository {
   }
 
   async getBlocksFromDepth(params: GetBlocksFromDepthParams) {
-    const { minimumDepth, after, before, first, last, chainIds } = params;
-
-    const { limit, order } = getPaginationParams({
+    const {
+      minimumDepth,
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
-      after,
-      before,
+      chainIds,
+    } = params;
+
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
     });
+
     const query: FindOptions<BlockAttributes> = {
       where: {
         height: { [Op.gt]: minimumDepth ?? 0 },
-        ...(after && { id: { [Op.gt]: after } }),
-        ...(before && { id: { [Op.lt]: before } }),
+        ...(after && { id: { [Op.lt]: after } }),
+        ...(before && { id: { [Op.gt]: before } }),
         ...(!!chainIds?.length && { chainId: { [Op.in]: chainIds } }),
       },
       limit,
@@ -56,30 +64,34 @@ export default class BlockDbRepository implements BlockRepository {
       node: blockValidator.mapFromSequelize(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getBlocksBetweenHeights(params: GetBlocksBetweenHeightsParams) {
-    const { startHeight, endHeight, after, before, first, chainIds, last } =
-      params;
+    const {
+      startHeight,
+      endHeight,
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      chainIds,
+      last,
+    } = params;
 
-    const { limit, order } = getPaginationParams({
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
-      after,
-      before,
     });
+
     const query: FindOptions<BlockAttributes> = {
       where: {
         height: { [Op.gte]: startHeight },
         ...(endHeight && { height: { [Op.lte]: endHeight } }),
-        ...(after && { id: { [Op.gt]: after } }),
-        ...(before && { id: { [Op.lt]: before } }),
+        ...(after && { id: { [Op.lt]: after } }),
+        ...(before && { id: { [Op.gt]: before } }),
         ...(!!chainIds?.length && { chainId: { [Op.in]: chainIds } }),
       },
       limit,
@@ -93,12 +105,8 @@ export default class BlockDbRepository implements BlockRepository {
       node: blockValidator.mapFromSequelize(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getMinerData(hash: string, chainId: string) {
@@ -150,18 +158,18 @@ export default class BlockDbRepository implements BlockRepository {
     const {
       first,
       last,
-      before,
-      after,
+      before: beforeEncoded,
+      after: afterEncoded,
       chainIds: chainIdsParam,
       completedHeights,
       heightCount,
     } = params;
 
-    const { limit, order } = getPaginationParams({
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
-      after,
-      before,
     });
 
     const chainIds = chainIdsParam?.length
@@ -197,12 +205,12 @@ export default class BlockDbRepository implements BlockRepository {
 
         if (after) {
           queryParams.push(after);
-          conditions += "\nAND id > $5";
+          conditions += "\nAND id < $5";
         }
 
         if (before) {
           queryParams.push(before);
-          conditions += "\nAND id < $5";
+          conditions += "\nAND id > $5";
         }
 
         let queryOne = `
@@ -224,12 +232,9 @@ export default class BlockDbRepository implements BlockRepository {
           cursor: row.id.toString(),
           node: blockValidator.validate(row),
         }));
-        const pageInfo = getPageInfo({ rows: edges, first, last });
 
-        return {
-          edges,
-          pageInfo,
-        };
+        const pageInfo = getPageInfo({ edges, order, limit, after, before });
+        return pageInfo;
       }
     }
 
@@ -254,12 +259,12 @@ export default class BlockDbRepository implements BlockRepository {
 
     if (after) {
       queryParams.push(after);
-      conditions += "\nAND id > $4";
+      conditions += "\nAND id < $4";
     }
 
     if (before) {
       queryParams.push(before);
-      conditions += "\nAND id < $4";
+      conditions += "\nAND id > $4";
     }
 
     let queryThree = `
@@ -278,12 +283,9 @@ export default class BlockDbRepository implements BlockRepository {
       cursor: row.id.toString(),
       node: blockValidator.validate(row),
     }));
-    const pageInfo = getPageInfo({ rows: edges, first, last });
 
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getBlocksByEventIds(eventIds: readonly string[]) {
