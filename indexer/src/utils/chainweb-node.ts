@@ -13,9 +13,24 @@ export const formatBalance_NODE = (queryResult: PactQueryResponse) => {
 
 export const formatGuard_NODE = (queryResult: PactQueryResponse) => {
   const resultParsed = JSON.parse(queryResult.result ?? "{}");
-  return {
-    keys: resultParsed.guard.keys,
-    predicate: resultParsed.guard.pred,
-    raw: JSON.stringify(resultParsed.guard),
-  };
+
+  if (resultParsed.guard?.fun) {
+    return {
+      args: resultParsed.guard.args.map((arg: any) => JSON.stringify(arg)),
+      fun: resultParsed.guard.fun,
+      raw: JSON.stringify(resultParsed.guard),
+      keys: [],
+      predicate: "",
+    };
+  }
+
+  if (resultParsed.guard?.pred) {
+    return {
+      keys: resultParsed.guard.keys,
+      predicate: resultParsed.guard.pred,
+      raw: JSON.stringify(resultParsed.guard),
+    };
+  }
+
+  return { raw: JSON.stringify(resultParsed.guard), keys: [], predicate: "" };
 };

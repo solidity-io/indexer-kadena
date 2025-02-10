@@ -29,7 +29,7 @@ import { lastBlockHeightQueryResolver } from "./query/last-block-height-query-re
 import { networkInfoQueryResolver } from "./query/network-info-query-resolver";
 import { chainAccountsFungibleAccountResolver } from "./fields/fungible-account/chain-accounts-fungible-account-resolver";
 import { nodeQueryResolver } from "./query/node-query-resolver";
-import { fungibleChainAccountsQueryResolver } from "./query/fungible-chain-account-query-resolver";
+import { fungibleChainAccountsQueryResolver } from "./query/fungible-chain-accounts-query-resolver";
 import { transactionsFungibleChainAccountResolver } from "./fields/fungible-chain-account/transactions-fungible-chain-account-resolver";
 import { transfersFungibleChainAccountResolver } from "./fields/fungible-chain-account/transfers-fungible-chain-account-resolver";
 import { totalCountFungibleAccountTransfersConnectionResolver } from "./fields/fungible-account/transfers-connection/total-count-fungible-account-transfers-connection-resolver";
@@ -62,6 +62,8 @@ import { nonFungibleChainAccountQueryResolver } from "./query/non-fungible-chain
 import { transactionsNonFungibleChainAccountResolver } from "./fields/non-fungible-chain-account/transactions-non-fungible-chain-account";
 import { totalCountNonFungibleAccountTransactionsConnectionResolver } from "./fields/non-fungible-account/transactions-connection/total-count-non-fungible-account-transactions-connection-resolver";
 import { totalCountNonFungibleChainAccountTransactionsConnectionResolver } from "./fields/non-fungible-chain-account/transactions-connection/total-count-non-fungible-chain-account-transactions-connection-resolver";
+import { fungibleChainAccountQueryResolver } from "./query/fungible-chain-account-query-resolver";
+import { powHashBlockResolver } from "./fields/block/pow-hash-block-resolver";
 
 export const resolvers: Resolvers<ResolverContext> = {
   DateTime: DateTimeResolver,
@@ -79,6 +81,7 @@ export const resolvers: Resolvers<ResolverContext> = {
     events: eventsQueryResolver,
     fungibleAccount: fungibleAccountQueryResolver,
     fungibleAccountsByPublicKey: fungibleAccountsByPublicKeyQueryResolver,
+    fungibleChainAccount: fungibleChainAccountQueryResolver,
     fungibleChainAccounts: fungibleChainAccountsQueryResolver,
     fungibleChainAccountsByPublicKey:
       fungibleChainAccountsByPublicKeyQueryResolver,
@@ -101,6 +104,7 @@ export const resolvers: Resolvers<ResolverContext> = {
     events: eventsBlockResolver, // add dataloader
     minerAccount: minerAccountBlockResolver, // add dataloader
     transactions: transactionsBlockResolver, // add dataloader
+    powHash: powHashBlockResolver,
   },
   Event: {
     block: blockEventResolver, // data loader set.
@@ -252,7 +256,13 @@ export const resolvers: Resolvers<ResolverContext> = {
   },
   IGuard: {
     __resolveType: (obj: any) => {
-      return "KeysetGuard";
+      if (obj.fun) {
+        return "UserGuard";
+      }
+      if (obj.keys?.length) {
+        return "KeysetGuard";
+      }
+      return "RawGuard";
     },
   },
 };

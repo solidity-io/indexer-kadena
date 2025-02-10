@@ -2,16 +2,16 @@ import { ResolverContext } from "../../config/apollo-server-config";
 import { QueryResolvers } from "../../config/graphql-types";
 import { buildFungibleChainAccount } from "../output/build-fungible-chain-account-output";
 
-export const fungibleChainAccountsQueryResolver: QueryResolvers<ResolverContext>["fungibleChainAccounts"] =
+export const fungibleChainAccountQueryResolver: QueryResolvers<ResolverContext>["fungibleChainAccount"] =
   async (_parent, args, context) => {
-    const { accountName, chainIds, fungibleName } = args;
-    console.log("fungibleChainAccountsQueryResolver");
-    const accounts = await context.balanceRepository.getChainsAccountInfo_NODE(
+    const { accountName, chainId, fungibleName } = args;
+    console.log("fungibleChainAccountQueryResolver");
+    const [account] = await context.balanceRepository.getChainsAccountInfo_NODE(
       accountName,
       fungibleName,
-      chainIds?.map((c) => c.toString()),
+      [chainId.toString()],
     );
 
-    const output = accounts.map((r) => buildFungibleChainAccount(r));
+    const output = buildFungibleChainAccount(account);
     return output;
   };

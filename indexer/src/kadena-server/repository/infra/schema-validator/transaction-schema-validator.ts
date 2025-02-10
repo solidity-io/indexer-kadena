@@ -52,6 +52,7 @@ function validate(row: any): TransactionOutput {
       continuation: continuation === "{}" ? null : continuation,
       eventCount: res.eventCount,
       transactionId: res.txid ? res.txid : null,
+      height: res.height,
 
       gas: res.gas,
       goodResult: isSuccess ? JSON.stringify(res.result.data) : null,
