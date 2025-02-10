@@ -9,7 +9,7 @@ import { HashRateAndTotalDifficulty } from "../kadena-server/repository/applicat
 
 export const MEMORY_CACHE = new NodeCache({ stdTTL: 0 });
 
-const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+const CACHE_TTL = 1000 * 30; // 30 seconds
 
 export default async function initCache(context: ResolverContext) {
   const { blockRepository, networkRepository } = context;

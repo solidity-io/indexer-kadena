@@ -6,7 +6,7 @@ import TransactionRepository, {
   GetTransactionsParams,
   TransactionOutput,
 } from "../../application/transaction-repository";
-import { getPageInfo } from "../../pagination";
+import { getPageInfo, getPaginationParams } from "../../pagination";
 import { transactionMetaValidator } from "../schema-validator/transaction-meta-schema-validator";
 import { transactionValidator } from "../schema-validator/transaction-schema-validator";
 import { signerMetaValidator } from "../schema-validator/signer-schema-validator";
@@ -18,132 +18,232 @@ const operator = (paramsLength: number) =>
   paramsLength > 2 ? `\nAND` : "WHERE";
 
 export default class TransactionDbRepository implements TransactionRepository {
-  async getTransactions(params: GetTransactionsParams) {
-    const {
-      blockHash,
-      after,
-      before,
-      accountName,
-      chainId,
-      first,
-      last,
-      fungibleName,
-      requestKey,
-      maxHeight,
-      minHeight,
-      minimumDepth,
-      hasTokenId = false,
-    } = params;
-
-    const queryParams: (string | number)[] = [before ? last : first];
-    let conditions = "";
-
-    if (accountName) {
-      queryParams.push(accountName);
-      const op = operator(queryParams.length);
-      conditions += `${op} t.sender = $${queryParams.length}`;
-    }
+  private createBlockConditions(
+    params: GetTransactionsParams,
+    queryParams: Array<string | number>,
+  ) {
+    const { blockHash, chainId, maxHeight, minHeight, minimumDepth } = params;
+    let blocksConditions = "";
+    const blockParams: (string | number)[] = [...queryParams];
 
     if (blockHash) {
-      queryParams.push(blockHash);
-      const op = operator(queryParams.length);
-      conditions += `${op} b.hash = $${queryParams.length}`;
-    }
-
-    if (after) {
-      queryParams.push(after);
-      const op = operator(queryParams.length);
-      conditions += `${op} t.id > $${queryParams.length}`;
-    }
-
-    if (before) {
-      queryParams.push(before);
-      const op = operator(queryParams.length);
-      conditions += `${op} t.id < $${queryParams.length}`;
+      blockParams.push(blockHash);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b.hash = $${blockParams.length}`;
     }
 
     if (chainId) {
-      queryParams.push(chainId);
-      const op = operator(queryParams.length);
-      conditions += `${op} b."chainId" = $${queryParams.length}`;
-    }
-
-    if (requestKey) {
-      queryParams.push(requestKey);
-      const op = operator(queryParams.length);
-      conditions += `${op} t."requestkey" = $${queryParams.length}`;
+      blockParams.push(chainId);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."chainId" = $${blockParams.length}`;
     }
 
     if (maxHeight) {
-      queryParams.push(maxHeight);
-      const op = operator(queryParams.length);
-      conditions += `${op} b."height" <= $${queryParams.length}`;
+      blockParams.push(maxHeight);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."height" <= $${blockParams.length}`;
     }
 
     if (minHeight) {
-      queryParams.push(minHeight);
-      const op = operator(queryParams.length);
-      conditions += `${op} b."height" >= $${queryParams.length}`;
+      blockParams.push(minHeight);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."height" >= $${blockParams.length}`;
     }
 
     if (minimumDepth) {
-      queryParams.push(minimumDepth);
-      const op = operator(queryParams.length);
-      conditions += `${op} b."minimumDepth" >= $${queryParams.length}`;
+      blockParams.push(minimumDepth);
+      const op = operator(blockParams.length);
+      blocksConditions += `${op} b."minimumDepth" >= $${blockParams.length}`;
+    }
+
+    return { blocksConditions, blockParams };
+  }
+
+  private createTransactionConditions(
+    params: GetTransactionsParams,
+    queryParams: Array<string | number>,
+  ) {
+    const {
+      accountName,
+      after,
+      before,
+      requestKey,
+      fungibleName,
+      hasTokenId = false,
+    } = params;
+    let conditions = "";
+    const transactionParams: (string | number)[] = [...queryParams];
+    if (accountName) {
+      transactionParams.push(accountName);
+      const op = operator(transactionParams.length);
+      conditions += `${op} t.sender = $${transactionParams.length}`;
+    }
+
+    if (after) {
+      transactionParams.push(after);
+      const op = operator(transactionParams.length);
+      conditions += `${op} t.id < $${transactionParams.length}`;
+    }
+
+    if (before) {
+      transactionParams.push(before);
+      const op = operator(transactionParams.length);
+      conditions += `${op} t.id > $${transactionParams.length}`;
+    }
+
+    if (requestKey) {
+      transactionParams.push(requestKey);
+      const op = operator(transactionParams.length);
+      conditions += `${op} t."requestkey" = $${transactionParams.length}`;
     }
 
     if (fungibleName) {
-      queryParams.push(fungibleName);
-      const op = operator(queryParams.length);
+      transactionParams.push(fungibleName);
+      const op = operator(transactionParams.length);
       conditions += `
         ${op} EXISTS
         (
           SELECT 1
           FROM "Events" e
           WHERE e."transactionId" = t.id
-          AND e."module" = $${queryParams.length}
+          AND e."module" = $${transactionParams.length}
         )`;
     }
 
     if (accountName && hasTokenId) {
-      queryParams.push(accountName);
-      const op = operator(queryParams.length + 1);
+      transactionParams.push(accountName);
+      const op = operator(transactionParams.length + 1);
       conditions += `
         ${op} EXISTS
         (
           SELECT 1
           FROM "Transfers" t
-          WHERE t."from_acct" = $${queryParams.length}
+          WHERE t."from_acct" = $${transactionParams.length}
           AND t."hasTokenId" = true
         )`;
     }
 
-    const query = `
-      SELECT t.id as id,
-      t.hash as "hashTransaction",
-      t.nonce as "nonceTransaction",
-      t.sigs as sigs,
-      t.continuation as continuation,
-      t.num_events as "eventCount",
-      t.pactid as "pactId",
-      t.proof as proof,
-      t.rollback as rollback,
-      b.height as "height",
-      b."hash" as "blockHash",
-      b."chainId" as "chainId",
-      t.gas as "gas",
-      t.step as step,
-      t.data as data,
-      t.code as code,
-      t.logs as "logs",
-      t.result as "result",
-      t.requestkey as "requestKey"
-      FROM "Blocks" b
-      JOIN "Transactions" t on b.id = t."blockId"
-      ${conditions}
-      ORDER BY t.id ${before ? "DESC" : "ASC"}
-      LIMIT $1;
-    `;
+    return { conditions, params: transactionParams };
+  }
+
+  async getTransactions(params: GetTransactionsParams) {
+    const {
+      blockHash,
+      after: afterEncoded,
+      before: beforeEncoded,
+      chainId,
+      first,
+      last,
+      maxHeight,
+      minHeight,
+      minimumDepth,
+    } = params;
+
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    });
+    const isBlockQueryFirst =
+      blockHash || minHeight || maxHeight || minimumDepth || chainId;
+
+    const queryParams: (string | number)[] = [];
+    let blocksConditions = "";
+    let transactionsConditions = "";
+    if (isBlockQueryFirst) {
+      const { blockParams, blocksConditions: bConditions } =
+        this.createBlockConditions(params, [limit]);
+
+      const { params: txParams, conditions: txConditions } =
+        this.createTransactionConditions(params, blockParams);
+
+      queryParams.push(...txParams);
+      transactionsConditions = txConditions;
+      blocksConditions = bConditions;
+    } else {
+      const { conditions, params: txParams } = this.createTransactionConditions(
+        params,
+        [limit],
+      );
+      const { blocksConditions: bConditions, blockParams } =
+        this.createBlockConditions(params, txParams);
+
+      queryParams.push(...blockParams);
+      transactionsConditions = conditions;
+      blocksConditions = bConditions;
+    }
+
+    let query = "";
+    if (isBlockQueryFirst) {
+      query = `
+        WITH filtered_block AS (
+          SELECT b.id, b.hash, b."chainId", b.height
+          FROM "Blocks" b
+          ${blocksConditions}
+        )
+        SELECT
+          t.id AS id,
+          t.hash AS "hashTransaction",
+          t.nonce AS "nonceTransaction",
+          t.sigs AS sigs,
+          t.continuation AS continuation,
+          t.num_events AS "eventCount",
+          t.pactid AS "pactId",
+          t.proof AS proof,
+          t.rollback AS rollback,
+          t.txid AS txid,
+          b.height AS "height",
+          b."hash" AS "blockHash",
+          b."chainId" AS "chainId",
+          t.gas AS "gas",
+          t.step AS step,
+          t.data AS data,
+          t.code AS code,
+          t.logs AS "logs",
+          t.result AS "result",
+          t.requestkey AS "requestKey"
+        FROM filtered_block b
+        JOIN "Transactions" t ON b.id = t."blockId"
+        ${transactionsConditions}
+        ORDER BY t.id ${order}
+        LIMIT $1
+      `;
+    } else {
+      query = `
+        WITH filtered_transactions AS (
+          SELECT id, "blockId", hash, nonce, sigs, continuation, num_events, pactid, proof, rollback, gas, step, data, code, logs, result, requestkey, "chainId", txid
+          FROM "Transactions" t
+          ${transactionsConditions}
+          ORDER BY t.id ${order}
+          LIMIT $1
+        )
+        SELECT
+          t.id AS id,
+          t.hash AS "hashTransaction",
+          t.nonce AS "nonceTransaction",
+          t.sigs AS sigs,
+          t.continuation AS continuation,
+          t.num_events AS "eventCount",
+          t.pactid AS "pactId",
+          t.proof AS proof,
+          t.rollback AS rollback,
+          t.txid AS txid,
+          b.height AS "height",
+          b."hash" AS "blockHash",
+          b."chainId" AS "chainId",
+          t.gas AS "gas",
+          t.step AS step,
+          t.data AS data,
+          t.code AS code,
+          t.logs AS "logs",
+          t.result AS "result",
+          t.requestkey AS "requestKey"
+        FROM filtered_transactions t
+        JOIN "Blocks" b ON b.id = t."blockId"
+        ${blocksConditions}
+      `;
+    }
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
@@ -152,12 +252,8 @@ export default class TransactionDbRepository implements TransactionRepository {
       node: transactionValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTransactionByTransferId(transferId: string) {
@@ -171,6 +267,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.pactid as "pactId",
       t.proof as proof,
       t.rollback as rollback,
+      t.txid AS txid,
       b.height as "height",
       b."hash" as "blockHash",
       b."chainId" as "chainId",
@@ -244,6 +341,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.pactid as "pactId",
       t.proof as proof,
       t.rollback as rollback,
+      t.txid AS txid,
       b.height as "height",
       b."hash" as "blockHash",
       b."chainId" as "chainId",
@@ -256,9 +354,9 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.requestkey as "requestKey"
       FROM "Transactions" t
       JOIN "Blocks" b on t."blockId" = b.id 
-      WHERE t.requestkey::text = $1
+      WHERE t.requestkey = $1
       ${conditions}
-      `;
+    `;
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
@@ -270,21 +368,27 @@ export default class TransactionDbRepository implements TransactionRepository {
   async getTransactionsByPublicKey({
     publicKey,
     first,
-    before,
-    after,
+    before: beforeEncoded,
+    after: afterEncoded,
     last,
   }: GetTransactionsByPublicKeyParams) {
-    const queryParams: (string | number)[] = [before ? last : first, publicKey];
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    });
+    const queryParams: (string | number)[] = [limit, publicKey];
 
     let cursorCondition = "";
 
     if (after) {
-      cursorCondition = `\nAND t.id > $3`;
+      cursorCondition = `\nAND t.id < $3`;
       queryParams.push(after);
     }
 
     if (before) {
-      cursorCondition = `\nAND t.id < $3`;
+      cursorCondition = `\nAND t.id > $3`;
       queryParams.push(before);
     }
 
@@ -299,6 +403,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         t.pactid as "pactId",
         t.proof as proof,
         t.rollback as rollback,
+        t.txid AS txid,
         b.height as "height",
         b."hash" as "blockHash",
         b."chainId" as "chainId",
@@ -317,7 +422,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         WHERE s."pubkey" = $2
       ) filtered_signers ON t.id = filtered_signers."transactionId"
       ${cursorCondition}
-      ORDER BY t.id ${before ? "DESC" : "ASC"}
+      ORDER BY t.id ${order}
       LIMIT $1;
     `;
 
@@ -328,19 +433,18 @@ export default class TransactionDbRepository implements TransactionRepository {
       node: transactionValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTransactionsByPublicKeyCount(publicKey: string) {
     const query = `
-      SELECT COUNT(DISTINCT s."transactionId") as count
-      FROM "Signers" s
-      WHERE s.pubkey = $1;
+      SELECT COUNT(*) as count
+        FROM (
+        SELECT DISTINCT s."transactionId"
+        FROM "Signers" s
+        WHERE s.pubkey = $1
+      ) subquery;
     `;
 
     const { rows } = await rootPgPool.query(query, [publicKey]);
@@ -369,80 +473,102 @@ export default class TransactionDbRepository implements TransactionRepository {
       minHeight,
       maxHeight,
       minimumDepth,
+      hasTokenId,
     } = params;
 
-    const queryParams: (string | number)[] = [];
-    let conditions = "";
+    const transactionsParams: (string | number)[] = [];
+    const blockParams: (string | number)[] = [];
+    let transactionsConditions = "";
+    let blocksConditions = "";
 
     const localOperator = (paramsLength: number) =>
       paramsLength > 1 ? `\nAND` : "WHERE";
 
     if (accountName) {
-      queryParams.push(accountName);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} t.sender = $${queryParams.length}`;
-    }
-
-    if (blockHash) {
-      queryParams.push(blockHash);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b.hash = $${queryParams.length}`;
-    }
-
-    if (chainId) {
-      queryParams.push(chainId);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b."chainId" = $${queryParams.length}`;
+      transactionsParams.push(accountName);
+      const op = localOperator(transactionsParams.length);
+      transactionsConditions += `${op} t.sender = $${transactionsParams.length}`;
     }
 
     if (requestKey) {
-      queryParams.push(requestKey);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} t."requestkey" = $${queryParams.length}`;
-    }
-
-    if (maxHeight) {
-      queryParams.push(maxHeight);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b."height" <= $${queryParams.length}`;
-    }
-
-    if (minHeight) {
-      queryParams.push(minHeight);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b."height" >= $${queryParams.length}`;
-    }
-
-    if (minimumDepth) {
-      queryParams.push(minimumDepth);
-      const op = localOperator(queryParams.length);
-      conditions += `${op} b."minimumDepth" >= $${queryParams.length}`;
+      transactionsParams.push(requestKey);
+      const op = localOperator(transactionsParams.length);
+      transactionsConditions += `${op} t."requestkey" = $${transactionsParams.length}`;
     }
 
     if (fungibleName) {
-      queryParams.push(fungibleName);
-      const op = localOperator(queryParams.length);
-      conditions += `
+      transactionsParams.push(fungibleName);
+      const op = localOperator(transactionsParams.length);
+      transactionsConditions += `
         ${op} EXISTS
         (
           SELECT 1
           FROM "Events" e
           WHERE e."transactionId" = t.id
-          AND e."module" = $${queryParams.length}
+          AND e."module" = $${transactionsParams.length}
         )`;
     }
 
+    if (accountName && hasTokenId) {
+      transactionsParams.push(accountName);
+      const op = localOperator(transactionsParams.length);
+      transactionsConditions += `
+        ${op} EXISTS
+        (
+          SELECT 1
+          FROM "Transfers" t
+          WHERE t."from_acct" = $${transactionsParams.length}
+          AND t."hasTokenId" = true
+        )`;
+    }
+
+    const paramsOffset = transactionsParams.length;
+    if (blockHash) {
+      blockParams.push(blockHash);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b.hash = $${paramsOffset + blockParams.length}`;
+    }
+
+    if (chainId) {
+      blockParams.push(chainId);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b."chainId" = $${paramsOffset + blockParams.length}`;
+    }
+
+    if (maxHeight) {
+      blockParams.push(maxHeight);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b."height" <= $${paramsOffset + blockParams.length}`;
+    }
+
+    if (minHeight) {
+      blockParams.push(minHeight);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b."height" >= $${paramsOffset + blockParams.length}`;
+    }
+
+    if (minimumDepth) {
+      blockParams.push(minimumDepth);
+      const op = localOperator(blockParams.length);
+      blocksConditions += `${op} b."minimumDepth" >= $${paramsOffset + blockParams.length}`;
+    }
+
     const totalCountQuery = `
+      WITH filtered_transactions AS (
+        SELECT id, "blockId"
+        FROM "Transactions" t
+        ${transactionsConditions}
+      )
       SELECT COUNT(*) as count
-      FROM "Blocks" b
-      JOIN "Transactions" t ON b.id = t."blockId"
-      ${conditions}
+      FROM filtered_transactions t
+      ${blocksConditions ? `JOIN "Blocks" b ON b.id = t."blockId"` : ""}
+      ${blocksConditions}
     `;
 
-    const { rows: countResult } = await rootPgPool.query(
-      totalCountQuery,
-      queryParams,
-    );
+    const { rows: countResult } = await rootPgPool.query(totalCountQuery, [
+      ...transactionsParams,
+      ...blockParams,
+    ]);
 
     const totalCount = parseInt(countResult[0].count, 10);
     return totalCount;
@@ -463,6 +589,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       t.pactid as "pactId",
       t.proof as proof,
       t.rollback as rollback,
+      t.txid AS txid,
       b.height as "height",
       b."hash" as "blockHash",
       b."chainId" as "chainId",

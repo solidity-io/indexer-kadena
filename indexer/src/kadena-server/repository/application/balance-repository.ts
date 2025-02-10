@@ -14,6 +14,7 @@ export interface INonFungibleTokenBalance {
 export interface INonFungibleAccount {
   id: string;
   accountName: string;
+  chainAccounts: INonFungibleChainAccount[];
   nonFungibleTokenBalances: Array<INonFungibleTokenBalance>;
 }
 

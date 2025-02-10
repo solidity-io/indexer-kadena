@@ -54,9 +54,6 @@ export function calculateTotalDifficulty(
       }
       return totalDifficulty;
     }
-
-    // If we don't have enough blocks, use the previous block's difficulty.
-    return BigInt(-1);
   }
 }
 

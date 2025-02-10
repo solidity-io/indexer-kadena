@@ -9,14 +9,14 @@ import EventRepository, {
   GetTotalTransactionEventsCount,
   GetTransactionEventsParams,
 } from "../../application/event-repository";
-import { getPageInfo } from "../../pagination";
+import { getPageInfo, getPaginationParams } from "../../pagination";
 import { ConnectionEdge } from "../../types";
 import { eventValidator } from "../schema-validator/event-schema-validator";
 
 export default class EventDbRepository implements EventRepository {
   async getEvent(params: GetEventParams): Promise<EventOutput> {
     const { hash, requestKey, orderIndex } = params;
-    const queryParams = [hash, requestKey];
+    const queryParams = [hash, requestKey, orderIndex];
 
     const query = `
       SELECT e.id as id,
@@ -24,6 +24,7 @@ export default class EventDbRepository implements EventRepository {
         e.requestkey as "requestKey",
         b."chainId" as "chainId",
         b.height as height,
+        e."orderIndex" as "orderIndex",
         e.module as "moduleName",
         e.params as parameters,
         b.hash as "blockHash"
@@ -32,9 +33,9 @@ export default class EventDbRepository implements EventRepository {
       JOIN "Events" e ON t.id = e."transactionId"
       WHERE b.hash = $1
       AND e.requestkey = $2
+      AND e."orderIndex" = $3
       LIMIT 1;
     `;
-    // AND e."orderIndex" = $3 TODO (STREAMING)
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
@@ -42,19 +43,33 @@ export default class EventDbRepository implements EventRepository {
     return output;
   }
   async getBlockEvents(params: GetBlockEventsParams) {
-    const { hash, after, before, first, last } = params;
-    const queryParams = [before ? last : first, hash];
+    const {
+      hash,
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    } = params;
+
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    });
+
+    const queryParams = [limit, hash];
 
     let conditions = "";
 
     if (before) {
       queryParams.push(before);
-      conditions += `\nAND e.id < $3`;
+      conditions += `\nAND e.id > $3`;
     }
 
     if (after) {
       queryParams.push(after);
-      conditions += `\nAND e.id > $3`;
+      conditions += `\nAND e.id < $3`;
     }
 
     const query = `
@@ -63,6 +78,7 @@ export default class EventDbRepository implements EventRepository {
         e.requestkey as "requestKey",
         b."chainId" as "chainId",
         b.height as height,
+        e."orderIndex" as "orderIndex",
         e.module as "moduleName",
         e.params as parameters,
         b.hash as "blockHash"
@@ -71,7 +87,7 @@ export default class EventDbRepository implements EventRepository {
       JOIN "Events" e ON t.id = e."transactionId"
       WHERE b.hash = $2
       ${conditions}
-      ORDER BY e.id ${before ? "DESC" : "ASC"}
+      ORDER BY e.id ${order}
       LIMIT $1;
     `;
 
@@ -82,12 +98,8 @@ export default class EventDbRepository implements EventRepository {
       node: eventValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTotalCountOfBlockEvents(hash: string): Promise<number> {
@@ -112,8 +124,8 @@ export default class EventDbRepository implements EventRepository {
       qualifiedEventName,
       blockHash,
       chainId,
-      after,
-      before,
+      after: afterEncoded,
+      before: beforeEncoded,
       first,
       last,
       minHeight,
@@ -122,9 +134,18 @@ export default class EventDbRepository implements EventRepository {
       requestKey,
     } = params;
 
-    const [module, name] = qualifiedEventName.split(".");
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    });
 
-    const queryParams: (string | number)[] = [before ? last : first];
+    const splitted = qualifiedEventName.split(".");
+    const name = splitted.pop() ?? "";
+    const module = splitted.join(".");
+
+    const queryParams: (string | number)[] = [limit];
     let conditions = "";
 
     queryParams.push(module);
@@ -164,12 +185,12 @@ export default class EventDbRepository implements EventRepository {
 
     if (before) {
       queryParams.push(before);
-      conditions += `\nAND e.id < $${queryParams.length}`;
+      conditions += `\nAND e.id > $${queryParams.length}`;
     }
 
     if (after) {
       queryParams.push(after);
-      conditions += `\nAND e.id > $${queryParams.length}`;
+      conditions += `\nAND e.id < $${queryParams.length}`;
     }
 
     const query = `
@@ -177,6 +198,7 @@ export default class EventDbRepository implements EventRepository {
         t.requestkey as "requestKey",
         b."chainId" as "chainId",
         b.height as height,
+        e."orderIndex" as "orderIndex",
         e.module as "moduleName",
         e.name as name,
         e.params as parameters,
@@ -185,7 +207,7 @@ export default class EventDbRepository implements EventRepository {
       join "Transactions" t on e."transactionId" = t.id 
       join "Blocks" b on b.id = t."blockId"
       ${conditions}
-      ORDER BY id ${before ? "DESC" : "ASC"}
+      ORDER BY id ${order}
       LIMIT $1
     `;
 
@@ -196,12 +218,8 @@ export default class EventDbRepository implements EventRepository {
       node: eventValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTotalEventsCount(params: GetTotalEventsCount): Promise<number> {
@@ -215,7 +233,9 @@ export default class EventDbRepository implements EventRepository {
       requestKey,
     } = params;
 
-    const [module, name] = qualifiedEventName.split(".");
+    const splitted = qualifiedEventName.split(".");
+    const name = splitted.pop() ?? "";
+    const module = splitted.join(".");
 
     const queryParams: (string | number)[] = [];
     let conditions = "";
@@ -274,22 +294,32 @@ export default class EventDbRepository implements EventRepository {
   async getTransactionEvents(
     params: GetTransactionEventsParams,
   ): Promise<{ pageInfo: PageInfo; edges: ConnectionEdge<EventOutput>[] }> {
-    const { transactionId, after, before, first, last } = params;
-
-    const queryParams: (string | number)[] = [
-      before ? last : first,
+    const {
       transactionId,
-    ];
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    } = params;
+
+    const { limit, order, after, before } = getPaginationParams({
+      after: afterEncoded,
+      before: beforeEncoded,
+      first,
+      last,
+    });
+
+    const queryParams: (string | number)[] = [limit, transactionId];
     let conditions = "";
 
     if (after) {
       queryParams.push(after);
-      conditions += `\nAND e.id > $3`;
+      conditions += `\nAND e.id < $3`;
     }
 
     if (before) {
       queryParams.push(before);
-      conditions += `\nAND e.id < $3`;
+      conditions += `\nAND e.id > $3`;
     }
 
     const query = `
@@ -298,6 +328,7 @@ export default class EventDbRepository implements EventRepository {
         b."chainId" as "chainId",
         b.height as height,
         e.module as "moduleName",
+        e."orderIndex" as "orderIndex",
         e.name as name,
         e.params as parameters,
         b.hash as "blockHash"
@@ -306,7 +337,7 @@ export default class EventDbRepository implements EventRepository {
       join "Blocks" b on b.id = t."blockId"
       where t.id = $2
       ${conditions}
-      ORDER BY id ${before ? "DESC" : "ASC"}
+      ORDER BY id ${order}
       LIMIT $1
     `;
 
@@ -317,12 +348,8 @@ export default class EventDbRepository implements EventRepository {
       node: eventValidator.validate(row),
     }));
 
-    const pageInfo = getPageInfo({ rows: edges, first, last });
-
-    return {
-      edges,
-      pageInfo,
-    };
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 
   async getTotalTransactionEventsCount(params: GetTotalTransactionEventsCount) {

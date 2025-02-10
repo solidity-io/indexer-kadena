@@ -43,15 +43,13 @@ const validate = (row: any): BlockOutput => {
     target: res.target,
     weight: res.weight,
     chainId: res.chainId,
-    difficulty: calculateBlockDifficulty(res.target).toString(),
+    difficulty: Number(calculateBlockDifficulty(res.target)),
     neighbors: Object.entries(res.adjacents).map(([chainId, hash]) => ({
       chainId,
       hash,
     })),
   };
 };
-
-const JSONbig = require("json-bigint");
 
 const mapFromSequelize = (blockModel: BlockAttributes): BlockOutput => {
   return {
@@ -61,7 +59,7 @@ const mapFromSequelize = (blockModel: BlockAttributes): BlockOutput => {
     chainId: blockModel.chainId,
     creationTime: convertStringToDate(blockModel.creationTime),
     powHash: "...", // TODO (STREAMING)
-    difficulty: JSONbig.parse(calculateBlockDifficulty(blockModel.target)),
+    difficulty: Number(calculateBlockDifficulty(blockModel.target)),
     epoch: convertStringToDate(blockModel.epochStart),
     flags: int64ToUint64String(blockModel.featureFlags),
     height: blockModel.height,

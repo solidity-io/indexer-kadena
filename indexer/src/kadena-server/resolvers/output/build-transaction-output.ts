@@ -7,14 +7,14 @@ export const buildTransactionOutput = (tx: TransactionOutput) => {
     cmd: {
       ...tx.cmd,
       // for resolvers
-      transactionId: tx.transactionId,
+      databaseTransactionId: tx.databaseTransactionId,
       meta: {} as TransactionMeta,
       signers: [] as Signer[],
     },
     result: {
       ...tx.result,
       // for resolvers
-      transactionId: tx.transactionId,
+      databaseTransactionId: tx.databaseTransactionId,
       blockHash: tx.blockHash,
     },
   };

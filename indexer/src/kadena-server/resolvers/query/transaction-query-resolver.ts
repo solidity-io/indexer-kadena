@@ -14,21 +14,21 @@ export const transactionQueryResolver: QueryResolvers<ResolverContext>["transact
         minimumDepth,
       });
 
-    const lastBlockHeight = await context.blockRepository.getLastBlockHeight();
+    // TODO: implement orphaned transactions
+    // const lastBlockHeight = await context.blockRepository.getLastBlockHeight();
+    // const { baselineTransaction, orphanedTransactions } =
+    //   getBaselineAndOrphanedTransactions(output, lastBlockHeight);
+    // if (!baselineTransaction) return null;
+    // const orphanedTxs = orphanedTransactions.map((t) =>
+    //   buildTransactionOutput(t),
+    // );
 
-    const { baselineTransaction, orphanedTransactions } =
-      getBaselineAndOrphanedTransactions(output, lastBlockHeight);
+    const baseTx = output.length ? buildTransactionOutput(output[0]) : null;
 
-    if (!baselineTransaction) return null;
-
-    const baseTx = buildTransactionOutput(baselineTransaction);
-
-    const orphanedTxs = orphanedTransactions.map((t) =>
-      buildTransactionOutput(t),
-    );
+    if (!baseTx) return null;
 
     return {
       ...baseTx,
-      orphanedTransactions: orphanedTxs,
+      orphanedTransactions: [],
     };
   };

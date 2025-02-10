@@ -19,12 +19,49 @@ import {
   HASH_RATE_AND_TOTAL_DIFFICULTY_KEY,
   NETWORK_STATISTICS_KEY,
 } from "../../../../cache/keys";
+import { getCirculationNumber } from "../../../utils/coin-circulation";
 
 const HOST_URL = getRequiredEnvString("NODE_API_URL");
+const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
+const NETWORK_ID = getRequiredEnvString("SYNC_NETWORK");
 
 const NODE_INFO_KEY = "NODE_INFO_KEY";
 
 export default class NetworkDbRepository implements NetworkRepository {
+  async getCut(): Promise<number> {
+    const response = await fetch(`${SYNC_BASE_URL}/${NETWORK_ID}/cut`, {
+      method: "GET",
+      headers: {
+        accept: "application/json;charset=utf-8, application/json",
+        "cache-control": "no-cache",
+      },
+    });
+    const data = await response.json();
+
+    return data.height as number;
+  }
+
+  async getLatestCreationTime(): Promise<number> {
+    const creationTimeQuery = `
+      SELECT b."creationTime"
+      FROM "Blocks" b
+      WHERE b.id = (SELECT max(id) from "Blocks");
+  `;
+
+    const { rows } = await rootPgPool.query(creationTimeQuery);
+
+    const latestCreationTime = parseInt(rows[0].creationTime, 10);
+
+    return latestCreationTime;
+  }
+
+  private async getCoinsInCirculation() {
+    const cutHeight = await this.getCut();
+    const latestCreationTime = await this.getLatestCreationTime();
+    const rewards = await getCirculationNumber(cutHeight, latestCreationTime);
+    return rewards;
+  }
+
   async getNetworkStatistics() {
     const totalTransactionsCountQuery = `
       SELECT last_value as "totalTransactionsCount" from "Transactions_id_seq"
@@ -38,15 +75,7 @@ export default class NetworkDbRepository implements NetworkRepository {
       10,
     );
 
-    const coinsInCirculationQuery = `
-      SELECT sum(balance) as "count"
-      FROM "Balances"
-    `;
-
-    const { rows: coinsInCirculationRows } = await rootPgPool.query(
-      coinsInCirculationQuery,
-    );
-    const coinsInCirculation = parseInt(coinsInCirculationRows[0].count, 10);
+    const coinsInCirculation = await this.getCoinsInCirculation();
 
     const output = {
       coinsInCirculation,
@@ -76,10 +105,10 @@ export default class NetworkDbRepository implements NetworkRepository {
     const blocksWithDifficulty: BlockWithDifficulty[] = [];
 
     for (const block of blocks) {
-      const timestampInMilliseconds = Number(block.creationTime) / 1000000; // Convert to milliseconds
-      const creationTime = new Date(timestampInMilliseconds);
+      const timestampInMilliseconds = Number(block.creationTime); // Convert to milliseconds
+      const creationTime = new Date(timestampInMilliseconds / 1000);
       blocksWithDifficulty.push({
-        creationTime: timestampInMilliseconds,
+        creationTime: Number(block.creationTime),
         creationTimeDate: creationTime,
         difficulty: calculateBlockDifficulty(block.target),
         height: BigInt(block.height),

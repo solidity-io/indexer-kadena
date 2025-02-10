@@ -29,7 +29,7 @@ function validate(row: any): SignerOutput {
     orderIndex: res.signerOrderIndex,
     scheme: "",
     clist: (res.clist ?? []).map((c) => ({
-      args: c.args.toString(),
+      args: JSON.stringify(c.args),
       name: c.name,
     })),
   };

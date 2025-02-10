@@ -39,7 +39,8 @@ export const newBlocksFromDepthSubscriptionResolver: SubscriptionResolvers<Resol
             }
             const { chainId, height } = res.data;
             return (
-              args.chainIds.includes(chainId) && height >= args.minimumDepth
+              (!args.chainIds || args.chainIds.includes(chainId)) &&
+              height >= args.minimumDepth
             );
           },
         ),

@@ -27,8 +27,10 @@ export const dispatch = async (dispatchInfo: DispatchInfo) => {
       const errorData = await response.json();
       throw new Error(errorData.message || response.statusText);
     }
+    return true;
   } catch (err: unknown) {
     const errorData = err instanceof Error ? err.message : "Unknown error";
     console.error("Dispatcher error:", errorData);
+    return false;
   }
 };

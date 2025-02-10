@@ -7,6 +7,7 @@ const schema = zod.object({
   blockHash: zod.string(),
   requestKey: zod.string(),
   chainId: zod.number(),
+  orderIndex: zod.number().nullable(),
   moduleName: zod.string(),
   height: zod.number(),
   parameters: zod.array(zod.any()),
@@ -25,9 +26,9 @@ const getBase64ID = (
 function validate(row: any): EventOutput {
   const res = schema.parse(row);
   return {
-    id: getBase64ID(res.blockHash, 0, res.requestKey),
+    id: getBase64ID(res.blockHash, res.orderIndex ?? 0, res.requestKey),
     eventId: res.id.toString(),
-    orderIndex: 0, // TODO (STREAMING)
+    orderIndex: res.orderIndex ?? 0,
     name: res.name,
     requestKey: res.requestKey,
     chainId: res.chainId,
@@ -35,6 +36,7 @@ function validate(row: any): EventOutput {
     height: res.height,
     qualifiedName: `${res.moduleName}.${res.name}`,
     parameters: JSON.stringify(res.parameters),
+    parameterText: JSON.stringify(res.parameters),
   };
 }
 

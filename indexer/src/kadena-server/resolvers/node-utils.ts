@@ -146,6 +146,12 @@ export const getNode = async (context: ResolverContext, id: string) => {
       balance: account.balance,
       tokenId: account.tokenId,
       version: nftsInfo.version,
+      // TODO
+      guard: {
+        keys: [],
+        predicate: "",
+        raw: JSON.stringify("{}"),
+      },
       info: {
         precision: nftsInfo.precision,
         supply: nftsInfo.supply,

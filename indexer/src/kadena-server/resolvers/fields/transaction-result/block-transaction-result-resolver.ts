@@ -3,7 +3,7 @@ import { TransactionResultResolvers } from "../../../config/graphql-types";
 import zod from "zod";
 import { buildBlockOutput } from "../../output/build-block-output";
 
-const schema = zod.object({ transactionId: zod.string() });
+const schema = zod.object({ databaseTransactionId: zod.string() });
 
 export const blockTransactionResultResolver: TransactionResultResolvers<ResolverContext>["block"] =
   async (parent, _args, context) => {
@@ -12,7 +12,7 @@ export const blockTransactionResultResolver: TransactionResultResolvers<Resolver
     const parentArgs = schema.parse(parent);
 
     const output = await context.getBlocksByTransactionIdsLoader.load(
-      parentArgs.transactionId
+      parentArgs.databaseTransactionId,
     );
     return buildBlockOutput(output);
   };

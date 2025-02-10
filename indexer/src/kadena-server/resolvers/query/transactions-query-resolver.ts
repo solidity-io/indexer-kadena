@@ -19,6 +19,13 @@ export const transactionsQueryResolver: QueryResolvers<ResolverContext>["transac
       minHeight,
       minimumDepth,
     } = args;
+
+    if (!accountName && !fungibleName && !blockHash && !requestKey) {
+      throw new Error(
+        "At least one of accountName, fungibleName, blockHash, or requestKey must be provided",
+      );
+    }
+
     const output = await context.transactionRepository.getTransactions({
       blockHash,
       accountName,
