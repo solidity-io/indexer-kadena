@@ -50,7 +50,8 @@ export default class NetworkDbRepository implements NetworkRepository {
 
     const { rows } = await rootPgPool.query(creationTimeQuery);
 
-    const latestCreationTime = parseInt(rows[0].creationTime, 10);
+    const firstRow = rows?.[0]?.creationTime;
+    const latestCreationTime = parseInt(firstRow, 10);
 
     return latestCreationTime;
   }

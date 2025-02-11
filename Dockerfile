@@ -12,6 +12,7 @@ RUN yarn install --frozen-lockfile
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/config/global-bundle.pem ./dist/config/global-bundle.pem
 COPY --from=builder /app/src/kadena-server/config/schema.graphql ./dist/kadena-server/config/schema.graphql
+COPY --from=builder /app/src/circulating-coins/ ./dist/circulating-coins/
 EXPOSE 3001
 
 CMD ["node", "dist/index.js", "--graphql"]
