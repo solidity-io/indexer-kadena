@@ -1,5 +1,6 @@
 import Papa from "papaparse";
 import fs from "fs";
+import path from "path";
 
 type RewardRow = [number, number];
 
@@ -92,17 +93,21 @@ async function getCsvContent(filePath: string): Promise<string> {
 }
 
 async function getMinerRewards(cutHeight: number) {
-  const csvContent = await getCsvContent(
-    `${__dirname}/../../../../csvs/miner_rewards.csv`,
+  const filePath = path.resolve(
+    __dirname,
+    "../../circulating-coins/miner_rewards.csv",
   );
+  const csvContent = await getCsvContent(filePath);
   const reward = calculateReward(csvContent, cutHeight);
   return reward;
 }
 
 async function getTokenPayments(latestCreationTime: number) {
-  const csvContent = await getCsvContent(
-    `${__dirname}/../../../../csvs/token_payments.csv`,
+  const filePath = path.resolve(
+    __dirname,
+    "../../circulating-coins/token_payments.csv",
   );
+  const csvContent = await getCsvContent(filePath);
   const tokenPayments = calculateTokenPayments(csvContent, latestCreationTime);
   return tokenPayments;
 }
