@@ -113,7 +113,7 @@ export function getCoinTransfers(
             "fungible",
             null,
             null,
-            Number(precisionData.result),
+            Number(JSON.parse(precisionData.result).int),
           );
         }
         console.log(precisionData);

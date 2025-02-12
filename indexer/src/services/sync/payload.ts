@@ -87,6 +87,7 @@ export async function processTransaction(
     sender: cmdData?.meta?.sender || null,
     sigs: sigsData,
     step: cmdData?.payload?.cont?.step || 0,
+    proof: cmdData?.payload?.cont?.proof || null,
     ttl: cmdData.meta.ttl,
     txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
   } as TransactionAttributes;
