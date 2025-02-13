@@ -40,6 +40,7 @@ export type ResolverContext = {
   mempoolGateway: MempoolGateway;
   pactGateway: PactGateway;
   pubSub: PubSub;
+  signal: AbortSignal;
 };
 
 export const createGraphqlContext = () => {
@@ -56,6 +57,7 @@ export const createGraphqlContext = () => {
     mempoolGateway: new MempoolApiGateway(),
     pactGateway: new PactApiGateway(),
     pubSub: publishSubscribe,
+    signal: new AbortController().signal,
   };
 
   return Promise.resolve({

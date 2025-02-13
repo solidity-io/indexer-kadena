@@ -25,6 +25,12 @@ export interface GetBlocksBetweenHeightsParams extends PaginationsParams {
   endHeight?: InputMaybe<number>;
 }
 
+export interface GetLatestBlocksParams {
+  creationTime: number;
+  lastBlockId?: number;
+  chainIds?: string[];
+}
+
 export type BlockOutput = Omit<
   Block,
   "parent" | "events" | "minerAccount" | "transactions"
@@ -61,6 +67,8 @@ export default interface BlockRepository {
   getChainIds(): Promise<number[]>;
 
   getTotalCountOfBlockEvents(blockHash: string): Promise<number>;
+
+  getLatestBlocks(params: GetLatestBlocksParams): Promise<BlockOutput[]>;
 
   getTransactionsOrderedByBlockDepth(
     transactions: TransactionOutput[],
