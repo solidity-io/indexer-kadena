@@ -6,6 +6,7 @@ import {
 } from "../../config/graphql-types";
 import { PaginationsParams } from "../pagination";
 import { ConnectionEdge } from "../types";
+import { TransactionOutput } from "./transaction-repository";
 
 export interface GetBlocksFromDepthParams extends PaginationsParams {
   chainIds?: InputMaybe<string[]>;
@@ -60,6 +61,10 @@ export default interface BlockRepository {
   getChainIds(): Promise<number[]>;
 
   getTotalCountOfBlockEvents(blockHash: string): Promise<number>;
+
+  getTransactionsOrderedByBlockDepth(
+    transactions: TransactionOutput[],
+  ): Promise<TransactionOutput[]>;
 
   // dataloader
   getBlocksByEventIds(eventIds: string[]): Promise<BlockOutput[]>;

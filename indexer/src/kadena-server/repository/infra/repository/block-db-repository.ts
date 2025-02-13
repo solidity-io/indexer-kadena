@@ -15,6 +15,7 @@ import { formatGuard_NODE } from "../../../../utils/chainweb-node";
 import { MEMORY_CACHE } from "../../../../cache/init";
 import { NODE_INFO_KEY } from "../../../../cache/keys";
 import { GetNodeInfo } from "../../application/network-repository";
+import { TransactionOutput } from "../../application/transaction-repository";
 
 export default class BlockDbRepository implements BlockRepository {
   async getBlockByHash(hash: string) {
@@ -420,5 +421,39 @@ export default class BlockDbRepository implements BlockRepository {
     });
 
     return block?.transactionsCount || 0;
+  }
+
+  async getTransactionsOrderedByBlockDepth(
+    transactions: TransactionOutput[],
+  ): Promise<TransactionOutput[]> {
+    const query = `
+      WITH RECURSIVE BlockDescendants AS (
+        SELECT hash, parent, hash AS root_hash, 0 AS depth, height, "chainId"
+        FROM "Blocks"
+        WHERE hash = ANY($1::text[])
+        UNION ALL
+        SELECT b.hash, b.parent, d.root_hash, d.depth + 1 AS depth, b.height, b."chainId"
+        FROM BlockDescendants d
+        JOIN "Blocks" b ON d.hash = b.parent
+          AND b.height = d.height + 1
+          AND b."chainId" = d."chainId"
+        WHERE d.depth <= 6
+      )
+      SELECT root_hash, MAX(depth) AS depth
+      FROM BlockDescendants
+      GROUP BY root_hash;
+    `;
+
+    const { rows } = await rootPgPool.query(query, [
+      transactions.map((t) => t.blockHash),
+    ]);
+
+    rows.sort((a, b) => b.depth - a.depth);
+
+    const output = rows.map((r) =>
+      transactions.find((t) => t.blockHash === r.root_hash),
+    ) as any;
+
+    return output;
   }
 }
