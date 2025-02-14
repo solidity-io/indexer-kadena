@@ -1,16 +1,14 @@
-import { BlockAttributes } from "../../models/block";
-import TransactionModel, {
-  TransactionAttributes,
-} from "../../models/transaction";
-import Event, { EventAttributes } from "../../models/event";
-import Transfer, { TransferAttributes } from "../../models/transfer";
-import { getNftTransfers, getCoinTransfers } from "./transfers";
-import { QueryTypes, Transaction } from "sequelize";
-import Signer from "../../models/signer";
-import Guard from "../../models/guard";
-import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
-import { sequelize } from "../../config/database";
-import { processCoinbaseTransaction } from "./coinbase";
+import { BlockAttributes } from '../../models/block';
+import TransactionModel, { TransactionAttributes } from '../../models/transaction';
+import Event, { EventAttributes } from '../../models/event';
+import Transfer, { TransferAttributes } from '../../models/transfer';
+import { getNftTransfers, getCoinTransfers } from './transfers';
+import { QueryTypes, Transaction } from 'sequelize';
+import Signer from '../../models/signer';
+import Guard from '../../models/guard';
+import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
+import { sequelize } from '../../config/database';
+import { processCoinbaseTransaction } from './coinbase';
 
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
@@ -55,14 +53,12 @@ export async function processTransaction(
   try {
     cmdData = JSON.parse(transactionInfo.cmd);
   } catch (error) {
-    console.error(
-      `Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`,
-    );
+    console.error(`Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`);
     throw error;
   }
 
-  let nonce = (cmdData.nonce || "").replace(/\\"/g, "");
-  nonce = nonce.replace(/"/g, "");
+  let nonce = (cmdData.nonce || '').replace(/\\"/g, '');
+  nonce = nonce.replace(/"/g, '');
   const eventsData = receiptInfo.events || [];
   const transactionAttributes = {
     blockId: block.id,
@@ -81,9 +77,7 @@ export async function processTransaction(
     logs: receiptInfo.logs || null,
     num_events: eventsData ? eventsData.length : 0,
     requestkey: receiptInfo.reqKey,
-    rollback: receiptInfo.result
-      ? receiptInfo.result.status != "success"
-      : true,
+    rollback: receiptInfo.result ? receiptInfo.result.status != 'success' : true,
     sender: cmdData?.meta?.sender || null,
     sigs: sigsData,
     step: cmdData?.payload?.cont?.step || 0,
@@ -107,10 +101,7 @@ export async function processTransaction(
     } as EventAttributes;
   }) as EventAttributes[];
 
-  const transfersCoinAttributes = await getCoinTransfers(
-    eventsData,
-    transactionAttributes,
-  );
+  const transfersCoinAttributes = await getCoinTransfers(eventsData, transactionAttributes);
 
   const transfersNftAttributes = await getNftTransfers(
     transactionAttributes.chainId,
@@ -120,35 +111,30 @@ export async function processTransaction(
 
   const transfersAttributes = [transfersCoinAttributes, transfersNftAttributes]
     .flat()
-    .filter((transfer) => transfer.amount !== undefined);
+    .filter(transfer => transfer.amount !== undefined);
 
   try {
-    const { id: transactionId } = await TransactionModel.create(
-      transactionAttributes,
-      {
-        transaction: tx,
-      },
-    );
+    const { id: transactionId } = await TransactionModel.create(transactionAttributes, {
+      transaction: tx,
+    });
 
-    const eventsWithTransactionId = eventsAttributes.map((event) => ({
+    const eventsWithTransactionId = eventsAttributes.map(event => ({
       ...event,
       transactionId,
     })) as EventAttributes[];
     await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
 
-    const signers = (cmdData.signers ?? []).map(
-      (signer: any, index: number) => ({
-        address: signer.address,
-        orderIndex: index,
-        pubkey: signer.pubKey,
-        clist: signer.clist,
-        scheme: signer.scheme,
-        transactionId,
-      }),
-    );
+    const signers = (cmdData.signers ?? []).map((signer: any, index: number) => ({
+      address: signer.address,
+      orderIndex: index,
+      pubkey: signer.pubKey,
+      clist: signer.clist,
+      scheme: signer.scheme,
+      transactionId,
+    }));
     await Signer.bulkCreate(signers, { transaction: tx });
 
-    const transfersWithTransactionId = transfersAttributes.map((transfer) => ({
+    const transfersWithTransactionId = transfersAttributes.map(transfer => ({
       ...transfer,
       transactionId,
     })) as TransferAttributes[];
@@ -157,33 +143,33 @@ export async function processTransaction(
     });
 
     const balancesFrom = transfersAttributes
-      .filter((t) => t.from_acct !== "")
-      .map((t) => ({
+      .filter(t => t.from_acct !== '')
+      .map(t => ({
         account: t.from_acct,
         chainId: t.chainId,
         module: t.modulename,
         hasTokenId: t.hasTokenId,
-        tokenId: t.tokenId ?? "", // Normalize tokenId
+        tokenId: t.tokenId ?? '', // Normalize tokenId
       }));
 
     const balancesTo = transfersAttributes
-      .filter((t) => t.to_acct !== "")
-      .map((t) => ({
+      .filter(t => t.to_acct !== '')
+      .map(t => ({
         account: t.to_acct,
         chainId: t.chainId,
         module: t.modulename,
         hasTokenId: t.hasTokenId,
-        tokenId: t.tokenId ?? "", // Normalize tokenId
+        tokenId: t.tokenId ?? '', // Normalize tokenId
       }));
 
     const balances = [...balancesFrom, ...balancesTo];
 
     const values = balances
       .map(
-        (balance) =>
+        balance =>
           `(${balance.chainId}, '${balance.account}', '${balance.module}', '${balance.tokenId}', ${balance.hasTokenId}, NOW(), NOW())`,
       )
-      .join(", ");
+      .join(', ');
 
     const query = `
       INSERT INTO "Balances" ("chainId", account, module, "tokenId", "hasTokenId", "createdAt", "updatedAt")
@@ -207,36 +193,34 @@ export async function processTransaction(
 }
 
 export async function getGuardsFromBalances(balances: BalanceInsertResult[]) {
-  const guardPromises: Array<Promise<any | null>> = balances.map(
-    async (balance) => {
-      const res = await handleSingleQuery({
-        chainId: balance.chainId.toString(),
-        code: `(${balance.module}.details \"${balance.account}\")`,
-      });
+  const guardPromises: Array<Promise<any | null>> = balances.map(async balance => {
+    const res = await handleSingleQuery({
+      chainId: balance.chainId.toString(),
+      code: `(${balance.module}.details \"${balance.account}\")`,
+    });
 
-      if (res.status !== "success" || !res.result) return null;
+    if (res.status !== 'success' || !res.result) return null;
 
-      const result = JSON.parse(res.result ?? "{}");
-      const keys = result?.guard?.keys ?? [];
-      const pred = result?.guard?.pred;
-      if (!keys?.length || !pred) return null;
+    const result = JSON.parse(res.result ?? '{}');
+    const keys = result?.guard?.keys ?? [];
+    const pred = result?.guard?.pred;
+    if (!keys?.length || !pred) return null;
 
-      const withKeys = keys.map((key: any) => ({
-        balanceId: balance.id,
-        account: balance.account,
-        publicKey: key,
-        predicate: pred,
-      }));
+    const withKeys = keys.map((key: any) => ({
+      balanceId: balance.id,
+      account: balance.account,
+      publicKey: key,
+      predicate: pred,
+    }));
 
-      return withKeys;
-    },
-  );
+    return withKeys;
+  });
 
   const guards = await Promise.all(guardPromises);
   const filteredGuards = guards
     .flat()
-    .filter((g) => g !== null && `k:${g.publicKey}` !== g.account)
-    .map((g) => ({
+    .filter(g => g !== null && `k:${g.publicKey}` !== g.account)
+    .map(g => ({
       balanceId: g.balanceId,
       publicKey: g.publicKey,
       predicate: g.predicate,

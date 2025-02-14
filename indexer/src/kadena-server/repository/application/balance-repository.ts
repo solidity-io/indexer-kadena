@@ -1,7 +1,4 @@
-import {
-  FungibleAccount,
-  FungibleChainAccount,
-} from "../../config/graphql-types";
+import { FungibleAccount, FungibleChainAccount } from '../../config/graphql-types';
 
 export interface INonFungibleTokenBalance {
   id: string;
@@ -27,19 +24,13 @@ export interface INonFungibleChainAccount {
 
 export type FungibleAccountOutput = Omit<
   FungibleAccount,
-  "chainAccounts" | "transactions" | "transfers"
+  'chainAccounts' | 'transactions' | 'transfers'
 >;
 
-export type FungibleChainAccountOutput = Omit<
-  FungibleChainAccount,
-  "transactions" | "transfers"
->;
+export type FungibleChainAccountOutput = Omit<FungibleChainAccount, 'transactions' | 'transfers'>;
 
 export default interface BalanceRepository {
-  getAccountInfo(
-    accountName: string,
-    fungibleName?: string | null,
-  ): Promise<FungibleAccountOutput>;
+  getAccountInfo(accountName: string, fungibleName?: string | null): Promise<FungibleAccountOutput>;
 
   getChainsAccountInfo(
     accountName: string,
@@ -47,10 +38,7 @@ export default interface BalanceRepository {
     chainIds?: string[],
   ): Promise<FungibleChainAccountOutput[]>;
 
-  getAccountsByPublicKey(
-    publicKey: string,
-    fungibleName: string,
-  ): Promise<FungibleAccountOutput[]>;
+  getAccountsByPublicKey(publicKey: string, fungibleName: string): Promise<FungibleAccountOutput[]>;
 
   getChainAccountsByPublicKey(
     publicKey: string,
@@ -58,9 +46,7 @@ export default interface BalanceRepository {
     chainId: string,
   ): Promise<FungibleChainAccountOutput[]>;
 
-  getNonFungibleAccountInfo(
-    accountName: string,
-  ): Promise<INonFungibleAccount | null>;
+  getNonFungibleAccountInfo(accountName: string): Promise<INonFungibleAccount | null>;
 
   getNonFungibleChainAccountInfo(
     accountName: string,

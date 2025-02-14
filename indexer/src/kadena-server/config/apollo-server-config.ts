@@ -1,27 +1,25 @@
-import DataLoader from "dataloader";
-import BlockRepository, {
-  BlockOutput,
-} from "../repository/application/block-repository";
+import DataLoader from 'dataloader';
+import BlockRepository, { BlockOutput } from '../repository/application/block-repository';
 import TransactionRepository, {
   TransactionOutput,
-} from "../repository/application/transaction-repository";
-import BalanceRepository from "../repository/application/balance-repository";
-import EventRepository from "../repository/application/event-repository";
-import TransferRepository from "../repository/application/transfer-repository";
-import NetworkRepository from "../repository/application/network-repository";
-import { PubSub } from "graphql-subscriptions";
-import BlockDbRepository from "../repository/infra/repository/block-db-repository";
-import TransactionDbRepository from "../repository/infra/repository/transaction-db-repository";
-import BalanceDbRepository from "../repository/infra/repository/balance-db-repository";
-import EventDbRepository from "../repository/infra/repository/event-db-repository";
-import TransferDbRepository from "../repository/infra/repository/transfer-db-repository";
-import NetworkDbRepository from "../repository/infra/repository/network-db-repository";
-import GasGateway from "../repository/gateway/gas-gateway";
-import GasApiGateway from "../repository/infra/gateway/gas-api-gateway";
-import MempoolGateway from "../repository/gateway/mempool-gateway";
-import MempoolApiGateway from "../repository/infra/gateway/mempool-api-gateway";
-import PactGateway from "../repository/gateway/pact-gateway";
-import PactApiGateway from "../repository/infra/gateway/pact-api-gateway";
+} from '../repository/application/transaction-repository';
+import BalanceRepository from '../repository/application/balance-repository';
+import EventRepository from '../repository/application/event-repository';
+import TransferRepository from '../repository/application/transfer-repository';
+import NetworkRepository from '../repository/application/network-repository';
+import { PubSub } from 'graphql-subscriptions';
+import BlockDbRepository from '../repository/infra/repository/block-db-repository';
+import TransactionDbRepository from '../repository/infra/repository/transaction-db-repository';
+import BalanceDbRepository from '../repository/infra/repository/balance-db-repository';
+import EventDbRepository from '../repository/infra/repository/event-db-repository';
+import TransferDbRepository from '../repository/infra/repository/transfer-db-repository';
+import NetworkDbRepository from '../repository/infra/repository/network-db-repository';
+import GasGateway from '../repository/gateway/gas-gateway';
+import GasApiGateway from '../repository/infra/gateway/gas-api-gateway';
+import MempoolGateway from '../repository/gateway/mempool-gateway';
+import MempoolApiGateway from '../repository/infra/gateway/mempool-api-gateway';
+import PactGateway from '../repository/gateway/pact-gateway';
+import PactApiGateway from '../repository/infra/gateway/pact-api-gateway';
 
 export const publishSubscribe = new PubSub();
 
@@ -62,16 +60,16 @@ export const createGraphqlContext = () => {
 
   return Promise.resolve({
     ...context,
-    getBlocksByHashesLoader: new DataLoader((hashes) =>
+    getBlocksByHashesLoader: new DataLoader(hashes =>
       blockRepository.getBlockByHashes(hashes as string[]),
     ),
-    getBlocksByEventIdsLoader: new DataLoader((eventIds) =>
+    getBlocksByEventIdsLoader: new DataLoader(eventIds =>
       blockRepository.getBlocksByEventIds(eventIds as string[]),
     ),
-    getTransactionsByEventIdsLoader: new DataLoader((eventIds) =>
+    getTransactionsByEventIdsLoader: new DataLoader(eventIds =>
       transactionRepository.getTransactionsByEventIds(eventIds as string[]),
     ),
-    getBlocksByTransactionIdsLoader: new DataLoader((hashes) =>
+    getBlocksByTransactionIdsLoader: new DataLoader(hashes =>
       blockRepository.getBlocksByTransactionIds(hashes as string[]),
     ),
   });

@@ -1,23 +1,23 @@
-import { blockchainTooltipData } from "./tooltips"
+import { blockchainTooltipData } from './tooltips';
 
 export const transactionTableColumns = [
   {
     cols: 2,
     key: 'status',
     label: 'Status',
-    description: blockchainTooltipData.transaction.status
+    description: blockchainTooltipData.transaction.status,
   },
   {
     cols: 6,
     key: 'requestKey',
     label: 'Request Key',
-    description: blockchainTooltipData.transaction.requestKey
+    description: blockchainTooltipData.transaction.requestKey,
   },
   {
     cols: 3,
     key: 'sender',
     label: 'Sender',
-    description: blockchainTooltipData.transaction.overview.from
+    description: blockchainTooltipData.transaction.overview.from,
   },
   {
     cols: 2,
@@ -38,7 +38,7 @@ export const transactionTableColumns = [
     center: true,
     key: 'block',
     label: 'Block Height',
-    description: blockchainTooltipData.transaction.blockHeight
+    description: blockchainTooltipData.transaction.blockHeight,
   },
   // {
   //   cols: 4,
@@ -50,7 +50,7 @@ export const transactionTableColumns = [
     cols: 5,
     key: 'createdAt',
     label: 'Date',
-    description: blockchainTooltipData.transaction.meta.creationTime
+    description: blockchainTooltipData.transaction.meta.creationTime,
   },
   {
     isFixed: true,
@@ -58,4 +58,4 @@ export const transactionTableColumns = [
     key: 'icon',
     label: '',
   },
-]
+];

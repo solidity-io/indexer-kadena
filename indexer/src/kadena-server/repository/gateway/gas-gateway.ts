@@ -1,6 +1,6 @@
-import { IUnsignedCommand } from "@kadena/types";
-import { GasLimitEstimation } from "../../config/graphql-types";
-import { UserInput } from "../../domain/gas/types.gas";
+import { IUnsignedCommand } from '@kadena/types';
+import { GasLimitEstimation } from '../../config/graphql-types';
+import { UserInput } from '../../domain/gas/types.gas';
 
 export type EstimeGasOutput = GasLimitEstimation;
 

@@ -1,11 +1,7 @@
-import { ResolverContext } from "../kadena-server/config/apollo-server-config";
-import NodeCache from "node-cache";
-import {
-  HASH_RATE_AND_TOTAL_DIFFICULTY_KEY,
-  NETWORK_STATISTICS_KEY,
-  NODE_INFO_KEY,
-} from "./keys";
-import { HashRateAndTotalDifficulty } from "../kadena-server/repository/application/network-repository";
+import { ResolverContext } from '../kadena-server/config/apollo-server-config';
+import NodeCache from 'node-cache';
+import { HASH_RATE_AND_TOTAL_DIFFICULTY_KEY, NETWORK_STATISTICS_KEY, NODE_INFO_KEY } from './keys';
+import { HashRateAndTotalDifficulty } from '../kadena-server/repository/application/network-repository';
 
 export const MEMORY_CACHE = new NodeCache({ stdTTL: 0 });
 
@@ -30,7 +26,7 @@ export default async function initCache(context: ResolverContext) {
       };
       MEMORY_CACHE.set(HASH_RATE_AND_TOTAL_DIFFICULTY_KEY, newValue);
     } catch (err) {
-      console.log("Error getting hash rate and total difficulty", err);
+      console.log('Error getting hash rate and total difficulty', err);
     }
   }
 
@@ -39,7 +35,7 @@ export default async function initCache(context: ResolverContext) {
       const networkStatistics = await networkRepository.getNetworkStatistics();
       MEMORY_CACHE.set(NETWORK_STATISTICS_KEY, networkStatistics);
     } catch (err) {
-      console.log("Error getting network statistics", err);
+      console.log('Error getting network statistics', err);
     }
   }
 
@@ -48,7 +44,7 @@ export default async function initCache(context: ResolverContext) {
       const nodeInfo = await networkRepository.getNodeInfo();
       MEMORY_CACHE.set(NODE_INFO_KEY, nodeInfo);
     } catch (err) {
-      console.log("Error getting node info", err);
+      console.log('Error getting node info', err);
     }
   }
 

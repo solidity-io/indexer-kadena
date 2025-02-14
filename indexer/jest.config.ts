@@ -1,11 +1,11 @@
 export default {
-  preset: "ts-jest",
-  testEnvironment: "node",
+  preset: 'ts-jest',
+  testEnvironment: 'node',
   transform: {
-    "^.+\\.ts$": "ts-jest",
+    '^.+\\.ts$': 'ts-jest',
   },
-  extensionsToTreatAsEsm: [".ts"],
+  extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
-    "^(\\.{1,2}/.*)\\.js$": "$1",
+    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
 };

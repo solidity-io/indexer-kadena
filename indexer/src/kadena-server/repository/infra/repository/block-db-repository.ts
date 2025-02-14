@@ -1,22 +1,22 @@
-import { FindOptions, Op, QueryTypes } from "sequelize";
-import { rootPgPool, sequelize } from "../../../../config/database";
-import BlockModel, { BlockAttributes } from "../../../../models/block";
+import { FindOptions, Op, QueryTypes } from 'sequelize';
+import { rootPgPool, sequelize } from '../../../../config/database';
+import BlockModel, { BlockAttributes } from '../../../../models/block';
 import BlockRepository, {
   BlockOutput,
   GetBlocksBetweenHeightsParams,
   GetBlocksFromDepthParams,
   GetCompletedBlocksParams,
   GetLatestBlocksParams,
-} from "../../application/block-repository";
-import { getPageInfo, getPaginationParams } from "../../pagination";
-import { blockValidator } from "../schema-validator/block-schema-validator";
-import Balance from "../../../../models/balance";
-import { handleSingleQuery } from "../../../utils/raw-query";
-import { formatGuard_NODE } from "../../../../utils/chainweb-node";
-import { MEMORY_CACHE } from "../../../../cache/init";
-import { NODE_INFO_KEY } from "../../../../cache/keys";
-import { GetNodeInfo } from "../../application/network-repository";
-import { TransactionOutput } from "../../application/transaction-repository";
+} from '../../application/block-repository';
+import { getPageInfo, getPaginationParams } from '../../pagination';
+import { blockValidator } from '../schema-validator/block-schema-validator';
+import Balance from '../../../../models/balance';
+import { handleSingleQuery } from '../../../utils/raw-query';
+import { formatGuard_NODE } from '../../../../utils/chainweb-node';
+import { MEMORY_CACHE } from '../../../../cache/init';
+import { NODE_INFO_KEY } from '../../../../cache/keys';
+import { GetNodeInfo } from '../../application/network-repository';
+import { TransactionOutput } from '../../application/transaction-repository';
 
 export default class BlockDbRepository implements BlockRepository {
   async getBlockByHash(hash: string) {
@@ -25,7 +25,7 @@ export default class BlockDbRepository implements BlockRepository {
     });
 
     if (!block) {
-      throw new Error("Block not found.");
+      throw new Error('Block not found.');
     }
 
     return blockValidator.mapFromSequelize(block);
@@ -56,12 +56,12 @@ export default class BlockDbRepository implements BlockRepository {
         ...(!!chainIds?.length && { chainId: { [Op.in]: chainIds } }),
       },
       limit,
-      order: [["id", order]],
+      order: [['id', order]],
     };
 
     const rows = await BlockModel.findAll(query);
 
-    const edges = rows.map((row) => ({
+    const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: blockValidator.mapFromSequelize(row),
     }));
@@ -89,7 +89,7 @@ export default class BlockDbRepository implements BlockRepository {
     });
 
     const queryParams: (string | number | string[])[] = [limit, startHeight];
-    let conditions = "";
+    let conditions = '';
 
     if (before) {
       queryParams.push(before);
@@ -134,7 +134,7 @@ export default class BlockDbRepository implements BlockRepository {
 
     const { rows: blockRows } = await rootPgPool.query(query, queryParams);
 
-    const edges = blockRows.map((row) => ({
+    const edges = blockRows.map(row => ({
       cursor: row.id.toString(),
       node: blockValidator.validate(row),
     }));
@@ -185,7 +185,7 @@ export default class BlockDbRepository implements BlockRepository {
 
   async getChainIds() {
     const nodeInfo = MEMORY_CACHE.get(NODE_INFO_KEY) as GetNodeInfo;
-    return nodeInfo.nodeChains.map((chainId) => Number(chainId));
+    return nodeInfo.nodeChains.map(chainId => Number(chainId));
   }
 
   async getCompletedBlocks(params: GetCompletedBlocksParams) {
@@ -206,9 +206,7 @@ export default class BlockDbRepository implements BlockRepository {
       last,
     });
 
-    const chainIds = chainIdsParam?.length
-      ? chainIdsParam
-      : await this.getChainIds();
+    const chainIds = chainIdsParam?.length ? chainIdsParam : await this.getChainIds();
 
     if (completedHeights) {
       const query = `
@@ -220,12 +218,9 @@ export default class BlockDbRepository implements BlockRepository {
         LIMIT $2;
       `;
 
-      const { rows: heightRows } = await rootPgPool.query(query, [
-        chainIds.length,
-        heightCount,
-      ]);
+      const { rows: heightRows } = await rootPgPool.query(query, [chainIds.length, heightCount]);
 
-      const totalCompletedHeights = heightRows.map((r) => r.height) as number[];
+      const totalCompletedHeights = heightRows.map(r => r.height) as number[];
 
       if (totalCompletedHeights.length > 0) {
         const queryParams: any[] = [
@@ -235,16 +230,16 @@ export default class BlockDbRepository implements BlockRepository {
           totalCompletedHeights[0],
         ];
 
-        let conditions = "";
+        let conditions = '';
 
         if (after) {
           queryParams.push(after);
-          conditions += "\nAND id < $5";
+          conditions += '\nAND id < $5';
         }
 
         if (before) {
           queryParams.push(before);
-          conditions += "\nAND id > $5";
+          conditions += '\nAND id > $5';
         }
 
         let queryOne = `
@@ -257,12 +252,9 @@ export default class BlockDbRepository implements BlockRepository {
           LIMIT $1
         `;
 
-        const { rows: blockRows } = await rootPgPool.query(
-          queryOne,
-          queryParams,
-        );
+        const { rows: blockRows } = await rootPgPool.query(queryOne, queryParams);
 
-        const edges = blockRows.map((row) => ({
+        const edges = blockRows.map(row => ({
           cursor: row.id.toString(),
           node: blockValidator.validate(row),
         }));
@@ -281,24 +273,22 @@ export default class BlockDbRepository implements BlockRepository {
       LIMIT $1
     `;
 
-    const { rows: heightRows } = await rootPgPool.query(queryTwo, [
-      heightCount,
-    ]);
+    const { rows: heightRows } = await rootPgPool.query(queryTwo, [heightCount]);
 
-    const totalCompletedHeights = heightRows.map((r) => r.height) as number[];
+    const totalCompletedHeights = heightRows.map(r => r.height) as number[];
 
     const queryParams: any[] = [limit, chainIds, totalCompletedHeights];
 
-    let conditions = "";
+    let conditions = '';
 
     if (after) {
       queryParams.push(after);
-      conditions += "\nAND id < $4";
+      conditions += '\nAND id < $4';
     }
 
     if (before) {
       queryParams.push(before);
-      conditions += "\nAND id > $4";
+      conditions += '\nAND id > $4';
     }
 
     let queryThree = `
@@ -313,7 +303,7 @@ export default class BlockDbRepository implements BlockRepository {
 
     const { rows: blockRows } = await rootPgPool.query(queryThree, queryParams);
 
-    const edges = blockRows.map((row) => ({
+    const edges = blockRows.map(row => ({
       cursor: row.id.toString(),
       node: blockValidator.validate(row),
     }));
@@ -323,7 +313,7 @@ export default class BlockDbRepository implements BlockRepository {
   }
 
   async getBlocksByEventIds(eventIds: readonly string[]) {
-    console.log("Batching for event IDs:", eventIds);
+    console.log('Batching for event IDs:', eventIds);
 
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.*, e.id as "eventId"
@@ -335,7 +325,7 @@ export default class BlockDbRepository implements BlockRepository {
     );
 
     if (blockRows.length !== eventIds.length) {
-      throw new Error("There was an issue fetching blocks for event IDs.");
+      throw new Error('There was an issue fetching blocks for event IDs.');
     }
 
     const blockMap = blockRows.reduce(
@@ -346,11 +336,11 @@ export default class BlockDbRepository implements BlockRepository {
       {},
     );
 
-    return eventIds.map((eventId) => blockMap[eventId]) as BlockOutput[];
+    return eventIds.map(eventId => blockMap[eventId]) as BlockOutput[];
   }
 
   async getBlocksByTransactionIds(transactionIds: string[]) {
-    console.log("Batching for transactionIds IDs:", transactionIds);
+    console.log('Batching for transactionIds IDs:', transactionIds);
 
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.id,
@@ -374,9 +364,7 @@ export default class BlockDbRepository implements BlockRepository {
     );
 
     if (blockRows.length !== transactionIds.length) {
-      throw new Error(
-        "There was an issue fetching blocks for transaction IDs.",
-      );
+      throw new Error('There was an issue fetching blocks for transaction IDs.');
     }
 
     const blockMap = blockRows.reduce(
@@ -387,11 +375,11 @@ export default class BlockDbRepository implements BlockRepository {
       {},
     );
 
-    return transactionIds.map((id) => blockMap[id]) as BlockOutput[];
+    return transactionIds.map(id => blockMap[id]) as BlockOutput[];
   }
 
   async getBlockByHashes(hashes: string[]): Promise<BlockOutput[]> {
-    console.log("Batching for hashes:", hashes);
+    console.log('Batching for hashes:', hashes);
 
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.id,
@@ -413,9 +401,7 @@ export default class BlockDbRepository implements BlockRepository {
     );
 
     if (blockRows.length !== hashes.length) {
-      throw new Error(
-        "There was an issue fetching blocks for transaction IDs.",
-      );
+      throw new Error('There was an issue fetching blocks for transaction IDs.');
     }
 
     const blockMap = blockRows.reduce(
@@ -426,13 +412,13 @@ export default class BlockDbRepository implements BlockRepository {
       {},
     );
 
-    return hashes.map((hash) => blockMap[hash]) as BlockOutput[];
+    return hashes.map(hash => blockMap[hash]) as BlockOutput[];
   }
 
   async getLowestBlockHeight(): Promise<number> {
     const block = await BlockModel.findOne({
-      order: [["height", "ASC"]],
-      attributes: ["height"],
+      order: [['height', 'ASC']],
+      attributes: ['height'],
     });
 
     return block?.height || 0;
@@ -440,8 +426,8 @@ export default class BlockDbRepository implements BlockRepository {
 
   async getLastBlockHeight(): Promise<number> {
     const block = await BlockModel.findOne({
-      order: [["height", "DESC"]],
-      attributes: ["height"],
+      order: [['height', 'DESC']],
+      attributes: ['height'],
     });
 
     return block?.height || 0;
@@ -450,7 +436,7 @@ export default class BlockDbRepository implements BlockRepository {
   async getTotalCountOfBlockEvents(blockHash: string): Promise<number> {
     const block = await BlockModel.findOne({
       where: { hash: blockHash },
-      attributes: ["transactionsCount"],
+      attributes: ['transactionsCount'],
     });
 
     return block?.transactionsCount || 0;
@@ -465,10 +451,10 @@ export default class BlockDbRepository implements BlockRepository {
         ...(chainIds.length && { chainId: { [Op.in]: chainIds } }),
       },
       limit: 100,
-      order: [["id", "DESC"]],
+      order: [['id', 'DESC']],
     });
 
-    const output = blocks.map((b) => blockValidator.mapFromSequelize(b));
+    const output = blocks.map(b => blockValidator.mapFromSequelize(b));
     return output;
   }
 
@@ -493,15 +479,11 @@ export default class BlockDbRepository implements BlockRepository {
       GROUP BY root_hash;
     `;
 
-    const { rows } = await rootPgPool.query(query, [
-      transactions.map((t) => t.blockHash),
-    ]);
+    const { rows } = await rootPgPool.query(query, [transactions.map(t => t.blockHash)]);
 
     rows.sort((a, b) => b.depth - a.depth);
 
-    const output = rows.map((r) =>
-      transactions.find((t) => t.blockHash === r.root_hash),
-    ) as any;
+    const output = rows.map(r => transactions.find(t => t.blockHash === r.root_hash)) as any;
 
     return output;
   }

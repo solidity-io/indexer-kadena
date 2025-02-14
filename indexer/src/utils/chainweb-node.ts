@@ -1,7 +1,7 @@
-import { PactQueryResponse } from "../kadena-server/config/graphql-types";
+import { PactQueryResponse } from '../kadena-server/config/graphql-types';
 
 export const formatBalance_NODE = (queryResult: PactQueryResponse) => {
-  const resultParsed = JSON.parse(queryResult.result ?? "{}");
+  const resultParsed = JSON.parse(queryResult.result ?? '{}');
   if (resultParsed?.balance?.decimal) {
     return Number(resultParsed.balance.decimal);
   } else if (resultParsed?.balance) {
@@ -12,7 +12,7 @@ export const formatBalance_NODE = (queryResult: PactQueryResponse) => {
 };
 
 export const formatGuard_NODE = (queryResult: PactQueryResponse) => {
-  const resultParsed = JSON.parse(queryResult.result ?? "{}");
+  const resultParsed = JSON.parse(queryResult.result ?? '{}');
 
   if (resultParsed.guard?.fun) {
     return {
@@ -20,7 +20,7 @@ export const formatGuard_NODE = (queryResult: PactQueryResponse) => {
       fun: resultParsed.guard.fun,
       raw: JSON.stringify(resultParsed.guard),
       keys: [],
-      predicate: "",
+      predicate: '',
     };
   }
 
@@ -32,5 +32,5 @@ export const formatGuard_NODE = (queryResult: PactQueryResponse) => {
     };
   }
 
-  return { raw: JSON.stringify(resultParsed.guard), keys: [], predicate: "" };
+  return { raw: JSON.stringify(resultParsed.guard), keys: [], predicate: '' };
 };

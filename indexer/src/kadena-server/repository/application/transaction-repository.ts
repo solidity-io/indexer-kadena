@@ -1,14 +1,8 @@
-import {
-  PageInfo,
-  Signer,
-  Transaction,
-  TransactionMeta,
-} from "../../config/graphql-types";
-import { PaginationsParams } from "../pagination";
-import { ConnectionEdge } from "../types";
+import { PageInfo, Signer, Transaction, TransactionMeta } from '../../config/graphql-types';
+import { PaginationsParams } from '../pagination';
+import { ConnectionEdge } from '../types';
 
-export type GetTransactionsParams = GetTransactionsCountParams &
-  PaginationsParams;
+export type GetTransactionsParams = GetTransactionsCountParams & PaginationsParams;
 
 export interface GetTransactionsByPublicKeyParams extends PaginationsParams {
   publicKey: string;
@@ -32,8 +26,8 @@ export interface GetTransactionsByRequestKey {
   minimumDepth?: number | null;
 }
 
-export type TransactionOutput = Omit<Transaction, "cmd"> & {
-  cmd: Omit<Transaction["cmd"], "meta" | "signers">;
+export type TransactionOutput = Omit<Transaction, 'cmd'> & {
+  cmd: Omit<Transaction['cmd'], 'meta' | 'signers'>;
 } & { databaseTransactionId: string; blockHash: string; blockHeight: number };
 
 export type TransactionMetaOutput = TransactionMeta;
@@ -45,23 +39,14 @@ export default interface TransactionRepository {
     edges: ConnectionEdge<TransactionOutput>[];
   }>;
   getTransactionsCount(params: GetTransactionsCountParams): Promise<number>;
-  getTransactionsByRequestKey(
-    params: GetTransactionsByRequestKey,
-  ): Promise<TransactionOutput[]>;
+  getTransactionsByRequestKey(params: GetTransactionsByRequestKey): Promise<TransactionOutput[]>;
   getTransactionByTransferId(transferId: string): Promise<TransactionOutput>;
-  getTransactionMetaInfoById(
-    transactionId: string,
-  ): Promise<TransactionMetaOutput>;
-  getTransactionsByPublicKey(
-    params: GetTransactionsByPublicKeyParams,
-  ): Promise<{
+  getTransactionMetaInfoById(transactionId: string): Promise<TransactionMetaOutput>;
+  getTransactionsByPublicKey(params: GetTransactionsByPublicKeyParams): Promise<{
     pageInfo: PageInfo;
     edges: ConnectionEdge<TransactionOutput>[];
   }>;
   getTransactionsByPublicKeyCount(publicKey: string): Promise<number>;
   getTransactionsByEventIds(eventIds: string[]): Promise<TransactionOutput[]>;
-  getSigners(
-    transactionId: string,
-    orderIndex?: number,
-  ): Promise<SignerOutput[]>;
+  getSigners(transactionId: string, orderIndex?: number): Promise<SignerOutput[]>;
 }

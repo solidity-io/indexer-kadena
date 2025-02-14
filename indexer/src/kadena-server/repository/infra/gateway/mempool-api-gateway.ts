@@ -1,9 +1,9 @@
-import { getRequiredEnvString } from "../../../../utils/helpers";
-import MempoolGateway from "../../gateway/mempool-gateway";
-import zod from "zod";
+import { getRequiredEnvString } from '../../../../utils/helpers';
+import MempoolGateway from '../../gateway/mempool-gateway';
+import zod from 'zod';
 
-const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
-const NETWORK_ID = getRequiredEnvString("SYNC_NETWORK");
+const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');
+const NETWORK_ID = getRequiredEnvString('SYNC_NETWORK');
 
 const ZodSignature = zod.object({
   sig: zod.string(),
@@ -29,7 +29,7 @@ const ZodMeta = zod.object({
 });
 
 const ZodExecData = zod.object({
-  "account-keyset": zod.object({
+  'account-keyset': zod.object({
     pred: zod.string(),
     keys: zod.array(zod.string()),
   }),
@@ -64,16 +64,13 @@ const ZodSchema = zod.object({
 export type MempoolResponse = zod.infer<typeof ZodContents>;
 
 export default class MempoolApiGateway implements MempoolGateway {
-  async getPendingTransaction(
-    requestKey: string,
-    chainId: string,
-  ): Promise<any> {
+  async getPendingTransaction(requestKey: string, chainId: string): Promise<any> {
     const url = `${SYNC_BASE_URL}/${NETWORK_ID}/chain/${chainId}/mempool/lookup`;
 
     const res = await fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       // use base64
       body: JSON.stringify({ requestKey }),

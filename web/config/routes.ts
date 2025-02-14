@@ -4,10 +4,10 @@ export interface BaseRoute {
   path?: string;
   tag: string;
   label: string;
-  disabled?: boolean
+  disabled?: boolean;
 }
 
-export interface LinkRoute extends BaseRoute{
+export interface LinkRoute extends BaseRoute {
   type: 'link';
 }
 
@@ -55,7 +55,7 @@ export const routes: Route[] = [
         label: 'Trending tokens',
         tag: 'route:tokens:trending',
       },
-    ]
+    ],
   },
   // {
   //   label: 'NFT',
@@ -75,6 +75,6 @@ export const routes: Route[] = [
   //     }
   //   ]
   // }
-]
+];
 
-export default routes
+export default routes;

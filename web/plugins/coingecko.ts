@@ -1,8 +1,5 @@
 export default defineNuxtPlugin(async () => {
-  const {
-    CG_KEY: apiKey,
-    CG_URL: baseUrl,
-  } = useRuntimeConfig().public;
+  const { CG_KEY: apiKey, CG_URL: baseUrl } = useRuntimeConfig().public;
 
   const request = async (endpoint: string, params = {}) => {
     const url = new URL(`${baseUrl}/${endpoint}`) as any;
@@ -12,8 +9,8 @@ export default defineNuxtPlugin(async () => {
     try {
       const response = await fetch(url, {
         headers: {
-          'x-cg-pro-api-key': apiKey
-        }
+          'x-cg-pro-api-key': apiKey,
+        },
       });
 
       if (!response.ok) {

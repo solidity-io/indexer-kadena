@@ -1,14 +1,14 @@
-import pLimit from "p-limit";
-import { closeDatabase, rootPgPool, sequelize } from "../../config/database";
-import { getGuardsFromBalances } from "./payload";
-import Guard from "../../models/guard";
+import pLimit from 'p-limit';
+import { closeDatabase, rootPgPool, sequelize } from '../../config/database';
+import { getGuardsFromBalances } from './payload';
+import Guard from '../../models/guard';
 
 const CONCURRENCY_LIMIT = 4; // Number of concurrent fetches allowed
 const limitFetch = pLimit(CONCURRENCY_LIMIT);
 
 export async function startGuardsBackfill() {
   await sequelize.authenticate();
-  console.log("Connected to the database.");
+  console.log('Connected to the database.');
 
   await rootPgPool.query(
     `
@@ -32,8 +32,8 @@ export async function startGuardsBackfill() {
       `,
   );
 
-  console.log("Balances backfilled successfully.");
-  console.log("Starting guards backfill ...");
+  console.log('Balances backfilled successfully.');
+  console.log('Starting guards backfill ...');
 
   const limit = 10000; // Number of rows to process in one batch
   let offset = 0;
@@ -47,12 +47,12 @@ export async function startGuardsBackfill() {
 
     const rows = res.rows;
     if (rows.length === 0) {
-      console.log("No more rows to process.");
+      console.log('No more rows to process.');
       break;
     }
 
     // Use p-limit to ensure controlled concurrency for fetch requests
-    const fetchPromises = rows.map((row) =>
+    const fetchPromises = rows.map(row =>
       limitFetch(() =>
         getGuardsFromBalances([
           {
@@ -80,7 +80,7 @@ export async function startGuardsBackfill() {
         await tx.rollback();
         console.log(`Transaction for batch at offset ${offset} rolled back.`);
       } catch (rollbackError) {
-        console.error("Error during rollback:", rollbackError);
+        console.error('Error during rollback:', rollbackError);
       }
       break;
     }

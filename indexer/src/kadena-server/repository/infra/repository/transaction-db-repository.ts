@@ -1,21 +1,20 @@
-import { rootPgPool } from "../../../../config/database";
+import { rootPgPool } from '../../../../config/database';
 import TransactionRepository, {
   GetTransactionsByPublicKeyParams,
   GetTransactionsByRequestKey,
   GetTransactionsCountParams,
   GetTransactionsParams,
   TransactionOutput,
-} from "../../application/transaction-repository";
-import { getPageInfo, getPaginationParams } from "../../pagination";
-import { transactionMetaValidator } from "../schema-validator/transaction-meta-schema-validator";
-import { transactionValidator } from "../schema-validator/transaction-schema-validator";
-import { signerMetaValidator } from "../schema-validator/signer-schema-validator";
-import { MEMORY_CACHE } from "../../../../cache/init";
-import { NETWORK_STATISTICS_KEY } from "../../../../cache/keys";
-import { NetworkStatistics } from "../../application/network-repository";
+} from '../../application/transaction-repository';
+import { getPageInfo, getPaginationParams } from '../../pagination';
+import { transactionMetaValidator } from '../schema-validator/transaction-meta-schema-validator';
+import { transactionValidator } from '../schema-validator/transaction-schema-validator';
+import { signerMetaValidator } from '../schema-validator/signer-schema-validator';
+import { MEMORY_CACHE } from '../../../../cache/init';
+import { NETWORK_STATISTICS_KEY } from '../../../../cache/keys';
+import { NetworkStatistics } from '../../application/network-repository';
 
-const operator = (paramsLength: number) =>
-  paramsLength > 2 ? `\nAND` : "WHERE";
+const operator = (paramsLength: number) => (paramsLength > 2 ? `\nAND` : 'WHERE');
 
 export default class TransactionDbRepository implements TransactionRepository {
   private createBlockConditions(
@@ -23,7 +22,7 @@ export default class TransactionDbRepository implements TransactionRepository {
     queryParams: Array<string | number>,
   ) {
     const { blockHash, chainId, maxHeight, minHeight, minimumDepth } = params;
-    let blocksConditions = "";
+    let blocksConditions = '';
     const blockParams: (string | number)[] = [...queryParams];
 
     if (blockHash) {
@@ -63,15 +62,8 @@ export default class TransactionDbRepository implements TransactionRepository {
     params: GetTransactionsParams,
     queryParams: Array<string | number>,
   ) {
-    const {
-      accountName,
-      after,
-      before,
-      requestKey,
-      fungibleName,
-      hasTokenId = false,
-    } = params;
-    let conditions = "";
+    const { accountName, after, before, requestKey, fungibleName, hasTokenId = false } = params;
+    let conditions = '';
     const transactionParams: (string | number)[] = [...queryParams];
     if (accountName) {
       transactionParams.push(accountName);
@@ -145,36 +137,37 @@ export default class TransactionDbRepository implements TransactionRepository {
       first,
       last,
     });
-    const isBlockQueryFirst =
-      blockHash || minHeight || maxHeight || minimumDepth || chainId;
+    const isBlockQueryFirst = blockHash || minHeight || maxHeight || minimumDepth || chainId;
 
     const queryParams: (string | number)[] = [];
-    let blocksConditions = "";
-    let transactionsConditions = "";
+    let blocksConditions = '';
+    let transactionsConditions = '';
     if (isBlockQueryFirst) {
-      const { blockParams, blocksConditions: bConditions } =
-        this.createBlockConditions(params, [limit]);
+      const { blockParams, blocksConditions: bConditions } = this.createBlockConditions(params, [
+        limit,
+      ]);
 
-      const { params: txParams, conditions: txConditions } =
-        this.createTransactionConditions(params, blockParams);
+      const { params: txParams, conditions: txConditions } = this.createTransactionConditions(
+        params,
+        blockParams,
+      );
 
       queryParams.push(...txParams);
       transactionsConditions = txConditions;
       blocksConditions = bConditions;
     } else {
-      const { conditions, params: txParams } = this.createTransactionConditions(
+      const { conditions, params: txParams } = this.createTransactionConditions(params, [limit]);
+      const { blocksConditions: bConditions, blockParams } = this.createBlockConditions(
         params,
-        [limit],
+        txParams,
       );
-      const { blocksConditions: bConditions, blockParams } =
-        this.createBlockConditions(params, txParams);
 
       queryParams.push(...blockParams);
       transactionsConditions = conditions;
       blocksConditions = bConditions;
     }
 
-    let query = "";
+    let query = '';
     if (isBlockQueryFirst) {
       query = `
         WITH filtered_block AS (
@@ -247,7 +240,7 @@ export default class TransactionDbRepository implements TransactionRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const edges = rows.map((row) => ({
+    const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: transactionValidator.validate(row),
     }));
@@ -319,7 +312,7 @@ export default class TransactionDbRepository implements TransactionRepository {
   async getTransactionsByRequestKey(params: GetTransactionsByRequestKey) {
     const { requestKey, blockHash, minimumDepth } = params;
     const queryParams: (string | number)[] = [requestKey];
-    let conditions = "";
+    let conditions = '';
 
     if (blockHash) {
       queryParams.push(blockHash);
@@ -360,7 +353,7 @@ export default class TransactionDbRepository implements TransactionRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const output = rows.map((row) => transactionValidator.validate(row));
+    const output = rows.map(row => transactionValidator.validate(row));
 
     return output;
   }
@@ -380,7 +373,7 @@ export default class TransactionDbRepository implements TransactionRepository {
     });
     const queryParams: (string | number)[] = [limit, publicKey];
 
-    let cursorCondition = "";
+    let cursorCondition = '';
 
     if (after) {
       cursorCondition = `\nAND t.id < $3`;
@@ -428,7 +421,7 @@ export default class TransactionDbRepository implements TransactionRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const edges = rows.map((row) => ({
+    const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: transactionValidator.validate(row),
     }));
@@ -448,19 +441,15 @@ export default class TransactionDbRepository implements TransactionRepository {
     `;
 
     const { rows } = await rootPgPool.query(query, [publicKey]);
-    const totalCount = parseInt(rows?.[0]?.count ?? "0", 10);
+    const totalCount = parseInt(rows?.[0]?.count ?? '0', 10);
     return totalCount;
   }
 
-  async getTransactionsCount(
-    params: GetTransactionsCountParams,
-  ): Promise<number> {
-    const hasNoParams = Object.values(params).every((v) => !v);
+  async getTransactionsCount(params: GetTransactionsCountParams): Promise<number> {
+    const hasNoParams = Object.values(params).every(v => !v);
 
     if (hasNoParams) {
-      const cachedData = MEMORY_CACHE.get<NetworkStatistics>(
-        NETWORK_STATISTICS_KEY,
-      );
+      const cachedData = MEMORY_CACHE.get<NetworkStatistics>(NETWORK_STATISTICS_KEY);
       return cachedData?.transactionCount ?? 0;
     }
 
@@ -478,11 +467,10 @@ export default class TransactionDbRepository implements TransactionRepository {
 
     const transactionsParams: (string | number)[] = [];
     const blockParams: (string | number)[] = [];
-    let transactionsConditions = "";
-    let blocksConditions = "";
+    let transactionsConditions = '';
+    let blocksConditions = '';
 
-    const localOperator = (paramsLength: number) =>
-      paramsLength > 1 ? `\nAND` : "WHERE";
+    const localOperator = (paramsLength: number) => (paramsLength > 1 ? `\nAND` : 'WHERE');
 
     if (accountName) {
       transactionsParams.push(accountName);
@@ -561,7 +549,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       )
       SELECT COUNT(*) as count
       FROM filtered_transactions t
-      ${blocksConditions ? `JOIN "Blocks" b ON b.id = t."blockId"` : ""}
+      ${blocksConditions ? `JOIN "Blocks" b ON b.id = t."blockId"` : ''}
       ${blocksConditions}
     `;
 
@@ -574,10 +562,8 @@ export default class TransactionDbRepository implements TransactionRepository {
     return totalCount;
   }
 
-  async getTransactionsByEventIds(
-    eventIds: readonly string[],
-  ): Promise<TransactionOutput[]> {
-    console.log("Batching for event IDs:", eventIds);
+  async getTransactionsByEventIds(eventIds: readonly string[]): Promise<TransactionOutput[]> {
+    console.log('Batching for event IDs:', eventIds);
 
     const { rows } = await rootPgPool.query(
       `SELECT t.id as id,
@@ -609,7 +595,7 @@ export default class TransactionDbRepository implements TransactionRepository {
     );
 
     if (rows.length !== eventIds.length) {
-      throw new Error("There was an issue fetching blocks for event IDs.");
+      throw new Error('There was an issue fetching blocks for event IDs.');
     }
 
     const transactionMap = rows.reduce(
@@ -620,9 +606,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       {},
     );
 
-    return eventIds.map(
-      (eventId) => transactionMap[eventId],
-    ) as TransactionOutput[];
+    return eventIds.map(eventId => transactionMap[eventId]) as TransactionOutput[];
   }
 
   async getSigners(transactionId: string, orderIndex?: number) {
@@ -645,7 +629,7 @@ export default class TransactionDbRepository implements TransactionRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const output = rows.map((row) => signerMetaValidator.validate(row));
+    const output = rows.map(row => signerMetaValidator.validate(row));
 
     return output;
   }

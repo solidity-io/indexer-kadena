@@ -8,7 +8,6 @@ volumes:
   chainweb-db: {}
 
 services:
-
   # ########################################################################## #
   # Database Initialization
   chainweb-initialize-db:
@@ -21,9 +20,9 @@ services:
     environment:
       KADENA_NETWORK: ${KADENA_NETWORK:-mainnet01}
       SERVER: ${DB_SYNC_SERVER:-us-w1.chainweb.com}
-    entrypoint: "/bin/sh"
+    entrypoint: '/bin/sh'
     command:
-      - "-c"
+      - '-c'
       - |
         case "$$KADENA_NETWORK" in
           mainnet01)
@@ -59,9 +58,9 @@ services:
       KADENA_NETWORK: ${KADENA_NETWORK:-mainnet01}
     volumes:
       - chainweb-config:/config:rw
-    entrypoint: "/bin/sh"
+    entrypoint: '/bin/sh'
     command:
-      - "-c"
+      - '-c'
       - |
         cat > /config/chainweb-validate-db-config.yaml <<EOF
         databaseDirectory: /chainweb/db
@@ -129,7 +128,7 @@ services:
   # Shut down chainweb-node before running this.
   chainweb-validate-db:
     container_name: chainweb-validate-db
-    restart: "no"
+    restart: 'no'
     image: ${IMAGE:-ghcr.io/kadena-io/chainweb-node/ubuntu:latest}
     environment:
       KADENA_NETWORK: ${KADENA_NETWORK:-mainnet01}
@@ -140,26 +139,26 @@ services:
         hard: 65535
     depends_on:
       chainweb-initialize-db:
-        condition: "service_completed_successfully"
+        condition: 'service_completed_successfully'
       chainweb-validate-db-config:
-        condition: "service_completed_successfully"
+        condition: 'service_completed_successfully'
     volumes:
-    - chainweb-db:/chainweb/db:rw
-    - chainweb-config:/config:ro
+      - chainweb-db:/chainweb/db:rw
+      - chainweb-config:/config:ro
     entrypoint: /bin/bash
     command:
-    - "-c"
-    - |
-      [ -d "/chainweb/db/0/rocksDb" ] || { echo "missing database. Try running chainweb-validate-db-sync first" 1>&2; exit 1; }
-      rm -rf "/db/0/sqlite/*"
-      /chainweb/chainweb-node \
-        +RTS \
-        -T \
-        -H1G \
-        -A64M \
-        -RTS \
-        --config-file=/config/chainweb-validate-db-config.yaml \
-        --log-handle=stderr
+      - '-c'
+      - |
+        [ -d "/chainweb/db/0/rocksDb" ] || { echo "missing database. Try running chainweb-validate-db-sync first" 1>&2; exit 1; }
+        rm -rf "/db/0/sqlite/*"
+        /chainweb/chainweb-node \
+          +RTS \
+          -T \
+          -H1G \
+          -A64M \
+          -RTS \
+          --config-file=/config/chainweb-validate-db-config.yaml \
+          --log-handle=stderr
 
   # ########################################################################## #
   # Chainweb Node
@@ -170,11 +169,11 @@ services:
     environment:
       KADENA_NETWORK: ${KADENA_NETWORK:-mainnet01}
     restart: unless-stopped
-    stop_grace_period: "20s"
+    stop_grace_period: '20s'
     stop_signal: SIGINT
     depends_on:
       chainweb-validate-db:
-        condition: "service_completed_successfully"
+        condition: 'service_completed_successfully'
     ulimits:
       nofile:
         hard: 65535
@@ -193,11 +192,11 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
-        delay: "5s"
+        delay: '5s'
         max_attempts: 3
-        window: "120s"
+        window: '120s'
       update_config:
-        delay: "60s"
+        delay: '60s'
         order: stop-first
     entrypoint:
       - /chainweb/chainweb-node
@@ -218,21 +217,21 @@ services:
       - --rosetta
       - --p2p-port=1789
     healthcheck:
-      interval: "1m"
+      interval: '1m'
       retries: 3
-      start_period: "30s"
+      start_period: '30s'
       test:
-      - CMD
-      - /bin/bash
-      - "-c"
-      - "set -e; while : ; do /bin/bash -c \"$$1\" ; shift || break ; done"
-      - '--'
-      - |
-        # check health endpoint
-        exec 3<>/dev/tcp/localhost/1848
-        printf "GET /health-check HTTP/1.1\r\nhost: http://localhost:1848\r\nConnection: close\r\n\r\n" >&3
-        grep -q "200 OK" <&3 || exit 1
-      timeout: "10s"
+        - CMD
+        - /bin/bash
+        - '-c'
+        - 'set -e; while : ; do /bin/bash -c "$$1" ; shift || break ; done'
+        - '--'
+        - |
+          # check health endpoint
+          exec 3<>/dev/tcp/localhost/1848
+          printf "GET /health-check HTTP/1.1\r\nhost: http://localhost:1848\r\nConnection: close\r\n\r\n" >&3
+          grep -q "200 OK" <&3 || exit 1
+      timeout: '10s'
 
   # ########################################################################## #
   # Container Monitor
@@ -244,7 +243,7 @@ services:
     image: willfarrell/autoheal
     restart: unless-stopped
     volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
 
   # ########################################################################## #
   # Debugging
@@ -252,6 +251,6 @@ services:
   debug:
     image: alpine:latest
     entrypoint:
-    - /bin/sh
+      - /bin/sh
     profiles:
-    - debug
+      - debug

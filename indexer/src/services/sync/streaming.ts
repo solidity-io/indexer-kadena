@@ -1,29 +1,27 @@
-import { processPayloadKey } from "./payload";
-import { getDecoded, getRequiredEnvString } from "../../utils/helpers";
-import EventSource from "eventsource";
-import { DispatchInfo } from "../../jobs/publisher-job";
-import { uint64ToInt64 } from "../../utils/int-uint-64";
-import Block, { BlockAttributes } from "../../models/block";
-import { sequelize } from "../../config/database";
-import StreamingError from "../../models/streaming-error";
+import { processPayloadKey } from './payload';
+import { getDecoded, getRequiredEnvString } from '../../utils/helpers';
+import EventSource from 'eventsource';
+import { DispatchInfo } from '../../jobs/publisher-job';
+import { uint64ToInt64 } from '../../utils/int-uint-64';
+import Block, { BlockAttributes } from '../../models/block';
+import { sequelize } from '../../config/database';
+import StreamingError from '../../models/streaming-error';
 
-const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
-const SYNC_NETWORK = getRequiredEnvString("SYNC_NETWORK");
+const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');
+const SYNC_NETWORK = getRequiredEnvString('SYNC_NETWORK');
 
 export async function startStreaming() {
-  console.log("Starting streaming...");
+  console.log('Starting streaming...');
 
   const blocksAlreadyReceived = new Set<string>();
 
-  const eventSource = new EventSource(
-    `${SYNC_BASE_URL}/${SYNC_NETWORK}/block/updates`,
-  );
+  const eventSource = new EventSource(`${SYNC_BASE_URL}/${SYNC_NETWORK}/block/updates`);
 
   eventSource.onerror = (error: any) => {
-    console.error("Connection error:", error);
+    console.error('Connection error:', error);
   };
 
-  eventSource.addEventListener("BlockHeader", async (event: any) => {
+  eventSource.addEventListener('BlockHeader', async (event: any) => {
     try {
       const block = JSON.parse(event.data);
       const payload = processPayload(block.payloadWithOutputs);
@@ -46,7 +44,7 @@ export async function startStreaming() {
 
   setInterval(
     () => {
-      console.log("Clearing blocks already received.");
+      console.log('Clearing blocks already received.');
       blocksAlreadyReceived.clear();
     },
     1000 * 60 * 10,
@@ -110,18 +108,12 @@ async function saveBlock(parsedData: any): Promise<DispatchInfo | null> {
       transaction: tx,
     });
 
-    const eventsCreated = await processPayloadKey(
-      createdBlock,
-      payloadData,
-      tx,
-    );
+    const eventsCreated = await processPayloadKey(createdBlock, payloadData, tx);
 
-    const uniqueRequestKeys = new Set(
-      eventsCreated.map((t) => t.requestkey).filter(Boolean),
-    );
+    const uniqueRequestKeys = new Set(eventsCreated.map(t => t.requestkey).filter(Boolean));
 
     const uniqueQualifiedEventNames = new Set(
-      eventsCreated.map((t) => `${t.module}.${t.name}`).filter(Boolean),
+      eventsCreated.map(t => `${t.module}.${t.name}`).filter(Boolean),
     );
 
     await tx.commit();

@@ -1,26 +1,20 @@
-import { unknownToken, staticTokens } from '../constants/tokens'
+import { unknownToken, staticTokens } from '../constants/tokens';
 
-export const transformRawBalances = ({
-  prices,
-  allBalances,
-}: any) => {
+export const transformRawBalances = ({ prices, allBalances }: any) => {
   if (!allBalances) {
-    return []
+    return [];
   }
 
   const balancesObj = allBalances.nodes
     .sort((a: any, b: any) => a.chainId - b.chainId)
     .reduce((prev: any, current: any) => {
-      const {
-        balance,
-        module = '',
-      } = current || {}
+      const { balance, module = '' } = current || {};
 
-      const formatedModule = current.module === 'coin' ? 'kadena' : current.module
+      const formatedModule = current.module === 'coin' ? 'kadena' : current.module;
 
-      const metadata = staticTokens.find(({ module }) => current.module === module)  || unknownToken
+      const metadata = staticTokens.find(({ module }) => current.module === module) || unknownToken;
 
-      const etl = prices?.find(({ id }: any) => formatedModule.includes(id))
+      const etl = prices?.find(({ id }: any) => formatedModule.includes(id));
 
       if (!prev[module]) {
         prev[module] = {
@@ -30,20 +24,20 @@ export const transformRawBalances = ({
           balances: [],
 
           ...etl,
-        }
+        };
       }
 
-      prev[module].balance = prev[module].balance + Number(balance)
+      prev[module].balance = prev[module].balance + Number(balance);
 
       prev[module].balances.push({
         ...etl,
         ...current,
-      })
+      });
 
-      return prev
-    }, {})
+      return prev;
+    }, {});
 
   return Object.values(balancesObj).sort((a: any, b: any) => {
-    return (b.current_price || 0) - (a.current_price || 0)
-  })
-}
+    return (b.current_price || 0) - (a.current_price || 0);
+  });
+};

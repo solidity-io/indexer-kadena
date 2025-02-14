@@ -1,7 +1,7 @@
-import { Model, DataTypes, Optional } from "sequelize";
-import { sequelize } from "../config/database";
-import Contract from "./contract";
-import { gql, makeExtendSchemaPlugin } from "postgraphile";
+import { Model, DataTypes, Optional } from 'sequelize';
+import { sequelize } from '../config/database';
+import Contract from './contract';
+import { gql, makeExtendSchemaPlugin } from 'postgraphile';
 
 export interface BalanceAttributes {
   id?: number;
@@ -17,8 +17,7 @@ export interface BalanceAttributes {
   polyfungiblesCount?: number;
 }
 
-interface BalanceCreationAttributes
-  extends Optional<BalanceAttributes, "id" | "balance"> {}
+interface BalanceCreationAttributes extends Optional<BalanceAttributes, 'id' | 'balance'> {}
 
 /**
  * Represents a balance in the system.
@@ -67,7 +66,7 @@ Balance.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-      comment: "The unique identifier for the balance record (e.g., 45690).",
+      comment: 'The unique identifier for the balance record (e.g., 45690).',
     },
     account: {
       type: DataTypes.STRING,
@@ -78,13 +77,13 @@ Balance.init(
     chainId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      comment: "The ID of the blockchain network (e.g., 2).",
+      comment: 'The ID of the blockchain network (e.g., 2).',
     },
     balance: {
       type: DataTypes.DECIMAL,
       allowNull: false,
       defaultValue: 0,
-      comment: "The balance amount (e.g., 25).",
+      comment: 'The balance amount (e.g., 25).',
     },
     module: {
       type: DataTypes.STRING,
@@ -94,71 +93,70 @@ Balance.init(
     tokenId: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment:
-        "The token ID associated with the balance (e.g., 'boxing-badger #1443').",
+      comment: "The token ID associated with the balance (e.g., 'boxing-badger #1443').",
     },
     hasTokenId: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
-      comment: "Whether the balance has a token ID (e.g., false).",
+      comment: 'Whether the balance has a token ID (e.g., false).',
     },
     contractId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "The ID of the associated contract (e.g., 204).",
+      comment: 'The ID of the associated contract (e.g., 204).',
     },
     transactionsCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      comment: "The number of transactions in the block.",
+      comment: 'The number of transactions in the block.',
     },
     fungiblesCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      comment: "The number of fungibles in the block.",
+      comment: 'The number of fungibles in the block.',
     },
     polyfungiblesCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      comment: "The number of polyfungibles in the block.",
+      comment: 'The number of polyfungibles in the block.',
     },
   },
   {
     sequelize,
-    modelName: "Balance",
+    modelName: 'Balance',
     indexes: [
       {
-        name: "balances_unique_constraint",
+        name: 'balances_unique_constraint',
         unique: true,
-        fields: ["chainId", "account", "module", "tokenId"],
+        fields: ['chainId', 'account', 'module', 'tokenId'],
       },
       {
-        name: "balances_account_index",
-        fields: ["account"],
+        name: 'balances_account_index',
+        fields: ['account'],
       },
       {
-        name: "balances_tokenid_index",
-        fields: ["tokenId"],
+        name: 'balances_tokenid_index',
+        fields: ['tokenId'],
       },
       {
-        name: "balances_contractid_index",
-        fields: ["contractId"],
+        name: 'balances_contractid_index',
+        fields: ['contractId'],
       },
       {
-        name: "balances_search_idx",
-        fields: [sequelize.fn("LOWER", sequelize.col("account"))],
+        name: 'balances_search_idx',
+        fields: [sequelize.fn('LOWER', sequelize.col('account'))],
       },
     ],
   },
 );
 
 Balance.belongsTo(Contract, {
-  foreignKey: "contractId",
-  as: "contract",
+  foreignKey: 'contractId',
+  as: 'contract',
 });
 
-export const getHoldersPlugin = makeExtendSchemaPlugin((build) => {
+export const getHoldersPlugin = makeExtendSchemaPlugin(build => {
   return {
     typeDefs: gql`
       extend type Query {
@@ -200,7 +198,7 @@ export const getHoldersPlugin = makeExtendSchemaPlugin((build) => {
           );
 
           const holders = rows.map((row: any) => ({
-            cursor: Buffer.from(row.row_id.toString()).toString("base64"),
+            cursor: Buffer.from(row.row_id.toString()).toString('base64'),
             node: {
               address: row.address,
               quantity: row.quantity,
@@ -211,9 +209,7 @@ export const getHoldersPlugin = makeExtendSchemaPlugin((build) => {
           const hasNextPage = first ? holders.length === first : false;
           const hasPreviousPage = last ? holders.length === last : !!after;
 
-          const endCursor = hasNextPage
-            ? holders[holders.length - 1].cursor
-            : null;
+          const endCursor = hasNextPage ? holders[holders.length - 1].cursor : null;
           const startCursor = holders.length > 0 ? holders[0].cursor : null;
           const totalCount = holders.length;
 

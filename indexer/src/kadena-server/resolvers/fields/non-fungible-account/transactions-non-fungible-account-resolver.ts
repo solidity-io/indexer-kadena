@@ -1,10 +1,10 @@
-import { ResolverContext } from "../../../config/apollo-server-config";
-import { NonFungibleAccountResolvers } from "../../../config/graphql-types";
-import { buildTransactionOutput } from "../../output/build-transaction-output";
+import { ResolverContext } from '../../../config/apollo-server-config';
+import { NonFungibleAccountResolvers } from '../../../config/graphql-types';
+import { buildTransactionOutput } from '../../output/build-transaction-output';
 
-export const transactionsNonFungibleAccountResolver: NonFungibleAccountResolvers<ResolverContext>["transactions"] =
+export const transactionsNonFungibleAccountResolver: NonFungibleAccountResolvers<ResolverContext>['transactions'] =
   async (parent, args, context) => {
-    console.log("transactionsNonFungibleAccountResolver");
+    console.log('transactionsNonFungibleAccountResolver');
 
     const { first, after, last, before } = args;
     const output = await context.transactionRepository.getTransactions({
@@ -16,7 +16,7 @@ export const transactionsNonFungibleAccountResolver: NonFungibleAccountResolvers
       hasTokenId: true,
     });
 
-    const edges = output.edges.map((e) => ({
+    const edges = output.edges.map(e => ({
       cursor: e.cursor,
       node: buildTransactionOutput(e.node),
     }));

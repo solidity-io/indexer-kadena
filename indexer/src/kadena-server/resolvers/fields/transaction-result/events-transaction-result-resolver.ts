@@ -1,13 +1,13 @@
-import { ResolverContext } from "../../../config/apollo-server-config";
-import { TransactionResultResolvers } from "../../../config/graphql-types";
-import { buildEventOutput } from "../../output/build-event-output";
-import zod from "zod";
+import { ResolverContext } from '../../../config/apollo-server-config';
+import { TransactionResultResolvers } from '../../../config/graphql-types';
+import { buildEventOutput } from '../../output/build-event-output';
+import zod from 'zod';
 
 const schema = zod.object({ databaseTransactionId: zod.string() });
 
-export const eventsTransactionResultResolver: TransactionResultResolvers<ResolverContext>["events"] =
+export const eventsTransactionResultResolver: TransactionResultResolvers<ResolverContext>['events'] =
   async (parent, args, context) => {
-    console.log("eventsTransactionResultResolver");
+    console.log('eventsTransactionResultResolver');
 
     const parentArgs = schema.parse(parent);
 
@@ -20,7 +20,7 @@ export const eventsTransactionResultResolver: TransactionResultResolvers<Resolve
       before,
       last,
     });
-    const edges = output.edges.map((e) => ({
+    const edges = output.edges.map(e => ({
       cursor: e.cursor,
       node: buildEventOutput(e.node),
     }));

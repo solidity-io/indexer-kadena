@@ -1,31 +1,28 @@
-import { createTransaction, IUnsignedCommand } from "@kadena/client";
-import { composePactCommand } from "@kadena/client/fp";
-import { UserInput } from "./types.gas";
-import { hash as hashFunction } from "@kadena/cryptography-utils";
-import { GasLimitEstimationError } from "../../errors/gas-limit-estimation-error";
+import { createTransaction, IUnsignedCommand } from '@kadena/client';
+import { composePactCommand } from '@kadena/client/fp';
+import { UserInput } from './types.gas';
+import { hash as hashFunction } from '@kadena/cryptography-utils';
+import { GasLimitEstimationError } from '../../errors/gas-limit-estimation-error';
 
-export const buildTransactionPayload = (
-  input: UserInput,
-  networkId: string,
-): IUnsignedCommand => {
+export const buildTransactionPayload = (input: UserInput, networkId: string): IUnsignedCommand => {
   let transaction: IUnsignedCommand;
 
   switch (input.type) {
-    case "full-transaction":
+    case 'full-transaction':
       transaction = {
         cmd: input.cmd,
         hash: input.hash,
-        sigs: input.sigs.map((s) => ({ sig: s })),
+        sigs: input.sigs.map(s => ({ sig: s })),
       };
       break;
-    case "stringified-command":
+    case 'stringified-command':
       transaction = {
         cmd: input.cmd,
         hash: hashFunction(input.cmd),
-        sigs: input.sigs?.map((s) => ({ sig: s })) || [],
+        sigs: input.sigs?.map(s => ({ sig: s })) || [],
       };
       break;
-    case "full-command":
+    case 'full-command':
       transaction = createTransaction(
         composePactCommand(
           { payload: input.payload },
@@ -40,8 +37,8 @@ export const buildTransactionPayload = (
         }),
       );
       break;
-    case "partial-command":
-      if (!input.meta && "chainId" in input) {
+    case 'partial-command':
+      if (!input.meta && 'chainId' in input) {
         input.meta = { chainId: input.chainId };
       }
 
@@ -59,7 +56,7 @@ export const buildTransactionPayload = (
         }),
       );
       break;
-    case "payload":
+    case 'payload':
       transaction = createTransaction(
         composePactCommand(
           { payload: input.payload },
@@ -72,7 +69,7 @@ export const buildTransactionPayload = (
         }),
       );
       break;
-    case "code":
+    case 'code':
       transaction = createTransaction(
         composePactCommand(
           {
@@ -93,9 +90,7 @@ export const buildTransactionPayload = (
       );
       break;
     default:
-      throw new GasLimitEstimationError(
-        "Something went wrong generating the transaction.",
-      );
+      throw new GasLimitEstimationError('Something went wrong generating the transaction.');
   }
 
   return transaction;

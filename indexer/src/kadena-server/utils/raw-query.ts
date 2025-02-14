@@ -1,15 +1,11 @@
-import { dirtyReadClient } from "@kadena/client-utils/core";
-import type { ChainId } from "@kadena/types";
-import {
-  PactQuery,
-  PactQueryData,
-  PactQueryResponse,
-} from "../config/graphql-types";
-import { getRequiredEnvString } from "../../utils/helpers";
-import { PactCommandError } from "../errors/pact-command-error";
+import { dirtyReadClient } from '@kadena/client-utils/core';
+import type { ChainId } from '@kadena/types';
+import { PactQuery, PactQueryData, PactQueryResponse } from '../config/graphql-types';
+import { getRequiredEnvString } from '../../utils/helpers';
+import { PactCommandError } from '../errors/pact-command-error';
 
-const HOST_URL = getRequiredEnvString("NODE_API_URL");
-const NETWORK_ID = getRequiredEnvString("SYNC_NETWORK");
+const HOST_URL = getRequiredEnvString('NODE_API_URL');
+const NETWORK_ID = getRequiredEnvString('SYNC_NETWORK');
 
 async function sendRawQuery(
   code: string,
@@ -40,7 +36,7 @@ async function sendRawQuery(
 
     return JSON.stringify(result);
   } catch (error) {
-    throw new PactCommandError("Pact Command failed with error", error);
+    throw new PactCommandError('Pact Command failed with error', error);
   }
 }
 
@@ -49,7 +45,7 @@ async function sendQuery(query: PactQuery): Promise<PactQueryResponse> {
   try {
     const result = await sendRawQuery(code, chainId, data);
     return {
-      status: "success",
+      status: 'success',
       result,
       error: null,
       chainId: chainId,
@@ -57,11 +53,10 @@ async function sendQuery(query: PactQuery): Promise<PactQueryResponse> {
     };
   } catch (error: unknown) {
     const err = error as PactCommandError;
-    const pactErrorMessage =
-      err.pactError?.message || JSON.stringify(err.pactError || error);
+    const pactErrorMessage = err.pactError?.message || JSON.stringify(err.pactError || error);
 
     return {
-      status: "error",
+      status: 'error',
       result: null,
       error: pactErrorMessage,
       chainId: chainId,
@@ -70,16 +65,13 @@ async function sendQuery(query: PactQuery): Promise<PactQueryResponse> {
   }
 }
 
-function createTimeout(
-  query: PactQuery,
-  timeoutMs: number,
-): Promise<PactQueryResponse> {
-  return new Promise((resolve) =>
+function createTimeout(query: PactQuery, timeoutMs: number): Promise<PactQueryResponse> {
+  return new Promise(resolve =>
     setTimeout(() => {
       resolve({
-        status: "timeout",
+        status: 'timeout',
         result: null,
-        error: "The query took too long to execute and was aborted",
+        error: 'The query took too long to execute and was aborted',
         chainId: query.chainId,
         code: query.code,
       });
@@ -87,9 +79,7 @@ function createTimeout(
   );
 }
 
-export async function handleSingleQuery(
-  query: PactQuery,
-): Promise<PactQueryResponse> {
+export async function handleSingleQuery(query: PactQuery): Promise<PactQueryResponse> {
   const timeoutPromise = createTimeout(query, 10000);
 
   const sendQueryPromise = sendQuery(query);

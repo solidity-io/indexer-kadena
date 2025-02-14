@@ -1,12 +1,12 @@
-import { getRequiredEnvString } from "../../../../utils/helpers";
-import { TransactionOutput } from "../../application/transaction-repository";
-import zod from "zod";
+import { getRequiredEnvString } from '../../../../utils/helpers';
+import { TransactionOutput } from '../../application/transaction-repository';
+import zod from 'zod';
 
-const NETWORK_ID = getRequiredEnvString("SYNC_NETWORK");
+const NETWORK_ID = getRequiredEnvString('SYNC_NETWORK');
 
 const getBase64ID = (blockHash: string, requestKey: string): string => {
   const inputString = `Transaction:[\"${blockHash}\",\"${requestKey}\"]`;
-  const base64ID = Buffer.from(inputString, "utf-8").toString("base64");
+  const base64ID = Buffer.from(inputString, 'utf-8').toString('base64');
   return base64ID;
 };
 
@@ -34,7 +34,7 @@ const schema = zod.object({
 
 function validate(row: any): TransactionOutput {
   const res = schema.parse(row);
-  const isSuccess = res.result.status === "success";
+  const isSuccess = res.result.status === 'success';
   const continuation = JSON.stringify(res.continuation);
   return {
     id: getBase64ID(res.blockHash, res.requestKey),
@@ -45,11 +45,11 @@ function validate(row: any): TransactionOutput {
     sigs: res.sigs,
     result: {
       // TransactionMempoolInfo
-      status: "", // TODO
+      status: '', // TODO
 
       // TransactionResult
       badResult: !isSuccess ? res.result.data : null,
-      continuation: continuation === "{}" ? null : continuation,
+      continuation: continuation === '{}' ? null : continuation,
       eventCount: res.eventCount,
       transactionId: res.txid ? res.txid : null,
       height: res.height,

@@ -25,9 +25,7 @@ type AllInfo = NetworkStatistics & HashRateAndTotalDifficulty & GetNodeInfo;
 
 export default interface NetworkRepository {
   getNetworkStatistics(): Promise<NetworkStatistics>;
-  getHashRateAndTotalDifficulty(
-    chainIds: number[],
-  ): Promise<HashRateAndTotalDifficulty>;
+  getHashRateAndTotalDifficulty(chainIds: number[]): Promise<HashRateAndTotalDifficulty>;
   getNodeInfo(): Promise<GetNodeInfo>;
   getAllInfo(): Promise<AllInfo>;
 }

@@ -1,7 +1,7 @@
-import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
-import { TransactionAttributes } from "../../models/transaction";
-import { TransferAttributes } from "../../models/transfer";
-import { getContract, saveContract, syncContract } from "./contract";
+import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
+import { TransactionAttributes } from '../../models/transaction';
+import { TransferAttributes } from '../../models/transfer';
+import { getContract, saveContract, syncContract } from './contract';
 
 /**
  * Filters and processes NFT transfer events from a payload's event data. It identifies NFT transfer events based on
@@ -18,16 +18,16 @@ export function getNftTransfers(
   eventsData: any,
   transactionAttributes: TransactionAttributes,
 ) {
-  const TRANSFER_NFT_SIGNATURE = "TRANSFER";
+  const TRANSFER_NFT_SIGNATURE = 'TRANSFER';
   const TRANSFER_NFT_PARAMS_LENGTH = 4;
 
   const transferNftSignature = (eventData: any) =>
     eventData.name == TRANSFER_NFT_SIGNATURE &&
     eventData.params.length == TRANSFER_NFT_PARAMS_LENGTH &&
-    typeof eventData.params[0] == "string" &&
-    typeof eventData.params[1] == "string" &&
-    typeof eventData.params[2] == "string" &&
-    typeof eventData.params[3] == "number";
+    typeof eventData.params[0] == 'string' &&
+    typeof eventData.params[1] == 'string' &&
+    typeof eventData.params[2] == 'string' &&
+    typeof eventData.params[3] == 'number';
 
   const transferPromises = eventsData
     .filter(transferNftSignature)
@@ -54,7 +54,7 @@ export function getNftTransfers(
         to_acct: to_acct,
         hasTokenId: true,
         tokenId: tokenId,
-        type: "poly-fungible",
+        type: 'poly-fungible',
         contractId: contractId,
         orderIndex: index,
       } as TransferAttributes;
@@ -73,19 +73,16 @@ const requests: Record<string, undefined | boolean> = {};
  * @param {any} requestKey - Associated to the T.
  * @returns {Promise<TransferAttributes[]>} A Promise that resolves to an array of transfer attributes specifically for coin transfers.
  */
-export function getCoinTransfers(
-  eventsData: any,
-  transactionAttributes: TransactionAttributes,
-) {
-  const TRANSFER_COIN_SIGNATURE = "TRANSFER";
+export function getCoinTransfers(eventsData: any, transactionAttributes: TransactionAttributes) {
+  const TRANSFER_COIN_SIGNATURE = 'TRANSFER';
   const TRANSFER_COIN_PARAMS_LENGTH = 3;
 
   const transferCoinSignature = (eventData: any) =>
     eventData.name == TRANSFER_COIN_SIGNATURE &&
     eventData.params.length == TRANSFER_COIN_PARAMS_LENGTH &&
-    typeof eventData.params[0] == "string" &&
-    typeof eventData.params[1] == "string" &&
-    typeof eventData.params[2] == "number";
+    typeof eventData.params[0] == 'string' &&
+    typeof eventData.params[1] == 'string' &&
+    typeof eventData.params[2] == 'number';
 
   const transferPromises = eventsData
     .filter(transferCoinSignature)
@@ -110,7 +107,7 @@ export function getCoinTransfers(
           contractId = await saveContract(
             chainId,
             modulename,
-            "fungible",
+            'fungible',
             null,
             null,
             Number(JSON.parse(precisionData.result).int),
@@ -136,7 +133,7 @@ export function getCoinTransfers(
         to_acct: to_acct,
         hasTokenId: false,
         tokenId: undefined,
-        type: "fungible",
+        type: 'fungible',
         contractId: contractId,
         orderIndex: index,
       } as TransferAttributes;

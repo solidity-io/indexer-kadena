@@ -1,6 +1,6 @@
-import { Model, DataTypes, Optional } from "sequelize";
-import { sequelize } from "../config/database";
-import Transaction from "./transaction";
+import { Model, DataTypes, Optional } from 'sequelize';
+import { sequelize } from '../config/database';
+import Transaction from './transaction';
 
 export interface SignerAttributes {
   id: number;
@@ -12,12 +12,9 @@ export interface SignerAttributes {
   transactionId: number;
 }
 
-interface SignerCreationAttributes extends Optional<SignerAttributes, "id"> {}
+interface SignerCreationAttributes extends Optional<SignerAttributes, 'id'> {}
 
-class Signer
-  extends Model<SignerAttributes, SignerCreationAttributes>
-  implements SignerAttributes
-{
+class Signer extends Model<SignerAttributes, SignerCreationAttributes> implements SignerAttributes {
   public id!: number;
   public address?: string;
   public orderIndex?: number;
@@ -33,56 +30,56 @@ Signer.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-      comment: "The unique identifier for the signer",
+      comment: 'The unique identifier for the signer',
     },
     address: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: "The address of the signer",
+      comment: 'The address of the signer',
     },
     orderIndex: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "The order index for the signer",
+      comment: 'The order index for the signer',
     },
     pubkey: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: "The public key of the signer",
+      comment: 'The public key of the signer',
     },
     clist: {
       type: DataTypes.JSONB,
       allowNull: true,
-      comment: "The capabilities list (clist) associated with the signer",
+      comment: 'The capabilities list (clist) associated with the signer',
     },
     scheme: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: "The scheme associated with the signer, eg. ED25519",
+      comment: 'The scheme associated with the signer, eg. ED25519',
     },
     transactionId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "Transactions",
-        key: "id",
+        model: 'Transactions',
+        key: 'id',
       },
-      comment: "Foreign key referencing the related transaction ID",
+      comment: 'Foreign key referencing the related transaction ID',
     },
   },
   {
     sequelize,
-    modelName: "Signer",
-    tableName: "Signers",
+    modelName: 'Signer',
+    tableName: 'Signers',
     timestamps: true,
     indexes: [
       {
-        name: "signers_pubkey_transactionid_idx",
-        fields: ["pubkey", "transactionId"],
+        name: 'signers_pubkey_transactionid_idx',
+        fields: ['pubkey', 'transactionId'],
       },
       {
-        name: "signers_transaction_id_idx",
-        fields: ["transactionId"],
+        name: 'signers_transaction_id_idx',
+        fields: ['transactionId'],
       },
     ],
   },
@@ -90,8 +87,8 @@ Signer.init(
 
 // Set up association with Transaction
 Signer.belongsTo(Transaction, {
-  foreignKey: "transactionId",
-  as: "transaction",
+  foreignKey: 'transactionId',
+  as: 'transaction',
 });
 
 export default Signer;

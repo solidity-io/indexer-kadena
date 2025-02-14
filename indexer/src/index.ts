@@ -1,24 +1,24 @@
-import dotenv from "dotenv";
-console.log("Loading environment variables...");
+import dotenv from 'dotenv';
+console.log('Loading environment variables...');
 dotenv.config();
 
-import { program } from "commander";
-import { startStreaming } from "./services/sync/streaming";
-import { usePostgraphile } from "./server/metrics";
-import { useKadenaGraphqlServer } from "./kadena-server/server";
-import { closeDatabase } from "./config/database";
-import { initializeDatabase } from "./config/init";
-import { startGuardsBackfill } from "./services/sync/guards";
-import { startBackfillCoinbaseTransactions } from "./services/sync/coinbase";
+import { program } from 'commander';
+import { startStreaming } from './services/sync/streaming';
+import { usePostgraphile } from './server/metrics';
+import { useKadenaGraphqlServer } from './kadena-server/server';
+import { closeDatabase } from './config/database';
+import { initializeDatabase } from './config/init';
+import { startGuardsBackfill } from './services/sync/guards';
+import { startBackfillCoinbaseTransactions } from './services/sync/coinbase';
 
 program
-  .option("-s, --streaming", "Start streaming blockchain data")
-  .option("-g, --oldGraphql", "Start GraphQL server based on Postgraphile")
-  .option("-t, --graphql", "Start GraphQL server based on kadena schema")
-  .option("-f, --guards", "Backfill the guards")
+  .option('-s, --streaming', 'Start streaming blockchain data')
+  .option('-g, --oldGraphql', 'Start GraphQL server based on Postgraphile')
+  .option('-t, --graphql', 'Start GraphQL server based on kadena schema')
+  .option('-f, --guards', 'Backfill the guards')
   // this option shouldn't be used if you initialize the indexer from the beginning
-  .option("-c, --coinbase", "Backfill coinbase transactions")
-  .option("-z, --database", "Init the database");
+  .option('-c, --coinbase', 'Backfill coinbase transactions')
+  .option('-z, --database', 'Init the database');
 
 program.parse(process.argv);
 
@@ -47,10 +47,10 @@ async function main() {
     } else if (options.graphql) {
       await useKadenaGraphqlServer();
     } else {
-      console.log("No specific task requested.");
+      console.log('No specific task requested.');
     }
   } catch (error) {
-    console.error("An error occurred during the initialization:", error);
+    console.error('An error occurred during the initialization:', error);
   }
 }
 
@@ -60,11 +60,11 @@ async function main() {
  */
 async function handleGracefulShutdown(signal: string) {
   console.log(`Received ${signal}. Graceful shutdown start.`);
-  console.log("Graceful shutdown complete.");
+  console.log('Graceful shutdown complete.');
   process.exit(0);
 }
 
-process.on("SIGINT", handleGracefulShutdown);
-process.on("SIGTERM", handleGracefulShutdown);
+process.on('SIGINT', handleGracefulShutdown);
+process.on('SIGTERM', handleGracefulShutdown);
 
 main();

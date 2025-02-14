@@ -1,9 +1,9 @@
 ---
 name: Refactor Request
 about: Suggest the refactoring for this project
-title: "refactor:"
+title: 'refactor:'
 labels: enhancement
-assignees: ""
+assignees: ''
 ---
 
 ## Refactor Request
@@ -18,4 +18,3 @@ Please include if your refactor request is related to a problem. -->
 <!-- List any other information that is relevant to your issue. Stack traces,
 related issues, suggestions on how to add, use case, Stack Overflow links,
 forum links, screenshots, OS if applicable, etc. -->
-

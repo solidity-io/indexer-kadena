@@ -1,20 +1,17 @@
-import { ResolverContext } from "../../../config/apollo-server-config";
-import { QueryTransactionsByPublicKeyConnectionResolvers } from "../../../config/graphql-types";
-import zod from "zod";
+import { ResolverContext } from '../../../config/apollo-server-config';
+import { QueryTransactionsByPublicKeyConnectionResolvers } from '../../../config/graphql-types';
+import zod from 'zod';
 
 const schema = zod.object({
   publicKey: zod.string(),
 });
 
-export const totalCountQueryTransactionsByPublicKeyConnectionResolver: QueryTransactionsByPublicKeyConnectionResolvers<ResolverContext>["totalCount"] =
+export const totalCountQueryTransactionsByPublicKeyConnectionResolver: QueryTransactionsByPublicKeyConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
-    console.log("totalCountQueryTransactionsByPublicKeyConnectionResolver");
+    console.log('totalCountQueryTransactionsByPublicKeyConnectionResolver');
 
     const { publicKey } = schema.parse(parent);
 
-    const output =
-      await context.transactionRepository.getTransactionsByPublicKeyCount(
-        publicKey,
-      );
+    const output = await context.transactionRepository.getTransactionsByPublicKeyCount(publicKey);
     return output;
   };

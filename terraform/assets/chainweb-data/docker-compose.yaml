@@ -10,9 +10,9 @@ volumes:
 services:
   chainweb-data:
     expose:
-      - "8888"
+      - '8888'
     ports:
-      - "8888:8888"
+      - '8888:8888'
     build:
       dockerfile: ./src/Dockerfile
     env_file:
@@ -24,9 +24,9 @@ services:
     image: postgres:14.5-bullseye
     user: postgres
     expose:
-      - "5432"
+      - '5432'
     ports:
-      - "5432:5432"
+      - '5432:5432'
     env_file:
       - .env
     volumes:
@@ -41,6 +41,6 @@ services:
   debug:
     image: alpine:latest
     entrypoint:
-    - /bin/sh
+      - /bin/sh
     profiles:
-    - debug
+      - debug

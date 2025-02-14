@@ -7,24 +7,20 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: [
-    "nuxt-headlessui",
-    "@nuxtjs/tailwindcss",
-    "nuxt-graphql-request",
-  ],
+  modules: ['nuxt-headlessui', '@nuxtjs/tailwindcss', 'nuxt-graphql-request'],
 
   build: {
     transpile: ['@popperjs/core', 'nuxt-graphql-request', '@venegrad/vue3-click-outside'],
   },
 
   alias: {
-    "cross-fetch": "cross-fetch/dist/browser-ponyfill.js",
+    'cross-fetch': 'cross-fetch/dist/browser-ponyfill.js',
   },
 
   runtimeConfig: {
     public: {
       CG_KEY: process.env.CG_KEY,
-      CG_URL: process.env.CG_URL || "https://api.coingecko.com/api/v3",
+      CG_URL: process.env.CG_URL || 'https://api.coingecko.com/api/v3',
       API_URL: process.env.API_URL,
     },
   },
@@ -54,4 +50,4 @@ export default defineNuxtConfig({
   headlessui: {
     prefix: '',
   },
-})
+});

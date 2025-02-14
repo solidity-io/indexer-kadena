@@ -1,17 +1,18 @@
-export const useTransactionStatus = (result: string) => result.includes('\"status\":\"success\"') ? 'success' : 'error'
+export const useTransactionStatus = (result: string) =>
+  result.includes('\"status\":\"success\"') ? 'success' : 'error';
 
 export const useTransactionPubkey = (data: string) => {
   if (!data) {
-    return null
+    return null;
   }
 
-  const parsedData = JSON.parse(data || '{}')
+  const parsedData = JSON.parse(data || '{}');
 
-  const [ first ] = parsedData.keyset?.keys || parsedData.ks?.keys || []
+  const [first] = parsedData.keyset?.keys || parsedData.ks?.keys || [];
 
-  return first
-}
+  return first;
+};
 
-export const useTransactionSigs = (sigs: string) => JSON.parse(sigs)
+export const useTransactionSigs = (sigs: string) => JSON.parse(sigs);
 
-export const useTransactionGas = (transfers: any []) => transfers[0]
+export const useTransactionGas = (transfers: any[]) => transfers[0];

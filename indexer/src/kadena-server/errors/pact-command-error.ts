@@ -1,4 +1,4 @@
-import zod from "zod";
+import zod from 'zod';
 
 const errorSchema = zod.object({
   message: zod.string(),

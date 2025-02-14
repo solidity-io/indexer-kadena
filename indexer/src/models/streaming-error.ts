@@ -1,5 +1,5 @@
-import { Model, DataTypes, Optional } from "sequelize";
-import { sequelize } from "../config/database";
+import { Model, DataTypes, Optional } from 'sequelize';
+import { sequelize } from '../config/database';
 
 interface StreamingErrorAttributes {
   id: number;
@@ -7,8 +7,7 @@ interface StreamingErrorAttributes {
   hash: string;
 }
 
-interface StreamingErrorCreationAttributes
-  extends Optional<StreamingErrorAttributes, "id"> {}
+interface StreamingErrorCreationAttributes extends Optional<StreamingErrorAttributes, 'id'> {}
 
 class StreamingError
   extends Model<StreamingErrorAttributes, StreamingErrorCreationAttributes>
@@ -27,8 +26,8 @@ StreamingError.init(
   },
   {
     sequelize,
-    modelName: "StreamingError",
-    tableName: "StreamingErrors",
+    modelName: 'StreamingError',
+    tableName: 'StreamingErrors',
     timestamps: true,
   },
 );

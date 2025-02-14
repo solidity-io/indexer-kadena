@@ -1,5 +1,5 @@
-import zod from "zod";
-import { GasLimitEstimationError } from "../../errors/gas-limit-estimation-error";
+import zod from 'zod';
+import { GasLimitEstimationError } from '../../errors/gas-limit-estimation-error';
 
 const schema = zod.object({
   cmd: zod.string().optional(),
@@ -20,7 +20,7 @@ export function parseInput(input: string): IGasLimitEstimationInput {
     return schema.parse(parsed);
   } catch (e) {
     throw new GasLimitEstimationError(
-      "Unable to parse input as JSON. Please see the README for the accepted input format.",
+      'Unable to parse input as JSON. Please see the README for the accepted input format.',
     );
   }
 }

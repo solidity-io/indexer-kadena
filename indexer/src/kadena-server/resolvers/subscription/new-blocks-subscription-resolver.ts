@@ -1,7 +1,7 @@
-import { ResolverContext } from "../../config/apollo-server-config";
-import { SubscriptionResolvers } from "../../config/graphql-types";
-import { BlockOutput } from "../../repository/application/block-repository";
-import { buildBlockOutput } from "../output/build-block-output";
+import { ResolverContext } from '../../config/apollo-server-config';
+import { SubscriptionResolvers } from '../../config/graphql-types';
+import { BlockOutput } from '../../repository/application/block-repository';
+import { buildBlockOutput } from '../output/build-block-output';
 
 async function* iteratorFn(
   chainIds: string[],
@@ -20,17 +20,16 @@ async function* iteratorFn(
 
     if (newBlocks.length > 0) {
       lastBlockId = Number(newBlocks[0].id);
-      yield newBlocks.map((b) => buildBlockOutput(b));
+      yield newBlocks.map(b => buildBlockOutput(b));
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 }
 
-export const newBlocksSubscriptionResolver: SubscriptionResolvers<ResolverContext>["newBlocks"] =
-  {
-    subscribe: (_root, args, context) => {
-      return iteratorFn(args.chainIds ?? [], context);
-    },
-    resolve: (payload: any) => payload,
-  };
+export const newBlocksSubscriptionResolver: SubscriptionResolvers<ResolverContext>['newBlocks'] = {
+  subscribe: (_root, args, context) => {
+    return iteratorFn(args.chainIds ?? [], context);
+  },
+  resolve: (payload: any) => payload,
+};

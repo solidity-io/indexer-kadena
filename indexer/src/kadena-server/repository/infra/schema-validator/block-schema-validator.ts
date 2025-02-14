@@ -1,9 +1,9 @@
-import { BlockAttributes } from "../../../../models/block";
-import zod from "zod";
-import { BlockOutput } from "../../application/block-repository";
-import { convertStringToDate } from "../../../utils/date";
-import { calculateBlockDifficulty } from "../../../utils/difficulty";
-import { int64ToUint64String } from "../../../../utils/int-uint-64";
+import { BlockAttributes } from '../../../../models/block';
+import zod from 'zod';
+import { BlockOutput } from '../../application/block-repository';
+import { convertStringToDate } from '../../../utils/date';
+import { calculateBlockDifficulty } from '../../../utils/difficulty';
+import { int64ToUint64String } from '../../../../utils/int-uint-64';
 
 const schema = zod.object({
   id: zod.number(),
@@ -23,7 +23,7 @@ const schema = zod.object({
 
 const getBase64ID = (hash: string): string => {
   const inputString = `Block:${hash.toString()}`;
-  const base64ID = Buffer.from(inputString, "utf-8").toString("base64");
+  const base64ID = Buffer.from(inputString, 'utf-8').toString('base64');
   return base64ID;
 };
 
@@ -35,7 +35,7 @@ const validate = (row: any): BlockOutput => {
     creationTime: convertStringToDate(res.creationTime),
     epoch: convertStringToDate(res.epochStart),
     flags: int64ToUint64String(res.featureFlags),
-    powHash: "...", // TODO (STREAMING)
+    powHash: '...', // TODO (STREAMING)
     hash: res.hash,
     height: res.height,
     nonce: res.nonce,
@@ -58,7 +58,7 @@ const mapFromSequelize = (blockModel: BlockAttributes): BlockOutput => {
     parentHash: blockModel.parent,
     chainId: blockModel.chainId,
     creationTime: convertStringToDate(blockModel.creationTime),
-    powHash: "...", // TODO (STREAMING)
+    powHash: '...', // TODO (STREAMING)
     difficulty: Number(calculateBlockDifficulty(blockModel.target)),
     epoch: convertStringToDate(blockModel.epochStart),
     flags: int64ToUint64String(blockModel.featureFlags),

@@ -1,16 +1,16 @@
-import { ref, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, watch, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 export interface PaginateInterface {
-  key: string
-  query: string
+  key: string;
+  query: string;
 }
 
 export function usePagination(defaultLimit = 20) {
-  const route = useRoute()
-  const router = useRouter()
+  const route = useRoute();
+  const router = useRouter();
 
-  const page = ref(isNaN(Number(route.query.page)) ? 1 : Number(route.query.page))
+  const page = ref(isNaN(Number(route.query.page)) ? 1 : Number(route.query.page));
 
   const limit = ref(defaultLimit);
   const cursor = ref<string | undefined>(undefined);
@@ -27,34 +27,34 @@ export function usePagination(defaultLimit = 20) {
   function getLastPageParams() {
     return {
       last: limit.value,
-    }
+    };
   }
 
   function getFirstPageParams() {
     return {
       first: limit.value,
-    }
+    };
   }
 
   function getNextPageParams(pageInfo: any) {
     return {
       after: pageInfo.endCursor,
       first: limit.value,
-    }
+    };
   }
 
   function getPrevPageParams(pageInfo: any) {
     return {
       before: pageInfo.startCursor,
       last: limit.value,
-    }
+    };
   }
 
-  function updateURL (newPage: number, newCursor: string | null) {
+  function updateURL(newPage: number, newCursor: string | null) {
     if (!newPage || !newCursor) {
       const { page, cursor, ...rest } = route.query;
 
-      router.replace({ query: rest })
+      router.replace({ query: rest });
 
       return;
     }
@@ -68,18 +68,18 @@ export function usePagination(defaultLimit = 20) {
       query.cursor = newCursor;
     }
 
-    router.replace({ query })
+    router.replace({ query });
   }
 
-  function updatePage (newPage: number, pageInfo: any, totalCount: any, totalPages: any) {
+  function updatePage(newPage: number, pageInfo: any, totalCount: any, totalPages: any) {
     if (newPage === page.value) {
-      return
+      return;
     }
 
     if (newPage === totalPages) {
       const newParams = getLastPageParams();
 
-      page.value = newPage
+      page.value = newPage;
       params.value = newParams;
 
       return;
@@ -88,7 +88,7 @@ export function usePagination(defaultLimit = 20) {
     if (newPage === 1) {
       const newParams = getFirstPageParams();
 
-      page.value = newPage
+      page.value = newPage;
       params.value = newParams;
 
       return;
@@ -97,7 +97,7 @@ export function usePagination(defaultLimit = 20) {
     if (newPage > page.value) {
       const newParams = getNextPageParams(pageInfo);
 
-      page.value = newPage
+      page.value = newPage;
       params.value = newParams;
 
       return;
@@ -106,7 +106,7 @@ export function usePagination(defaultLimit = 20) {
     if (newPage < page.value) {
       const newParams = getPrevPageParams(pageInfo);
 
-      page.value = newPage
+      page.value = newPage;
       params.value = newParams;
 
       return;
@@ -114,8 +114,8 @@ export function usePagination(defaultLimit = 20) {
   }
 
   watch([page, cursor], ([newPage, newCursor]) => {
-    updateURL(newPage, newCursor)
-  })
+    updateURL(newPage, newCursor);
+  });
 
   return {
     page,
@@ -124,5 +124,5 @@ export function usePagination(defaultLimit = 20) {
     params,
     updatePage,
     updateCursor,
-  }
+  };
 }

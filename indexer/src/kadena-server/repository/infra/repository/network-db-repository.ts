@@ -1,39 +1,36 @@
-import { Op } from "sequelize";
-import BlockModel from "../../../../models/block";
+import { Op } from 'sequelize';
+import BlockModel from '../../../../models/block';
 import NetworkRepository, {
   GetNodeInfo,
   HashRateAndTotalDifficulty,
   NetworkStatistics,
-} from "../../application/network-repository";
+} from '../../application/network-repository';
 import {
   BlockWithDifficulty,
   calculateBlockDifficulty,
   calculateTotalDifficulty,
-} from "../../../utils/difficulty";
-import { calculateNetworkHashRate } from "../../../utils/hashrate";
-import { rootPgPool } from "../../../../config/database";
-import { nodeInfoValidator } from "../schema-validator/node-info-validator";
-import { getRequiredEnvString } from "../../../../utils/helpers";
-import { MEMORY_CACHE } from "../../../../cache/init";
-import {
-  HASH_RATE_AND_TOTAL_DIFFICULTY_KEY,
-  NETWORK_STATISTICS_KEY,
-} from "../../../../cache/keys";
-import { getCirculationNumber } from "../../../utils/coin-circulation";
+} from '../../../utils/difficulty';
+import { calculateNetworkHashRate } from '../../../utils/hashrate';
+import { rootPgPool } from '../../../../config/database';
+import { nodeInfoValidator } from '../schema-validator/node-info-validator';
+import { getRequiredEnvString } from '../../../../utils/helpers';
+import { MEMORY_CACHE } from '../../../../cache/init';
+import { HASH_RATE_AND_TOTAL_DIFFICULTY_KEY, NETWORK_STATISTICS_KEY } from '../../../../cache/keys';
+import { getCirculationNumber } from '../../../utils/coin-circulation';
 
-const HOST_URL = getRequiredEnvString("NODE_API_URL");
-const SYNC_BASE_URL = getRequiredEnvString("SYNC_BASE_URL");
-const NETWORK_ID = getRequiredEnvString("SYNC_NETWORK");
+const HOST_URL = getRequiredEnvString('NODE_API_URL');
+const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');
+const NETWORK_ID = getRequiredEnvString('SYNC_NETWORK');
 
-const NODE_INFO_KEY = "NODE_INFO_KEY";
+const NODE_INFO_KEY = 'NODE_INFO_KEY';
 
 export default class NetworkDbRepository implements NetworkRepository {
   async getCut(): Promise<number> {
     const response = await fetch(`${SYNC_BASE_URL}/${NETWORK_ID}/cut`, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        accept: "application/json;charset=utf-8, application/json",
-        "cache-control": "no-cache",
+        accept: 'application/json;charset=utf-8, application/json',
+        'cache-control': 'no-cache',
       },
     });
     const data = await response.json();
@@ -71,10 +68,7 @@ export default class NetworkDbRepository implements NetworkRepository {
     const { rows: totalTransactionsCountRows } = await rootPgPool.query(
       totalTransactionsCountQuery,
     );
-    const transactionCount = parseInt(
-      totalTransactionsCountRows[0].totalTransactionsCount,
-      10,
-    );
+    const transactionCount = parseInt(totalTransactionsCountRows[0].totalTransactionsCount, 10);
 
     const coinsInCirculation = await this.getCoinsInCirculation();
 
@@ -88,8 +82,8 @@ export default class NetworkDbRepository implements NetworkRepository {
 
   async getHashRateAndTotalDifficulty(chainIds: number[]) {
     const lastBlock = await BlockModel.findOne({
-      order: [["height", "DESC"]],
-      attributes: ["height"],
+      order: [['height', 'DESC']],
+      attributes: ['height'],
     });
 
     const currentHeight = lastBlock?.height ?? 0;
@@ -100,7 +94,7 @@ export default class NetworkDbRepository implements NetworkRepository {
           [Op.gte]: Number(currentHeight) - 4,
         },
       },
-      attributes: ["creationTime", "target", "height", "chainId"],
+      attributes: ['creationTime', 'target', 'height', 'chainId'],
     });
 
     const blocksWithDifficulty: BlockWithDifficulty[] = [];
@@ -120,11 +114,7 @@ export default class NetworkDbRepository implements NetworkRepository {
     const output = {
       networkHashRate: Number(calculateNetworkHashRate(blocksWithDifficulty)),
       totalDifficulty: Number(
-        calculateTotalDifficulty(
-          BigInt(currentHeight),
-          blocksWithDifficulty,
-          chainIds,
-        ),
+        calculateTotalDifficulty(BigInt(currentHeight), blocksWithDifficulty, chainIds),
       ),
     };
 
@@ -133,10 +123,10 @@ export default class NetworkDbRepository implements NetworkRepository {
 
   async getNodeInfo(): Promise<GetNodeInfo> {
     const response = await fetch(`${HOST_URL}/info`, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        accept: "application/json;charset=utf-8, application/json",
-        "cache-control": "no-cache",
+        accept: 'application/json;charset=utf-8, application/json',
+        'cache-control': 'no-cache',
       },
     });
     const data = await response.json();
@@ -147,9 +137,7 @@ export default class NetworkDbRepository implements NetworkRepository {
 
   async getAllInfo() {
     const nodeInfo = MEMORY_CACHE.get(NODE_INFO_KEY) as GetNodeInfo;
-    const networkStatistics = MEMORY_CACHE.get(
-      NETWORK_STATISTICS_KEY,
-    ) as NetworkStatistics;
+    const networkStatistics = MEMORY_CACHE.get(NETWORK_STATISTICS_KEY) as NetworkStatistics;
     const HashRateAndTotalDifficulty = MEMORY_CACHE.get(
       HASH_RATE_AND_TOTAL_DIFFICULTY_KEY,
     ) as HashRateAndTotalDifficulty;

@@ -1,13 +1,9 @@
-import zod from "zod";
-import { FungibleChainAccountOutput } from "../../application/block-repository";
+import zod from 'zod';
+import { FungibleChainAccountOutput } from '../../application/block-repository';
 
-const getBase64IDChain = (
-  chainId: number,
-  fungibleName: string,
-  accountName: string,
-): string => {
+const getBase64IDChain = (chainId: number, fungibleName: string, accountName: string): string => {
   const inputString = `FungibleChainAccount:[\"${chainId}\",\"${fungibleName}\",\"${accountName}\"]`;
-  const base64ID = Buffer.from(inputString, "utf-8").toString("base64");
+  const base64ID = Buffer.from(inputString, 'utf-8').toString('base64');
   return base64ID;
 };
 

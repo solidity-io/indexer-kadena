@@ -1,6 +1,6 @@
-import { ResolverContext } from "../../../config/apollo-server-config";
-import { QueryTransfersConnectionResolvers } from "../../../config/graphql-types";
-import zod from "zod";
+import { ResolverContext } from '../../../config/apollo-server-config';
+import { QueryTransfersConnectionResolvers } from '../../../config/graphql-types';
+import zod from 'zod';
 
 const schema = zod.object({
   accountName: zod.string().nullable().optional(),
@@ -10,21 +10,19 @@ const schema = zod.object({
   requestKey: zod.string().nullable().optional(),
 });
 
-export const totalCountQueryTransfersConnectionResolver: QueryTransfersConnectionResolvers<ResolverContext>["totalCount"] =
+export const totalCountQueryTransfersConnectionResolver: QueryTransfersConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
-    console.log("totalCountQueryTransfersConnectionResolver");
+    console.log('totalCountQueryTransfersConnectionResolver');
 
-    const { accountName, blockHash, chainId, fungibleName, requestKey } =
-      schema.parse(parent);
+    const { accountName, blockHash, chainId, fungibleName, requestKey } = schema.parse(parent);
 
-    const transactions =
-      await context.transferRepository.getTotalCountOfTransfers({
-        accountName,
-        blockHash,
-        chainId,
-        fungibleName,
-        requestKey,
-      });
+    const transactions = await context.transferRepository.getTotalCountOfTransfers({
+      accountName,
+      blockHash,
+      chainId,
+      fungibleName,
+      requestKey,
+    });
 
     return transactions;
   };

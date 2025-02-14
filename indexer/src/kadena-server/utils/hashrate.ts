@@ -1,8 +1,9 @@
-import { BlockWithDifficulty } from "./difficulty";
+import { BlockWithDifficulty } from './difficulty';
 
-function aggregateBlockData(
-  blocks: { creationTimeDate: Date; difficulty: bigint }[],
-): { earliestTime: number; totalDifficulty: bigint } {
+function aggregateBlockData(blocks: { creationTimeDate: Date; difficulty: bigint }[]): {
+  earliestTime: number;
+  totalDifficulty: bigint;
+} {
   let earliestTime = Number.MAX_SAFE_INTEGER;
   let totalDifficulty = 0n;
 
@@ -17,15 +18,10 @@ function aggregateBlockData(
   return { earliestTime, totalDifficulty };
 }
 
-export function calculateNetworkHashRate(
-  blocksWithDifficulty: BlockWithDifficulty[],
-): bigint {
-  const { earliestTime, totalDifficulty } =
-    aggregateBlockData(blocksWithDifficulty);
+export function calculateNetworkHashRate(blocksWithDifficulty: BlockWithDifficulty[]): bigint {
+  const { earliestTime, totalDifficulty } = aggregateBlockData(blocksWithDifficulty);
 
   const timeDifference = Date.now() - earliestTime;
 
-  return timeDifference < 1000
-    ? 0n
-    : totalDifficulty / (BigInt(timeDifference) / 1000n);
+  return timeDifference < 1000 ? 0n : totalDifficulty / (BigInt(timeDifference) / 1000n);
 }

@@ -1,4 +1,4 @@
-import { ChainId } from "@kadena/types";
+import { ChainId } from '@kadena/types';
 
 export interface IBaseInput {
   preflight: boolean;
@@ -6,7 +6,7 @@ export interface IBaseInput {
 }
 
 export type FullTransactionInput = IBaseInput & {
-  type: "full-transaction";
+  type: 'full-transaction';
   cmd: string;
   hash: string;
   sigs: string[];
@@ -14,14 +14,14 @@ export type FullTransactionInput = IBaseInput & {
 };
 
 export type StringifiedCommandInput = IBaseInput & {
-  type: "stringified-command";
+  type: 'stringified-command';
   cmd: string;
   sigs?: string[];
   networkId?: string;
 };
 
 export type FullCommandInput = IBaseInput & {
-  type: "full-command";
+  type: 'full-command';
   payload: any;
   meta: any;
   signers: any[];
@@ -29,7 +29,7 @@ export type FullCommandInput = IBaseInput & {
 };
 
 export type PartialCommandInput = IBaseInput & {
-  type: "partial-command";
+  type: 'partial-command';
   payload: any;
   meta?: any;
   signers?: any[];
@@ -38,14 +38,14 @@ export type PartialCommandInput = IBaseInput & {
 };
 
 export type PayloadInput = IBaseInput & {
-  type: "payload";
+  type: 'payload';
   payload: any;
   chainId: ChainId;
   networkId?: string;
 };
 
 export type CodeInput = IBaseInput & {
-  type: "code";
+  type: 'code';
   code: string;
   chainId: ChainId;
   networkId?: string;

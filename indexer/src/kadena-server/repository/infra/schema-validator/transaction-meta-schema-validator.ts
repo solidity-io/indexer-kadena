@@ -1,5 +1,5 @@
-import zod from "zod";
-import { TransactionMetaOutput } from "../../application/transaction-repository";
+import zod from 'zod';
+import { TransactionMetaOutput } from '../../application/transaction-repository';
 
 const schema = zod.object({
   chainId: zod.number(),

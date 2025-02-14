@@ -1,5 +1,5 @@
-import zod from "zod";
-import { TransferOutput } from "../../application/transfer-repository";
+import zod from 'zod';
+import { TransferOutput } from '../../application/transfer-repository';
 
 const schema = zod.object({
   id: zod.number(),
@@ -25,20 +25,14 @@ const getBase64ID = (
   requestKey: string,
 ): string => {
   const inputString = `Transfer:[\"${blockHash}\",\"${chainId}\",\"${orderIndex}\",\"${moduleHash}\",\"${requestKey}\"]`;
-  const base64ID = Buffer.from(inputString, "utf-8").toString("base64");
+  const base64ID = Buffer.from(inputString, 'utf-8').toString('base64');
   return base64ID;
 };
 
 function validate(row: any): TransferOutput {
   const res = schema.parse(row);
   return {
-    id: getBase64ID(
-      res.blockHash,
-      res.chainId,
-      res.orderIndex,
-      res.moduleHash,
-      res.requestKey,
-    ),
+    id: getBase64ID(res.blockHash, res.chainId, res.orderIndex, res.moduleHash, res.requestKey),
     creationTime: new Date(Number(res.creationTime) * 1000),
     moduleHash: res.moduleHash,
     requestKey: res.requestKey,
