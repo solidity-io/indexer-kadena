@@ -1,6 +1,7 @@
 # Kadindexer - Kadena Indexer
 
 [![Build](https://github.com/hack-a-chain-software/indexer-kadena/actions/workflows/indexer.yml/badge.svg)](https://github.com/hack-a-chain-software/indexer-kadena/actions/workflows/indexer.yml)
+[![Lint](https://github.com/hack-a-chain-software/indexer-kadena/actions/workflows/lint.yml/badge.svg)](https://github.com/hack-a-chain-software/indexer-kadena/actions/workflows/lint.yml)
 
 - [`@kadena-indexer/indexer`](indexer/README.md): The indexer package, which is responsible for scanning and storing blocks for Kadena blockchain.
 - [`@kadena-indexer/terraform`](terraform/README.md): The Terraform configuration for provisioning the infrastructure required to run the indexer and the node.
