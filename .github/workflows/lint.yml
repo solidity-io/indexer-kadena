@@ -1,4 +1,4 @@
-name: Lint Check
+name: 'Lint'
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint:
-    name: Run Prettier Check
+    name: Run Linter
     runs-on: ubuntu-latest
 
     steps:
