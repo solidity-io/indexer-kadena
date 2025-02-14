@@ -64,7 +64,7 @@
   },
   "scripts": {
     "create:database": "ts-node src/index.ts --database && yarn migrate:up",
-    "dev": "docker-compose -f docker-compose.development.yml up && docker-compose logs -f indexer",
+    "dev": "docker-compose -f docker-compose.yml up && docker-compose logs -f indexer",
     "dev:database": "ts-node src/index.ts --database",
     "dev:streaming": "ts-node src/index.ts --streaming",
     "dev:graphql": "ts-node src/index.ts --graphql",
