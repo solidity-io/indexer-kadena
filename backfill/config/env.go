@@ -35,7 +35,7 @@ func InitEnv(envFilePath string) {
 	}
 
 	config = &Config{
-		DbUser:                    getEnv("DB_USER"),
+		DbUser:                    getEnv("DB_USERNAME"),
 		DbPassword:                getEnv("DB_PASSWORD"),
 		DbName:                    getEnv("DB_NAME"),
 		DbHost:                    getEnv("DB_HOST"),
