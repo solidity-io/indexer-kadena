@@ -1,6 +1,6 @@
-import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database";
-import { gql, makeExtendSchemaPlugin } from "postgraphile";
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../config/database';
+import { gql, makeExtendSchemaPlugin } from 'postgraphile';
 
 export interface BlockAttributes {
   id: number;
@@ -93,7 +93,7 @@ Block.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-      comment: "The unique identifier for the block record.",
+      comment: 'The unique identifier for the block record.',
     },
     nonce: {
       type: DataTypes.STRING,
@@ -101,12 +101,11 @@ Block.init(
     },
     creationTime: {
       type: DataTypes.BIGINT,
-      comment: "The creation time of the block (e.g., 1718887955748100).",
+      comment: 'The creation time of the block (e.g., 1718887955748100).',
     },
     parent: {
       type: DataTypes.STRING,
-      comment:
-        "The parent block hash (e.g., '2Zw0pONGUoyYmlKi-F0o_-ak2hKKlg1Mmc9ab6BjATY').",
+      comment: "The parent block hash (e.g., '2Zw0pONGUoyYmlKi-F0o_-ak2hKKlg1Mmc9ab6BjATY').",
     },
     adjacents: {
       type: DataTypes.JSONB,
@@ -115,8 +114,7 @@ Block.init(
     },
     target: {
       type: DataTypes.STRING,
-      comment:
-        "The target of the block (e.g., 'o2YaicN3y58DkvsmCDKR88KqPwLPG5EADwAAAAAAAAA').",
+      comment: "The target of the block (e.g., 'o2YaicN3y58DkvsmCDKR88KqPwLPG5EADwAAAAAAAAA').",
     },
     payloadHash: {
       type: DataTypes.STRING,
@@ -125,16 +123,15 @@ Block.init(
     },
     chainId: {
       type: DataTypes.INTEGER,
-      comment: "The ID of the blockchain network (e.g., 16).",
+      comment: 'The ID of the blockchain network (e.g., 16).',
     },
     weight: {
       type: DataTypes.STRING,
-      comment:
-        "The weight of the block (e.g., 'WNim1Xw26HgDNwEAAAAAAAAAAAAAAAAAAAAAAAAAAAA').",
+      comment: "The weight of the block (e.g., 'WNim1Xw26HgDNwEAAAAAAAAAAAAAAAAAAAAAAAAAAAA').",
     },
     height: {
       type: DataTypes.INTEGER,
-      comment: "The height of the block (e.g., 4881163).",
+      comment: 'The height of the block (e.g., 4881163).',
     },
     chainwebVersion: {
       type: DataTypes.STRING,
@@ -142,16 +139,15 @@ Block.init(
     },
     epochStart: {
       type: DataTypes.BIGINT,
-      comment: "The epoch start time of the block (e.g., 1718886629458176).",
+      comment: 'The epoch start time of the block (e.g., 1718886629458176).',
     },
     featureFlags: {
       type: DataTypes.BIGINT,
-      comment: "The feature flags of the block (e.g., 56646198189039183).",
+      comment: 'The feature flags of the block (e.g., 56646198189039183).',
     },
     hash: {
       type: DataTypes.STRING,
-      comment:
-        "The hash of the block (e.g., 'XZXKrN7DzWnzEX2oZp5HOjr6R0zapn-XxtsYOdtfYFY').",
+      comment: "The hash of the block (e.g., 'XZXKrN7DzWnzEX2oZp5HOjr6R0zapn-XxtsYOdtfYFY').",
     },
     minerData: {
       type: DataTypes.JSONB,
@@ -175,68 +171,64 @@ Block.init(
     },
     canonical: {
       type: DataTypes.BOOLEAN,
-      comment: "Indicates whether the transaction is canonical.",
+      comment: 'Indicates whether the transaction is canonical.',
     },
     transactionsCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      comment: "The number of transactions in the block.",
+      comment: 'The number of transactions in the block.',
     },
   },
   {
     sequelize,
-    modelName: "Block",
+    modelName: 'Block',
     indexes: [
       {
-        name: "blocks_chainwebVersion_chainid_hash_unique_idx",
+        name: 'blocks_chainwebVersion_chainid_hash_unique_idx',
         unique: true,
-        fields: ["chainwebVersion", "chainId", "hash"],
+        fields: ['chainwebVersion', 'chainId', 'hash'],
       },
       {
-        name: "blocks_height_idx",
-        fields: ["height"],
+        name: 'blocks_height_idx',
+        fields: ['height'],
       },
       {
-        name: "blocks_hash_idx",
-        fields: ["hash"],
+        name: 'blocks_hash_idx',
+        fields: ['hash'],
       },
       {
-        name: "blocks_chainid_height_idx",
-        fields: ["chainId", "height"],
+        name: 'blocks_chainid_height_idx',
+        fields: ['chainId', 'height'],
       },
       {
-        name: "blocks_chainid_idx",
-        fields: ["chainId"],
+        name: 'blocks_chainid_idx',
+        fields: ['chainId'],
       },
       {
-        name: "blocks_canonical_idx",
-        fields: ["canonical"],
+        name: 'blocks_canonical_idx',
+        fields: ['canonical'],
       },
       {
-        name: "blocks_height_id_idx",
-        fields: ["height", "id"],
+        name: 'blocks_height_id_idx',
+        fields: ['height', 'id'],
       },
       // Search indexes
       {
-        name: "blocks_trgm_parent_idx",
-        fields: [sequelize.fn("LOWER", sequelize.col("parent"))],
-        using: "gin",
-        operator: "gin_trgm_ops",
+        name: 'blocks_trgm_parent_idx',
+        fields: [sequelize.fn('LOWER', sequelize.col('parent'))],
+        using: 'gin',
+        operator: 'gin_trgm_ops',
       },
     ],
   },
 );
 
-export const blockQueryPlugin = makeExtendSchemaPlugin((build) => {
+export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
   return {
     typeDefs: gql`
       extend type Query {
         blockByHeight(height: Int!, chainId: Int!): Block
-        searchAll(
-          searchTerm: String!
-          limit: Int!
-          heightFilter: Int
-        ): SearchAllResult
+        searchAll(searchTerm: String!, limit: Int!, heightFilter: Int): SearchAllResult
       }
 
       type SearchAllResult {
@@ -304,11 +296,7 @@ export const blockQueryPlugin = makeExtendSchemaPlugin((build) => {
         `;
 
           const [blocks, transactions, addresses, tokens] = await Promise.all([
-            rootPgPool.query(blocksQuery, [
-              `${searchTerm}`,
-              limit,
-              heightFilter,
-            ]),
+            rootPgPool.query(blocksQuery, [`${searchTerm}`, limit, heightFilter]),
             rootPgPool.query(transactionsQuery, [`${searchTerm}`, limit]),
             rootPgPool.query(addressesQuery, [`${searchTerm}`, limit]),
             rootPgPool.query(tokensQuery, [`%${searchTerm}%`, limit]),

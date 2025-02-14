@@ -1,27 +1,23 @@
-import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
-import Contract, { ContractAttributes } from "../../models/contract";
+import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
+import Contract, { ContractAttributes } from '../../models/contract';
 
-export async function syncContract(
-  chainId: number,
-  modulename: any,
-  tokenId: any,
-) {
+export async function syncContract(chainId: number, modulename: any, tokenId: any) {
   const manifestData = await handleSingleQuery({
     chainId: chainId.toString(),
     code: `(${modulename}.get-manifest "${tokenId}")`,
   });
-  console.log("manifestData", manifestData);
+  console.log('manifestData', manifestData);
   let contractId;
   if (!manifestData.error) {
     contractId = await saveContract(
       chainId,
       modulename,
-      "poly-fungible",
+      'poly-fungible',
       tokenId,
       manifestData.result,
     );
   } else {
-    console.log("No manifest URI found for token ID:", tokenId);
+    console.log('No manifest URI found for token ID:', tokenId);
   }
   return contractId;
 }

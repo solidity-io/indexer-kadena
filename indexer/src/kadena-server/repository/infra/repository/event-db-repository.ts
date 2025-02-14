@@ -1,5 +1,5 @@
-import { rootPgPool } from "../../../../config/database";
-import { PageInfo } from "../../../config/graphql-types";
+import { rootPgPool } from '../../../../config/database';
+import { PageInfo } from '../../../config/graphql-types';
 import EventRepository, {
   EventOutput,
   GetBlockEventsParams,
@@ -9,10 +9,10 @@ import EventRepository, {
   GetTotalEventsCount,
   GetTotalTransactionEventsCount,
   GetTransactionEventsParams,
-} from "../../application/event-repository";
-import { getPageInfo, getPaginationParams } from "../../pagination";
-import { ConnectionEdge } from "../../types";
-import { eventValidator } from "../schema-validator/event-schema-validator";
+} from '../../application/event-repository';
+import { getPageInfo, getPaginationParams } from '../../pagination';
+import { ConnectionEdge } from '../../types';
+import { eventValidator } from '../schema-validator/event-schema-validator';
 
 export default class EventDbRepository implements EventRepository {
   async getEvent(params: GetEventParams): Promise<EventOutput> {
@@ -44,13 +44,7 @@ export default class EventDbRepository implements EventRepository {
     return output;
   }
   async getBlockEvents(params: GetBlockEventsParams) {
-    const {
-      hash,
-      after: afterEncoded,
-      before: beforeEncoded,
-      first,
-      last,
-    } = params;
+    const { hash, after: afterEncoded, before: beforeEncoded, first, last } = params;
 
     const { limit, order, after, before } = getPaginationParams({
       after: afterEncoded,
@@ -61,7 +55,7 @@ export default class EventDbRepository implements EventRepository {
 
     const queryParams = [limit, hash];
 
-    let conditions = "";
+    let conditions = '';
 
     if (before) {
       queryParams.push(before);
@@ -94,7 +88,7 @@ export default class EventDbRepository implements EventRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const edges = rows.map((row) => ({
+    const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: eventValidator.validate(row),
     }));
@@ -112,9 +106,7 @@ export default class EventDbRepository implements EventRepository {
       WHERE b.hash = $1
     `;
 
-    const { rows: countResult } = await rootPgPool.query(totalCountQuery, [
-      hash,
-    ]);
+    const { rows: countResult } = await rootPgPool.query(totalCountQuery, [hash]);
 
     const totalCount = parseInt(countResult[0].count, 10);
     return totalCount;
@@ -142,12 +134,12 @@ export default class EventDbRepository implements EventRepository {
       last,
     });
 
-    const splitted = qualifiedEventName.split(".");
-    const name = splitted.pop() ?? "";
-    const module = splitted.join(".");
+    const splitted = qualifiedEventName.split('.');
+    const name = splitted.pop() ?? '';
+    const module = splitted.join('.');
 
     const queryParams: (string | number)[] = [limit];
-    let conditions = "";
+    let conditions = '';
 
     queryParams.push(module);
     conditions += `WHERE e.module = $${queryParams.length}`;
@@ -214,7 +206,7 @@ export default class EventDbRepository implements EventRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const edges = rows.map((row) => ({
+    const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: eventValidator.validate(row),
     }));
@@ -234,12 +226,12 @@ export default class EventDbRepository implements EventRepository {
       requestKey,
     } = params;
 
-    const splitted = qualifiedEventName.split(".");
-    const name = splitted.pop() ?? "";
-    const module = splitted.join(".");
+    const splitted = qualifiedEventName.split('.');
+    const name = splitted.pop() ?? '';
+    const module = splitted.join('.');
 
     const queryParams: (string | number)[] = [];
-    let conditions = "";
+    let conditions = '';
 
     queryParams.push(module);
     conditions += `WHERE e.module = $${queryParams.length}`;
@@ -284,10 +276,7 @@ export default class EventDbRepository implements EventRepository {
       ${conditions}
     `;
 
-    const { rows: countResult } = await rootPgPool.query(
-      totalCountQuery,
-      queryParams,
-    );
+    const { rows: countResult } = await rootPgPool.query(totalCountQuery, queryParams);
     const totalCount = parseInt(countResult[0].count, 10);
     return totalCount;
   }
@@ -295,13 +284,7 @@ export default class EventDbRepository implements EventRepository {
   async getTransactionEvents(
     params: GetTransactionEventsParams,
   ): Promise<{ pageInfo: PageInfo; edges: ConnectionEdge<EventOutput>[] }> {
-    const {
-      transactionId,
-      after: afterEncoded,
-      before: beforeEncoded,
-      first,
-      last,
-    } = params;
+    const { transactionId, after: afterEncoded, before: beforeEncoded, first, last } = params;
 
     const { limit, order, after, before } = getPaginationParams({
       after: afterEncoded,
@@ -311,7 +294,7 @@ export default class EventDbRepository implements EventRepository {
     });
 
     const queryParams: (string | number)[] = [limit, transactionId];
-    let conditions = "";
+    let conditions = '';
 
     if (after) {
       queryParams.push(after);
@@ -344,7 +327,7 @@ export default class EventDbRepository implements EventRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const edges = rows.map((row) => ({
+    const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: eventValidator.validate(row),
     }));
@@ -364,10 +347,7 @@ export default class EventDbRepository implements EventRepository {
       WHERE t.id = $1
     `;
 
-    const { rows: countResult } = await rootPgPool.query(
-      totalCountQuery,
-      queryParams,
-    );
+    const { rows: countResult } = await rootPgPool.query(totalCountQuery, queryParams);
     const totalCount = parseInt(countResult[0].count, 10);
     return totalCount;
   }
@@ -386,12 +366,12 @@ export default class EventDbRepository implements EventRepository {
     minimumDepth,
   }: GetLastEventsParams) {
     const queryParams = [];
-    let conditions = "";
-    let limitCondition = lastEventId ? "LIMIT 5" : "LIMIT 100";
+    let conditions = '';
+    let limitCondition = lastEventId ? 'LIMIT 5' : 'LIMIT 100';
 
-    const splitted = qualifiedEventName.split(".");
-    const name = splitted.pop() ?? "";
-    const module = splitted.join(".");
+    const splitted = qualifiedEventName.split('.');
+    const name = splitted.pop() ?? '';
+    const module = splitted.join('.');
 
     queryParams.push(module);
     conditions += `WHERE e.module = $${queryParams.length}`;
@@ -429,7 +409,7 @@ export default class EventDbRepository implements EventRepository {
     const { rows } = await rootPgPool.query(query, queryParams);
 
     const events = rows
-      .map((e) => eventValidator.validate(e))
+      .map(e => eventValidator.validate(e))
       .sort((a, b) => Number(b.id) - Number(a.id));
 
     return events;

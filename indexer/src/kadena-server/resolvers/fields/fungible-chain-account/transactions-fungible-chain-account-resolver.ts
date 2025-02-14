@@ -1,10 +1,10 @@
-import { ResolverContext } from "../../../config/apollo-server-config";
-import { FungibleChainAccountResolvers } from "../../../config/graphql-types";
-import { buildTransactionOutput } from "../../output/build-transaction-output";
+import { ResolverContext } from '../../../config/apollo-server-config';
+import { FungibleChainAccountResolvers } from '../../../config/graphql-types';
+import { buildTransactionOutput } from '../../output/build-transaction-output';
 
-export const transactionsFungibleChainAccountResolver: FungibleChainAccountResolvers<ResolverContext>["transactions"] =
+export const transactionsFungibleChainAccountResolver: FungibleChainAccountResolvers<ResolverContext>['transactions'] =
   async (parent, args, context) => {
-    console.log("transactionsFungibleChainAccountResolver");
+    console.log('transactionsFungibleChainAccountResolver');
 
     const { first, after, last, before } = args;
     const output = await context.transactionRepository.getTransactions({
@@ -17,7 +17,7 @@ export const transactionsFungibleChainAccountResolver: FungibleChainAccountResol
       before,
     });
 
-    const edges = output.edges.map((e) => ({
+    const edges = output.edges.map(e => ({
       cursor: e.cursor,
       node: buildTransactionOutput(e.node),
     }));

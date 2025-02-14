@@ -1,18 +1,17 @@
-import { ResolverContext } from "../../config/apollo-server-config";
-import { QueryResolvers } from "../../config/graphql-types";
-import { buildNonFungibleChainAccount } from "../output/build-non-fungible-chain-account-output";
+import { ResolverContext } from '../../config/apollo-server-config';
+import { QueryResolvers } from '../../config/graphql-types';
+import { buildNonFungibleChainAccount } from '../output/build-non-fungible-chain-account-output';
 
-export const nonFungibleChainAccountQueryResolver: QueryResolvers<ResolverContext>["nonFungibleChainAccount"] =
+export const nonFungibleChainAccountQueryResolver: QueryResolvers<ResolverContext>['nonFungibleChainAccount'] =
   async (_parent, args, context) => {
-    console.log("nonFungibleChainAccountQueryResolver");
+    console.log('nonFungibleChainAccountQueryResolver');
 
-    const account =
-      await context.balanceRepository.getNonFungibleChainAccountInfo(
-        args.accountName,
-        args.chainId,
-      );
+    const account = await context.balanceRepository.getNonFungibleChainAccountInfo(
+      args.accountName,
+      args.chainId,
+    );
 
-    const params = (account?.nonFungibleTokenBalances ?? []).map((n) => ({
+    const params = (account?.nonFungibleTokenBalances ?? []).map(n => ({
       tokenId: n.tokenId,
       chainId: n.chainId,
     }));

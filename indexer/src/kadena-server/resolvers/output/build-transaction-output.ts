@@ -1,5 +1,5 @@
-import { Signer, TransactionMeta } from "../../config/graphql-types";
-import { TransactionOutput } from "../../repository/application/transaction-repository";
+import { Signer, TransactionMeta } from '../../config/graphql-types';
+import { TransactionOutput } from '../../repository/application/transaction-repository';
 
 export const buildTransactionOutput = (tx: TransactionOutput) => {
   return {

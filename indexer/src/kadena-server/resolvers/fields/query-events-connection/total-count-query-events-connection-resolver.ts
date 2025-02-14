@@ -1,6 +1,6 @@
-import { ResolverContext } from "../../../config/apollo-server-config";
-import { QueryEventsConnectionResolvers } from "../../../config/graphql-types";
-import zod from "zod";
+import { ResolverContext } from '../../../config/apollo-server-config';
+import { QueryEventsConnectionResolvers } from '../../../config/graphql-types';
+import zod from 'zod';
 
 const schema = zod.object({
   blockHash: zod.string().nullable().optional(),
@@ -12,9 +12,9 @@ const schema = zod.object({
   qualifiedEventName: zod.string(),
 });
 
-export const totalCountQueryEventsConnectionResolver: QueryEventsConnectionResolvers<ResolverContext>["totalCount"] =
+export const totalCountQueryEventsConnectionResolver: QueryEventsConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
-    console.log("totalCountQueryEventsConnectionResolver");
+    console.log('totalCountQueryEventsConnectionResolver');
     const {
       blockHash,
       chainId,

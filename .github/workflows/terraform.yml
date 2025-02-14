@@ -1,4 +1,4 @@
-name: "Terraform Deployment"
+name: 'Terraform Deployment'
 
 on:
   workflow_dispatch:
@@ -38,7 +38,7 @@ jobs:
         with:
           name: terraform-plan
           path: ./terraform/tfplan
-          
+
   terraform-apply:
     needs: terraform-plan
     runs-on: ubuntu-latest
@@ -54,7 +54,6 @@ jobs:
         with:
           name: terraform-plan
           path: ./terraform
-
 #       - name: Terraform Apply
 #         run: terraform apply tfplan
 #         working-directory: ./terraform

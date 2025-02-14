@@ -1,6 +1,6 @@
-import zod from "zod";
-import { GetNodeInfo } from "../../application/network-repository";
-import { getRequiredEnvString } from "../../../../utils/helpers";
+import zod from 'zod';
+import { GetNodeInfo } from '../../application/network-repository';
+import { getRequiredEnvString } from '../../../../utils/helpers';
 
 const schema = zod.object({
   nodeApiVersion: zod.string(),
@@ -16,7 +16,7 @@ const schema = zod.object({
   nodeHistoricalChains: zod.any(),
 });
 
-const HOST_URL = getRequiredEnvString("NODE_API_URL");
+const HOST_URL = getRequiredEnvString('NODE_API_URL');
 
 function validate(row: any): GetNodeInfo {
   const res = schema.parse(row);

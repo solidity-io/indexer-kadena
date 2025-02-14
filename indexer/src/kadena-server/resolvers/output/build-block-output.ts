@@ -3,8 +3,8 @@ import {
   BlockEventsConnection,
   BlockTransactionsConnection,
   FungibleChainAccount,
-} from "../../config/graphql-types";
-import { BlockOutput } from "../../repository/application/block-repository";
+} from '../../config/graphql-types';
+import { BlockOutput } from '../../repository/application/block-repository';
 
 export const buildBlockOutput = (output: BlockOutput) => {
   return {

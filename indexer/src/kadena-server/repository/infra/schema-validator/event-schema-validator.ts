@@ -1,5 +1,5 @@
-import { EventOutput } from "../../application/event-repository";
-import zod from "zod";
+import { EventOutput } from '../../application/event-repository';
+import zod from 'zod';
 
 const schema = zod.object({
   id: zod.number(),
@@ -13,13 +13,9 @@ const schema = zod.object({
   parameters: zod.array(zod.any()),
 });
 
-const getBase64ID = (
-  hash: string,
-  orderIndex: number,
-  requestKey: string,
-): string => {
+const getBase64ID = (hash: string, orderIndex: number, requestKey: string): string => {
   const inputString = `Event:[\"${hash}\",\"${orderIndex}\",\"${requestKey}\"]`;
-  const base64ID = Buffer.from(inputString, "utf-8").toString("base64");
+  const base64ID = Buffer.from(inputString, 'utf-8').toString('base64');
   return base64ID;
 };
 

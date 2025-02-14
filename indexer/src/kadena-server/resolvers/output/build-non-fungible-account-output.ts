@@ -1,9 +1,9 @@
 import {
   NonFungibleAccount,
   NonFungibleAccountTransactionsConnection,
-} from "../../config/graphql-types";
-import { INonFungibleAccount } from "../../repository/application/balance-repository";
-import { NftInfo } from "../../repository/gateway/pact-gateway";
+} from '../../config/graphql-types';
+import { INonFungibleAccount } from '../../repository/application/balance-repository';
+import { NftInfo } from '../../repository/gateway/pact-gateway';
 
 export const buildNonFungibleAccount = (
   acc: INonFungibleAccount | null,
@@ -21,8 +21,8 @@ export const buildNonFungibleAccount = (
     // TODO
     guard: {
       keys: [],
-      predicate: "",
-      raw: JSON.stringify("{}"),
+      predicate: '',
+      raw: JSON.stringify('{}'),
     },
     info: {
       precision: nft.precision,

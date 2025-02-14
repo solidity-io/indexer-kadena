@@ -1,6 +1,6 @@
-import { FungibleAccountOutput } from "../../application/balance-repository";
-import zod from "zod";
-import { BalanceAttributes } from "../../../../models/balance";
+import { FungibleAccountOutput } from '../../application/balance-repository';
+import zod from 'zod';
+import { BalanceAttributes } from '../../../../models/balance';
 
 const fungibleSchema = zod.object({
   id: zod.number(),
@@ -14,11 +14,11 @@ const totalBalanceSchema = zod.object({
 
 const getBase64ID = (fungibleName: string, accountName: string): string => {
   const inputString = `FungibleAccount:[\"${fungibleName}\",\"${accountName}\"]`;
-  const base64ID = Buffer.from(inputString, "utf-8").toString("base64");
+  const base64ID = Buffer.from(inputString, 'utf-8').toString('base64');
   return base64ID;
 };
 
-const validate = (row: any): Omit<FungibleAccountOutput, "totalBalance"> => {
+const validate = (row: any): Omit<FungibleAccountOutput, 'totalBalance'> => {
   const res = fungibleSchema.parse(row);
   return {
     id: getBase64ID(res.module, res.account),
@@ -34,7 +34,7 @@ const validateTotalBalance = (row: any): string => {
 
 const mapFromSequelize = (
   balanceModel: BalanceAttributes,
-): Omit<FungibleAccountOutput, "totalBalance"> => {
+): Omit<FungibleAccountOutput, 'totalBalance'> => {
   return {
     id: getBase64ID(balanceModel.module, balanceModel.account),
     accountName: balanceModel.account,

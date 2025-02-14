@@ -1,23 +1,20 @@
-Kadena Chainweb Node
-=====
+# Kadena Chainweb Node
 
 The Chainweb Node is a central component in the Chainweb ecosystem. It plays a crucial role in executing and maintaining the operations of the Chainweb blockchain network. In our specific library, the Chainweb Node is configured to connect to a Chainweb Data.
 
-Initialize Database
--------------------
+## Initialize Database
 
 ```
 docker compose up -d chainweb-initialize-db
 docker compose logs chainweb-initialize-db --follow
 ```
 
-The resulting database is *untrusted*. It is fine for use in testing and
+The resulting database is _untrusted_. It is fine for use in testing and
 non-critical applications.
 
 The command can be skipped if the database has been initialized already.
 
-Validate Database
------------------
+## Validate Database
 
 For production applications it is highly recommended to validate the database
 after initialization.
@@ -33,8 +30,7 @@ GB of RAM. Adding more CPU cores will speed up the process.
 
 NOTE: The chainweb database validation step does not work with testnet.
 
-Run Chainweb Node
------------------
+## Run Chainweb Node
 
 Prerequisite: an initialized and possibly validated database.
 
@@ -44,8 +40,7 @@ docker compose up -d
 
 The service API of the node is available on the docker host at port 1848.
 
-Options
--------
+## Options
 
 By default the node runs in the Kadena mainnet. To run a node in the Kadena
 testnet define the `KADENA_NETWORK` variable in an `.env` file:

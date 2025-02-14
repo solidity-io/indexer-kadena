@@ -1,14 +1,14 @@
-import { rootPgPool } from "../../../../config/database";
+import { rootPgPool } from '../../../../config/database';
 import TransferRepository, {
   GetCrossChainTransferByPactIdParams,
   GetTotalCountParams,
   GetTransfersByTransactionIdParams,
   GetTransfersParams,
-} from "../../application/transfer-repository";
-import { getPageInfo, getPaginationParams } from "../../pagination";
-import { transferSchemaValidator } from "../schema-validator/transfer-schema-validator";
+} from '../../application/transfer-repository';
+import { getPageInfo, getPaginationParams } from '../../pagination';
+import { transferSchemaValidator } from '../schema-validator/transfer-schema-validator';
 
-const operator = (paramsLength: number) => (paramsLength > 2 ? `AND` : "WHERE");
+const operator = (paramsLength: number) => (paramsLength > 2 ? `AND` : 'WHERE');
 
 export default class TransferDbRepository implements TransferRepository {
   async getTransfers(params: GetTransfersParams) {
@@ -33,7 +33,7 @@ export default class TransferDbRepository implements TransferRepository {
       last,
     });
     const queryParams: (string | number)[] = [limit];
-    let conditions = "";
+    let conditions = '';
 
     if (accountName) {
       queryParams.push(accountName);
@@ -77,7 +77,7 @@ export default class TransferDbRepository implements TransferRepository {
       conditions += `\n${op} transfers.modulehash = $${queryParams.length}`;
     }
 
-    let query = "";
+    let query = '';
 
     if (blockHash) {
       queryParams.push(blockHash);
@@ -197,7 +197,7 @@ export default class TransferDbRepository implements TransferRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const edges = rows.map((row) => ({
+    const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: transferSchemaValidator.validate(row),
     }));
@@ -206,10 +206,7 @@ export default class TransferDbRepository implements TransferRepository {
     return pageInfo;
   }
 
-  async getCrossChainTransferByPactId({
-    amount,
-    pactId,
-  }: GetCrossChainTransferByPactIdParams) {
+  async getCrossChainTransferByPactId({ amount, pactId }: GetCrossChainTransferByPactIdParams) {
     const query = `
       select transfers.id as id,
       transfers.amount as "transferAmount",
@@ -240,7 +237,7 @@ export default class TransferDbRepository implements TransferRepository {
   }
 
   async getTotalCountOfTransfers(params: GetTotalCountParams): Promise<number> {
-    const hasNoParams = Object.values(params).every((v) => !v);
+    const hasNoParams = Object.values(params).every(v => !v);
 
     if (hasNoParams) {
       const totalTransfersCountQuery = `
@@ -251,18 +248,11 @@ export default class TransferDbRepository implements TransferRepository {
       return transfersCount;
     }
 
-    const {
-      blockHash,
-      accountName,
-      chainId,
-      transactionId,
-      fungibleName,
-      requestKey,
-    } = params;
+    const { blockHash, accountName, chainId, transactionId, fungibleName, requestKey } = params;
     const queryParams: (string | number)[] = [];
-    let conditions = "";
+    let conditions = '';
 
-    const localOperator = (length: number) => (length > 1 ? `\nAND` : "WHERE");
+    const localOperator = (length: number) => (length > 1 ? `\nAND` : 'WHERE');
 
     if (accountName) {
       queryParams.push(accountName);
@@ -308,23 +298,14 @@ export default class TransferDbRepository implements TransferRepository {
       ${conditions}
     `;
 
-    const { rows: countResult } = await rootPgPool.query(
-      totalCountQuery,
-      queryParams,
-    );
+    const { rows: countResult } = await rootPgPool.query(totalCountQuery, queryParams);
 
     const totalCount = parseInt(countResult[0].count, 10);
     return totalCount;
   }
 
   async getTransfersByTransactionId(params: GetTransfersByTransactionIdParams) {
-    const {
-      transactionId,
-      after: afterEncoded,
-      before: beforeEncoded,
-      first,
-      last,
-    } = params;
+    const { transactionId, after: afterEncoded, before: beforeEncoded, first, last } = params;
 
     const { limit, order, after, before } = getPaginationParams({
       after: afterEncoded,
@@ -334,7 +315,7 @@ export default class TransferDbRepository implements TransferRepository {
     });
 
     const queryParams: (string | number)[] = [limit, transactionId];
-    let conditions = "";
+    let conditions = '';
 
     if (before) {
       queryParams.push(before);
@@ -371,7 +352,7 @@ export default class TransferDbRepository implements TransferRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const edges = rows.map((row) => ({
+    const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: transferSchemaValidator.validate(row),
     }));

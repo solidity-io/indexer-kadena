@@ -1,10 +1,10 @@
-import { ResolverContext } from "../../config/apollo-server-config";
-import { QueryResolvers } from "../../config/graphql-types";
-import { buildBlockOutput } from "../output/build-block-output";
+import { ResolverContext } from '../../config/apollo-server-config';
+import { QueryResolvers } from '../../config/graphql-types';
+import { buildBlockOutput } from '../output/build-block-output';
 
-export const blocksFromDepthQueryResolver: QueryResolvers<ResolverContext>["blocksFromDepth"] =
+export const blocksFromDepthQueryResolver: QueryResolvers<ResolverContext>['blocksFromDepth'] =
   async (_parent, args, context) => {
-    console.log("blocksFromDepthQueryResolver", args);
+    console.log('blocksFromDepthQueryResolver', args);
     const { minimumDepth, after, before, chainIds, first, last } = args;
     const output = await context.blockRepository.getBlocksFromDepth({
       minimumDepth,
@@ -15,7 +15,7 @@ export const blocksFromDepthQueryResolver: QueryResolvers<ResolverContext>["bloc
       chainIds,
     });
 
-    const edges = output.edges.map((e) => ({
+    const edges = output.edges.map(e => ({
       cursor: e.cursor,
       node: buildBlockOutput(e.node),
     }));

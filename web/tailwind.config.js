@@ -1,31 +1,27 @@
 /** @type {import('tailwindcss').Config} */
-const defaultTheme = require('tailwindcss/defaultTheme')
+const defaultTheme = require('tailwindcss/defaultTheme');
 
 export default {
   content: [
-    "./components/**/*.{js,vue,ts}",
-    "./layouts/**/*.vue",
-    "./pages/**/*.vue",
-    "./plugins/**/*.{js,ts}",
-    "./app.vue",
-    "./error.vue",
+    './components/**/*.{js,vue,ts}',
+    './layouts/**/*.vue',
+    './pages/**/*.vue',
+    './plugins/**/*.{js,ts}',
+    './app.vue',
+    './error.vue',
   ],
   theme: {
     extend: {
       fontFamily: {
-        sans: [
-          'Inter', ...defaultTheme.fontFamily.sans
-        ],
-        title: [
-          'Roboto', ...defaultTheme.fontFamily.sans
-        ]
+        sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        title: ['Roboto', ...defaultTheme.fontFamily.sans],
       },
       fontSize: {
-        'xs': ['0.75rem', '140%'],
-        'sm': ['0.875rem', '140%'],
-        'base': ['1rem', '140%'],
-        'lg': ['1.125rem', '140%'],
-        'xl': ['1.25rem', '140%'],
+        xs: ['0.75rem', '140%'],
+        sm: ['0.875rem', '140%'],
+        base: ['1rem', '140%'],
+        lg: ['1.125rem', '140%'],
+        xl: ['1.25rem', '140%'],
         '2xl': ['1.5rem', '140%'],
       },
       colors: {
@@ -37,7 +33,6 @@ export default {
           red: {
             DEFAULT: '#C6454B',
           },
-
         },
 
         kadscan: {
@@ -53,7 +48,6 @@ export default {
           500: '#939393',
         },
 
-
         gray: {
           900: '#010101',
           800: '#1A1C1D',
@@ -65,7 +59,7 @@ export default {
           200: '#555757',
           100: '#5E6060',
         },
-      }
+      },
     },
     screens: {
       sm: '640px',
@@ -75,5 +69,4 @@ export default {
       bazk: '1352px',
     },
   },
-}
-
+};

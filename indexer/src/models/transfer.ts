@@ -1,8 +1,8 @@
-import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database";
-import Transaction from "./transaction";
-import Contract from "./contract";
-import { gql, makeExtendSchemaPlugin } from "postgraphile";
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../config/database';
+import Transaction from './transaction';
+import Contract from './contract';
+import { gql, makeExtendSchemaPlugin } from 'postgraphile';
 
 export interface TransferAttributes {
   id: number;
@@ -78,12 +78,12 @@ Transfer.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-      comment: "The unique identifier for the transfer record (e.g., 1799984).",
+      comment: 'The unique identifier for the transfer record (e.g., 1799984).',
     },
     transactionId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "The ID of the associated transaction (e.g., 2022215).",
+      comment: 'The ID of the associated transaction (e.g., 2022215).',
     },
     type: {
       type: DataTypes.STRING,
@@ -93,12 +93,12 @@ Transfer.init(
     amount: {
       type: DataTypes.DECIMAL,
       allowNull: false,
-      comment: "The amount transferred (e.g., 0.0003112).",
+      comment: 'The amount transferred (e.g., 0.0003112).',
     },
     chainId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      comment: "The ID of the blockchain network (e.g., 0).",
+      comment: 'The ID of the blockchain network (e.g., 0).',
     },
     from_acct: {
       type: DataTypes.STRING,
@@ -109,8 +109,7 @@ Transfer.init(
     modulehash: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment:
-        "The hash of the module (e.g., 'klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s').",
+      comment: "The hash of the module (e.g., 'klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s').",
     },
     modulename: {
       type: DataTypes.STRING,
@@ -132,7 +131,7 @@ Transfer.init(
     hasTokenId: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
-      comment: "Whether the transfer has a token ID (e.g., true).",
+      comment: 'Whether the transfer has a token ID (e.g., true).',
     },
     tokenId: {
       type: DataTypes.STRING,
@@ -143,86 +142,82 @@ Transfer.init(
     contractId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "The ID of the associated contract (optional, e.g., 1).",
+      comment: 'The ID of the associated contract (optional, e.g., 1).',
     },
     canonical: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
-      comment: "Whether the transfer is canonical",
+      comment: 'Whether the transfer is canonical',
     },
     orderIndex: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "The transfer order",
+      comment: 'The transfer order',
     },
   },
   {
     sequelize,
-    modelName: "Transfer",
+    modelName: 'Transfer',
     indexes: [
       {
-        name: "transfers_type_idx",
-        fields: ["type"],
+        name: 'transfers_type_idx',
+        fields: ['type'],
       },
       {
-        name: "transfers_transactionid_idx",
-        fields: ["transactionId"],
+        name: 'transfers_transactionid_idx',
+        fields: ['transactionId'],
       },
       {
-        name: "transfers_hasTokenId_idx",
-        fields: ["hasTokenId"],
+        name: 'transfers_hasTokenId_idx',
+        fields: ['hasTokenId'],
       },
       {
-        name: "transfers_contractid_idx",
-        fields: ["contractId"],
+        name: 'transfers_contractid_idx',
+        fields: ['contractId'],
       },
       {
-        name: "transfers_modulename_idx",
-        fields: ["modulename"],
+        name: 'transfers_modulename_idx',
+        fields: ['modulename'],
       },
       {
-        name: "transfers_from_acct_modulename_idx",
-        fields: ["from_acct", "modulename"],
+        name: 'transfers_from_acct_modulename_idx',
+        fields: ['from_acct', 'modulename'],
       },
       {
-        name: "transfers_chainid_from_acct_modulename_idx",
-        fields: ["chainId", "from_acct", "modulename"],
+        name: 'transfers_chainid_from_acct_modulename_idx',
+        fields: ['chainId', 'from_acct', 'modulename'],
       },
       {
-        name: "transfers_chainid_to_acct_modulename_idx",
-        fields: ["chainId", "to_acct", "modulename"],
+        name: 'transfers_chainid_to_acct_modulename_idx',
+        fields: ['chainId', 'to_acct', 'modulename'],
       },
       {
-        name: "from_acct_idx",
-        fields: ["from_acct"],
+        name: 'from_acct_idx',
+        fields: ['from_acct'],
       },
       {
-        name: "to_acct_idx",
-        fields: ["to_acct"],
+        name: 'to_acct_idx',
+        fields: ['to_acct'],
       },
     ],
   },
 );
 
 Transfer.belongsTo(Transaction, {
-  foreignKey: "transactionId",
-  as: "transaction",
+  foreignKey: 'transactionId',
+  as: 'transaction',
 });
 
 Transfer.belongsTo(Contract, {
-  foreignKey: "contractId",
-  as: "contract",
+  foreignKey: 'contractId',
+  as: 'contract',
 });
 
-export const transfersByTypeQueryPlugin = makeExtendSchemaPlugin((build) => {
+export const transfersByTypeQueryPlugin = makeExtendSchemaPlugin(build => {
   return {
     typeDefs: gql`
       extend type Query {
-        transfersByType(
-          type: String!
-          first: Int
-          after: String
-        ): TransferConnection
+        transfersByType(type: String!, first: Int, after: String): TransferConnection
       }
 
       type TransferConnection {
@@ -241,13 +236,13 @@ export const transfersByTypeQueryPlugin = makeExtendSchemaPlugin((build) => {
           const { type, first, after } = args;
           const { rootPgPool } = context;
 
-          let cursorCondition = "";
+          let cursorCondition = '';
           const limit = first || 10;
           const values = [type, limit + 1];
 
           if (after) {
-            cursorCondition = "AND id > $3";
-            values.push(Buffer.from(after, "base64").toString("ascii"));
+            cursorCondition = 'AND id > $3';
+            values.push(Buffer.from(after, 'base64').toString('ascii'));
           }
 
           const query = `
@@ -267,11 +262,10 @@ export const transfersByTypeQueryPlugin = makeExtendSchemaPlugin((build) => {
 
           const edges = rows.map((row: any) => ({
             node: row,
-            cursor: Buffer.from(row.id.toString(), "ascii").toString("base64"),
+            cursor: Buffer.from(row.id.toString(), 'ascii').toString('base64'),
           }));
 
-          const endCursor =
-            edges.length > 0 ? edges[edges.length - 1].cursor : null;
+          const endCursor = edges.length > 0 ? edges[edges.length - 1].cursor : null;
 
           return {
             edges,

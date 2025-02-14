@@ -1,15 +1,18 @@
 # Kadena Indexer - Terraform Configuration
 
 ### 🚀 Getting Started
+
 - [Introduction](#1-introduction)
 - [Prerequisites](#2-prerequisites)
 
 ### ⚙️ Configuration
+
 - [Environment Setup](#3-environment-setup)
   - [Configure AWS Credentials](#31-configure-aws-credentials)
   - [Environment Variables](#32-environment-variables)
 
 ### 🛠️ Infrastructure Management
+
 - [Terraform Operations](#4-terraform-operations)
   - [Initialize](#41-initialize-terraform)
   - [Deploy](#42-deploy-infrastructure)
@@ -17,9 +20,11 @@
   - [Local Testing](#44-local-workflow-testing)
 
 ## 1. Introduction
+
 This directory contains the infrastructure configuration for running the Kadena indexer assuming that you have already set up your Kadena node.
 
 ## 2. Prerequisites
+
 - [Terraform](https://www.terraform.io/downloads.html)
 - [AWS CLI](https://aws.amazon.com/cli/)
 - [AWS Account](https://aws.amazon.com/)
@@ -28,13 +33,17 @@ This directory contains the infrastructure configuration for running the Kadena 
 ## 3. Environment Setup
 
 ### 3.1. Configure AWS Credentials
+
 Create an `.env` file using the `.env.template` as a reference:
+
 ```bash
 cp .env.template .env
 ```
 
 ### 3.2. Environment Variables
+
 Required variables:
+
 - `TF_VAR_AWS_ACCESS_KEY_ID`: Your AWS access key ID
 - `TF_VAR_AWS_SECRET_ACCESS_KEY`: Your AWS secret access key
 - `TF_VAR_AWS_ACCOUNT_ID`: Your AWS account ID
@@ -47,17 +56,20 @@ Don't forget to define the remaining variables. Their values are described in [E
 ## 4. Terraform Operations
 
 ### 4.1. Initialize Terraform
+
 ```bash
 terraform init
 ```
 
 ### 4.2. Deploy Infrastructure
+
 ```bash
 yarn terraform plan
 yarn terraform apply
 ```
 
 ### 4.3. Destroy Infrastructure
+
 ```bash
 yarn terraform destroy
 ```
@@ -67,6 +79,7 @@ yarn terraform destroy
 **NOTE:** This is not being actively maintained at the moment.
 
 Install act for local testing:
+
 ```bash
 # For MacOS
 brew install act
@@ -77,6 +90,7 @@ sudo apt-get install act
 ```
 
 Run the terraform workflow:
+
 ```bash
 yarn run-terraform-workflow
 ```

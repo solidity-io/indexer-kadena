@@ -1,7 +1,7 @@
 export function convertStringToDate(timestampInMicrosecondsString: any) {
   // Ensure the input is a string
-  if (typeof timestampInMicrosecondsString !== "string") {
-    throw new Error("The input timestamp must be a string.");
+  if (typeof timestampInMicrosecondsString !== 'string') {
+    throw new Error('The input timestamp must be a string.');
   }
 
   // Convert the string to a BigInt
@@ -22,8 +22,6 @@ export function convertStringToDate(timestampInMicrosecondsString: any) {
     return new Date(timestampInMilliseconds);
   } else {
     // Handle the case where the BigInt is too large to convert
-    throw new Error(
-      "The timestamp is too large to safely convert to a JavaScript number.",
-    );
+    throw new Error('The timestamp is too large to safely convert to a JavaScript number.');
   }
 }

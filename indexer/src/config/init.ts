@@ -1,13 +1,13 @@
-import { QueryTypes } from "sequelize";
-import { sequelize } from "./database";
-import "../models/guard";
+import { QueryTypes } from 'sequelize';
+import { sequelize } from './database';
+import '../models/guard';
 
 export async function initializeDatabase(noTrigger = true): Promise<void> {
   try {
     await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
+    console.log('Connection has been established successfully.');
   } catch (error) {
-    console.error("Unable to connect to the database:", error);
+    console.error('Unable to connect to the database:', error);
     throw error;
   }
 
@@ -23,7 +23,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   );
 
   if (row?.exists) {
-    console.log("Creation skipped.");
+    console.log('Creation skipped.');
     return;
   }
 
@@ -34,7 +34,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
       `);
     await sequelize.sync({ force: false });
 
-    console.log("Tables have been synchronized successfully.");
+    console.log('Tables have been synchronized successfully.');
 
     if (noTrigger) return;
 
@@ -42,7 +42,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
     // Balances
     // --------------------------------
 
-    console.log("Sync update_balances()...");
+    console.log('Sync update_balances()...');
 
     // Create the update_balances function
     await sequelize.query(`
@@ -138,7 +138,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
     $$ LANGUAGE plpgsql;
   `);
 
-    console.log("Sync update_balances_trigger()...");
+    console.log('Sync update_balances_trigger()...');
 
     // Create the trigger
     await sequelize.query(`
@@ -222,7 +222,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
     // Orphan blocks
     // --------------------------------
 
-    console.log("Sync public.check_canonical()...");
+    console.log('Sync public.check_canonical()...');
 
     // Create the check canonical function
     await sequelize.query(`
@@ -335,7 +335,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
     // $function$
     // ;`);
 
-    console.log("Sync public.check_upward_orphans()...");
+    console.log('Sync public.check_upward_orphans()...');
 
     await sequelize.query(`
   CREATE OR REPLACE FUNCTION public.check_upward_orphans()
@@ -411,7 +411,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   $function$
   ;`);
 
-    console.log("Sync blocks_propagate_canonical_function()...");
+    console.log('Sync blocks_propagate_canonical_function()...');
 
     // Propagate canonical trigger to transactions
     await sequelize.query(`
@@ -425,7 +425,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   END;
   $$ LANGUAGE plpgsql;`);
 
-    console.log("Sync blocks_propagate_canonical...");
+    console.log('Sync blocks_propagate_canonical...');
 
     await sequelize.query(`
   CREATE OR REPLACE TRIGGER blocks_propagate_canonical
@@ -433,7 +433,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   FOR EACH ROW
   EXECUTE FUNCTION blocks_propagate_canonical_function();`);
 
-    console.log("Sync transactions_propagate_canonical_function...");
+    console.log('Sync transactions_propagate_canonical_function...');
 
     // Propagate canonical trigger to transfers
     await sequelize.query(`
@@ -447,7 +447,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   END;
   $$ LANGUAGE plpgsql;`);
 
-    console.log("Sync transactions_propagate_canonical...");
+    console.log('Sync transactions_propagate_canonical...');
 
     await sequelize.query(`
   CREATE OR REPLACE TRIGGER transactions_propagate_canonical
@@ -464,7 +464,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
     //   FOR EACH ROW
     //   EXECUTE FUNCTION check_backward_orphans();`);
 
-    console.log("Sync check_orphan_blocks_upward...");
+    console.log('Sync check_orphan_blocks_upward...');
 
     await sequelize.query(`
   CREATE OR REPLACE TRIGGER check_orphan_blocks_upward
@@ -472,7 +472,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   FOR EACH ROW
   EXECUTE FUNCTION check_upward_orphans();`);
 
-    console.log("Sync public.update_transactions_count()...");
+    console.log('Sync public.update_transactions_count()...');
 
     await sequelize.query(`
   CREATE OR REPLACE FUNCTION public.update_transactions_count()
@@ -490,7 +490,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   $function$
   ;`);
 
-    console.log("Sync trigger_update_transactions_count...");
+    console.log('Sync trigger_update_transactions_count...');
 
     await sequelize.query(`
   CREATE OR REPLACE TRIGGER trigger_update_transactions_count after
@@ -501,7 +501,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
 
     // Update fungibles count
 
-    console.log("Sync public.update_fungibles_count()...");
+    console.log('Sync public.update_fungibles_count()...');
 
     await sequelize.query(`
   CREATE OR REPLACE FUNCTION public.update_fungibles_count()
@@ -522,7 +522,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   $function$
   ;`);
 
-    console.log("Sync trigger_update_fungibles_count...");
+    console.log('Sync trigger_update_fungibles_count...');
 
     await sequelize.query(`
   create or replace trigger trigger_update_fungibles_count after
@@ -533,7 +533,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
 
     // Update polyfungibles count
 
-    console.log("Sync public.update_polyfungibles_count()...");
+    console.log('Sync public.update_polyfungibles_count()...');
 
     await sequelize.query(`
   CREATE OR REPLACE FUNCTION public.update_polyfungibles_count()
@@ -555,7 +555,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   ;
   `);
 
-    console.log("Sync trigger_update_polyfungibles_count...");
+    console.log('Sync trigger_update_polyfungibles_count...');
 
     await sequelize.query(`
   create or replace trigger trigger_update_polyfungibles_count after
@@ -564,7 +564,7 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
       public."Balances" for each row execute function update_polyfungibles_count()
   ;`);
 
-    console.log("Sync public.get_holders_by_module...");
+    console.log('Sync public.get_holders_by_module...');
 
     await sequelize.query(`
   CREATE OR REPLACE FUNCTION public.get_holders_by_module(
@@ -626,9 +626,9 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
   END;
   $$ LANGUAGE plpgsql;`);
 
-    console.log("Trigger function and trigger have been created successfully.");
+    console.log('Trigger function and trigger have been created successfully.');
   } catch (error) {
-    console.error("Unable to create tables:", error);
+    console.error('Unable to create tables:', error);
     throw error;
   }
 }

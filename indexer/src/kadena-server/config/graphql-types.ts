@@ -4,23 +4,27 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = {
+  [_ in K]?: never;
+};
+export type Incremental<T> =
+  | T
+  | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string; }
-  String: { input: string; output: string; }
-  Boolean: { input: boolean; output: boolean; }
-  Int: { input: number; output: number; }
-  Float: { input: number; output: number; }
+  ID: { input: string; output: string };
+  String: { input: string; output: string };
+  Boolean: { input: boolean; output: boolean };
+  Int: { input: number; output: number };
+  Float: { input: number; output: number };
   /** The `BigInt` scalar type represents non-fractional signed whole numeric values. */
-  BigInt: { input: any; output: any; }
+  BigInt: { input: any; output: any };
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
-  DateTime: { input: Date; output: Date; }
+  DateTime: { input: Date; output: Date };
   /** Floats that will have a value of 0 or more. */
-  Decimal: { input: any; output: any; }
+  Decimal: { input: any; output: any };
 };
 
 /** A unit of information that stores a set of verified transactions. */
@@ -51,7 +55,6 @@ export type Block = Node & {
   weight: Scalars['String']['output'];
 };
 
-
 /** A unit of information that stores a set of verified transactions. */
 export type BlockEventsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -59,7 +62,6 @@ export type BlockEventsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
 };
-
 
 /** A unit of information that stores a set of verified transactions. */
 export type BlockTransactionsArgs = {
@@ -160,7 +162,6 @@ export type FungibleAccount = Node & {
   transfers: FungibleAccountTransfersConnection;
 };
 
-
 /** A fungible-specific account. */
 export type FungibleAccountTransactionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -168,7 +169,6 @@ export type FungibleAccountTransactionsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
 };
-
 
 /** A fungible-specific account. */
 export type FungibleAccountTransfersArgs = {
@@ -219,7 +219,6 @@ export type FungibleChainAccount = Node & {
   transfers: FungibleChainAccountTransfersConnection;
 };
 
-
 /** A fungible specific chain-account. */
 export type FungibleChainAccountTransactionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -227,7 +226,6 @@ export type FungibleChainAccountTransactionsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
 };
-
 
 /** A fungible specific chain-account. */
 export type FungibleChainAccountTransfersArgs = {
@@ -345,7 +343,6 @@ export type NonFungibleAccount = Node & {
   transactions: NonFungibleAccountTransactionsConnection;
 };
 
-
 /** A non-fungible-specific account. */
 export type NonFungibleAccountTransactionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -377,7 +374,6 @@ export type NonFungibleChainAccount = Node & {
   /** Default page size is 20. Note that custom token related transactions are not included. */
   transactions: NonFungibleChainAccountTransactionsConnection;
 };
-
 
 /** A chain and non-fungible-specific account. */
 export type NonFungibleChainAccountTransactionsArgs = {
@@ -483,16 +479,16 @@ export type Query = {
   fungibleChainAccountsByPublicKey: Array<FungibleChainAccount>;
   /**
    * Estimate the gas limit for one or more transactions. Throws an error when the transaction fails or is invalid. The input accepts a JSON object and based on the parameters passed it will determine what type of format it is and return the gas limit estimation. The following types are supported:
-   *        
+   *
    *       - `full-transaction`: A complete transaction object. Required parameters: `cmd`, `hash` and `sigs`.
    *       - `stringified-command`: A JSON stringified command. Required parameters: `cmd`. It also optionally accepts `sigs`.
    *       - `full-command`: A full command. Required parameters: `payload`, `meta` and `signers`.
    *       - `partial-command`: A partial command. Required parameters: `payload` and either `meta` or `signers`. In case `meta` is not given, but `signers` is given, you can also add `chainId` as a parameter.
    *       - `payload`: A just the payload of a command. Required parameters: `payload` and `chainId`.
    *       - `code`: The code of an execution. Required parameters: `code` and `chainId`.
-   *        
+   *
    *       Every type accepts an optional parameter called `networkId` to override the default value from the environment variables.
-   *        
+   *
    *       Example of the input needed for a type `code` query: `gasLimitEstimate(input: "{\"code\":\"(coin.details \\\"k:1234\\\")\",\"chainId\":\"3\"}")`
    */
   gasLimitEstimate: Array<GasLimitEstimation>;
@@ -523,11 +519,9 @@ export type Query = {
   transfers: QueryTransfersConnection;
 };
 
-
 export type QueryBlockArgs = {
   hash: Scalars['String']['input'];
 };
-
 
 export type QueryBlocksFromDepthArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -537,7 +531,6 @@ export type QueryBlocksFromDepthArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   minimumDepth: Scalars['Int']['input'];
 };
-
 
 export type QueryBlocksFromHeightArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -549,7 +542,6 @@ export type QueryBlocksFromHeightArgs = {
   startHeight: Scalars['Int']['input'];
 };
 
-
 export type QueryCompletedBlockHeightsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -559,7 +551,6 @@ export type QueryCompletedBlockHeightsArgs = {
   heightCount?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
 };
-
 
 export type QueryEventsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -577,18 +568,15 @@ export type QueryEventsArgs = {
   requestKey?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryFungibleAccountArgs = {
   accountName: Scalars['String']['input'];
   fungibleName?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryFungibleAccountsByPublicKeyArgs = {
   fungibleName?: InputMaybe<Scalars['String']['input']>;
   publicKey: Scalars['String']['input'];
 };
-
 
 export type QueryFungibleChainAccountArgs = {
   accountName: Scalars['String']['input'];
@@ -596,13 +584,11 @@ export type QueryFungibleChainAccountArgs = {
   fungibleName?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryFungibleChainAccountsArgs = {
   accountName: Scalars['String']['input'];
   chainIds?: InputMaybe<Array<Scalars['String']['input']>>;
   fungibleName?: InputMaybe<Scalars['String']['input']>;
 };
-
 
 export type QueryFungibleChainAccountsByPublicKeyArgs = {
   chainId: Scalars['String']['input'];
@@ -610,44 +596,36 @@ export type QueryFungibleChainAccountsByPublicKeyArgs = {
   publicKey: Scalars['String']['input'];
 };
 
-
 export type QueryGasLimitEstimateArgs = {
   input: Array<Scalars['String']['input']>;
 };
-
 
 export type QueryNodeArgs = {
   id: Scalars['ID']['input'];
 };
 
-
 export type QueryNodesArgs = {
   ids: Array<Scalars['ID']['input']>;
 };
 
-
 export type QueryNonFungibleAccountArgs = {
   accountName: Scalars['String']['input'];
 };
-
 
 export type QueryNonFungibleChainAccountArgs = {
   accountName: Scalars['String']['input'];
   chainId: Scalars['String']['input'];
 };
 
-
 export type QueryPactQueryArgs = {
   pactQuery: Array<PactQuery>;
 };
-
 
 export type QueryTransactionArgs = {
   blockHash?: InputMaybe<Scalars['String']['input']>;
   minimumDepth?: InputMaybe<Scalars['Int']['input']>;
   requestKey: Scalars['String']['input'];
 };
-
 
 export type QueryTransactionsArgs = {
   accountName?: InputMaybe<Scalars['String']['input']>;
@@ -664,7 +642,6 @@ export type QueryTransactionsArgs = {
   requestKey?: InputMaybe<Scalars['String']['input']>;
 };
 
-
 export type QueryTransactionsByPublicKeyArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -672,7 +649,6 @@ export type QueryTransactionsByPublicKeyArgs = {
   last?: InputMaybe<Scalars['Int']['input']>;
   publicKey: Scalars['String']['input'];
 };
-
 
 export type QueryTransfersArgs = {
   accountName?: InputMaybe<Scalars['String']['input']>;
@@ -801,9 +777,9 @@ export type Subscription = {
   __typename?: 'Subscription';
   /**
    * Listen for events by qualifiedName (e.g. `coin.TRANSFER`).
-   *        
+   *
    *       The parametersFilter is a stringified JSON object that matches the [JSON object property filters](https://www.prisma.io/docs/orm/prisma-client/special-fields-and-types/working-with-json-fields#filter-on-object-property) from Prisma.
-   *        
+   *
    *       An example of such a filter parameter value: `events(parametersFilter: "{\"array_starts_with\": \"k:abcdefg\"}")`
    */
   events?: Maybe<Array<Event>>;
@@ -815,7 +791,6 @@ export type Subscription = {
   transaction?: Maybe<Transaction>;
 };
 
-
 export type SubscriptionEventsArgs = {
   chainId?: InputMaybe<Scalars['String']['input']>;
   minimumDepth?: InputMaybe<Scalars['Int']['input']>;
@@ -823,17 +798,14 @@ export type SubscriptionEventsArgs = {
   qualifiedEventName: Scalars['String']['input'];
 };
 
-
 export type SubscriptionNewBlocksArgs = {
   chainIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
-
 
 export type SubscriptionNewBlocksFromDepthArgs = {
   chainIds?: InputMaybe<Array<Scalars['String']['input']>>;
   minimumDepth: Scalars['Int']['input'];
 };
-
 
 export type SubscriptionTransactionArgs = {
   chainId?: InputMaybe<Scalars['String']['input']>;
@@ -919,7 +891,6 @@ export type TransactionResult = {
   transfers: TransactionResultTransfersConnection;
 };
 
-
 /** The result of a transaction. */
 export type TransactionResultEventsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
@@ -927,7 +898,6 @@ export type TransactionResultEventsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
 };
-
 
 /** The result of a transaction. */
 export type TransactionResultTransfersArgs = {
@@ -1006,38 +976,43 @@ export type UserGuard = IGuard & {
   raw: Scalars['String']['output'];
 };
 
-
-
 export type ResolverTypeWrapper<T> = Promise<T> | T;
-
 
 export type ResolverWithResolve<TResult, TParent, TContext, TArgs> = {
   resolve: ResolverFn<TResult, TParent, TContext, TArgs>;
 };
-export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> = ResolverFn<TResult, TParent, TContext, TArgs> | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
+export type Resolver<TResult, TParent = {}, TContext = {}, TArgs = {}> =
+  | ResolverFn<TResult, TParent, TContext, TArgs>
+  | ResolverWithResolve<TResult, TParent, TContext, TArgs>;
 
 export type ResolverFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => Promise<TResult> | TResult;
 
 export type SubscriptionSubscribeFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => AsyncIterable<TResult> | Promise<AsyncIterable<TResult>>;
 
 export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => TResult | Promise<TResult>;
 
-export interface SubscriptionSubscriberObject<TResult, TKey extends string, TParent, TContext, TArgs> {
+export interface SubscriptionSubscriberObject<
+  TResult,
+  TKey extends string,
+  TParent,
+  TContext,
+  TArgs,
+> {
   subscribe: SubscriptionSubscribeFn<{ [key in TKey]: TResult }, TParent, TContext, TArgs>;
   resolve?: SubscriptionResolveFn<TResult, { [key in TKey]: TResult }, TContext, TArgs>;
 }
@@ -1051,17 +1026,27 @@ export type SubscriptionObject<TResult, TKey extends string, TParent, TContext, 
   | SubscriptionSubscriberObject<TResult, TKey, TParent, TContext, TArgs>
   | SubscriptionResolverObject<TResult, TParent, TContext, TArgs>;
 
-export type SubscriptionResolver<TResult, TKey extends string, TParent = {}, TContext = {}, TArgs = {}> =
+export type SubscriptionResolver<
+  TResult,
+  TKey extends string,
+  TParent = {},
+  TContext = {},
+  TArgs = {},
+> =
   | ((...args: any[]) => SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>)
   | SubscriptionObject<TResult, TKey, TParent, TContext, TArgs>;
 
 export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
   parent: TParent,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
 
-export type IsTypeOfResolverFn<T = {}, TContext = {}> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
+export type IsTypeOfResolverFn<T = {}, TContext = {}> = (
+  obj: T,
+  context: TContext,
+  info: GraphQLResolveInfo,
+) => boolean | Promise<boolean>;
 
 export type NextResolverFn<T> = () => Promise<T>;
 
@@ -1070,47 +1055,158 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
   parent: TParent,
   args: TArgs,
   context: TContext,
-  info: GraphQLResolveInfo
+  info: GraphQLResolveInfo,
 ) => TResult | Promise<TResult>;
 
 /** Mapping of union types */
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
-  TransactionInfo: ( TransactionMempoolInfo ) | ( Omit<TransactionResult, 'block' | 'events' | 'transfers'> & { block: _RefType['Block'], events: _RefType['TransactionResultEventsConnection'], transfers: _RefType['TransactionResultTransfersConnection'] } );
-  TransactionPayload: ( ContinuationPayload ) | ( ExecutionPayload );
+  TransactionInfo:
+    | TransactionMempoolInfo
+    | (Omit<TransactionResult, 'block' | 'events' | 'transfers'> & {
+        block: _RefType['Block'];
+        events: _RefType['TransactionResultEventsConnection'];
+        transfers: _RefType['TransactionResultTransfersConnection'];
+      });
+  TransactionPayload: ContinuationPayload | ExecutionPayload;
 };
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = {
-  IGuard: ( KeysetGuard ) | ( RawGuard ) | ( UserGuard );
-  Node: ( Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & { events: _RefType['BlockEventsConnection'], minerAccount: _RefType['FungibleChainAccount'], parent?: Maybe<_RefType['Block']>, transactions: _RefType['BlockTransactionsConnection'] } ) | ( Omit<Event, 'block' | 'transaction'> & { block: _RefType['Block'], transaction?: Maybe<_RefType['Transaction']> } ) | ( Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & { chainAccounts: Array<_RefType['FungibleChainAccount']>, transactions: _RefType['FungibleAccountTransactionsConnection'], transfers: _RefType['FungibleAccountTransfersConnection'] } ) | ( Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: _RefType['IGuard'], transactions: _RefType['FungibleChainAccountTransactionsConnection'], transfers: _RefType['FungibleChainAccountTransfersConnection'] } ) | ( Omit<NonFungibleAccount, 'chainAccounts' | 'nonFungibleTokenBalances' | 'transactions'> & { chainAccounts: Array<_RefType['NonFungibleChainAccount']>, nonFungibleTokenBalances: Array<_RefType['NonFungibleTokenBalance']>, transactions: _RefType['NonFungibleAccountTransactionsConnection'] } ) | ( Omit<NonFungibleChainAccount, 'nonFungibleTokenBalances' | 'transactions'> & { nonFungibleTokenBalances: Array<_RefType['NonFungibleTokenBalance']>, transactions: _RefType['NonFungibleChainAccountTransactionsConnection'] } ) | ( Omit<NonFungibleTokenBalance, 'guard'> & { guard: _RefType['IGuard'] } ) | ( Signer ) | ( Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & { cmd: _RefType['TransactionCommand'], orphanedTransactions?: Maybe<Array<Maybe<_RefType['Transaction']>>>, result: _RefType['TransactionInfo'] } ) | ( Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & { block: _RefType['Block'], crossChainTransfer?: Maybe<_RefType['Transfer']>, transaction?: Maybe<_RefType['Transaction']> } );
+  IGuard: KeysetGuard | RawGuard | UserGuard;
+  Node:
+    | (Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & {
+        events: _RefType['BlockEventsConnection'];
+        minerAccount: _RefType['FungibleChainAccount'];
+        parent?: Maybe<_RefType['Block']>;
+        transactions: _RefType['BlockTransactionsConnection'];
+      })
+    | (Omit<Event, 'block' | 'transaction'> & {
+        block: _RefType['Block'];
+        transaction?: Maybe<_RefType['Transaction']>;
+      })
+    | (Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & {
+        chainAccounts: Array<_RefType['FungibleChainAccount']>;
+        transactions: _RefType['FungibleAccountTransactionsConnection'];
+        transfers: _RefType['FungibleAccountTransfersConnection'];
+      })
+    | (Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & {
+        guard: _RefType['IGuard'];
+        transactions: _RefType['FungibleChainAccountTransactionsConnection'];
+        transfers: _RefType['FungibleChainAccountTransfersConnection'];
+      })
+    | (Omit<NonFungibleAccount, 'chainAccounts' | 'nonFungibleTokenBalances' | 'transactions'> & {
+        chainAccounts: Array<_RefType['NonFungibleChainAccount']>;
+        nonFungibleTokenBalances: Array<_RefType['NonFungibleTokenBalance']>;
+        transactions: _RefType['NonFungibleAccountTransactionsConnection'];
+      })
+    | (Omit<NonFungibleChainAccount, 'nonFungibleTokenBalances' | 'transactions'> & {
+        nonFungibleTokenBalances: Array<_RefType['NonFungibleTokenBalance']>;
+        transactions: _RefType['NonFungibleChainAccountTransactionsConnection'];
+      })
+    | (Omit<NonFungibleTokenBalance, 'guard'> & { guard: _RefType['IGuard'] })
+    | Signer
+    | (Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & {
+        cmd: _RefType['TransactionCommand'];
+        orphanedTransactions?: Maybe<Array<Maybe<_RefType['Transaction']>>>;
+        result: _RefType['TransactionInfo'];
+      })
+    | (Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & {
+        block: _RefType['Block'];
+        crossChainTransfer?: Maybe<_RefType['Transfer']>;
+        transaction?: Maybe<_RefType['Transaction']>;
+      });
 };
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   BigInt: ResolverTypeWrapper<Scalars['BigInt']['output']>;
-  Block: ResolverTypeWrapper<Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & { events: ResolversTypes['BlockEventsConnection'], minerAccount: ResolversTypes['FungibleChainAccount'], parent?: Maybe<ResolversTypes['Block']>, transactions: ResolversTypes['BlockTransactionsConnection'] }>;
-  BlockEventsConnection: ResolverTypeWrapper<Omit<BlockEventsConnection, 'edges'> & { edges: Array<ResolversTypes['BlockEventsConnectionEdge']> }>;
-  BlockEventsConnectionEdge: ResolverTypeWrapper<Omit<BlockEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }>;
+  Block: ResolverTypeWrapper<
+    Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & {
+      events: ResolversTypes['BlockEventsConnection'];
+      minerAccount: ResolversTypes['FungibleChainAccount'];
+      parent?: Maybe<ResolversTypes['Block']>;
+      transactions: ResolversTypes['BlockTransactionsConnection'];
+    }
+  >;
+  BlockEventsConnection: ResolverTypeWrapper<
+    Omit<BlockEventsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['BlockEventsConnectionEdge']>;
+    }
+  >;
+  BlockEventsConnectionEdge: ResolverTypeWrapper<
+    Omit<BlockEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }
+  >;
   BlockNeighbor: ResolverTypeWrapper<BlockNeighbor>;
-  BlockTransactionsConnection: ResolverTypeWrapper<Omit<BlockTransactionsConnection, 'edges'> & { edges: Array<ResolversTypes['BlockTransactionsConnectionEdge']> }>;
-  BlockTransactionsConnectionEdge: ResolverTypeWrapper<Omit<BlockTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
+  BlockTransactionsConnection: ResolverTypeWrapper<
+    Omit<BlockTransactionsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['BlockTransactionsConnectionEdge']>;
+    }
+  >;
+  BlockTransactionsConnectionEdge: ResolverTypeWrapper<
+    Omit<BlockTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }
+  >;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   ContinuationPayload: ResolverTypeWrapper<ContinuationPayload>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Decimal: ResolverTypeWrapper<Scalars['Decimal']['output']>;
-  Event: ResolverTypeWrapper<Omit<Event, 'block' | 'transaction'> & { block: ResolversTypes['Block'], transaction?: Maybe<ResolversTypes['Transaction']> }>;
+  Event: ResolverTypeWrapper<
+    Omit<Event, 'block' | 'transaction'> & {
+      block: ResolversTypes['Block'];
+      transaction?: Maybe<ResolversTypes['Transaction']>;
+    }
+  >;
   ExecutionPayload: ResolverTypeWrapper<ExecutionPayload>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
-  FungibleAccount: ResolverTypeWrapper<Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & { chainAccounts: Array<ResolversTypes['FungibleChainAccount']>, transactions: ResolversTypes['FungibleAccountTransactionsConnection'], transfers: ResolversTypes['FungibleAccountTransfersConnection'] }>;
-  FungibleAccountTransactionsConnection: ResolverTypeWrapper<Omit<FungibleAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleAccountTransactionsConnectionEdge']> }>;
-  FungibleAccountTransactionsConnectionEdge: ResolverTypeWrapper<Omit<FungibleAccountTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
-  FungibleAccountTransfersConnection: ResolverTypeWrapper<Omit<FungibleAccountTransfersConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleAccountTransfersConnectionEdge']> }>;
-  FungibleAccountTransfersConnectionEdge: ResolverTypeWrapper<Omit<FungibleAccountTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }>;
-  FungibleChainAccount: ResolverTypeWrapper<Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: ResolversTypes['IGuard'], transactions: ResolversTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversTypes['FungibleChainAccountTransfersConnection'] }>;
-  FungibleChainAccountTransactionsConnection: ResolverTypeWrapper<Omit<FungibleChainAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleChainAccountTransactionsConnectionEdge']> }>;
-  FungibleChainAccountTransactionsConnectionEdge: ResolverTypeWrapper<Omit<FungibleChainAccountTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
-  FungibleChainAccountTransfersConnection: ResolverTypeWrapper<Omit<FungibleChainAccountTransfersConnection, 'edges'> & { edges: Array<ResolversTypes['FungibleChainAccountTransfersConnectionEdge']> }>;
-  FungibleChainAccountTransfersConnectionEdge: ResolverTypeWrapper<Omit<FungibleChainAccountTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }>;
+  FungibleAccount: ResolverTypeWrapper<
+    Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & {
+      chainAccounts: Array<ResolversTypes['FungibleChainAccount']>;
+      transactions: ResolversTypes['FungibleAccountTransactionsConnection'];
+      transfers: ResolversTypes['FungibleAccountTransfersConnection'];
+    }
+  >;
+  FungibleAccountTransactionsConnection: ResolverTypeWrapper<
+    Omit<FungibleAccountTransactionsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['FungibleAccountTransactionsConnectionEdge']>;
+    }
+  >;
+  FungibleAccountTransactionsConnectionEdge: ResolverTypeWrapper<
+    Omit<FungibleAccountTransactionsConnectionEdge, 'node'> & {
+      node: ResolversTypes['Transaction'];
+    }
+  >;
+  FungibleAccountTransfersConnection: ResolverTypeWrapper<
+    Omit<FungibleAccountTransfersConnection, 'edges'> & {
+      edges: Array<ResolversTypes['FungibleAccountTransfersConnectionEdge']>;
+    }
+  >;
+  FungibleAccountTransfersConnectionEdge: ResolverTypeWrapper<
+    Omit<FungibleAccountTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }
+  >;
+  FungibleChainAccount: ResolverTypeWrapper<
+    Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & {
+      guard: ResolversTypes['IGuard'];
+      transactions: ResolversTypes['FungibleChainAccountTransactionsConnection'];
+      transfers: ResolversTypes['FungibleChainAccountTransfersConnection'];
+    }
+  >;
+  FungibleChainAccountTransactionsConnection: ResolverTypeWrapper<
+    Omit<FungibleChainAccountTransactionsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['FungibleChainAccountTransactionsConnectionEdge']>;
+    }
+  >;
+  FungibleChainAccountTransactionsConnectionEdge: ResolverTypeWrapper<
+    Omit<FungibleChainAccountTransactionsConnectionEdge, 'node'> & {
+      node: ResolversTypes['Transaction'];
+    }
+  >;
+  FungibleChainAccountTransfersConnection: ResolverTypeWrapper<
+    Omit<FungibleChainAccountTransfersConnection, 'edges'> & {
+      edges: Array<ResolversTypes['FungibleChainAccountTransfersConnectionEdge']>;
+    }
+  >;
+  FungibleChainAccountTransfersConnectionEdge: ResolverTypeWrapper<
+    Omit<FungibleChainAccountTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }
+  >;
   GasLimitEstimation: ResolverTypeWrapper<GasLimitEstimation>;
   GenesisHeight: ResolverTypeWrapper<GenesisHeight>;
   GraphConfiguration: ResolverTypeWrapper<GraphConfiguration>;
@@ -1120,80 +1216,235 @@ export type ResolversTypes = {
   KeysetGuard: ResolverTypeWrapper<KeysetGuard>;
   NetworkInfo: ResolverTypeWrapper<NetworkInfo>;
   Node: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Node']>;
-  NonFungibleAccount: ResolverTypeWrapper<Omit<NonFungibleAccount, 'chainAccounts' | 'nonFungibleTokenBalances' | 'transactions'> & { chainAccounts: Array<ResolversTypes['NonFungibleChainAccount']>, nonFungibleTokenBalances: Array<ResolversTypes['NonFungibleTokenBalance']>, transactions: ResolversTypes['NonFungibleAccountTransactionsConnection'] }>;
-  NonFungibleAccountTransactionsConnection: ResolverTypeWrapper<Omit<NonFungibleAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversTypes['NonFungibleAccountTransactionsConnectionEdge']> }>;
-  NonFungibleAccountTransactionsConnectionEdge: ResolverTypeWrapper<Omit<NonFungibleAccountTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
-  NonFungibleChainAccount: ResolverTypeWrapper<Omit<NonFungibleChainAccount, 'nonFungibleTokenBalances' | 'transactions'> & { nonFungibleTokenBalances: Array<ResolversTypes['NonFungibleTokenBalance']>, transactions: ResolversTypes['NonFungibleChainAccountTransactionsConnection'] }>;
-  NonFungibleChainAccountTransactionsConnection: ResolverTypeWrapper<Omit<NonFungibleChainAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversTypes['NonFungibleChainAccountTransactionsConnectionEdge']> }>;
-  NonFungibleChainAccountTransactionsConnectionEdge: ResolverTypeWrapper<Omit<NonFungibleChainAccountTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
+  NonFungibleAccount: ResolverTypeWrapper<
+    Omit<NonFungibleAccount, 'chainAccounts' | 'nonFungibleTokenBalances' | 'transactions'> & {
+      chainAccounts: Array<ResolversTypes['NonFungibleChainAccount']>;
+      nonFungibleTokenBalances: Array<ResolversTypes['NonFungibleTokenBalance']>;
+      transactions: ResolversTypes['NonFungibleAccountTransactionsConnection'];
+    }
+  >;
+  NonFungibleAccountTransactionsConnection: ResolverTypeWrapper<
+    Omit<NonFungibleAccountTransactionsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['NonFungibleAccountTransactionsConnectionEdge']>;
+    }
+  >;
+  NonFungibleAccountTransactionsConnectionEdge: ResolverTypeWrapper<
+    Omit<NonFungibleAccountTransactionsConnectionEdge, 'node'> & {
+      node: ResolversTypes['Transaction'];
+    }
+  >;
+  NonFungibleChainAccount: ResolverTypeWrapper<
+    Omit<NonFungibleChainAccount, 'nonFungibleTokenBalances' | 'transactions'> & {
+      nonFungibleTokenBalances: Array<ResolversTypes['NonFungibleTokenBalance']>;
+      transactions: ResolversTypes['NonFungibleChainAccountTransactionsConnection'];
+    }
+  >;
+  NonFungibleChainAccountTransactionsConnection: ResolverTypeWrapper<
+    Omit<NonFungibleChainAccountTransactionsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['NonFungibleChainAccountTransactionsConnectionEdge']>;
+    }
+  >;
+  NonFungibleChainAccountTransactionsConnectionEdge: ResolverTypeWrapper<
+    Omit<NonFungibleChainAccountTransactionsConnectionEdge, 'node'> & {
+      node: ResolversTypes['Transaction'];
+    }
+  >;
   NonFungibleToken: ResolverTypeWrapper<NonFungibleToken>;
-  NonFungibleTokenBalance: ResolverTypeWrapper<Omit<NonFungibleTokenBalance, 'guard'> & { guard: ResolversTypes['IGuard'] }>;
+  NonFungibleTokenBalance: ResolverTypeWrapper<
+    Omit<NonFungibleTokenBalance, 'guard'> & { guard: ResolversTypes['IGuard'] }
+  >;
   PactQuery: PactQuery;
   PactQueryData: PactQueryData;
   PactQueryResponse: ResolverTypeWrapper<PactQueryResponse>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Query: ResolverTypeWrapper<{}>;
-  QueryBlocksFromDepthConnection: ResolverTypeWrapper<Omit<QueryBlocksFromDepthConnection, 'edges'> & { edges: Array<Maybe<ResolversTypes['QueryBlocksFromDepthConnectionEdge']>> }>;
-  QueryBlocksFromDepthConnectionEdge: ResolverTypeWrapper<Omit<QueryBlocksFromDepthConnectionEdge, 'node'> & { node: ResolversTypes['Block'] }>;
-  QueryBlocksFromHeightConnection: ResolverTypeWrapper<Omit<QueryBlocksFromHeightConnection, 'edges'> & { edges: Array<Maybe<ResolversTypes['QueryBlocksFromHeightConnectionEdge']>> }>;
-  QueryBlocksFromHeightConnectionEdge: ResolverTypeWrapper<Omit<QueryBlocksFromHeightConnectionEdge, 'node'> & { node: ResolversTypes['Block'] }>;
-  QueryCompletedBlockHeightsConnection: ResolverTypeWrapper<Omit<QueryCompletedBlockHeightsConnection, 'edges'> & { edges: Array<Maybe<ResolversTypes['QueryCompletedBlockHeightsConnectionEdge']>> }>;
-  QueryCompletedBlockHeightsConnectionEdge: ResolverTypeWrapper<Omit<QueryCompletedBlockHeightsConnectionEdge, 'node'> & { node: ResolversTypes['Block'] }>;
-  QueryEventsConnection: ResolverTypeWrapper<Omit<QueryEventsConnection, 'edges'> & { edges: Array<ResolversTypes['QueryEventsConnectionEdge']> }>;
-  QueryEventsConnectionEdge: ResolverTypeWrapper<Omit<QueryEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }>;
-  QueryTransactionsByPublicKeyConnection: ResolverTypeWrapper<Omit<QueryTransactionsByPublicKeyConnection, 'edges'> & { edges: Array<Maybe<ResolversTypes['QueryTransactionsByPublicKeyConnectionEdge']>> }>;
-  QueryTransactionsByPublicKeyConnectionEdge: ResolverTypeWrapper<Omit<QueryTransactionsByPublicKeyConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
-  QueryTransactionsConnection: ResolverTypeWrapper<Omit<QueryTransactionsConnection, 'edges'> & { edges: Array<ResolversTypes['QueryTransactionsConnectionEdge']> }>;
-  QueryTransactionsConnectionEdge: ResolverTypeWrapper<Omit<QueryTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }>;
-  QueryTransfersConnection: ResolverTypeWrapper<Omit<QueryTransfersConnection, 'edges'> & { edges: Array<ResolversTypes['QueryTransfersConnectionEdge']> }>;
-  QueryTransfersConnectionEdge: ResolverTypeWrapper<Omit<QueryTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }>;
+  QueryBlocksFromDepthConnection: ResolverTypeWrapper<
+    Omit<QueryBlocksFromDepthConnection, 'edges'> & {
+      edges: Array<Maybe<ResolversTypes['QueryBlocksFromDepthConnectionEdge']>>;
+    }
+  >;
+  QueryBlocksFromDepthConnectionEdge: ResolverTypeWrapper<
+    Omit<QueryBlocksFromDepthConnectionEdge, 'node'> & { node: ResolversTypes['Block'] }
+  >;
+  QueryBlocksFromHeightConnection: ResolverTypeWrapper<
+    Omit<QueryBlocksFromHeightConnection, 'edges'> & {
+      edges: Array<Maybe<ResolversTypes['QueryBlocksFromHeightConnectionEdge']>>;
+    }
+  >;
+  QueryBlocksFromHeightConnectionEdge: ResolverTypeWrapper<
+    Omit<QueryBlocksFromHeightConnectionEdge, 'node'> & { node: ResolversTypes['Block'] }
+  >;
+  QueryCompletedBlockHeightsConnection: ResolverTypeWrapper<
+    Omit<QueryCompletedBlockHeightsConnection, 'edges'> & {
+      edges: Array<Maybe<ResolversTypes['QueryCompletedBlockHeightsConnectionEdge']>>;
+    }
+  >;
+  QueryCompletedBlockHeightsConnectionEdge: ResolverTypeWrapper<
+    Omit<QueryCompletedBlockHeightsConnectionEdge, 'node'> & { node: ResolversTypes['Block'] }
+  >;
+  QueryEventsConnection: ResolverTypeWrapper<
+    Omit<QueryEventsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['QueryEventsConnectionEdge']>;
+    }
+  >;
+  QueryEventsConnectionEdge: ResolverTypeWrapper<
+    Omit<QueryEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }
+  >;
+  QueryTransactionsByPublicKeyConnection: ResolverTypeWrapper<
+    Omit<QueryTransactionsByPublicKeyConnection, 'edges'> & {
+      edges: Array<Maybe<ResolversTypes['QueryTransactionsByPublicKeyConnectionEdge']>>;
+    }
+  >;
+  QueryTransactionsByPublicKeyConnectionEdge: ResolverTypeWrapper<
+    Omit<QueryTransactionsByPublicKeyConnectionEdge, 'node'> & {
+      node: ResolversTypes['Transaction'];
+    }
+  >;
+  QueryTransactionsConnection: ResolverTypeWrapper<
+    Omit<QueryTransactionsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['QueryTransactionsConnectionEdge']>;
+    }
+  >;
+  QueryTransactionsConnectionEdge: ResolverTypeWrapper<
+    Omit<QueryTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }
+  >;
+  QueryTransfersConnection: ResolverTypeWrapper<
+    Omit<QueryTransfersConnection, 'edges'> & {
+      edges: Array<ResolversTypes['QueryTransfersConnectionEdge']>;
+    }
+  >;
+  QueryTransfersConnectionEdge: ResolverTypeWrapper<
+    Omit<QueryTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }
+  >;
   RawGuard: ResolverTypeWrapper<RawGuard>;
   Signer: ResolverTypeWrapper<Signer>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
-  Transaction: ResolverTypeWrapper<Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & { cmd: ResolversTypes['TransactionCommand'], orphanedTransactions?: Maybe<Array<Maybe<ResolversTypes['Transaction']>>>, result: ResolversTypes['TransactionInfo'] }>;
+  Transaction: ResolverTypeWrapper<
+    Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & {
+      cmd: ResolversTypes['TransactionCommand'];
+      orphanedTransactions?: Maybe<Array<Maybe<ResolversTypes['Transaction']>>>;
+      result: ResolversTypes['TransactionInfo'];
+    }
+  >;
   TransactionCapability: ResolverTypeWrapper<TransactionCapability>;
-  TransactionCommand: ResolverTypeWrapper<Omit<TransactionCommand, 'meta' | 'payload'> & { meta: ResolversTypes['TransactionMeta'], payload: ResolversTypes['TransactionPayload'] }>;
+  TransactionCommand: ResolverTypeWrapper<
+    Omit<TransactionCommand, 'meta' | 'payload'> & {
+      meta: ResolversTypes['TransactionMeta'];
+      payload: ResolversTypes['TransactionPayload'];
+    }
+  >;
   TransactionInfo: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['TransactionInfo']>;
   TransactionMempoolInfo: ResolverTypeWrapper<TransactionMempoolInfo>;
   TransactionMeta: ResolverTypeWrapper<TransactionMeta>;
-  TransactionPayload: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['TransactionPayload']>;
-  TransactionResult: ResolverTypeWrapper<Omit<TransactionResult, 'block' | 'events' | 'transfers'> & { block: ResolversTypes['Block'], events: ResolversTypes['TransactionResultEventsConnection'], transfers: ResolversTypes['TransactionResultTransfersConnection'] }>;
-  TransactionResultEventsConnection: ResolverTypeWrapper<Omit<TransactionResultEventsConnection, 'edges'> & { edges: Array<Maybe<ResolversTypes['TransactionResultEventsConnectionEdge']>> }>;
-  TransactionResultEventsConnectionEdge: ResolverTypeWrapper<Omit<TransactionResultEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }>;
-  TransactionResultTransfersConnection: ResolverTypeWrapper<Omit<TransactionResultTransfersConnection, 'edges'> & { edges: Array<Maybe<ResolversTypes['TransactionResultTransfersConnectionEdge']>> }>;
-  TransactionResultTransfersConnectionEdge: ResolverTypeWrapper<Omit<TransactionResultTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }>;
+  TransactionPayload: ResolverTypeWrapper<
+    ResolversUnionTypes<ResolversTypes>['TransactionPayload']
+  >;
+  TransactionResult: ResolverTypeWrapper<
+    Omit<TransactionResult, 'block' | 'events' | 'transfers'> & {
+      block: ResolversTypes['Block'];
+      events: ResolversTypes['TransactionResultEventsConnection'];
+      transfers: ResolversTypes['TransactionResultTransfersConnection'];
+    }
+  >;
+  TransactionResultEventsConnection: ResolverTypeWrapper<
+    Omit<TransactionResultEventsConnection, 'edges'> & {
+      edges: Array<Maybe<ResolversTypes['TransactionResultEventsConnectionEdge']>>;
+    }
+  >;
+  TransactionResultEventsConnectionEdge: ResolverTypeWrapper<
+    Omit<TransactionResultEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }
+  >;
+  TransactionResultTransfersConnection: ResolverTypeWrapper<
+    Omit<TransactionResultTransfersConnection, 'edges'> & {
+      edges: Array<Maybe<ResolversTypes['TransactionResultTransfersConnectionEdge']>>;
+    }
+  >;
+  TransactionResultTransfersConnectionEdge: ResolverTypeWrapper<
+    Omit<TransactionResultTransfersConnectionEdge, 'node'> & { node: ResolversTypes['Transfer'] }
+  >;
   TransactionSignature: ResolverTypeWrapper<TransactionSignature>;
-  Transfer: ResolverTypeWrapper<Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & { block: ResolversTypes['Block'], crossChainTransfer?: Maybe<ResolversTypes['Transfer']>, transaction?: Maybe<ResolversTypes['Transaction']> }>;
+  Transfer: ResolverTypeWrapper<
+    Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & {
+      block: ResolversTypes['Block'];
+      crossChainTransfer?: Maybe<ResolversTypes['Transfer']>;
+      transaction?: Maybe<ResolversTypes['Transaction']>;
+    }
+  >;
   UserGuard: ResolverTypeWrapper<UserGuard>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   BigInt: Scalars['BigInt']['output'];
-  Block: Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & { events: ResolversParentTypes['BlockEventsConnection'], minerAccount: ResolversParentTypes['FungibleChainAccount'], parent?: Maybe<ResolversParentTypes['Block']>, transactions: ResolversParentTypes['BlockTransactionsConnection'] };
-  BlockEventsConnection: Omit<BlockEventsConnection, 'edges'> & { edges: Array<ResolversParentTypes['BlockEventsConnectionEdge']> };
-  BlockEventsConnectionEdge: Omit<BlockEventsConnectionEdge, 'node'> & { node: ResolversParentTypes['Event'] };
+  Block: Omit<Block, 'events' | 'minerAccount' | 'parent' | 'transactions'> & {
+    events: ResolversParentTypes['BlockEventsConnection'];
+    minerAccount: ResolversParentTypes['FungibleChainAccount'];
+    parent?: Maybe<ResolversParentTypes['Block']>;
+    transactions: ResolversParentTypes['BlockTransactionsConnection'];
+  };
+  BlockEventsConnection: Omit<BlockEventsConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['BlockEventsConnectionEdge']>;
+  };
+  BlockEventsConnectionEdge: Omit<BlockEventsConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Event'];
+  };
   BlockNeighbor: BlockNeighbor;
-  BlockTransactionsConnection: Omit<BlockTransactionsConnection, 'edges'> & { edges: Array<ResolversParentTypes['BlockTransactionsConnectionEdge']> };
-  BlockTransactionsConnectionEdge: Omit<BlockTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
+  BlockTransactionsConnection: Omit<BlockTransactionsConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['BlockTransactionsConnectionEdge']>;
+  };
+  BlockTransactionsConnectionEdge: Omit<BlockTransactionsConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Transaction'];
+  };
   Boolean: Scalars['Boolean']['output'];
   ContinuationPayload: ContinuationPayload;
   DateTime: Scalars['DateTime']['output'];
   Decimal: Scalars['Decimal']['output'];
-  Event: Omit<Event, 'block' | 'transaction'> & { block: ResolversParentTypes['Block'], transaction?: Maybe<ResolversParentTypes['Transaction']> };
+  Event: Omit<Event, 'block' | 'transaction'> & {
+    block: ResolversParentTypes['Block'];
+    transaction?: Maybe<ResolversParentTypes['Transaction']>;
+  };
   ExecutionPayload: ExecutionPayload;
   Float: Scalars['Float']['output'];
-  FungibleAccount: Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & { chainAccounts: Array<ResolversParentTypes['FungibleChainAccount']>, transactions: ResolversParentTypes['FungibleAccountTransactionsConnection'], transfers: ResolversParentTypes['FungibleAccountTransfersConnection'] };
-  FungibleAccountTransactionsConnection: Omit<FungibleAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleAccountTransactionsConnectionEdge']> };
-  FungibleAccountTransactionsConnectionEdge: Omit<FungibleAccountTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
-  FungibleAccountTransfersConnection: Omit<FungibleAccountTransfersConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleAccountTransfersConnectionEdge']> };
-  FungibleAccountTransfersConnectionEdge: Omit<FungibleAccountTransfersConnectionEdge, 'node'> & { node: ResolversParentTypes['Transfer'] };
-  FungibleChainAccount: Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & { guard: ResolversParentTypes['IGuard'], transactions: ResolversParentTypes['FungibleChainAccountTransactionsConnection'], transfers: ResolversParentTypes['FungibleChainAccountTransfersConnection'] };
-  FungibleChainAccountTransactionsConnection: Omit<FungibleChainAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleChainAccountTransactionsConnectionEdge']> };
-  FungibleChainAccountTransactionsConnectionEdge: Omit<FungibleChainAccountTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
-  FungibleChainAccountTransfersConnection: Omit<FungibleChainAccountTransfersConnection, 'edges'> & { edges: Array<ResolversParentTypes['FungibleChainAccountTransfersConnectionEdge']> };
-  FungibleChainAccountTransfersConnectionEdge: Omit<FungibleChainAccountTransfersConnectionEdge, 'node'> & { node: ResolversParentTypes['Transfer'] };
+  FungibleAccount: Omit<FungibleAccount, 'chainAccounts' | 'transactions' | 'transfers'> & {
+    chainAccounts: Array<ResolversParentTypes['FungibleChainAccount']>;
+    transactions: ResolversParentTypes['FungibleAccountTransactionsConnection'];
+    transfers: ResolversParentTypes['FungibleAccountTransfersConnection'];
+  };
+  FungibleAccountTransactionsConnection: Omit<FungibleAccountTransactionsConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['FungibleAccountTransactionsConnectionEdge']>;
+  };
+  FungibleAccountTransactionsConnectionEdge: Omit<
+    FungibleAccountTransactionsConnectionEdge,
+    'node'
+  > & { node: ResolversParentTypes['Transaction'] };
+  FungibleAccountTransfersConnection: Omit<FungibleAccountTransfersConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['FungibleAccountTransfersConnectionEdge']>;
+  };
+  FungibleAccountTransfersConnectionEdge: Omit<FungibleAccountTransfersConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Transfer'];
+  };
+  FungibleChainAccount: Omit<FungibleChainAccount, 'guard' | 'transactions' | 'transfers'> & {
+    guard: ResolversParentTypes['IGuard'];
+    transactions: ResolversParentTypes['FungibleChainAccountTransactionsConnection'];
+    transfers: ResolversParentTypes['FungibleChainAccountTransfersConnection'];
+  };
+  FungibleChainAccountTransactionsConnection: Omit<
+    FungibleChainAccountTransactionsConnection,
+    'edges'
+  > & { edges: Array<ResolversParentTypes['FungibleChainAccountTransactionsConnectionEdge']> };
+  FungibleChainAccountTransactionsConnectionEdge: Omit<
+    FungibleChainAccountTransactionsConnectionEdge,
+    'node'
+  > & { node: ResolversParentTypes['Transaction'] };
+  FungibleChainAccountTransfersConnection: Omit<
+    FungibleChainAccountTransfersConnection,
+    'edges'
+  > & { edges: Array<ResolversParentTypes['FungibleChainAccountTransfersConnectionEdge']> };
+  FungibleChainAccountTransfersConnectionEdge: Omit<
+    FungibleChainAccountTransfersConnectionEdge,
+    'node'
+  > & { node: ResolversParentTypes['Transfer'] };
   GasLimitEstimation: GasLimitEstimation;
   GenesisHeight: GenesisHeight;
   GraphConfiguration: GraphConfiguration;
@@ -1203,51 +1454,132 @@ export type ResolversParentTypes = {
   KeysetGuard: KeysetGuard;
   NetworkInfo: NetworkInfo;
   Node: ResolversInterfaceTypes<ResolversParentTypes>['Node'];
-  NonFungibleAccount: Omit<NonFungibleAccount, 'chainAccounts' | 'nonFungibleTokenBalances' | 'transactions'> & { chainAccounts: Array<ResolversParentTypes['NonFungibleChainAccount']>, nonFungibleTokenBalances: Array<ResolversParentTypes['NonFungibleTokenBalance']>, transactions: ResolversParentTypes['NonFungibleAccountTransactionsConnection'] };
-  NonFungibleAccountTransactionsConnection: Omit<NonFungibleAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversParentTypes['NonFungibleAccountTransactionsConnectionEdge']> };
-  NonFungibleAccountTransactionsConnectionEdge: Omit<NonFungibleAccountTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
-  NonFungibleChainAccount: Omit<NonFungibleChainAccount, 'nonFungibleTokenBalances' | 'transactions'> & { nonFungibleTokenBalances: Array<ResolversParentTypes['NonFungibleTokenBalance']>, transactions: ResolversParentTypes['NonFungibleChainAccountTransactionsConnection'] };
-  NonFungibleChainAccountTransactionsConnection: Omit<NonFungibleChainAccountTransactionsConnection, 'edges'> & { edges: Array<ResolversParentTypes['NonFungibleChainAccountTransactionsConnectionEdge']> };
-  NonFungibleChainAccountTransactionsConnectionEdge: Omit<NonFungibleChainAccountTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
+  NonFungibleAccount: Omit<
+    NonFungibleAccount,
+    'chainAccounts' | 'nonFungibleTokenBalances' | 'transactions'
+  > & {
+    chainAccounts: Array<ResolversParentTypes['NonFungibleChainAccount']>;
+    nonFungibleTokenBalances: Array<ResolversParentTypes['NonFungibleTokenBalance']>;
+    transactions: ResolversParentTypes['NonFungibleAccountTransactionsConnection'];
+  };
+  NonFungibleAccountTransactionsConnection: Omit<
+    NonFungibleAccountTransactionsConnection,
+    'edges'
+  > & { edges: Array<ResolversParentTypes['NonFungibleAccountTransactionsConnectionEdge']> };
+  NonFungibleAccountTransactionsConnectionEdge: Omit<
+    NonFungibleAccountTransactionsConnectionEdge,
+    'node'
+  > & { node: ResolversParentTypes['Transaction'] };
+  NonFungibleChainAccount: Omit<
+    NonFungibleChainAccount,
+    'nonFungibleTokenBalances' | 'transactions'
+  > & {
+    nonFungibleTokenBalances: Array<ResolversParentTypes['NonFungibleTokenBalance']>;
+    transactions: ResolversParentTypes['NonFungibleChainAccountTransactionsConnection'];
+  };
+  NonFungibleChainAccountTransactionsConnection: Omit<
+    NonFungibleChainAccountTransactionsConnection,
+    'edges'
+  > & { edges: Array<ResolversParentTypes['NonFungibleChainAccountTransactionsConnectionEdge']> };
+  NonFungibleChainAccountTransactionsConnectionEdge: Omit<
+    NonFungibleChainAccountTransactionsConnectionEdge,
+    'node'
+  > & { node: ResolversParentTypes['Transaction'] };
   NonFungibleToken: NonFungibleToken;
-  NonFungibleTokenBalance: Omit<NonFungibleTokenBalance, 'guard'> & { guard: ResolversParentTypes['IGuard'] };
+  NonFungibleTokenBalance: Omit<NonFungibleTokenBalance, 'guard'> & {
+    guard: ResolversParentTypes['IGuard'];
+  };
   PactQuery: PactQuery;
   PactQueryData: PactQueryData;
   PactQueryResponse: PactQueryResponse;
   PageInfo: PageInfo;
   Query: {};
-  QueryBlocksFromDepthConnection: Omit<QueryBlocksFromDepthConnection, 'edges'> & { edges: Array<Maybe<ResolversParentTypes['QueryBlocksFromDepthConnectionEdge']>> };
-  QueryBlocksFromDepthConnectionEdge: Omit<QueryBlocksFromDepthConnectionEdge, 'node'> & { node: ResolversParentTypes['Block'] };
-  QueryBlocksFromHeightConnection: Omit<QueryBlocksFromHeightConnection, 'edges'> & { edges: Array<Maybe<ResolversParentTypes['QueryBlocksFromHeightConnectionEdge']>> };
-  QueryBlocksFromHeightConnectionEdge: Omit<QueryBlocksFromHeightConnectionEdge, 'node'> & { node: ResolversParentTypes['Block'] };
-  QueryCompletedBlockHeightsConnection: Omit<QueryCompletedBlockHeightsConnection, 'edges'> & { edges: Array<Maybe<ResolversParentTypes['QueryCompletedBlockHeightsConnectionEdge']>> };
-  QueryCompletedBlockHeightsConnectionEdge: Omit<QueryCompletedBlockHeightsConnectionEdge, 'node'> & { node: ResolversParentTypes['Block'] };
-  QueryEventsConnection: Omit<QueryEventsConnection, 'edges'> & { edges: Array<ResolversParentTypes['QueryEventsConnectionEdge']> };
-  QueryEventsConnectionEdge: Omit<QueryEventsConnectionEdge, 'node'> & { node: ResolversParentTypes['Event'] };
-  QueryTransactionsByPublicKeyConnection: Omit<QueryTransactionsByPublicKeyConnection, 'edges'> & { edges: Array<Maybe<ResolversParentTypes['QueryTransactionsByPublicKeyConnectionEdge']>> };
-  QueryTransactionsByPublicKeyConnectionEdge: Omit<QueryTransactionsByPublicKeyConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
-  QueryTransactionsConnection: Omit<QueryTransactionsConnection, 'edges'> & { edges: Array<ResolversParentTypes['QueryTransactionsConnectionEdge']> };
-  QueryTransactionsConnectionEdge: Omit<QueryTransactionsConnectionEdge, 'node'> & { node: ResolversParentTypes['Transaction'] };
-  QueryTransfersConnection: Omit<QueryTransfersConnection, 'edges'> & { edges: Array<ResolversParentTypes['QueryTransfersConnectionEdge']> };
-  QueryTransfersConnectionEdge: Omit<QueryTransfersConnectionEdge, 'node'> & { node: ResolversParentTypes['Transfer'] };
+  QueryBlocksFromDepthConnection: Omit<QueryBlocksFromDepthConnection, 'edges'> & {
+    edges: Array<Maybe<ResolversParentTypes['QueryBlocksFromDepthConnectionEdge']>>;
+  };
+  QueryBlocksFromDepthConnectionEdge: Omit<QueryBlocksFromDepthConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Block'];
+  };
+  QueryBlocksFromHeightConnection: Omit<QueryBlocksFromHeightConnection, 'edges'> & {
+    edges: Array<Maybe<ResolversParentTypes['QueryBlocksFromHeightConnectionEdge']>>;
+  };
+  QueryBlocksFromHeightConnectionEdge: Omit<QueryBlocksFromHeightConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Block'];
+  };
+  QueryCompletedBlockHeightsConnection: Omit<QueryCompletedBlockHeightsConnection, 'edges'> & {
+    edges: Array<Maybe<ResolversParentTypes['QueryCompletedBlockHeightsConnectionEdge']>>;
+  };
+  QueryCompletedBlockHeightsConnectionEdge: Omit<
+    QueryCompletedBlockHeightsConnectionEdge,
+    'node'
+  > & { node: ResolversParentTypes['Block'] };
+  QueryEventsConnection: Omit<QueryEventsConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['QueryEventsConnectionEdge']>;
+  };
+  QueryEventsConnectionEdge: Omit<QueryEventsConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Event'];
+  };
+  QueryTransactionsByPublicKeyConnection: Omit<QueryTransactionsByPublicKeyConnection, 'edges'> & {
+    edges: Array<Maybe<ResolversParentTypes['QueryTransactionsByPublicKeyConnectionEdge']>>;
+  };
+  QueryTransactionsByPublicKeyConnectionEdge: Omit<
+    QueryTransactionsByPublicKeyConnectionEdge,
+    'node'
+  > & { node: ResolversParentTypes['Transaction'] };
+  QueryTransactionsConnection: Omit<QueryTransactionsConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['QueryTransactionsConnectionEdge']>;
+  };
+  QueryTransactionsConnectionEdge: Omit<QueryTransactionsConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Transaction'];
+  };
+  QueryTransfersConnection: Omit<QueryTransfersConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['QueryTransfersConnectionEdge']>;
+  };
+  QueryTransfersConnectionEdge: Omit<QueryTransfersConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Transfer'];
+  };
   RawGuard: RawGuard;
   Signer: Signer;
   String: Scalars['String']['output'];
   Subscription: {};
-  Transaction: Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & { cmd: ResolversParentTypes['TransactionCommand'], orphanedTransactions?: Maybe<Array<Maybe<ResolversParentTypes['Transaction']>>>, result: ResolversParentTypes['TransactionInfo'] };
+  Transaction: Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & {
+    cmd: ResolversParentTypes['TransactionCommand'];
+    orphanedTransactions?: Maybe<Array<Maybe<ResolversParentTypes['Transaction']>>>;
+    result: ResolversParentTypes['TransactionInfo'];
+  };
   TransactionCapability: TransactionCapability;
-  TransactionCommand: Omit<TransactionCommand, 'meta' | 'payload'> & { meta: ResolversParentTypes['TransactionMeta'], payload: ResolversParentTypes['TransactionPayload'] };
+  TransactionCommand: Omit<TransactionCommand, 'meta' | 'payload'> & {
+    meta: ResolversParentTypes['TransactionMeta'];
+    payload: ResolversParentTypes['TransactionPayload'];
+  };
   TransactionInfo: ResolversUnionTypes<ResolversParentTypes>['TransactionInfo'];
   TransactionMempoolInfo: TransactionMempoolInfo;
   TransactionMeta: TransactionMeta;
   TransactionPayload: ResolversUnionTypes<ResolversParentTypes>['TransactionPayload'];
-  TransactionResult: Omit<TransactionResult, 'block' | 'events' | 'transfers'> & { block: ResolversParentTypes['Block'], events: ResolversParentTypes['TransactionResultEventsConnection'], transfers: ResolversParentTypes['TransactionResultTransfersConnection'] };
-  TransactionResultEventsConnection: Omit<TransactionResultEventsConnection, 'edges'> & { edges: Array<Maybe<ResolversParentTypes['TransactionResultEventsConnectionEdge']>> };
-  TransactionResultEventsConnectionEdge: Omit<TransactionResultEventsConnectionEdge, 'node'> & { node: ResolversParentTypes['Event'] };
-  TransactionResultTransfersConnection: Omit<TransactionResultTransfersConnection, 'edges'> & { edges: Array<Maybe<ResolversParentTypes['TransactionResultTransfersConnectionEdge']>> };
-  TransactionResultTransfersConnectionEdge: Omit<TransactionResultTransfersConnectionEdge, 'node'> & { node: ResolversParentTypes['Transfer'] };
+  TransactionResult: Omit<TransactionResult, 'block' | 'events' | 'transfers'> & {
+    block: ResolversParentTypes['Block'];
+    events: ResolversParentTypes['TransactionResultEventsConnection'];
+    transfers: ResolversParentTypes['TransactionResultTransfersConnection'];
+  };
+  TransactionResultEventsConnection: Omit<TransactionResultEventsConnection, 'edges'> & {
+    edges: Array<Maybe<ResolversParentTypes['TransactionResultEventsConnectionEdge']>>;
+  };
+  TransactionResultEventsConnectionEdge: Omit<TransactionResultEventsConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Event'];
+  };
+  TransactionResultTransfersConnection: Omit<TransactionResultTransfersConnection, 'edges'> & {
+    edges: Array<Maybe<ResolversParentTypes['TransactionResultTransfersConnectionEdge']>>;
+  };
+  TransactionResultTransfersConnectionEdge: Omit<
+    TransactionResultTransfersConnectionEdge,
+    'node'
+  > & { node: ResolversParentTypes['Transfer'] };
   TransactionSignature: TransactionSignature;
-  Transfer: Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & { block: ResolversParentTypes['Block'], crossChainTransfer?: Maybe<ResolversParentTypes['Transfer']>, transaction?: Maybe<ResolversParentTypes['Transaction']> };
+  Transfer: Omit<Transfer, 'block' | 'crossChainTransfer' | 'transaction'> & {
+    block: ResolversParentTypes['Block'];
+    crossChainTransfer?: Maybe<ResolversParentTypes['Transfer']>;
+    transaction?: Maybe<ResolversParentTypes['Transaction']>;
+  };
   UserGuard: UserGuard;
 };
 
@@ -1255,12 +1587,20 @@ export interface BigIntScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
   name: 'BigInt';
 }
 
-export type BlockResolvers<ContextType = any, ParentType extends ResolversParentTypes['Block'] = ResolversParentTypes['Block']> = {
+export type BlockResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Block'] = ResolversParentTypes['Block'],
+> = {
   chainId?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   creationTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   difficulty?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   epoch?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  events?: Resolver<ResolversTypes['BlockEventsConnection'], ParentType, ContextType, Partial<BlockEventsArgs>>;
+  events?: Resolver<
+    ResolversTypes['BlockEventsConnection'],
+    ParentType,
+    ContextType,
+    Partial<BlockEventsArgs>
+  >;
   flags?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   hash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   height?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
@@ -1272,44 +1612,76 @@ export type BlockResolvers<ContextType = any, ParentType extends ResolversParent
   payloadHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   powHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   target?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  transactions?: Resolver<ResolversTypes['BlockTransactionsConnection'], ParentType, ContextType, Partial<BlockTransactionsArgs>>;
+  transactions?: Resolver<
+    ResolversTypes['BlockTransactionsConnection'],
+    ParentType,
+    ContextType,
+    Partial<BlockTransactionsArgs>
+  >;
   weight?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type BlockEventsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['BlockEventsConnection'] = ResolversParentTypes['BlockEventsConnection']> = {
+export type BlockEventsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['BlockEventsConnection'] = ResolversParentTypes['BlockEventsConnection'],
+> = {
   edges?: Resolver<Array<ResolversTypes['BlockEventsConnectionEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type BlockEventsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['BlockEventsConnectionEdge'] = ResolversParentTypes['BlockEventsConnectionEdge']> = {
+export type BlockEventsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['BlockEventsConnectionEdge'] = ResolversParentTypes['BlockEventsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type BlockNeighborResolvers<ContextType = any, ParentType extends ResolversParentTypes['BlockNeighbor'] = ResolversParentTypes['BlockNeighbor']> = {
+export type BlockNeighborResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['BlockNeighbor'] = ResolversParentTypes['BlockNeighbor'],
+> = {
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   hash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type BlockTransactionsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['BlockTransactionsConnection'] = ResolversParentTypes['BlockTransactionsConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['BlockTransactionsConnectionEdge']>, ParentType, ContextType>;
+export type BlockTransactionsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['BlockTransactionsConnection'] = ResolversParentTypes['BlockTransactionsConnection'],
+> = {
+  edges?: Resolver<
+    Array<ResolversTypes['BlockTransactionsConnectionEdge']>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type BlockTransactionsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['BlockTransactionsConnectionEdge'] = ResolversParentTypes['BlockTransactionsConnectionEdge']> = {
+export type BlockTransactionsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['BlockTransactionsConnectionEdge'] = ResolversParentTypes['BlockTransactionsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ContinuationPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['ContinuationPayload'] = ResolversParentTypes['ContinuationPayload']> = {
+export type ContinuationPayloadResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ContinuationPayload'] = ResolversParentTypes['ContinuationPayload'],
+> = {
   data?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   pactId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   proof?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1318,15 +1690,20 @@ export type ContinuationPayloadResolvers<ContextType = any, ParentType extends R
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+export interface DateTimeScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
   name: 'DateTime';
 }
 
-export interface DecimalScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Decimal'], any> {
+export interface DecimalScalarConfig
+  extends GraphQLScalarTypeConfig<ResolversTypes['Decimal'], any> {
   name: 'Decimal';
 }
 
-export type EventResolvers<ContextType = any, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = {
+export type EventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event'],
+> = {
   block?: Resolver<ResolversTypes['Block'], ParentType, ContextType>;
   chainId?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   height?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
@@ -1342,88 +1719,172 @@ export type EventResolvers<ContextType = any, ParentType extends ResolversParent
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type ExecutionPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['ExecutionPayload'] = ResolversParentTypes['ExecutionPayload']> = {
+export type ExecutionPayloadResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ExecutionPayload'] = ResolversParentTypes['ExecutionPayload'],
+> = {
   code?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   data?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleAccountResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleAccount'] = ResolversParentTypes['FungibleAccount']> = {
+export type FungibleAccountResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleAccount'] = ResolversParentTypes['FungibleAccount'],
+> = {
   accountName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   chainAccounts?: Resolver<Array<ResolversTypes['FungibleChainAccount']>, ParentType, ContextType>;
   fungibleName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   totalBalance?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
-  transactions?: Resolver<ResolversTypes['FungibleAccountTransactionsConnection'], ParentType, ContextType, Partial<FungibleAccountTransactionsArgs>>;
-  transfers?: Resolver<ResolversTypes['FungibleAccountTransfersConnection'], ParentType, ContextType, Partial<FungibleAccountTransfersArgs>>;
+  transactions?: Resolver<
+    ResolversTypes['FungibleAccountTransactionsConnection'],
+    ParentType,
+    ContextType,
+    Partial<FungibleAccountTransactionsArgs>
+  >;
+  transfers?: Resolver<
+    ResolversTypes['FungibleAccountTransfersConnection'],
+    ParentType,
+    ContextType,
+    Partial<FungibleAccountTransfersArgs>
+  >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleAccountTransactionsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleAccountTransactionsConnection'] = ResolversParentTypes['FungibleAccountTransactionsConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['FungibleAccountTransactionsConnectionEdge']>, ParentType, ContextType>;
+export type FungibleAccountTransactionsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleAccountTransactionsConnection'] = ResolversParentTypes['FungibleAccountTransactionsConnection'],
+> = {
+  edges?: Resolver<
+    Array<ResolversTypes['FungibleAccountTransactionsConnectionEdge']>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleAccountTransactionsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleAccountTransactionsConnectionEdge'] = ResolversParentTypes['FungibleAccountTransactionsConnectionEdge']> = {
+export type FungibleAccountTransactionsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleAccountTransactionsConnectionEdge'] = ResolversParentTypes['FungibleAccountTransactionsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleAccountTransfersConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleAccountTransfersConnection'] = ResolversParentTypes['FungibleAccountTransfersConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['FungibleAccountTransfersConnectionEdge']>, ParentType, ContextType>;
+export type FungibleAccountTransfersConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleAccountTransfersConnection'] = ResolversParentTypes['FungibleAccountTransfersConnection'],
+> = {
+  edges?: Resolver<
+    Array<ResolversTypes['FungibleAccountTransfersConnectionEdge']>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleAccountTransfersConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleAccountTransfersConnectionEdge'] = ResolversParentTypes['FungibleAccountTransfersConnectionEdge']> = {
+export type FungibleAccountTransfersConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleAccountTransfersConnectionEdge'] = ResolversParentTypes['FungibleAccountTransfersConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transfer'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleChainAccountResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleChainAccount'] = ResolversParentTypes['FungibleChainAccount']> = {
+export type FungibleChainAccountResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleChainAccount'] = ResolversParentTypes['FungibleChainAccount'],
+> = {
   accountName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   balance?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   fungibleName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   guard?: Resolver<ResolversTypes['IGuard'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  transactions?: Resolver<ResolversTypes['FungibleChainAccountTransactionsConnection'], ParentType, ContextType, Partial<FungibleChainAccountTransactionsArgs>>;
-  transfers?: Resolver<ResolversTypes['FungibleChainAccountTransfersConnection'], ParentType, ContextType, Partial<FungibleChainAccountTransfersArgs>>;
+  transactions?: Resolver<
+    ResolversTypes['FungibleChainAccountTransactionsConnection'],
+    ParentType,
+    ContextType,
+    Partial<FungibleChainAccountTransactionsArgs>
+  >;
+  transfers?: Resolver<
+    ResolversTypes['FungibleChainAccountTransfersConnection'],
+    ParentType,
+    ContextType,
+    Partial<FungibleChainAccountTransfersArgs>
+  >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleChainAccountTransactionsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleChainAccountTransactionsConnection'] = ResolversParentTypes['FungibleChainAccountTransactionsConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['FungibleChainAccountTransactionsConnectionEdge']>, ParentType, ContextType>;
+export type FungibleChainAccountTransactionsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleChainAccountTransactionsConnection'] = ResolversParentTypes['FungibleChainAccountTransactionsConnection'],
+> = {
+  edges?: Resolver<
+    Array<ResolversTypes['FungibleChainAccountTransactionsConnectionEdge']>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleChainAccountTransactionsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleChainAccountTransactionsConnectionEdge'] = ResolversParentTypes['FungibleChainAccountTransactionsConnectionEdge']> = {
+export type FungibleChainAccountTransactionsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleChainAccountTransactionsConnectionEdge'] = ResolversParentTypes['FungibleChainAccountTransactionsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleChainAccountTransfersConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleChainAccountTransfersConnection'] = ResolversParentTypes['FungibleChainAccountTransfersConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['FungibleChainAccountTransfersConnectionEdge']>, ParentType, ContextType>;
+export type FungibleChainAccountTransfersConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleChainAccountTransfersConnection'] = ResolversParentTypes['FungibleChainAccountTransfersConnection'],
+> = {
+  edges?: Resolver<
+    Array<ResolversTypes['FungibleChainAccountTransfersConnectionEdge']>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type FungibleChainAccountTransfersConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['FungibleChainAccountTransfersConnectionEdge'] = ResolversParentTypes['FungibleChainAccountTransfersConnectionEdge']> = {
+export type FungibleChainAccountTransfersConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['FungibleChainAccountTransfersConnectionEdge'] = ResolversParentTypes['FungibleChainAccountTransfersConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transfer'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GasLimitEstimationResolvers<ContextType = any, ParentType extends ResolversParentTypes['GasLimitEstimation'] = ResolversParentTypes['GasLimitEstimation']> = {
+export type GasLimitEstimationResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['GasLimitEstimation'] = ResolversParentTypes['GasLimitEstimation'],
+> = {
   amount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   inputType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   transaction?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1432,33 +1893,49 @@ export type GasLimitEstimationResolvers<ContextType = any, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GenesisHeightResolvers<ContextType = any, ParentType extends ResolversParentTypes['GenesisHeight'] = ResolversParentTypes['GenesisHeight']> = {
+export type GenesisHeightResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['GenesisHeight'] = ResolversParentTypes['GenesisHeight'],
+> = {
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   height?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type GraphConfigurationResolvers<ContextType = any, ParentType extends ResolversParentTypes['GraphConfiguration'] = ResolversParentTypes['GraphConfiguration']> = {
+export type GraphConfigurationResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['GraphConfiguration'] = ResolversParentTypes['GraphConfiguration'],
+> = {
   minimumBlockHeight?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
   version?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type IGuardResolvers<ContextType = any, ParentType extends ResolversParentTypes['IGuard'] = ResolversParentTypes['IGuard']> = {
+export type IGuardResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['IGuard'] = ResolversParentTypes['IGuard'],
+> = {
   __resolveType: TypeResolveFn<'KeysetGuard' | 'RawGuard' | 'UserGuard', ParentType, ContextType>;
   keys?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   predicate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export type KeysetGuardResolvers<ContextType = any, ParentType extends ResolversParentTypes['KeysetGuard'] = ResolversParentTypes['KeysetGuard']> = {
+export type KeysetGuardResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['KeysetGuard'] = ResolversParentTypes['KeysetGuard'],
+> = {
   keys?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   predicate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NetworkInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['NetworkInfo'] = ResolversParentTypes['NetworkInfo']> = {
+export type NetworkInfoResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['NetworkInfo'] = ResolversParentTypes['NetworkInfo'],
+> = {
   apiVersion?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   coinsInCirculation?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   genesisHeights?: Resolver<Array<ResolversTypes['GenesisHeight']>, ParentType, ContextType>;
@@ -1476,63 +1953,141 @@ export type NetworkInfoResolvers<ContextType = any, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NodeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = {
-  __resolveType: TypeResolveFn<'Block' | 'Event' | 'FungibleAccount' | 'FungibleChainAccount' | 'NonFungibleAccount' | 'NonFungibleChainAccount' | 'NonFungibleTokenBalance' | 'Signer' | 'Transaction' | 'Transfer', ParentType, ContextType>;
+export type NodeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node'],
+> = {
+  __resolveType: TypeResolveFn<
+    | 'Block'
+    | 'Event'
+    | 'FungibleAccount'
+    | 'FungibleChainAccount'
+    | 'NonFungibleAccount'
+    | 'NonFungibleChainAccount'
+    | 'NonFungibleTokenBalance'
+    | 'Signer'
+    | 'Transaction'
+    | 'Transfer',
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 };
 
-export type NonFungibleAccountResolvers<ContextType = any, ParentType extends ResolversParentTypes['NonFungibleAccount'] = ResolversParentTypes['NonFungibleAccount']> = {
+export type NonFungibleAccountResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NonFungibleAccount'] = ResolversParentTypes['NonFungibleAccount'],
+> = {
   accountName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  chainAccounts?: Resolver<Array<ResolversTypes['NonFungibleChainAccount']>, ParentType, ContextType>;
+  chainAccounts?: Resolver<
+    Array<ResolversTypes['NonFungibleChainAccount']>,
+    ParentType,
+    ContextType
+  >;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  nonFungibleTokenBalances?: Resolver<Array<ResolversTypes['NonFungibleTokenBalance']>, ParentType, ContextType>;
-  transactions?: Resolver<ResolversTypes['NonFungibleAccountTransactionsConnection'], ParentType, ContextType, Partial<NonFungibleAccountTransactionsArgs>>;
+  nonFungibleTokenBalances?: Resolver<
+    Array<ResolversTypes['NonFungibleTokenBalance']>,
+    ParentType,
+    ContextType
+  >;
+  transactions?: Resolver<
+    ResolversTypes['NonFungibleAccountTransactionsConnection'],
+    ParentType,
+    ContextType,
+    Partial<NonFungibleAccountTransactionsArgs>
+  >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NonFungibleAccountTransactionsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['NonFungibleAccountTransactionsConnection'] = ResolversParentTypes['NonFungibleAccountTransactionsConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['NonFungibleAccountTransactionsConnectionEdge']>, ParentType, ContextType>;
+export type NonFungibleAccountTransactionsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NonFungibleAccountTransactionsConnection'] = ResolversParentTypes['NonFungibleAccountTransactionsConnection'],
+> = {
+  edges?: Resolver<
+    Array<ResolversTypes['NonFungibleAccountTransactionsConnectionEdge']>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NonFungibleAccountTransactionsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['NonFungibleAccountTransactionsConnectionEdge'] = ResolversParentTypes['NonFungibleAccountTransactionsConnectionEdge']> = {
+export type NonFungibleAccountTransactionsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NonFungibleAccountTransactionsConnectionEdge'] = ResolversParentTypes['NonFungibleAccountTransactionsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NonFungibleChainAccountResolvers<ContextType = any, ParentType extends ResolversParentTypes['NonFungibleChainAccount'] = ResolversParentTypes['NonFungibleChainAccount']> = {
+export type NonFungibleChainAccountResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NonFungibleChainAccount'] = ResolversParentTypes['NonFungibleChainAccount'],
+> = {
   accountName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  nonFungibleTokenBalances?: Resolver<Array<ResolversTypes['NonFungibleTokenBalance']>, ParentType, ContextType>;
-  transactions?: Resolver<ResolversTypes['NonFungibleChainAccountTransactionsConnection'], ParentType, ContextType, Partial<NonFungibleChainAccountTransactionsArgs>>;
+  nonFungibleTokenBalances?: Resolver<
+    Array<ResolversTypes['NonFungibleTokenBalance']>,
+    ParentType,
+    ContextType
+  >;
+  transactions?: Resolver<
+    ResolversTypes['NonFungibleChainAccountTransactionsConnection'],
+    ParentType,
+    ContextType,
+    Partial<NonFungibleChainAccountTransactionsArgs>
+  >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NonFungibleChainAccountTransactionsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['NonFungibleChainAccountTransactionsConnection'] = ResolversParentTypes['NonFungibleChainAccountTransactionsConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['NonFungibleChainAccountTransactionsConnectionEdge']>, ParentType, ContextType>;
+export type NonFungibleChainAccountTransactionsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NonFungibleChainAccountTransactionsConnection'] = ResolversParentTypes['NonFungibleChainAccountTransactionsConnection'],
+> = {
+  edges?: Resolver<
+    Array<ResolversTypes['NonFungibleChainAccountTransactionsConnectionEdge']>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NonFungibleChainAccountTransactionsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['NonFungibleChainAccountTransactionsConnectionEdge'] = ResolversParentTypes['NonFungibleChainAccountTransactionsConnectionEdge']> = {
+export type NonFungibleChainAccountTransactionsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NonFungibleChainAccountTransactionsConnectionEdge'] = ResolversParentTypes['NonFungibleChainAccountTransactionsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NonFungibleTokenResolvers<ContextType = any, ParentType extends ResolversParentTypes['NonFungibleToken'] = ResolversParentTypes['NonFungibleToken']> = {
+export type NonFungibleTokenResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NonFungibleToken'] = ResolversParentTypes['NonFungibleToken'],
+> = {
   precision?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   supply?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   uri?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type NonFungibleTokenBalanceResolvers<ContextType = any, ParentType extends ResolversParentTypes['NonFungibleTokenBalance'] = ResolversParentTypes['NonFungibleTokenBalance']> = {
+export type NonFungibleTokenBalanceResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['NonFungibleTokenBalance'] = ResolversParentTypes['NonFungibleTokenBalance'],
+> = {
   accountName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   balance?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1544,7 +2099,11 @@ export type NonFungibleTokenBalanceResolvers<ContextType = any, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PactQueryResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['PactQueryResponse'] = ResolversParentTypes['PactQueryResponse']> = {
+export type PactQueryResponseResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['PactQueryResponse'] = ResolversParentTypes['PactQueryResponse'],
+> = {
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   code?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1553,7 +2112,10 @@ export type PactQueryResponseResolvers<ContextType = any, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type PageInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = {
+export type PageInfoResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo'],
+> = {
   endCursor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1561,128 +2123,316 @@ export type PageInfoResolvers<ContextType = any, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
-  block?: Resolver<Maybe<ResolversTypes['Block']>, ParentType, ContextType, RequireFields<QueryBlockArgs, 'hash'>>;
-  blocksFromDepth?: Resolver<Maybe<ResolversTypes['QueryBlocksFromDepthConnection']>, ParentType, ContextType, RequireFields<QueryBlocksFromDepthArgs, 'minimumDepth'>>;
-  blocksFromHeight?: Resolver<ResolversTypes['QueryBlocksFromHeightConnection'], ParentType, ContextType, RequireFields<QueryBlocksFromHeightArgs, 'startHeight'>>;
-  completedBlockHeights?: Resolver<ResolversTypes['QueryCompletedBlockHeightsConnection'], ParentType, ContextType, RequireFields<QueryCompletedBlockHeightsArgs, 'completedHeights' | 'heightCount'>>;
-  events?: Resolver<ResolversTypes['QueryEventsConnection'], ParentType, ContextType, RequireFields<QueryEventsArgs, 'qualifiedEventName'>>;
-  fungibleAccount?: Resolver<Maybe<ResolversTypes['FungibleAccount']>, ParentType, ContextType, RequireFields<QueryFungibleAccountArgs, 'accountName' | 'fungibleName'>>;
-  fungibleAccountsByPublicKey?: Resolver<Array<ResolversTypes['FungibleAccount']>, ParentType, ContextType, RequireFields<QueryFungibleAccountsByPublicKeyArgs, 'fungibleName' | 'publicKey'>>;
-  fungibleChainAccount?: Resolver<Maybe<ResolversTypes['FungibleChainAccount']>, ParentType, ContextType, RequireFields<QueryFungibleChainAccountArgs, 'accountName' | 'chainId' | 'fungibleName'>>;
-  fungibleChainAccounts?: Resolver<Maybe<Array<ResolversTypes['FungibleChainAccount']>>, ParentType, ContextType, RequireFields<QueryFungibleChainAccountsArgs, 'accountName' | 'fungibleName'>>;
-  fungibleChainAccountsByPublicKey?: Resolver<Array<ResolversTypes['FungibleChainAccount']>, ParentType, ContextType, RequireFields<QueryFungibleChainAccountsByPublicKeyArgs, 'chainId' | 'fungibleName' | 'publicKey'>>;
-  gasLimitEstimate?: Resolver<Array<ResolversTypes['GasLimitEstimation']>, ParentType, ContextType, RequireFields<QueryGasLimitEstimateArgs, 'input'>>;
+export type QueryResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query'],
+> = {
+  block?: Resolver<
+    Maybe<ResolversTypes['Block']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryBlockArgs, 'hash'>
+  >;
+  blocksFromDepth?: Resolver<
+    Maybe<ResolversTypes['QueryBlocksFromDepthConnection']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryBlocksFromDepthArgs, 'minimumDepth'>
+  >;
+  blocksFromHeight?: Resolver<
+    ResolversTypes['QueryBlocksFromHeightConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryBlocksFromHeightArgs, 'startHeight'>
+  >;
+  completedBlockHeights?: Resolver<
+    ResolversTypes['QueryCompletedBlockHeightsConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryCompletedBlockHeightsArgs, 'completedHeights' | 'heightCount'>
+  >;
+  events?: Resolver<
+    ResolversTypes['QueryEventsConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryEventsArgs, 'qualifiedEventName'>
+  >;
+  fungibleAccount?: Resolver<
+    Maybe<ResolversTypes['FungibleAccount']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryFungibleAccountArgs, 'accountName' | 'fungibleName'>
+  >;
+  fungibleAccountsByPublicKey?: Resolver<
+    Array<ResolversTypes['FungibleAccount']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryFungibleAccountsByPublicKeyArgs, 'fungibleName' | 'publicKey'>
+  >;
+  fungibleChainAccount?: Resolver<
+    Maybe<ResolversTypes['FungibleChainAccount']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryFungibleChainAccountArgs, 'accountName' | 'chainId' | 'fungibleName'>
+  >;
+  fungibleChainAccounts?: Resolver<
+    Maybe<Array<ResolversTypes['FungibleChainAccount']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryFungibleChainAccountsArgs, 'accountName' | 'fungibleName'>
+  >;
+  fungibleChainAccountsByPublicKey?: Resolver<
+    Array<ResolversTypes['FungibleChainAccount']>,
+    ParentType,
+    ContextType,
+    RequireFields<
+      QueryFungibleChainAccountsByPublicKeyArgs,
+      'chainId' | 'fungibleName' | 'publicKey'
+    >
+  >;
+  gasLimitEstimate?: Resolver<
+    Array<ResolversTypes['GasLimitEstimation']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryGasLimitEstimateArgs, 'input'>
+  >;
   graphConfiguration?: Resolver<ResolversTypes['GraphConfiguration'], ParentType, ContextType>;
   lastBlockHeight?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
   networkInfo?: Resolver<Maybe<ResolversTypes['NetworkInfo']>, ParentType, ContextType>;
-  node?: Resolver<Maybe<ResolversTypes['Node']>, ParentType, ContextType, RequireFields<QueryNodeArgs, 'id'>>;
-  nodes?: Resolver<Array<Maybe<ResolversTypes['Node']>>, ParentType, ContextType, RequireFields<QueryNodesArgs, 'ids'>>;
-  nonFungibleAccount?: Resolver<Maybe<ResolversTypes['NonFungibleAccount']>, ParentType, ContextType, RequireFields<QueryNonFungibleAccountArgs, 'accountName'>>;
-  nonFungibleChainAccount?: Resolver<Maybe<ResolversTypes['NonFungibleChainAccount']>, ParentType, ContextType, RequireFields<QueryNonFungibleChainAccountArgs, 'accountName' | 'chainId'>>;
-  pactQuery?: Resolver<Array<ResolversTypes['PactQueryResponse']>, ParentType, ContextType, RequireFields<QueryPactQueryArgs, 'pactQuery'>>;
-  transaction?: Resolver<Maybe<ResolversTypes['Transaction']>, ParentType, ContextType, RequireFields<QueryTransactionArgs, 'requestKey'>>;
-  transactions?: Resolver<ResolversTypes['QueryTransactionsConnection'], ParentType, ContextType, Partial<QueryTransactionsArgs>>;
-  transactionsByPublicKey?: Resolver<ResolversTypes['QueryTransactionsByPublicKeyConnection'], ParentType, ContextType, RequireFields<QueryTransactionsByPublicKeyArgs, 'publicKey'>>;
-  transfers?: Resolver<ResolversTypes['QueryTransfersConnection'], ParentType, ContextType, Partial<QueryTransfersArgs>>;
+  node?: Resolver<
+    Maybe<ResolversTypes['Node']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryNodeArgs, 'id'>
+  >;
+  nodes?: Resolver<
+    Array<Maybe<ResolversTypes['Node']>>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryNodesArgs, 'ids'>
+  >;
+  nonFungibleAccount?: Resolver<
+    Maybe<ResolversTypes['NonFungibleAccount']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryNonFungibleAccountArgs, 'accountName'>
+  >;
+  nonFungibleChainAccount?: Resolver<
+    Maybe<ResolversTypes['NonFungibleChainAccount']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryNonFungibleChainAccountArgs, 'accountName' | 'chainId'>
+  >;
+  pactQuery?: Resolver<
+    Array<ResolversTypes['PactQueryResponse']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryPactQueryArgs, 'pactQuery'>
+  >;
+  transaction?: Resolver<
+    Maybe<ResolversTypes['Transaction']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryTransactionArgs, 'requestKey'>
+  >;
+  transactions?: Resolver<
+    ResolversTypes['QueryTransactionsConnection'],
+    ParentType,
+    ContextType,
+    Partial<QueryTransactionsArgs>
+  >;
+  transactionsByPublicKey?: Resolver<
+    ResolversTypes['QueryTransactionsByPublicKeyConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryTransactionsByPublicKeyArgs, 'publicKey'>
+  >;
+  transfers?: Resolver<
+    ResolversTypes['QueryTransfersConnection'],
+    ParentType,
+    ContextType,
+    Partial<QueryTransfersArgs>
+  >;
 };
 
-export type QueryBlocksFromDepthConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryBlocksFromDepthConnection'] = ResolversParentTypes['QueryBlocksFromDepthConnection']> = {
-  edges?: Resolver<Array<Maybe<ResolversTypes['QueryBlocksFromDepthConnectionEdge']>>, ParentType, ContextType>;
+export type QueryBlocksFromDepthConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryBlocksFromDepthConnection'] = ResolversParentTypes['QueryBlocksFromDepthConnection'],
+> = {
+  edges?: Resolver<
+    Array<Maybe<ResolversTypes['QueryBlocksFromDepthConnectionEdge']>>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryBlocksFromDepthConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryBlocksFromDepthConnectionEdge'] = ResolversParentTypes['QueryBlocksFromDepthConnectionEdge']> = {
+export type QueryBlocksFromDepthConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryBlocksFromDepthConnectionEdge'] = ResolversParentTypes['QueryBlocksFromDepthConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Block'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryBlocksFromHeightConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryBlocksFromHeightConnection'] = ResolversParentTypes['QueryBlocksFromHeightConnection']> = {
-  edges?: Resolver<Array<Maybe<ResolversTypes['QueryBlocksFromHeightConnectionEdge']>>, ParentType, ContextType>;
+export type QueryBlocksFromHeightConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryBlocksFromHeightConnection'] = ResolversParentTypes['QueryBlocksFromHeightConnection'],
+> = {
+  edges?: Resolver<
+    Array<Maybe<ResolversTypes['QueryBlocksFromHeightConnectionEdge']>>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryBlocksFromHeightConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryBlocksFromHeightConnectionEdge'] = ResolversParentTypes['QueryBlocksFromHeightConnectionEdge']> = {
+export type QueryBlocksFromHeightConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryBlocksFromHeightConnectionEdge'] = ResolversParentTypes['QueryBlocksFromHeightConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Block'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryCompletedBlockHeightsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryCompletedBlockHeightsConnection'] = ResolversParentTypes['QueryCompletedBlockHeightsConnection']> = {
-  edges?: Resolver<Array<Maybe<ResolversTypes['QueryCompletedBlockHeightsConnectionEdge']>>, ParentType, ContextType>;
+export type QueryCompletedBlockHeightsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryCompletedBlockHeightsConnection'] = ResolversParentTypes['QueryCompletedBlockHeightsConnection'],
+> = {
+  edges?: Resolver<
+    Array<Maybe<ResolversTypes['QueryCompletedBlockHeightsConnectionEdge']>>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryCompletedBlockHeightsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryCompletedBlockHeightsConnectionEdge'] = ResolversParentTypes['QueryCompletedBlockHeightsConnectionEdge']> = {
+export type QueryCompletedBlockHeightsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryCompletedBlockHeightsConnectionEdge'] = ResolversParentTypes['QueryCompletedBlockHeightsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Block'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryEventsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryEventsConnection'] = ResolversParentTypes['QueryEventsConnection']> = {
+export type QueryEventsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryEventsConnection'] = ResolversParentTypes['QueryEventsConnection'],
+> = {
   edges?: Resolver<Array<ResolversTypes['QueryEventsConnectionEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryEventsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryEventsConnectionEdge'] = ResolversParentTypes['QueryEventsConnectionEdge']> = {
+export type QueryEventsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryEventsConnectionEdge'] = ResolversParentTypes['QueryEventsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryTransactionsByPublicKeyConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryTransactionsByPublicKeyConnection'] = ResolversParentTypes['QueryTransactionsByPublicKeyConnection']> = {
-  edges?: Resolver<Array<Maybe<ResolversTypes['QueryTransactionsByPublicKeyConnectionEdge']>>, ParentType, ContextType>;
+export type QueryTransactionsByPublicKeyConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryTransactionsByPublicKeyConnection'] = ResolversParentTypes['QueryTransactionsByPublicKeyConnection'],
+> = {
+  edges?: Resolver<
+    Array<Maybe<ResolversTypes['QueryTransactionsByPublicKeyConnectionEdge']>>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryTransactionsByPublicKeyConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryTransactionsByPublicKeyConnectionEdge'] = ResolversParentTypes['QueryTransactionsByPublicKeyConnectionEdge']> = {
+export type QueryTransactionsByPublicKeyConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryTransactionsByPublicKeyConnectionEdge'] = ResolversParentTypes['QueryTransactionsByPublicKeyConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryTransactionsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryTransactionsConnection'] = ResolversParentTypes['QueryTransactionsConnection']> = {
-  edges?: Resolver<Array<ResolversTypes['QueryTransactionsConnectionEdge']>, ParentType, ContextType>;
+export type QueryTransactionsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryTransactionsConnection'] = ResolversParentTypes['QueryTransactionsConnection'],
+> = {
+  edges?: Resolver<
+    Array<ResolversTypes['QueryTransactionsConnectionEdge']>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryTransactionsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryTransactionsConnectionEdge'] = ResolversParentTypes['QueryTransactionsConnectionEdge']> = {
+export type QueryTransactionsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryTransactionsConnectionEdge'] = ResolversParentTypes['QueryTransactionsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryTransfersConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryTransfersConnection'] = ResolversParentTypes['QueryTransfersConnection']> = {
+export type QueryTransfersConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryTransfersConnection'] = ResolversParentTypes['QueryTransfersConnection'],
+> = {
   edges?: Resolver<Array<ResolversTypes['QueryTransfersConnectionEdge']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type QueryTransfersConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['QueryTransfersConnectionEdge'] = ResolversParentTypes['QueryTransfersConnectionEdge']> = {
+export type QueryTransfersConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryTransfersConnectionEdge'] = ResolversParentTypes['QueryTransfersConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transfer'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type RawGuardResolvers<ContextType = any, ParentType extends ResolversParentTypes['RawGuard'] = ResolversParentTypes['RawGuard']> = {
+export type RawGuardResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['RawGuard'] = ResolversParentTypes['RawGuard'],
+> = {
   keys?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   predicate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type SignerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Signer'] = ResolversParentTypes['Signer']> = {
+export type SignerResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Signer'] = ResolversParentTypes['Signer'],
+> = {
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   clist?: Resolver<Array<ResolversTypes['TransactionCapability']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1692,30 +2442,72 @@ export type SignerResolvers<ContextType = any, ParentType extends ResolversParen
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  events?: SubscriptionResolver<Maybe<Array<ResolversTypes['Event']>>, "events", ParentType, ContextType, RequireFields<SubscriptionEventsArgs, 'qualifiedEventName'>>;
-  newBlocks?: SubscriptionResolver<Maybe<Array<ResolversTypes['Block']>>, "newBlocks", ParentType, ContextType, Partial<SubscriptionNewBlocksArgs>>;
-  newBlocksFromDepth?: SubscriptionResolver<Maybe<Array<ResolversTypes['Block']>>, "newBlocksFromDepth", ParentType, ContextType, RequireFields<SubscriptionNewBlocksFromDepthArgs, 'minimumDepth'>>;
-  transaction?: SubscriptionResolver<Maybe<ResolversTypes['Transaction']>, "transaction", ParentType, ContextType, RequireFields<SubscriptionTransactionArgs, 'requestKey'>>;
+export type SubscriptionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription'],
+> = {
+  events?: SubscriptionResolver<
+    Maybe<Array<ResolversTypes['Event']>>,
+    'events',
+    ParentType,
+    ContextType,
+    RequireFields<SubscriptionEventsArgs, 'qualifiedEventName'>
+  >;
+  newBlocks?: SubscriptionResolver<
+    Maybe<Array<ResolversTypes['Block']>>,
+    'newBlocks',
+    ParentType,
+    ContextType,
+    Partial<SubscriptionNewBlocksArgs>
+  >;
+  newBlocksFromDepth?: SubscriptionResolver<
+    Maybe<Array<ResolversTypes['Block']>>,
+    'newBlocksFromDepth',
+    ParentType,
+    ContextType,
+    RequireFields<SubscriptionNewBlocksFromDepthArgs, 'minimumDepth'>
+  >;
+  transaction?: SubscriptionResolver<
+    Maybe<ResolversTypes['Transaction']>,
+    'transaction',
+    ParentType,
+    ContextType,
+    RequireFields<SubscriptionTransactionArgs, 'requestKey'>
+  >;
 };
 
-export type TransactionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Transaction'] = ResolversParentTypes['Transaction']> = {
+export type TransactionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Transaction'] = ResolversParentTypes['Transaction'],
+> = {
   cmd?: Resolver<ResolversTypes['TransactionCommand'], ParentType, ContextType>;
   hash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  orphanedTransactions?: Resolver<Maybe<Array<Maybe<ResolversTypes['Transaction']>>>, ParentType, ContextType>;
+  orphanedTransactions?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['Transaction']>>>,
+    ParentType,
+    ContextType
+  >;
   result?: Resolver<ResolversTypes['TransactionInfo'], ParentType, ContextType>;
   sigs?: Resolver<Array<ResolversTypes['TransactionSignature']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionCapabilityResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionCapability'] = ResolversParentTypes['TransactionCapability']> = {
+export type TransactionCapabilityResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionCapability'] = ResolversParentTypes['TransactionCapability'],
+> = {
   args?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionCommandResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionCommand'] = ResolversParentTypes['TransactionCommand']> = {
+export type TransactionCommandResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionCommand'] = ResolversParentTypes['TransactionCommand'],
+> = {
   meta?: Resolver<ResolversTypes['TransactionMeta'], ParentType, ContextType>;
   networkId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   nonce?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1724,16 +2516,32 @@ export type TransactionCommandResolvers<ContextType = any, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionInfo'] = ResolversParentTypes['TransactionInfo']> = {
-  __resolveType: TypeResolveFn<'TransactionMempoolInfo' | 'TransactionResult', ParentType, ContextType>;
+export type TransactionInfoResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionInfo'] = ResolversParentTypes['TransactionInfo'],
+> = {
+  __resolveType: TypeResolveFn<
+    'TransactionMempoolInfo' | 'TransactionResult',
+    ParentType,
+    ContextType
+  >;
 };
 
-export type TransactionMempoolInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionMempoolInfo'] = ResolversParentTypes['TransactionMempoolInfo']> = {
+export type TransactionMempoolInfoResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionMempoolInfo'] = ResolversParentTypes['TransactionMempoolInfo'],
+> = {
   status?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionMetaResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionMeta'] = ResolversParentTypes['TransactionMeta']> = {
+export type TransactionMetaResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionMeta'] = ResolversParentTypes['TransactionMeta'],
+> = {
   chainId?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   creationTime?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   gasLimit?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
@@ -1743,58 +2551,107 @@ export type TransactionMetaResolvers<ContextType = any, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionPayload'] = ResolversParentTypes['TransactionPayload']> = {
+export type TransactionPayloadResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionPayload'] = ResolversParentTypes['TransactionPayload'],
+> = {
   __resolveType: TypeResolveFn<'ContinuationPayload' | 'ExecutionPayload', ParentType, ContextType>;
 };
 
-export type TransactionResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionResult'] = ResolversParentTypes['TransactionResult']> = {
+export type TransactionResultResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionResult'] = ResolversParentTypes['TransactionResult'],
+> = {
   badResult?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   block?: Resolver<ResolversTypes['Block'], ParentType, ContextType>;
   continuation?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   eventCount?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
-  events?: Resolver<ResolversTypes['TransactionResultEventsConnection'], ParentType, ContextType, Partial<TransactionResultEventsArgs>>;
+  events?: Resolver<
+    ResolversTypes['TransactionResultEventsConnection'],
+    ParentType,
+    ContextType,
+    Partial<TransactionResultEventsArgs>
+  >;
   gas?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   goodResult?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   height?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
   logs?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   metadata?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   transactionId?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
-  transfers?: Resolver<ResolversTypes['TransactionResultTransfersConnection'], ParentType, ContextType, Partial<TransactionResultTransfersArgs>>;
+  transfers?: Resolver<
+    ResolversTypes['TransactionResultTransfersConnection'],
+    ParentType,
+    ContextType,
+    Partial<TransactionResultTransfersArgs>
+  >;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionResultEventsConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionResultEventsConnection'] = ResolversParentTypes['TransactionResultEventsConnection']> = {
-  edges?: Resolver<Array<Maybe<ResolversTypes['TransactionResultEventsConnectionEdge']>>, ParentType, ContextType>;
+export type TransactionResultEventsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionResultEventsConnection'] = ResolversParentTypes['TransactionResultEventsConnection'],
+> = {
+  edges?: Resolver<
+    Array<Maybe<ResolversTypes['TransactionResultEventsConnectionEdge']>>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionResultEventsConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionResultEventsConnectionEdge'] = ResolversParentTypes['TransactionResultEventsConnectionEdge']> = {
+export type TransactionResultEventsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionResultEventsConnectionEdge'] = ResolversParentTypes['TransactionResultEventsConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionResultTransfersConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionResultTransfersConnection'] = ResolversParentTypes['TransactionResultTransfersConnection']> = {
-  edges?: Resolver<Array<Maybe<ResolversTypes['TransactionResultTransfersConnectionEdge']>>, ParentType, ContextType>;
+export type TransactionResultTransfersConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionResultTransfersConnection'] = ResolversParentTypes['TransactionResultTransfersConnection'],
+> = {
+  edges?: Resolver<
+    Array<Maybe<ResolversTypes['TransactionResultTransfersConnectionEdge']>>,
+    ParentType,
+    ContextType
+  >;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
   totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionResultTransfersConnectionEdgeResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionResultTransfersConnectionEdge'] = ResolversParentTypes['TransactionResultTransfersConnectionEdge']> = {
+export type TransactionResultTransfersConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionResultTransfersConnectionEdge'] = ResolversParentTypes['TransactionResultTransfersConnectionEdge'],
+> = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transfer'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransactionSignatureResolvers<ContextType = any, ParentType extends ResolversParentTypes['TransactionSignature'] = ResolversParentTypes['TransactionSignature']> = {
+export type TransactionSignatureResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['TransactionSignature'] = ResolversParentTypes['TransactionSignature'],
+> = {
   sig?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type TransferResolvers<ContextType = any, ParentType extends ResolversParentTypes['Transfer'] = ResolversParentTypes['Transfer']> = {
+export type TransferResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Transfer'] = ResolversParentTypes['Transfer'],
+> = {
   amount?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   block?: Resolver<ResolversTypes['Block'], ParentType, ContextType>;
   blockHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1813,7 +2670,10 @@ export type TransferResolvers<ContextType = any, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type UserGuardResolvers<ContextType = any, ParentType extends ResolversParentTypes['UserGuard'] = ResolversParentTypes['UserGuard']> = {
+export type UserGuardResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['UserGuard'] = ResolversParentTypes['UserGuard'],
+> = {
   args?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   fun?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   keys?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1896,4 +2756,3 @@ export type Resolvers<ContextType = any> = {
   Transfer?: TransferResolvers<ContextType>;
   UserGuard?: UserGuardResolvers<ContextType>;
 };
-

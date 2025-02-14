@@ -1,6 +1,6 @@
-import { PageInfo, Transfer } from "../../config/graphql-types";
-import { PaginationsParams } from "../pagination";
-import { ConnectionEdge } from "../types";
+import { PageInfo, Transfer } from '../../config/graphql-types';
+import { PaginationsParams } from '../pagination';
+import { ConnectionEdge } from '../types';
 
 export type GetTransfersParams = GetTotalCountParams &
   PaginationsParams & {
@@ -26,19 +26,18 @@ export interface GetCrossChainTransferByPactIdParams {
   amount: string;
 }
 
-export type TransferOutput = Omit<
-  Transfer,
-  "block" | "transaction" | "crossChainTransfer"
-> & { transferId: string; pactId: string | null; blockHash: string };
+export type TransferOutput = Omit<Transfer, 'block' | 'transaction' | 'crossChainTransfer'> & {
+  transferId: string;
+  pactId: string | null;
+  blockHash: string;
+};
 
 export default interface TransferRepository {
   getTransfers(params: GetTransfersParams): Promise<{
     pageInfo: PageInfo;
     edges: ConnectionEdge<TransferOutput>[];
   }>;
-  getTransfersByTransactionId(
-    params: GetTransfersByTransactionIdParams,
-  ): Promise<{
+  getTransfersByTransactionId(params: GetTransfersByTransactionIdParams): Promise<{
     pageInfo: PageInfo;
     edges: ConnectionEdge<TransferOutput>[];
   }>;

@@ -1,6 +1,6 @@
-import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database";
-import Transaction, { TransactionAttributes } from "./transaction";
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../config/database';
+import Transaction, { TransactionAttributes } from './transaction';
 
 export interface EventAttributes {
   id: number;
@@ -52,17 +52,17 @@ Event.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-      comment: "The unique identifier for the event record (e.g., 5985644).",
+      comment: 'The unique identifier for the event record (e.g., 5985644).',
     },
     transactionId: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "The ID of the associated transaction (e.g., 4134355).",
+      comment: 'The ID of the associated transaction (e.g., 4134355).',
     },
     chainId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      comment: "The ID of the blockchain network (e.g., 0).",
+      comment: 'The ID of the blockchain network (e.g., 0).',
     },
     module: {
       type: DataTypes.STRING,
@@ -94,28 +94,28 @@ Event.init(
     orderIndex: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "The event order.",
+      comment: 'The event order.',
     },
   },
   {
     sequelize,
-    modelName: "Event",
+    modelName: 'Event',
     indexes: [
       {
-        name: "events_transactionid_idx",
-        fields: ["transactionId"],
+        name: 'events_transactionid_idx',
+        fields: ['transactionId'],
       },
       {
-        name: "events_module_name_idx",
-        fields: ["module", "name"],
+        name: 'events_module_name_idx',
+        fields: ['module', 'name'],
       },
     ],
   },
 );
 
 Event.belongsTo(Transaction, {
-  foreignKey: "transactionId",
-  as: "transaction",
+  foreignKey: 'transactionId',
+  as: 'transaction',
 });
 
 export default Event;

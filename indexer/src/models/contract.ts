@@ -1,6 +1,6 @@
-import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database";
-import Balance from "./balance";
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../config/database';
+import Balance from './balance';
 
 export interface ContractAttributes {
   id: number;
@@ -44,12 +44,12 @@ Contract.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-      comment: "The unique identifier for the contract record (e.g., 1).",
+      comment: 'The unique identifier for the contract record (e.g., 1).',
     },
     chainId: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      comment: "The ID of the blockchain network (e.g., 8).",
+      comment: 'The ID of the blockchain network (e.g., 8).',
     },
     type: {
       type: DataTypes.STRING,
@@ -59,8 +59,7 @@ Contract.init(
     module: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment:
-        "The module associated with the contract (e.g., 'marmalade.ledger').",
+      comment: "The module associated with the contract (e.g., 'marmalade.ledger').",
     },
     metadata: {
       type: DataTypes.JSON,
@@ -77,21 +76,21 @@ Contract.init(
     precision: {
       type: DataTypes.INTEGER,
       allowNull: true,
-      comment: "The precision of the contract (e.g., 12).",
+      comment: 'The precision of the contract (e.g., 12).',
     },
   },
   {
     sequelize,
-    modelName: "Contract",
+    modelName: 'Contract',
     indexes: [
       {
-        name: "contract_unique_constraint",
+        name: 'contract_unique_constraint',
         unique: true,
-        fields: ["chainId", "module", "tokenId"],
+        fields: ['chainId', 'module', 'tokenId'],
       },
       {
-        name: "contracts_search_idx",
-        fields: [sequelize.fn("LOWER", sequelize.col("module"))],
+        name: 'contracts_search_idx',
+        fields: [sequelize.fn('LOWER', sequelize.col('module'))],
       },
     ],
   },

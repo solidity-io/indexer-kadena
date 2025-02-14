@@ -1,10 +1,10 @@
-import { ResolverContext } from "../../../config/apollo-server-config";
-import { FungibleChainAccountResolvers } from "../../../config/graphql-types";
-import { buildTransferOutput } from "../../output/build-transfer-output";
+import { ResolverContext } from '../../../config/apollo-server-config';
+import { FungibleChainAccountResolvers } from '../../../config/graphql-types';
+import { buildTransferOutput } from '../../output/build-transfer-output';
 
-export const transfersFungibleChainAccountResolver: FungibleChainAccountResolvers<ResolverContext>["transfers"] =
+export const transfersFungibleChainAccountResolver: FungibleChainAccountResolvers<ResolverContext>['transfers'] =
   async (parent, args, context) => {
-    console.log("transfersFungibleAccountResolver");
+    console.log('transfersFungibleAccountResolver');
 
     const { first, after, last, before } = args;
     const output = await context.transferRepository.getTransfers({
@@ -17,7 +17,7 @@ export const transfersFungibleChainAccountResolver: FungibleChainAccountResolver
       before,
     });
 
-    const edges = output.edges.map((e) => ({
+    const edges = output.edges.map(e => ({
       cursor: e.cursor,
       node: buildTransferOutput(e.node),
     }));

@@ -1,5 +1,5 @@
-import { InputMaybe, PageInfo } from "../config/graphql-types";
-import { ConnectionEdge } from "./types";
+import { InputMaybe, PageInfo } from '../config/graphql-types';
+import { ConnectionEdge } from './types';
 
 export interface PaginationsParams {
   after?: InputMaybe<string>;
@@ -12,21 +12,20 @@ const DEFAULT_LIMIT = 20;
 const LIMIT_NEXT_PAGE_CHECK = 1;
 
 interface Params<T> {
-  order: "ASC" | "DESC";
+  order: 'ASC' | 'DESC';
   limit: number;
   edges: ConnectionEdge<T>[];
   after?: string | null;
   before?: string | null;
 }
 
-export const encodeCursor = (cursor: string): string =>
-  Buffer.from(cursor).toString("base64");
+export const encodeCursor = (cursor: string): string => Buffer.from(cursor).toString('base64');
 
 export const decodeCursor = (cursor: string): string =>
-  Buffer.from(cursor, "base64").toString("utf8");
+  Buffer.from(cursor, 'base64').toString('utf8');
 
 export const getPageInfo = <T>({
-  order = "DESC",
+  order = 'DESC',
   limit: limitParam,
   edges,
   after,
@@ -66,7 +65,7 @@ export const getPageInfo = <T>({
   let endCursor = null;
   let newEdges = null;
   const idx = Math.min(length, limit);
-  if (order === "DESC") {
+  if (order === 'DESC') {
     hasNextPage = length > limit;
     hasPreviousPage = !!after;
     startCursor = encodeCursor(edges[0].cursor);
@@ -81,7 +80,7 @@ export const getPageInfo = <T>({
     newEdges = [...reversed];
   }
 
-  const edgesWithCursorEncoded = newEdges.map((e) => ({
+  const edgesWithCursorEncoded = newEdges.map(e => ({
     cursor: encodeCursor(e.cursor),
     node: e.node,
   }));
@@ -105,7 +104,7 @@ type PaginationInput = {
 
 type PaginationOutput = {
   limit: number;
-  order: "ASC" | "DESC";
+  order: 'ASC' | 'DESC';
   after: string | null;
   before: string | null;
 };
@@ -119,7 +118,7 @@ export function getPaginationParams({
   if (after) {
     return {
       limit: (first ?? DEFAULT_LIMIT) + LIMIT_NEXT_PAGE_CHECK,
-      order: "DESC",
+      order: 'DESC',
       after: decodeCursor(after),
       before: null,
     };
@@ -128,7 +127,7 @@ export function getPaginationParams({
   if (before) {
     return {
       limit: (last ?? DEFAULT_LIMIT) + LIMIT_NEXT_PAGE_CHECK,
-      order: "ASC",
+      order: 'ASC',
       after: null,
       before: decodeCursor(before),
     };
@@ -137,7 +136,7 @@ export function getPaginationParams({
   if (first) {
     return {
       limit: first + LIMIT_NEXT_PAGE_CHECK,
-      order: "DESC",
+      order: 'DESC',
       after: null,
       before: null,
     };
@@ -145,7 +144,7 @@ export function getPaginationParams({
   if (last) {
     return {
       limit: last + LIMIT_NEXT_PAGE_CHECK,
-      order: "ASC",
+      order: 'ASC',
       after: null,
       before: null,
     };
@@ -153,7 +152,7 @@ export function getPaginationParams({
 
   return {
     limit: DEFAULT_LIMIT + LIMIT_NEXT_PAGE_CHECK,
-    order: "DESC",
+    order: 'DESC',
     after: null,
     before: null,
   };

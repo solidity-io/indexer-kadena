@@ -1,12 +1,7 @@
-import {
-  Block,
-  FungibleChainAccount,
-  InputMaybe,
-  PageInfo,
-} from "../../config/graphql-types";
-import { PaginationsParams } from "../pagination";
-import { ConnectionEdge } from "../types";
-import { TransactionOutput } from "./transaction-repository";
+import { Block, FungibleChainAccount, InputMaybe, PageInfo } from '../../config/graphql-types';
+import { PaginationsParams } from '../pagination';
+import { ConnectionEdge } from '../types';
+import { TransactionOutput } from './transaction-repository';
 
 export interface GetBlocksFromDepthParams extends PaginationsParams {
   chainIds?: InputMaybe<string[]>;
@@ -31,14 +26,13 @@ export interface GetLatestBlocksParams {
   chainIds?: string[];
 }
 
-export type BlockOutput = Omit<
-  Block,
-  "parent" | "events" | "minerAccount" | "transactions"
-> & { parentHash: string };
+export type BlockOutput = Omit<Block, 'parent' | 'events' | 'minerAccount' | 'transactions'> & {
+  parentHash: string;
+};
 
 export type FungibleChainAccountOutput = Omit<
   FungibleChainAccount,
-  "transactions" | "transfers" | "hash"
+  'transactions' | 'transfers' | 'hash'
 >;
 
 export default interface BlockRepository {
@@ -55,10 +49,7 @@ export default interface BlockRepository {
     pageInfo: PageInfo;
     edges: ConnectionEdge<BlockOutput>[];
   }>;
-  getMinerData(
-    hash: string,
-    chainId: string,
-  ): Promise<FungibleChainAccountOutput>;
+  getMinerData(hash: string, chainId: string): Promise<FungibleChainAccountOutput>;
 
   getLowestBlockHeight(): Promise<number>;
 

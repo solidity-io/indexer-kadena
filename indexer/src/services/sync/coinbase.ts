@@ -1,12 +1,12 @@
-import { closeDatabase, rootPgPool, sequelize } from "../../config/database";
-import TransactionModel from "../../models/transaction";
-import Transfer from "../../models/transfer";
-import { Transaction } from "sequelize";
-import Event, { EventAttributes } from "../../models/event";
-import { getCoinTransfers } from "./transfers";
+import { closeDatabase, rootPgPool, sequelize } from '../../config/database';
+import TransactionModel from '../../models/transaction';
+import Transfer from '../../models/transfer';
+import { Transaction } from 'sequelize';
+import Event, { EventAttributes } from '../../models/event';
+import { getCoinTransfers } from './transfers';
 
 export async function startBackfillCoinbaseTransactions() {
-  console.log("Starting coinbase backfill ...");
+  console.log('Starting coinbase backfill ...');
 
   const limit = 1000; // Number of rows to process in one batch
   let offset = 0;
@@ -20,7 +20,7 @@ export async function startBackfillCoinbaseTransactions() {
 
     const rows = res.rows;
     if (rows.length === 0) {
-      console.log("No more rows to process.");
+      console.log('No more rows to process.');
       break;
     }
 
@@ -36,7 +36,7 @@ export async function startBackfillCoinbaseTransactions() {
         await tx.rollback();
         console.log(`Transaction for batch at offset ${offset} rolled back.`);
       } catch (rollbackError) {
-        console.error("Error during rollback:", rollbackError);
+        console.error('Error during rollback:', rollbackError);
       }
       break;
     }
@@ -56,33 +56,29 @@ async function addCoinbaseTransactions(rows: Array<any>, tx: Transaction) {
     return output;
   });
 
-  const allData = (await Promise.all(fetchPromises)).filter(
-    (f) => f !== undefined,
-  );
+  const allData = (await Promise.all(fetchPromises)).filter(f => f !== undefined);
 
   const transactionsAdded = await TransactionModel.bulkCreate(
-    allData.map((o) => o?.transactionAttributes ?? []),
+    allData.map(o => o?.transactionAttributes ?? []),
     {
       transaction: tx,
-      returning: ["id"],
+      returning: ['id'],
     },
   );
 
   const transfersToAdd = allData
     .map((d, index) => {
-      const transfersWithTransactionId = (d?.transfersCoinAttributes ?? []).map(
-        (t) => ({
-          ...t,
-          transactionId: transactionsAdded[index].id,
-        }),
-      );
+      const transfersWithTransactionId = (d?.transfersCoinAttributes ?? []).map(t => ({
+        ...t,
+        transactionId: transactionsAdded[index].id,
+      }));
       return transfersWithTransactionId;
     })
     .flat();
 
   const eventsToAdd = allData
     .map((d, index) => {
-      const eventsWithTransactionId = (d?.eventsAttributes ?? []).map((t) => ({
+      const eventsWithTransactionId = (d?.eventsAttributes ?? []).map(t => ({
         ...t,
         transactionId: transactionsAdded[index].id,
       }));
@@ -112,30 +108,27 @@ export async function processCoinbaseTransaction(
     data: {},
     chainId: block.chainId,
     creationtime: block.creationTime,
-    gaslimit: "0",
-    gasprice: "0",
+    gaslimit: '0',
+    gasprice: '0',
     hash: coinbase.reqKey,
-    nonce: "",
+    nonce: '',
     pactid: null,
     continuation: {},
-    gas: "0",
+    gas: '0',
     result: coinbase.result,
     logs: coinbase.logs,
     num_events: eventsData ? eventsData.length : 0,
     requestkey: coinbase.reqKey,
     rollback: null,
-    sender: "coinbase",
+    sender: 'coinbase',
     sigs: [],
     step: null,
     proof: null,
-    ttl: "0",
+    ttl: '0',
     txid: coinbase.txId.toString(),
   } as any;
 
-  const transfersCoinAttributes = await getCoinTransfers(
-    eventsData,
-    transactionAttributes,
-  );
+  const transfersCoinAttributes = await getCoinTransfers(eventsData, transactionAttributes);
 
   const eventsAttributes = eventsData.map((eventData: any) => {
     return {

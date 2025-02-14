@@ -1,4 +1,4 @@
-import { blockchainTooltipData } from "./tooltips"
+import { blockchainTooltipData } from './tooltips';
 
 export const trendingTokensTableColumns = [
   {
@@ -21,59 +21,59 @@ export const trendingTokensTableColumns = [
     center: true,
     key: 'change',
     label: 'Change (%)',
-    description: blockchainTooltipData.trendingTokens.change
+    description: blockchainTooltipData.trendingTokens.change,
   },
   {
     cols: 4,
     key: 'volume',
     label: 'Volume (24h)',
-    description: blockchainTooltipData.trendingTokens.volume
+    description: blockchainTooltipData.trendingTokens.volume,
   },
   {
     cols: 3,
     key: 'marketCap',
     label: 'Market Cap',
-    description: blockchainTooltipData.trendingTokens.marketCap
+    description: blockchainTooltipData.trendingTokens.marketCap,
   },
   {
     cols: 3,
     key: 'supply',
     label: 'Circulating Supply',
-    description: blockchainTooltipData.trendingTokens.circulatingSupply
+    description: blockchainTooltipData.trendingTokens.circulatingSupply,
   },
-]
+];
 
 export const tokenTransfersTableColumns = [
   {
     cols: 2,
     key: 'requestkey',
     label: 'Hash',
-    description: blockchainTooltipData.tokenTransfers.hash
+    description: blockchainTooltipData.tokenTransfers.hash,
   },
   {
     center: true,
     cols: 3,
     key: 'method',
     label: 'Method',
-    description: blockchainTooltipData.tokenTransfers.method
+    description: blockchainTooltipData.tokenTransfers.method,
   },
   {
     cols: 4,
     key: 'from',
     label: 'From',
-    description: blockchainTooltipData.tokenTransfers.from
+    description: blockchainTooltipData.tokenTransfers.from,
   },
   {
     cols: 4,
     key: 'to',
     label: 'To',
-    description: blockchainTooltipData.tokenTransfers.to
+    description: blockchainTooltipData.tokenTransfers.to,
   },
   {
     cols: 2,
     key: 'amount',
     label: 'Amount',
-    description: blockchainTooltipData.tokenTransfers.amount
+    description: blockchainTooltipData.tokenTransfers.amount,
   },
   {
     cols: 3,
@@ -91,33 +91,33 @@ export const tokenTransfersTableColumns = [
     key: 'icon',
     label: '',
   },
-]
+];
 
 export const tokenDetailTransferTableColumns = [
   {
     cols: 5,
     key: 'requestKey',
     label: 'Request Key',
-    description: blockchainTooltipData.tokenDetails.transfers.hash
+    description: blockchainTooltipData.tokenDetails.transfers.hash,
   },
   {
     center: true,
     cols: 2,
     key: 'method',
     label: 'Method',
-    description: blockchainTooltipData.tokenDetails.transfers.method
+    description: blockchainTooltipData.tokenDetails.transfers.method,
   },
   {
     cols: 4,
     key: 'from',
     label: 'From',
-    description: blockchainTooltipData.tokenDetails.transfers.from
+    description: blockchainTooltipData.tokenDetails.transfers.from,
   },
   {
     cols: 4,
     key: 'to',
     label: 'To',
-    description: blockchainTooltipData.tokenDetails.transfers.to
+    description: blockchainTooltipData.tokenDetails.transfers.to,
   },
   {
     cols: 4,
@@ -129,13 +129,13 @@ export const tokenDetailTransferTableColumns = [
     key: 'date',
     label: 'Date',
   },
-]
+];
 
 export const holdersTableColumns = [
   {
     cols: 1,
     key: 'ranking',
-    label: '#'
+    label: '#',
   },
   {
     cols: 7,
@@ -151,12 +151,12 @@ export const holdersTableColumns = [
     cols: 5,
     key: 'value',
     label: 'Value',
-    description: blockchainTooltipData.tokenDetails.holders.valueUSD
+    description: blockchainTooltipData.tokenDetails.holders.valueUSD,
   },
   {
     cols: 6,
     key: 'percentage',
     label: 'Percentage',
-    description: blockchainTooltipData.tokenDetails.holders.percentage
+    description: blockchainTooltipData.tokenDetails.holders.percentage,
   },
-]
+];

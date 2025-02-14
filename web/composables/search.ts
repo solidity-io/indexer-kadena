@@ -1,4 +1,4 @@
-import debounce from 'lodash/debounce'
+import debounce from 'lodash/debounce';
 import { gql } from 'nuxt-graphql-request/utils';
 
 const allQuery = gql`
@@ -28,7 +28,7 @@ const allQuery = gql`
       }
     }
   }
-`
+`;
 
 const searchBlocksQuery = gql`
   query SearchBlocks($searchTerm: String!, $limit: Int!, $heightFilter: Int) {
@@ -108,7 +108,7 @@ const filters = [
   },
 ];
 
-export function useSearch () {
+export function useSearch() {
   const data = reactive<any>({
     query: '',
     open: false,
@@ -164,11 +164,11 @@ export function useSearch () {
 
   function shouldRedirectBeforeSearch(search: any) {
     if (kadenaAddressRegex.test(search)) {
-      return "account";
+      return 'account';
     }
 
     if (requestKeyRegex.test(search)) {
-      return "transactions";
+      return 'transactions';
     }
   }
 
@@ -241,14 +241,14 @@ export function useSearch () {
   };
 
   const close = () => {
-    data.open = false
-  }
+    data.open = false;
+  };
 
   const cleanup = () => {
-    data.query = ''
-    data.searched = null
-    close()
-  }
+    data.query = '';
+    data.searched = null;
+    close();
+  };
 
   return {
     data,

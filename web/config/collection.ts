@@ -1,41 +1,41 @@
-import { blockchainTooltipData } from "./tooltips"
+import { blockchainTooltipData } from './tooltips';
 
 export const collectionActivityTableColumns = [
   {
     cols: 4,
     key: 'item',
     label: 'Item',
-    description: blockchainTooltipData.block.blockHeight
+    description: blockchainTooltipData.block.blockHeight,
   },
   {
     cols: 2,
     key: 'price',
     label: 'Price',
-    description: blockchainTooltipData.block.blockHeight
+    description: blockchainTooltipData.block.blockHeight,
   },
   {
     cols: 4,
     key: 'hash',
     label: 'Hash',
-    description: blockchainTooltipData.block.blockHeight
+    description: blockchainTooltipData.block.blockHeight,
   },
   {
     cols: 4,
     key: 'from',
     label: 'From',
-    description: blockchainTooltipData.block.blockHeight
+    description: blockchainTooltipData.block.blockHeight,
   },
   {
     cols: 4,
     key: 'to',
     label: 'To',
-    description: blockchainTooltipData.block.blockHeight
+    description: blockchainTooltipData.block.blockHeight,
   },
   {
     cols: 5,
     key: 'date',
     label: 'Date',
-    description: blockchainTooltipData.block.blockHeight
+    description: blockchainTooltipData.block.blockHeight,
   },
 
   {
@@ -44,12 +44,12 @@ export const collectionActivityTableColumns = [
     key: 'icon',
     label: '',
   },
-]
+];
 
 export const mockCollectionTxs = [
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     createdAt: 1712954633979,
     name: 'The Angel Doggos',
     collection: 'Mock',
@@ -59,8 +59,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Kadena Bears',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -70,8 +70,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Brawler Bears',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -81,8 +81,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Boxing Badger',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -92,8 +92,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Kadena Mining Club',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -103,8 +103,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Kadena Komodos',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -114,8 +114,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'JODIE INU',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -125,8 +125,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'INU Crew',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -136,8 +136,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Eighties Bulls',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -147,8 +147,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -158,8 +158,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -169,8 +169,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -180,8 +180,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -191,8 +191,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -202,8 +202,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -213,8 +213,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -224,8 +224,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -235,8 +235,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -246,8 +246,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -257,8 +257,8 @@ export const mockCollectionTxs = [
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
   },
   {
-    amount: "00.00",
-    dollar: "$ 0,00",
+    amount: '00.00',
+    dollar: '$ 0,00',
     name: 'Dadbod #999999',
     image: '/nft/mock.webp',
     createdAt: 1712954633979,
@@ -266,8 +266,8 @@ export const mockCollectionTxs = [
     hash: '0000000000000000000000000000000000000000000000',
     to: 'k:0000000000000000000000000000000000000000000000000000000000000',
     from: 'k:0000000000000000000000000000000000000000000000000000000000000',
-  }
-]
+  },
+];
 
 export const mockCollectionNFTs = [
   {
@@ -390,7 +390,7 @@ export const mockCollectionNFTs = [
     collection: 'Mock',
     image: '/nft/mock.webp',
   },
-]
+];
 
 export const mockCollection = [
   {
@@ -398,7 +398,7 @@ export const mockCollection = [
     amount: '00.00',
     currency: 'KDA',
     delta: -0.401,
-    floor: "10",
+    floor: '10',
     owners: '5,270',
     transfers: '10,000',
     assets: '197,719',
@@ -409,7 +409,7 @@ export const mockCollection = [
     amount: '00.00',
     currency: 'KDA',
     delta: 0.0383,
-    floor: "2.326",
+    floor: '2.326',
     owners: '2,270',
     transfers: '10,000',
     assets: '17,719',
@@ -420,7 +420,7 @@ export const mockCollection = [
     amount: '00.00',
     currency: 'KDA',
     delta: 0.498,
-    floor: "0.000",
+    floor: '0.000',
     owners: '270',
     transfers: '20,000',
     assets: '17,719',
@@ -431,7 +431,7 @@ export const mockCollection = [
     amount: '00.00',
     currency: 'KDA',
     delta: 0.1864,
-    floor: "10",
+    floor: '10',
     owners: '70',
     transfers: '1000',
     assets: '7,719',
@@ -442,7 +442,7 @@ export const mockCollection = [
     amount: '00.00',
     currency: 'KDA',
     delta: 0.5936,
-    floor: "1.4",
+    floor: '1.4',
     owners: '5,470',
     transfers: '10,000',
     assets: '197,719',
@@ -453,7 +453,7 @@ export const mockCollection = [
     amount: '00.00',
     currency: 'KDA',
     delta: 0.3715,
-    floor: "0.",
+    floor: '0.',
     owners: '570',
     transfers: '10000',
     assets: '1,719',
@@ -464,7 +464,7 @@ export const mockCollection = [
     amount: '00.00',
     currency: 'KDA',
     delta: 0.401,
-    floor: "10",
+    floor: '10',
     owners: '50',
     transfers: '100',
     assets: '119',
@@ -475,7 +475,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.401,
-    floor: "1.385",
+    floor: '1.385',
     owners: '170',
     transfers: '14,000',
     assets: '19',
@@ -486,7 +486,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.18877,
-    floor: "10",
+    floor: '10',
     owners: '8,270',
     transfers: '100',
     assets: '19',
@@ -497,7 +497,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.401,
-    floor: "1.385",
+    floor: '1.385',
     owners: '670',
     transfers: '18,000',
     assets: '87,719',
@@ -508,7 +508,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.401,
-    floor: "10",
+    floor: '10',
     owners: '12,270',
     transfers: '14,000',
     assets: '197,719',
@@ -519,7 +519,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: -0.401,
-    floor: "11.3852",
+    floor: '11.3852',
     owners: '530',
     transfers: '10,000',
     assets: '27,719',
@@ -530,7 +530,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: -0.401,
-    floor: "10",
+    floor: '10',
     owners: '60',
     transfers: '100',
     assets: '197,719',
@@ -541,7 +541,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.401,
-    floor: "11.3852",
+    floor: '11.3852',
     owners: '5,270',
     transfers: '10,000',
     assets: '197,719',
@@ -552,7 +552,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: -0.401,
-    floor: "10",
+    floor: '10',
     owners: '270',
     transfers: '10',
     assets: '197,719',
@@ -563,7 +563,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.401,
-    floor: "10",
+    floor: '10',
     owners: '1,270',
     transfers: '10,000',
     assets: '197,719',
@@ -574,7 +574,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.401,
-    floor: "1.385",
+    floor: '1.385',
     owners: '5,270',
     transfers: '10,000',
     assets: '197,719',
@@ -585,7 +585,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: -0.401,
-    floor: "10",
+    floor: '10',
     owners: '5,470',
     transfers: '10,000',
     assets: '197,719',
@@ -596,7 +596,7 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.401,
-    floor: "10",
+    floor: '10',
     owners: '5,470',
     transfers: '10,000',
     assets: '197,719',
@@ -607,10 +607,10 @@ export const mockCollection = [
     amount: '00.00 ',
     currency: 'KDA',
     delta: 0.401,
-    floor: "10",
+    floor: '10',
     owners: '5,270',
     transfers: '10,000',
     assets: '197,719',
     icon: '/collection/profile.webp',
-  }
-]
+  },
+];

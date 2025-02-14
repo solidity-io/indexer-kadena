@@ -5,11 +5,11 @@
  * @returns The decoded and parsed JSON object, or null if decoding or parsing fails.
  */
 export function getDecoded(encodedData: string): any {
-  const decodedData = Buffer.from(encodedData, "base64").toString("utf-8");
+  const decodedData = Buffer.from(encodedData, 'base64').toString('utf-8');
   try {
     return JSON.parse(decodedData);
   } catch (error) {
-    console.error("Error decoding data:", error);
+    console.error('Error decoding data:', error);
     return null;
   }
 }
@@ -21,7 +21,7 @@ export function getDecoded(encodedData: string): any {
  * @returns A promise that resolves after the specified delay.
  */
 export function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
@@ -34,11 +34,7 @@ export function delay(ms: number): Promise<void> {
  * @param rangeSize The size of each chunk.
  * @returns An array of arrays, where each inner array represents a chunk with a start and end value.
  */
-export function splitIntoChunks(
-  min: number,
-  max: number,
-  rangeSize: number,
-): number[][] {
+export function splitIntoChunks(min: number, max: number, rangeSize: number): number[][] {
   const chunks = [];
   let current = max;
   if (max - min <= rangeSize) {
@@ -59,7 +55,7 @@ export function splitIntoChunks(
  * @returns The size of the data in bytes.
  */
 export function calculateDataSize(data: any) {
-  return Buffer.byteLength(JSON.stringify(data), "utf8");
+  return Buffer.byteLength(JSON.stringify(data), 'utf8');
 }
 
 /**
