@@ -9,3 +9,4 @@ draft/
 .terraform.plan
 .github/workflows/.artifacts/
 .vercel
+indexer/indexer
