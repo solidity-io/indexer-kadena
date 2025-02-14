@@ -86,7 +86,7 @@ sudo docker run --env-file ./indexer/.env -p 3000:3000 kadena-indexer:latest
 
 ### 4.4. Running with Docker Compose
 
-Docker Compose provides a way to run the entire indexer stack with a single command. While you could run each service separately (database, migrations, GraphQL server, and streaming service), Docker Compose orchestrates all these components together, handling their dependencies and startup order automatically. The services are defined in `docker-compose.development.yml`, which includes:
+Docker Compose provides a way to run the entire indexer stack with a single command. While you could run each service separately (database, migrations, GraphQL server, and streaming service), Docker Compose orchestrates all these components together, handling their dependencies and startup order automatically. The services are defined in `docker-compose.yml`, which includes:
 - PostgreSQL database
 - Database migrations
 - GraphQL API server
