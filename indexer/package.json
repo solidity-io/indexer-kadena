@@ -63,20 +63,15 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
-    "build": "tsc",
-    "graphql:generate-types": "npx graphql-codegen",
+    "create:database": "ts-node src/index.ts --database && yarn migrate:up",
+    "dev": "docker-compose -f docker-compose.development.yml up && docker-compose logs -f indexer",
     "dev:database": "ts-node src/index.ts --database",
     "dev:streaming": "ts-node src/index.ts --streaming",
     "dev:graphql": "ts-node src/index.ts --graphql",
-    "dev:old-graphql": "ts-node src/index.ts --oldGraphql",
     "dev:hot:graphql": "nodemon src/index.ts --graphql",
-    "prod:start": "docker-compose up --build indexer && docker-compose logs -f indexer",
-    "prod:streaming": "node dist/index.js --streaming",
-    "prod:backfill": "node dist/index.js --backfill",
-    "test": "NODE_ENV=test mocha -r ts-node/register 'tests/**/*.test.ts'",
-    "test:unit": "jest tests/unit/*.test.ts",
-    "create:database": "ts-node src/index.ts --database && yarn migrate:up",
+    "graphql:generate-types": "npx graphql-codegen",
     "migrate:up": "dotenv -e .env npx sequelize-cli db:migrate",
-    "migrate:down": "dotenv -e .env npx sequelize-cli db:migrate:undo"
+    "migrate:down": "dotenv -e .env npx sequelize-cli db:migrate:undo",
+    "test": "jest tests/unit/*.test.ts"
   }
 }
