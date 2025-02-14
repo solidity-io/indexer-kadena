@@ -1,6 +1,6 @@
 # Kadindexer - Kadena Indexer
 
-This project is a monorepo that contains the following packages:
+[![Build](https://github.com/hack-a-chain-software/indexer-kadena/actions/workflows/indexer.yml/badge.svg)](https://github.com/hack-a-chain-software/indexer-kadena/actions/workflows/indexer.yml)
 
 - [`@kadena-indexer/indexer`](indexer/README.md): The indexer package, which is responsible for scanning and storing blocks for Kadena blockchain.
 - [`@kadena-indexer/terraform`](terraform/README.md): The Terraform configuration for provisioning the infrastructure required to run the indexer and the node. 
