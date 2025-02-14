@@ -27,5 +27,5 @@ jobs:
         working-directory: ./indexer
 
       - name: Build
-        run: yarn build
+        run: tsc
         working-directory: ./indexer
