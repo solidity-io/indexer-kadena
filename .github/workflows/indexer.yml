@@ -1,15 +1,14 @@
-name: 'Indexer Build'
+name: 'Indexer'
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
 
 jobs:
   build:
+    name: Run Build
     runs-on: ubuntu-latest
 
     steps:
