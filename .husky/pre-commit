@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Run lint-staged
+npx lint-staged
