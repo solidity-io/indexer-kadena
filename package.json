@@ -1,10 +1,19 @@
 {
   "name": "kadena-indexer",
   "version": "1.0.0",
+  "description": "Kadena indexer provides reliable and scalable indexing of Kadena blockchain data.",
   "author": "Hackachain team",
   "private": true,
-  "repository": "https://github.com/hack-a-chain-software/indexer-kadena.git",
   "license": "MIT",
+  "repository": "https://github.com/hack-a-chain-software/indexer-kadena.git",
+  "homepage": "",
+  "bugs": "",
+  "workspaces": [
+    "web",
+    "indexer",
+    "serverless",
+    "terraform"
+  ],
   "scripts": {
     "indexer": "yarn workspace @kadena-indexer/indexer",
     "terraform": "yarn workspace @kadena-indexer/terraform",
@@ -12,20 +21,15 @@
     "run-indexer-workflow": "act -W .github/workflows/indexer.yml --secret-file ./indexer/.env",
     "prepare": "husky"
   },
-  "workspaces": [
-    "web",
-    "indexer",
-    "serverless",
-    "terraform"
-  ],
-  "lint-staged": {
-    "*.{yml,yaml,go,json,md,js,ts,env.*}": [
-      "prettier --write"
-    ]
-  },
+  "dependencies": {},
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
     "prettier": "^3.5.1"
+  },
+  "lint-staged": {
+    "*.{yml,yaml,go,json,md,js,ts,env.*}": [
+      "prettier --write"
+    ]
   }
 }
