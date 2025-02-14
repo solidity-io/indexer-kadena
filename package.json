@@ -6,10 +6,9 @@
   "repository": "https://github.com/hack-a-chain-software/indexer-kadena.git",
   "license": "MIT",
   "scripts": {
-    "web": "yarn workspace @kadena-indexer/web",
+    "dev": "yarn indexer prod:start",
     "indexer": "yarn workspace @kadena-indexer/indexer",
     "terraform": "yarn workspace @kadena-indexer/terraform",
-    "serverless": "yarn workspace @kadena-indexer/serverless",
     "run-terraform-workflow": "act -W .github/workflows/terraform.yml -P ubuntu-latest=-self-hosted --artifact-server-path ./.github/workflows/.artifacts/ --secret-file ./terraform/.env",
     "run-indexer-workflow": "act -W .github/workflows/indexer.yml --secret-file ./indexer/.env"
   },
