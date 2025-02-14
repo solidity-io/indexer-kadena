@@ -9,12 +9,15 @@ import { useKadenaGraphqlServer } from "./kadena-server/server";
 import { closeDatabase } from "./config/database";
 import { initializeDatabase } from "./config/init";
 import { startGuardsBackfill } from "./services/sync/guards";
+import { startBackfillCoinbaseTransactions } from "./services/sync/coinbase";
 
 program
   .option("-s, --streaming", "Start streaming blockchain data")
   .option("-g, --oldGraphql", "Start GraphQL server based on Postgraphile")
   .option("-t, --graphql", "Start GraphQL server based on kadena schema")
   .option("-f, --guards", "Backfill the guards")
+  // this option shouldn't be used if you initialize the indexer from the beginning
+  .option("-c, --coinbase", "Backfill coinbase transactions")
   .option("-z, --database", "Init the database");
 
 program.parse(process.argv);
@@ -37,6 +40,8 @@ async function main() {
       await startStreaming();
     } else if (options.guards) {
       await startGuardsBackfill();
+    } else if (options.coinbase) {
+      await startBackfillCoinbaseTransactions();
     } else if (options.oldGraphql) {
       await usePostgraphile();
     } else if (options.graphql) {

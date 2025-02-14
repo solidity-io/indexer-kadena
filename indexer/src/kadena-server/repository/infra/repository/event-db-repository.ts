@@ -5,6 +5,7 @@ import EventRepository, {
   GetBlockEventsParams,
   GetEventParams,
   GetEventsParams,
+  GetLastEventsParams,
   GetTotalEventsCount,
   GetTotalTransactionEventsCount,
   GetTransactionEventsParams,
@@ -369,5 +370,68 @@ export default class EventDbRepository implements EventRepository {
     );
     const totalCount = parseInt(countResult[0].count, 10);
     return totalCount;
+  }
+
+  async getLastEventId(): Promise<number> {
+    const query = `SELECT last_value AS lastValue from "Events_id_seq"`;
+    const { rows } = await rootPgPool.query(query);
+    const totalCount = parseInt(rows[0].lastValue, 10);
+    return totalCount;
+  }
+
+  async getLastEvents({
+    qualifiedEventName,
+    lastEventId,
+    chainId,
+    minimumDepth,
+  }: GetLastEventsParams) {
+    const queryParams = [];
+    let conditions = "";
+    let limitCondition = lastEventId ? "LIMIT 5" : "LIMIT 100";
+
+    const splitted = qualifiedEventName.split(".");
+    const name = splitted.pop() ?? "";
+    const module = splitted.join(".");
+
+    queryParams.push(module);
+    conditions += `WHERE e.module = $${queryParams.length}`;
+    queryParams.push(name);
+    conditions += `\nAND e.name = $${queryParams.length}`;
+
+    if (lastEventId) {
+      queryParams.push(lastEventId);
+      conditions += `\nAND e.id > $${queryParams.length}`;
+    }
+
+    if (chainId) {
+      queryParams.push(parseInt(chainId));
+      conditions += `\nAND b."chainId" = $${queryParams.length}`;
+    }
+
+    const query = `
+      SELECT e.id as id,
+        e.requestkey as "requestKey",
+        b."chainId" as "chainId",
+        b.height as height,
+        e.module as "moduleName",
+        e."orderIndex" as "orderIndex",
+        e.name as name,
+        e.params as parameters,
+        b.hash as "blockHash"
+      FROM "Events" e
+      JOIN "Transactions" t ON e."transactionId" = t.id
+      JOIN "Blocks" b ON b.id = t."blockId"
+      ${conditions}
+      ORDER BY e.id DESC
+      ${limitCondition}
+    `;
+
+    const { rows } = await rootPgPool.query(query, queryParams);
+
+    const events = rows
+      .map((e) => eventValidator.validate(e))
+      .sort((a, b) => Number(b.id) - Number(a.id));
+
+    return events;
   }
 }

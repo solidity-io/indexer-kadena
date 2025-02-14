@@ -35,6 +35,13 @@ export interface GetEventParams {
   requestKey: string;
 }
 
+export interface GetLastEventsParams {
+  qualifiedEventName: string;
+  lastEventId?: number;
+  chainId?: string | null;
+  minimumDepth?: number | null;
+}
+
 export default interface EventRepository {
   getEvent(params: GetEventParams): Promise<EventOutput>;
   getBlockEvents(params: GetBlockEventsParams): Promise<{
@@ -51,7 +58,9 @@ export default interface EventRepository {
   }>;
   getTotalEventsCount(hash: GetTotalEventsCount): Promise<number>;
   getTotalTransactionEventsCount(
-    hash: GetTotalTransactionEventsCount
+    hash: GetTotalTransactionEventsCount,
   ): Promise<number>;
   getTotalCountOfBlockEvents(hash: string): Promise<number>;
+  getLastEventId(): Promise<number>;
+  getLastEvents(params: GetLastEventsParams): Promise<EventOutput[]>;
 }

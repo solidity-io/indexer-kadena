@@ -14,7 +14,6 @@ export async function startStreaming() {
   console.log("Starting streaming...");
 
   const blocksAlreadyReceived = new Set<string>();
-  const blocksQueue: Array<any> = [];
 
   const eventSource = new EventSource(
     `${SYNC_BASE_URL}/${SYNC_NETWORK}/block/updates`,
@@ -40,7 +39,6 @@ export async function startStreaming() {
         });
         return;
       }
-      blocksQueue.push(blockData);
     } catch (error) {
       console.log(error);
     }

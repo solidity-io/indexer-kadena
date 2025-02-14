@@ -17,7 +17,6 @@ export function getNftTransfers(
   chainId: number,
   eventsData: any,
   transactionAttributes: TransactionAttributes,
-  receiptInfo: any,
 ) {
   const TRANSFER_NFT_SIGNATURE = "TRANSFER";
   const TRANSFER_NFT_PARAMS_LENGTH = 4;
@@ -51,7 +50,7 @@ export function getNftTransfers(
         from_acct: from_acct,
         modulehash: eventData.moduleHash,
         modulename: modulename,
-        requestkey: receiptInfo.reqKey,
+        requestkey: transactionAttributes.requestkey,
         to_acct: to_acct,
         hasTokenId: true,
         tokenId: tokenId,
@@ -71,13 +70,12 @@ const requests: Record<string, undefined | boolean> = {};
  *
  * @param {Array} eventsData - The array of event data from a transaction payload.
  * @param {TransactionAttributes} transactionAttributes - Transaction attributes associated with the events.
- * @param {any} receiptInfo - Receipt information associated with the events.
+ * @param {any} requestKey - Associated to the T.
  * @returns {Promise<TransferAttributes[]>} A Promise that resolves to an array of transfer attributes specifically for coin transfers.
  */
 export function getCoinTransfers(
   eventsData: any,
   transactionAttributes: TransactionAttributes,
-  receiptInfo: any,
 ) {
   const TRANSFER_COIN_SIGNATURE = "TRANSFER";
   const TRANSFER_COIN_PARAMS_LENGTH = 3;
@@ -115,7 +113,7 @@ export function getCoinTransfers(
             "fungible",
             null,
             null,
-            Number(precisionData.result),
+            Number(JSON.parse(precisionData.result).int),
           );
         }
         console.log(precisionData);
@@ -134,7 +132,7 @@ export function getCoinTransfers(
         modulename: eventData.module.namespace
           ? `${eventData.module.namespace}.${eventData.module.name}`
           : eventData.module.name,
-        requestkey: receiptInfo.reqKey,
+        requestkey: transactionAttributes.requestkey,
         to_acct: to_acct,
         hasTokenId: false,
         tokenId: undefined,

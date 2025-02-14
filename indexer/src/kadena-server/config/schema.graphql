@@ -138,11 +138,21 @@ type Query {
     """
     Retrieve an account by its name and fungible, such as coin, on a specific chain.
     """
+    fungibleChainAccount(
+        accountName: String!
+        chainId: String!
+        fungibleName: String = "coin"
+    ): FungibleChainAccount
+        @deprecated(reason: "deprecated, use Query.fungibleChainAccounts")
+
+    """
+    Retrieve an account by its name and fungible, such as coin, on a specific chain.
+    """
     fungibleChainAccounts(
         accountName: String!
         chainIds: [String!]
         fungibleName: String = "coin"
-    ): [FungibleChainAccount!]!
+    ): [FungibleChainAccount!]
 
     """
     Retrieve a chain account by public key.
@@ -732,6 +742,11 @@ type TransactionResult {
     logs: String
     transactionId: BigInt
 
+    """
+    The height of the block this transaction belongs to.
+    """
+    height: BigInt! @deprecated(reason: "Use `block.height` instead.")
+
     metadata: String! @deprecated(reason: "Not used.")
 
     block: Block!
@@ -1019,5 +1034,24 @@ A keyset guard.
 type KeysetGuard implements IGuard {
     keys: [String!]!
     predicate: String!
+    raw: String!
+}
+
+type UserGuard implements IGuard {
+    args: [String!]!
+    fun: String!
+    keys: [String!]! @deprecated(reason: "deprecated, use KeysetGuard.keys")
+    predicate: String!
+        @deprecated(reason: "deprecated, use KeysetGuard.predicate")
+    raw: String!
+}
+
+"""
+DEPRECATED: a fallthrough IGuard type to cover non-KeysetGuard types.
+"""
+type RawGuard implements IGuard {
+    keys: [String!]! @deprecated(reason: "deprecated, use KeysetGuard.keys")
+    predicate: String!
+        @deprecated(reason: "deprecated, use KeysetGuard.predicate")
     raw: String!
 }

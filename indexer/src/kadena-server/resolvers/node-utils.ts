@@ -32,13 +32,14 @@ export const getNode = async (context: ResolverContext, id: string) => {
 
   if (type === "FungibleAccount") {
     const [_fungible, accountName] = JSON.parse(params);
-    const output = await context.balanceRepository.getAccountInfo(accountName);
+    const output =
+      await context.balanceRepository.getAccountInfo_NODE(accountName);
     return buildFungibleAccount(output);
   }
 
   if (type === "FungibleChainAccount") {
     const [chainId, fungibleName, accountName] = JSON.parse(params);
-    const output = await context.balanceRepository.getChainsAccountInfo(
+    const output = await context.balanceRepository.getChainsAccountInfo_NODE(
       accountName,
       fungibleName,
       [chainId],

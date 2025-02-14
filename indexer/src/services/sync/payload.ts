@@ -7,9 +7,10 @@ import Transfer, { TransferAttributes } from "../../models/transfer";
 import { getNftTransfers, getCoinTransfers } from "./transfers";
 import { QueryTypes, Transaction } from "sequelize";
 import Signer from "../../models/signer";
-import Guard, { GuardAttributes } from "../../models/guard";
+import Guard from "../../models/guard";
 import { handleSingleQuery } from "../../kadena-server/utils/raw-query";
 import { sequelize } from "../../config/database";
+import { processCoinbaseTransaction } from "./coinbase";
 
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
@@ -31,6 +32,12 @@ export async function processPayloadKey(
   const transactionPromises = transactions.map((transactionArray: any) =>
     processTransaction(transactionArray, block, tx),
   );
+
+  await processCoinbaseTransaction(payloadData.coinbase, {
+    id: block.id,
+    chainId: block.chainId,
+    creationTime: block.creationTime,
+  });
 
   return (await Promise.all(transactionPromises)).flat();
 }
@@ -80,6 +87,7 @@ export async function processTransaction(
     sender: cmdData?.meta?.sender || null,
     sigs: sigsData,
     step: cmdData?.payload?.cont?.step || 0,
+    proof: cmdData?.payload?.cont?.proof || null,
     ttl: cmdData.meta.ttl,
     txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
   } as TransactionAttributes;
@@ -102,14 +110,12 @@ export async function processTransaction(
   const transfersCoinAttributes = await getCoinTransfers(
     eventsData,
     transactionAttributes,
-    receiptInfo,
   );
 
   const transfersNftAttributes = await getNftTransfers(
     transactionAttributes.chainId,
     eventsData,
     transactionAttributes,
-    receiptInfo,
   );
 
   const transfersAttributes = [transfersCoinAttributes, transfersNftAttributes]

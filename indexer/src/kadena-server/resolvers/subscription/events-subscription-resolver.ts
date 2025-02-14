@@ -1,54 +1,41 @@
-import { withFilter } from "graphql-subscriptions";
 import { ResolverContext } from "../../config/apollo-server-config";
 import { SubscriptionResolvers } from "../../config/graphql-types";
-import { eventsQueryResolver } from "../query/events-query-resolver";
-import zod from "zod";
+import { EventOutput } from "../../repository/application/event-repository";
+import { buildEventOutput } from "../output/build-event-output";
 
-import { EVENTS_EVENT } from "./consts";
+async function* iteratorFn(
+  context: ResolverContext,
+  qualifiedEventName: string,
+  chainId?: string | null,
+  minimumDepth?: number | null,
+): AsyncGenerator<EventOutput[] | undefined, void, unknown> {
+  let lastEventId = await context.eventRepository.getLastEventId();
+  while (context.signal) {
+    const newEvents = await context.eventRepository.getLastEvents({
+      qualifiedEventName,
+      lastEventId,
+      chainId,
+      minimumDepth,
+    });
 
-const eventsSubscriptionSchema = zod.object({
-  chainId: zod.string(),
-  height: zod.number(),
-  qualifiedEventName: zod.string(),
-});
+    if (newEvents.length > 1) {
+      lastEventId = Number(newEvents[0].id);
+      yield newEvents.map((e) => buildEventOutput(e));
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+}
 
 export const eventsSubscriptionResolver: SubscriptionResolvers<ResolverContext>["events"] =
   {
-    resolve: async (payload: any, _args: any, context: ResolverContext) => {
-      const res = await (eventsQueryResolver as any)(
-        {},
-        {
-          blockHash: payload.hash,
-          chainId: payload.chainId,
-          qualifiedEventName: payload.qualifiedEventName,
-        },
+    subscribe: (__root, args, context) => {
+      return iteratorFn(
         context,
+        args.qualifiedEventName,
+        args.chainId,
+        args.minimumDepth,
       );
-      return res.edges.map((e: any) => e.node);
     },
-    subscribe: (_parent, args, context) => {
-      return {
-        [Symbol.asyncIterator]: withFilter(
-          () => context.pubSub.asyncIterator(EVENTS_EVENT),
-          (payload) => {
-            const res = eventsSubscriptionSchema.safeParse(payload);
-            if (!res.success) {
-              console.info("Invalid payload on eventsSubscription", payload);
-              return false;
-            }
-            const { chainId, height, qualifiedEventName } = res.data;
-
-            if (args.chainId && chainId !== args.chainId) {
-              return false;
-            }
-
-            if (args.minimumDepth && height < args.minimumDepth) {
-              return false;
-            }
-
-            return qualifiedEventName === args.qualifiedEventName;
-          },
-        ),
-      };
-    },
+    resolve: (payload: any) => payload,
   };

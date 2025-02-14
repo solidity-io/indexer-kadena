@@ -15,7 +15,7 @@ import {
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { ArgumentNode, ASTNode, GraphQLError, Kind, ValueNode } from "graphql";
+import { ArgumentNode, ASTNode, GraphQLError, Kind } from "graphql";
 import {
   EVENTS_EVENT,
   NEW_BLOCKS_EVENT,
@@ -151,7 +151,18 @@ export async function useKadenaGraphqlServer() {
   const serverCleanup = useServer(
     {
       schema,
-      context,
+      context: async (ctx) => {
+        const abortController = new AbortController();
+
+        ctx.extra.socket.addEventListener("close", () => {
+          abortController.abort(); // Only aborts this specific subscription
+        });
+
+        return {
+          ...context,
+          signal: abortController.signal, // Pass signal per subscription
+        };
+      },
     },
     wsServer,
   );

@@ -6,6 +6,7 @@ import {
 } from "../../config/graphql-types";
 import { PaginationsParams } from "../pagination";
 import { ConnectionEdge } from "../types";
+import { TransactionOutput } from "./transaction-repository";
 
 export interface GetBlocksFromDepthParams extends PaginationsParams {
   chainIds?: InputMaybe<string[]>;
@@ -22,6 +23,12 @@ export interface GetBlocksBetweenHeightsParams extends PaginationsParams {
   chainIds?: InputMaybe<string[]>;
   startHeight: number;
   endHeight?: InputMaybe<number>;
+}
+
+export interface GetLatestBlocksParams {
+  creationTime: number;
+  lastBlockId?: number;
+  chainIds?: string[];
 }
 
 export type BlockOutput = Omit<
@@ -60,6 +67,12 @@ export default interface BlockRepository {
   getChainIds(): Promise<number[]>;
 
   getTotalCountOfBlockEvents(blockHash: string): Promise<number>;
+
+  getLatestBlocks(params: GetLatestBlocksParams): Promise<BlockOutput[]>;
+
+  getTransactionsOrderedByBlockDepth(
+    transactions: TransactionOutput[],
+  ): Promise<TransactionOutput[]>;
 
   // dataloader
   getBlocksByEventIds(eventIds: string[]): Promise<BlockOutput[]>;

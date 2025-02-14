@@ -21,6 +21,7 @@ import { fungibleChainAccountValidator } from "../schema-validator/fungible-chai
 import { nonFungibleTokenBalanceValidator } from "../schema-validator/non-fungible-token-balance-validator";
 
 export default class BalanceDbRepository implements BalanceRepository {
+  // TODO: waiting for orphan blocks mechanism to be ready
   async getAccountInfo(accountName: string, fungibleName = "coin") {
     const account = await BalanceModel.findOne({
       where: {
@@ -51,6 +52,7 @@ export default class BalanceDbRepository implements BalanceRepository {
     return { ...accountInfo, totalBalance };
   }
 
+  // TODO: waiting for orphan blocks mechanism to be ready
   async getChainsAccountInfo(
     accountName: string,
     fungibleName: string,
@@ -76,6 +78,7 @@ export default class BalanceDbRepository implements BalanceRepository {
     return output;
   }
 
+  // TODO: waiting for orphan blocks mechanism to be ready
   async getAccountsByPublicKey(
     publicKey: string,
     fungibleName: string,
@@ -120,6 +123,7 @@ export default class BalanceDbRepository implements BalanceRepository {
     return output;
   }
 
+  // TODO: waiting for orphan blocks mechanism to be ready
   async getChainAccountsByPublicKey(
     publicKey: string,
     fungibleName: string,
@@ -301,11 +305,11 @@ export default class BalanceDbRepository implements BalanceRepository {
     let chainIdsParam = [];
     if (!chainIds?.length) {
       const query = `
-      SELECT DISTINCT b."chainId"
-      FROM "Balances" b
-      WHERE b.account = $1
-      AND b.module = $2
-    `;
+        SELECT DISTINCT b."chainId"
+        FROM "Balances" b
+        WHERE b.account = $1
+        AND b.module = $2
+      `;
       const { rows } = await rootPgPool.query(query, [
         accountName,
         fungibleName,

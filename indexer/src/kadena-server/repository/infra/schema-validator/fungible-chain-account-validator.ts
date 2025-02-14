@@ -27,14 +27,7 @@ const validate = (row: any): FungibleChainAccountOutput => {
     fungibleName: res.module,
     chainId: res.chainId.toString(),
     balance: Number(res.balance),
-    guard: {
-      keys: row.guard.keys,
-      predicate: row.guard.predicate,
-      raw: JSON.stringify({
-        keys: row.guard.keys,
-        predicate: row.guard.predicate,
-      }),
-    },
+    guard: row.guard,
   };
 };
 

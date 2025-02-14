@@ -1,5 +1,4 @@
 import {
-  Block,
   FungibleChainAccountTransactionsConnection,
   FungibleChainAccountTransfersConnection,
 } from "../../config/graphql-types";
