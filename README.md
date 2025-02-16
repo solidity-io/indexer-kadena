@@ -9,8 +9,8 @@
 
 ## Requirements
 
-- Install dependencies
-- See individual package READMEs for specific prerequisites
+- Install dependencies.
+- See individual package READMEs for specific prerequisites.
 
 ## Installation
 
@@ -38,4 +38,4 @@ To start all services:
 yarn indexer dev
 ```
 
-**NOTE:** Using the image on with the composer require the database `DB_USERNAME` to default to `postgres`.
+**NOTE:** Using the Postgres image with the composer requires the database `DB_USERNAME` defaulting to `postgres`.
