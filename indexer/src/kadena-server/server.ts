@@ -32,8 +32,7 @@ const typeDefs = readFileSync(join(__dirname, './config/schema.graphql'), 'utf-8
 const KADENA_GRAPHQL_API_PORT = getRequiredEnvString('KADENA_GRAPHQL_API_PORT');
 
 const ALLOWED_ORIGINS = [
-  getRequiredEnvString('API_GATEWAY_MAINNET_URL'),
-  getRequiredEnvString('API_GATEWAY_TESTNET_URL'),
+  getRequiredEnvString('API_GATEWAY_URL'),
   `http://localhost:${KADENA_GRAPHQL_API_PORT}`,
 ];
 
