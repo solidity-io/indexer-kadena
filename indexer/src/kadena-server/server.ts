@@ -31,10 +31,16 @@ const typeDefs = readFileSync(join(__dirname, './config/schema.graphql'), 'utf-8
 
 const KADENA_GRAPHQL_API_PORT = getRequiredEnvString('KADENA_GRAPHQL_API_PORT');
 
+const ALLOWED_ORIGINS = [
+  getRequiredEnvString('API_GATEWAY_URL'),
+  `http://localhost:${KADENA_GRAPHQL_API_PORT}`,
+];
+
 const validatePaginationParamsPlugin: ApolloServerPlugin = {
   requestDidStart: async () => ({
     didResolveOperation: async ({ request, document }) => {
       const variables = { ...request.variables }; // External variables
+      // prettier-ignore
       const inlineArguments: Record<string, any> = {};
 
       // Helper function to extract inline arguments
@@ -136,6 +142,20 @@ export async function useKadenaGraphqlServer() {
   const wsServer = new WebSocketServer({
     server: httpServer,
     path: '/graphql',
+    verifyClient: ({ origin }, callback) => {
+      if (!origin || origin === 'null') {
+        return callback(false, 400, 'No origin');
+      }
+      try {
+        const url = new URL(origin);
+        if (ALLOWED_ORIGINS.includes(url.origin)) {
+          return callback(true);
+        }
+        return callback(false, 403, 'Forbidden');
+      } catch {
+        return callback(false, 400, 'Invalid origin');
+      }
+    },
   });
 
   const serverCleanup = useServer(
@@ -160,7 +180,27 @@ export async function useKadenaGraphqlServer() {
 
   app.use(
     '/graphql',
-    cors<cors.CorsRequest>(),
+    cors<cors.CorsRequest>({
+      origin: (origin, callback) => {
+        if (!origin || origin === 'null') {
+          return callback(null, false);
+        }
+
+        try {
+          const url = new URL(origin);
+          if (ALLOWED_ORIGINS.includes(url.origin)) {
+            return callback(null, true);
+          }
+          return callback(new Error(`Origin ${origin} not allowed by CORS`));
+        } catch (error) {
+          return callback(null, false);
+        }
+      },
+      methods: ['POST', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      // When using credentials: true, you cannot use * for Access-Control-Allow-Origin. You must specify exact origins.
+      credentials: true,
+    }),
     expressMiddleware(server, {
       context: createGraphqlContext,
     }),
