@@ -26,6 +26,15 @@ import { dispatchInfoSchema } from '../jobs/publisher-job';
 import initCache from '../cache/init';
 import { getRequiredEnvString } from '../utils/helpers';
 import ipRangeCheck from 'ip-range-check';
+import {
+  createComplexityRule,
+  fieldExtensionsEstimator,
+  getComplexity,
+  simpleEstimator,
+} from 'graphql-query-complexity';
+
+// Maximum allowed complexity
+const MAX_COMPLEXITY = 100;
 
 const typeDefs = readFileSync(join(__dirname, './config/schema.graphql'), 'utf-8');
 
@@ -35,6 +44,7 @@ const validatePaginationParamsPlugin: ApolloServerPlugin = {
   requestDidStart: async () => ({
     didResolveOperation: async ({ request, document }) => {
       const variables = { ...request.variables }; // External variables
+      // prettier-ignore
       const inlineArguments: Record<string, any> = {};
 
       // Helper function to extract inline arguments
@@ -110,9 +120,11 @@ const ipFilterMiddleware = (req: Request, res: Response, next: NextFunction) => 
 export async function useKadenaGraphqlServer() {
   const app = express();
   const httpServer = http.createServer(app);
+
   const server = new ApolloServer<ResolverContext>({
     typeDefs,
     resolvers,
+    introspection: true,
     plugins: [
       validatePaginationParamsPlugin,
       ApolloServerPluginDrainHttpServer({ httpServer }),
@@ -124,6 +136,51 @@ export async function useKadenaGraphqlServer() {
             },
           };
         },
+      },
+      {
+        requestDidStart: async () => ({
+          async didResolveOperation({ request, document }) {
+            // Skip complexity check for introspection or Apollo can't get the schemas
+            if (request.operationName == 'IntrospectionQuery') return;
+            /**
+             * Provides GraphQL query analysis to be able to react on complex queries to the GraphQL server
+             * It can be used to protect the GraphQL server against resource exhaustion and DoS attacks
+             * More documentation can be found at https://github.com/ivome/graphql-query-complexity
+             */
+            const complexity = getComplexity({
+              // GraphQL schema
+              schema,
+              // To calculate query complexity properly,
+              // check only the requested operation
+              // not the whole document that may contains multiple operations
+              operationName: request.operationName,
+              // GraphQL query document
+              query: document,
+              // GraphQL query variables
+              variables: request.variables,
+              // Add any number of estimators. The estimators are invoked in order, the first
+              // numeric value that is being returned by an estimator is used as the field complexity
+              // If no estimator returns a value, an exception is raised
+              estimators: [
+                // Using fieldExtensionsEstimator is mandatory to make it work with type-graphql
+                fieldExtensionsEstimator(),
+                // Add more estimators here...
+                // This will assign each field a complexity of 1
+                // if no other estimator returned a value
+                simpleEstimator({ defaultComplexity: 1 }),
+              ],
+            });
+
+            // React to the calculated complexity,
+            // like compare it with max and throw error when the threshold is reached
+            if (complexity > MAX_COMPLEXITY) {
+              throw new Error(
+                `Sorry, too complicated query! ${complexity} exceeded the maximum allowed complexity of ${MAX_COMPLEXITY}`,
+              );
+            }
+            console.log('Used query complexity points:', complexity);
+          },
+        }),
       },
     ],
   });
