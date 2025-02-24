@@ -26,12 +26,16 @@ import { dispatchInfoSchema } from '../jobs/publisher-job';
 import initCache from '../cache/init';
 import { getRequiredEnvString } from '../utils/helpers';
 import ipRangeCheck from 'ip-range-check';
-import { fieldExtensionsEstimator, getComplexity, simpleEstimator } from 'graphql-query-complexity';
+import {
+  directiveEstimator,
+  fieldExtensionsEstimator,
+  getComplexity,
+  simpleEstimator,
+} from 'graphql-query-complexity';
 import { depthLimit } from '@graphile/depth-limit';
 
 // Maximum allowed complexity
-const MAX_COMPLEXITY = 100;
-const MAX_DEPTH = 5;
+const MAX_COMPLEXITY = 1000;
 
 const typeDefs = readFileSync(join(__dirname, './config/schema.graphql'), 'utf-8');
 
@@ -172,6 +176,11 @@ export async function useKadenaGraphqlServer() {
               estimators: [
                 // Using fieldExtensionsEstimator is mandatory to make it work with type-graphql
                 fieldExtensionsEstimator(),
+                // Add directive support
+                directiveEstimator({
+                  // Optionally change the name of the directive here... Default value is `complexity`
+                  name: 'complexity',
+                }),
                 // Add more estimators here...
                 // This will assign each field a complexity of 1
                 // if no other estimator returned a value
