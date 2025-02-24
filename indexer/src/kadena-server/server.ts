@@ -26,15 +26,12 @@ import { dispatchInfoSchema } from '../jobs/publisher-job';
 import initCache from '../cache/init';
 import { getRequiredEnvString } from '../utils/helpers';
 import ipRangeCheck from 'ip-range-check';
-import {
-  createComplexityRule,
-  fieldExtensionsEstimator,
-  getComplexity,
-  simpleEstimator,
-} from 'graphql-query-complexity';
+import { fieldExtensionsEstimator, getComplexity, simpleEstimator } from 'graphql-query-complexity';
+import { depthLimit } from '@graphile/depth-limit';
 
 // Maximum allowed complexity
 const MAX_COMPLEXITY = 100;
+const MAX_DEPTH = 5;
 
 const typeDefs = readFileSync(join(__dirname, './config/schema.graphql'), 'utf-8');
 
@@ -125,6 +122,17 @@ export async function useKadenaGraphqlServer() {
     typeDefs,
     resolvers,
     introspection: true,
+    validationRules: [
+      depthLimit({
+        maxDepth: 7, // Reasonable depth for most queries
+        maxListDepth: 5, // Prevent deeply nested array queries
+        maxSelfReferentialDepth: 2, // Limit recursive queries
+        maxIntrospectionDepth: 15, // Limit introspection query depth
+        maxIntrospectionListDepth: 8, // Limit introspection array depth
+        maxIntrospectionSelfReferentialDepth: 2,
+        revealDetails: false, // Don't expose limits to clients
+      }),
+    ],
     plugins: [
       validatePaginationParamsPlugin,
       ApolloServerPluginDrainHttpServer({ httpServer }),
