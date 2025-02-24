@@ -56,21 +56,19 @@ type Query {
   """
   Retrieve a block by hash.
   """
-  block(hash: String!): Block
+  block(hash: String!): Block @complexity(value: 5)
+
   """
   Retrieve blocks by chain and minimal depth. Default page size is 20.
   """
   blocksFromDepth(
     after: String
     before: String
-    """
-    Default: all chains
-    """
     chainIds: [String!]
     first: Int
     last: Int
     minimumDepth: Int!
-  ): QueryBlocksFromDepthConnection
+  ): QueryBlocksFromDepthConnection @complexity(value: 10, multipliers: ["first", "last"])
 
   """
   Retrieve blocks by chain and minimal height. Default page size is 20.
@@ -86,7 +84,7 @@ type Query {
     first: Int
     last: Int
     startHeight: Int!
-  ): QueryBlocksFromHeightConnection!
+  ): QueryBlocksFromHeightConnection! @complexity(value: 10, multipliers: ["first", "last"])
 
   """
   Retrieve all completed blocks from a given height. Default page size is 20.
@@ -105,7 +103,7 @@ type Query {
     first: Int
     heightCount: Int = 3
     last: Int
-  ): QueryCompletedBlockHeightsConnection!
+  ): QueryCompletedBlockHeightsConnection! @complexity(value: 10, multipliers: ["first", "last"])
 
   """
   Retrieve events by qualifiedName (e.g. `coin.TRANSFER`). Default page size is 20.
@@ -128,12 +126,13 @@ type Query {
     parametersFilter: String
     qualifiedEventName: String!
     requestKey: String
-  ): QueryEventsConnection!
+  ): QueryEventsConnection! @complexity(value: 10, multipliers: ["first", "last"])
 
   """
   Retrieve an fungible specific account by its name and fungible, such as coin.
   """
   fungibleAccount(accountName: String!, fungibleName: String = "coin"): FungibleAccount
+    @complexity(value: 1)
 
   """
   Retrieve an account by public key.
@@ -141,7 +140,7 @@ type Query {
   fungibleAccountsByPublicKey(
     fungibleName: String = "coin"
     publicKey: String!
-  ): [FungibleAccount!]!
+  ): [FungibleAccount!]! @complexity(value: 5, multipliers: ["length"])
 
   """
   Retrieve an account by its name and fungible, such as coin, on a specific chain.
@@ -150,7 +149,7 @@ type Query {
     accountName: String!
     chainId: String!
     fungibleName: String = "coin"
-  ): FungibleChainAccount @deprecated(reason: "deprecated, use Query.fungibleChainAccounts")
+  ): FungibleChainAccount @complexity(value: 1)
 
   """
   Retrieve an account by its name and fungible, such as coin, on a specific chain.
@@ -159,7 +158,7 @@ type Query {
     accountName: String!
     chainIds: [String!]
     fungibleName: String = "coin"
-  ): [FungibleChainAccount!]
+  ): [FungibleChainAccount!] @complexity(value: 5, multipliers: ["length"])
 
   """
   Retrieve a chain account by public key.
@@ -168,7 +167,7 @@ type Query {
     chainId: String!
     fungibleName: String = "coin"
     publicKey: String!
-  ): [FungibleChainAccount!]!
+  ): [FungibleChainAccount!]! @complexity(value: 5, multipliers: ["length"])
 
   """
   Estimate the gas limit for one or more transactions. Throws an error when the transaction fails or is invalid. The input accepts a JSON object and based on the parameters passed it will determine what type of format it is and return the gas limit estimation. The following types are supported:
@@ -185,44 +184,49 @@ type Query {
         Example of the input needed for a type `code` query: `gasLimitEstimate(input: "{\"code\":\"(coin.details \\\"k:1234\\\")\",\"chainId\":\"3\"}")`
   """
   gasLimitEstimate(input: [String!]!): [GasLimitEstimation!]!
+    @complexity(value: 5, multipliers: ["length"])
 
   """
   Get the configuration of the graph.
   """
-  graphConfiguration: GraphConfiguration!
+  graphConfiguration: GraphConfiguration! @complexity(value: 1)
 
   """
   Get the height of the block with the highest height.
   """
-  lastBlockHeight: BigInt
+  lastBlockHeight: BigInt @complexity(value: 1)
 
   """
   Get information about the network.
   """
-  networkInfo: NetworkInfo
-  node(id: ID!): Node
+  networkInfo: NetworkInfo @complexity(value: 1)
 
-  nodes(ids: [ID!]!): [Node]!
+  node(id: ID!): Node @complexity(value: 1)
+
+  nodes(ids: [ID!]!): [Node]! @complexity(value: 5, multipliers: ["length"])
 
   """
   Retrieve a non-fungible specific account by its name.
   """
-  nonFungibleAccount(accountName: String!): NonFungibleAccount
+  nonFungibleAccount(accountName: String!): NonFungibleAccount @complexity(value: 1)
 
   """
   Retrieve an account by its name on a specific chain.
   """
   nonFungibleChainAccount(accountName: String!, chainId: String!): NonFungibleChainAccount
+    @complexity(value: 1)
 
   """
   Execute arbitrary Pact code via a local call without gas-estimation or signature-verification (e.g. (+ 1 2) or (coin.get-details <account>)).
   """
   pactQuery(pactQuery: [PactQuery!]!): [PactQueryResponse!]!
+    @complexity(value: 5, multipliers: ["length"])
 
   """
   Retrieve one transaction by its unique key. Throws an error if multiple transactions are found.
   """
   transaction(blockHash: String, minimumDepth: Int, requestKey: String!): Transaction
+    @complexity(value: 1)
 
   """
   Retrieve transactions. Default page size is 20.
@@ -241,7 +245,7 @@ type Query {
     minHeight: Int
     minimumDepth: Int
     requestKey: String
-  ): QueryTransactionsConnection!
+  ): QueryTransactionsConnection! @complexity(value: 10, multipliers: ["first", "last"])
 
   """
   Retrieve all transactions by a given public key.
@@ -252,7 +256,7 @@ type Query {
     first: Int
     last: Int
     publicKey: String!
-  ): QueryTransactionsByPublicKeyConnection!
+  ): QueryTransactionsByPublicKeyConnection! @complexity(value: 10, multipliers: ["first", "last"])
 
   """
   Retrieve transfers. Default page size is 20.
@@ -267,15 +271,15 @@ type Query {
     fungibleName: String
     last: Int
     requestKey: String
-  ): QueryTransfersConnection!
+  ): QueryTransfersConnection! @complexity(value: 10, multipliers: ["first", "last"])
 }
 
 """
 A fungible-specific account.
 """
 type FungibleAccount implements Node {
-  id: ID! @complexity(value: 1)
-  accountName: String! @complexity(value: 1)
+  id: ID!
+  accountName: String!
   """
   Uses "length" multiplier which scales with the number of items in the returned array.
   Each chain account requires a separate database lookup, so complexity = 5 × array_length.
@@ -283,8 +287,8 @@ type FungibleAccount implements Node {
   This pattern is ideal for array fields where complexity scales linearly with result size.
   """
   chainAccounts: [FungibleChainAccount!]! @complexity(value: 5, multipliers: ["length"])
-  fungibleName: String! @complexity(value: 1)
-  totalBalance: Decimal! @complexity(value: 2)
+  fungibleName: String!
+  totalBalance: Decimal!
   """
   Default page size is 20.
   Uses "first" multiplier to control pagination complexity.
@@ -296,14 +300,14 @@ type FungibleAccount implements Node {
     before: String
     first: Int
     last: Int
-  ): FungibleAccountTransactionsConnection! @complexity(value: 10, multipliers: ["first"])
+  ): FungibleAccountTransactionsConnection! @complexity(value: 10, multipliers: ["first", "last"])
 
   transfers(
     after: String
     before: String
     first: Int
     last: Int
-  ): FungibleAccountTransfersConnection! @complexity(value: 10, multipliers: ["first"])
+  ): FungibleAccountTransfersConnection! @complexity(value: 10, multipliers: ["first", "last"])
 }
 
 type FungibleAccountTransactionsConnection {
@@ -336,6 +340,7 @@ type NonFungibleChainAccount implements Node {
   accountName: String!
   chainId: String!
   nonFungibleTokenBalances: [NonFungibleTokenBalance!]!
+    @complexity(value: 5, multipliers: ["length"])
 
   """
   Default page size is 20. Note that custom token related transactions are not included.
@@ -382,9 +387,14 @@ type NonFungibleToken {
 }
 
 type QueryTransactionsByPublicKeyConnection {
-  edges: [QueryTransactionsByPublicKeyConnectionEdge]!
+  edges: [QueryTransactionsByPublicKeyConnectionEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+}
+
+type QueryTransactionsByPublicKeyConnectionEdge {
+  cursor: String!
+  node: Transaction!
 }
 
 type QueryEventsConnection {
@@ -398,13 +408,8 @@ type QueryEventsConnectionEdge {
   node: Event!
 }
 
-type QueryTransactionsByPublicKeyConnectionEdge {
-  cursor: String!
-  node: Transaction!
-}
-
 type QueryBlocksFromHeightConnection {
-  edges: [QueryBlocksFromHeightConnectionEdge]!
+  edges: [QueryBlocksFromHeightConnectionEdge!]!
   pageInfo: PageInfo!
 }
 
@@ -414,7 +419,7 @@ type QueryBlocksFromHeightConnectionEdge {
 }
 
 type QueryBlocksFromDepthConnection {
-  edges: [QueryBlocksFromDepthConnectionEdge]!
+  edges: [QueryBlocksFromDepthConnectionEdge!]!
   pageInfo: PageInfo!
 }
 
@@ -467,18 +472,19 @@ type Block implements Node {
   payloadHash: String!
   weight: String!
   target: String!
-  neighbors: [BlockNeighbor!]!
+  neighbors: [BlockNeighbor!]! @complexity(value: 5, multipliers: ["length"])
   """
   The proof of work hash.
   """
   powHash: String!
 
-  parent: Block
+  parent: Block @complexity(value: 1)
   """
   Default page size is 20.
   """
   events(after: String, before: String, first: Int, last: Int): BlockEventsConnection!
-  minerAccount: FungibleChainAccount!
+    @complexity(value: 10, multipliers: ["first", "last"])
+  minerAccount: FungibleChainAccount! @complexity(value: 1)
   """
   Default page size is 20.
   """
@@ -521,7 +527,7 @@ An event emitted by the execution of a smart-contract function.
 type Event implements Node {
   id: ID!
   name: String!
-  block: Block!
+  block: Block! @complexity(value: 1)
   chainId: BigInt!
 
   """
@@ -541,8 +547,7 @@ type Event implements Node {
   The full eventname, containing module and eventname, e.g. coin.TRANSFER
   """
   qualifiedName: String!
-
-  transaction: Transaction
+  transaction: Transaction @complexity(value: 1)
 }
 
 """
@@ -554,7 +559,7 @@ type FungibleChainAccount implements Node {
   balance: Float!
   chainId: String!
   fungibleName: String!
-  guard: IGuard!
+  guard: IGuard! @complexity(value: 1)
 
   """
   Transactions that the current account is sender of. Default page size is 20.
@@ -565,6 +570,7 @@ type FungibleChainAccount implements Node {
     first: Int
     last: Int
   ): FungibleChainAccountTransactionsConnection!
+    @complexity(value: 10, multipliers: ["first", "last"])
 
   """
   Default page size is 20.
@@ -574,7 +580,7 @@ type FungibleChainAccount implements Node {
     before: String
     first: Int
     last: Int
-  ): FungibleChainAccountTransfersConnection!
+  ): FungibleChainAccountTransfersConnection! @complexity(value: 10, multipliers: ["first", "last"])
 }
 
 type FungibleChainAccountTransactionsConnection {
@@ -604,34 +610,33 @@ A transaction.
 """
 type Transaction {
   id: ID!
-  cmd: TransactionCommand!
+  cmd: TransactionCommand! @complexity(value: 1)
   hash: String!
-  result: TransactionInfo!
-  sigs: [TransactionSignature!]!
-  orphanedTransactions: [Transaction]
+  result: TransactionInfo! @complexity(value: 1)
+  sigs: [TransactionSignature!]! @complexity(value: 5, multipliers: ["length"])
+  orphanedTransactions: [Transaction] @complexity(value: 5, multipliers: ["length"])
 }
 
 type Transaction implements Node {
   id: ID!
-  cmd: TransactionCommand!
+  cmd: TransactionCommand! @complexity(value: 1)
   hash: String!
-  result: TransactionInfo!
-  sigs: [TransactionSignature!]!
+  result: TransactionInfo! @complexity(value: 1)
+  sigs: [TransactionSignature!]! @complexity(value: 5, multipliers: ["length"])
 }
 
 """
 A transaction command.
 """
 type TransactionCommand {
-  meta: TransactionMeta!
+  meta: TransactionMeta! @complexity(value: 1)
   """
   The network id of the environment.
   """
   networkId: String!
   nonce: String!
-  payload: TransactionPayload!
-
-  signers: [Signer!]!
+  payload: TransactionPayload! @complexity(value: 1)
+  signers: [Signer!]! @complexity(value: 5, multipliers: ["length"])
 }
 
 """
@@ -726,7 +731,6 @@ type TransactionResult {
   """
   continuation: String
   eventCount: BigInt
-
   gas: BigInt!
   """
   The transaction result when it was successful. Formatted as raw JSON.
@@ -737,30 +741,25 @@ type TransactionResult {
   """
   logs: String
   transactionId: BigInt
-
   """
   The height of the block this transaction belongs to.
   """
   height: BigInt! @deprecated(reason: "Use `block.height` instead.")
-
   metadata: String! @deprecated(reason: "Not used.")
-
-  block: Block!
-
+  block: Block! @complexity(value: 1)
   transfers(
     after: String
     before: String
     first: Int
     last: Int
-  ): TransactionResultTransfersConnection!
-
+  ): TransactionResultTransfersConnection! @complexity(value: 10, multipliers: ["first", "last"])
   events(after: String, before: String, first: Int, last: Int): TransactionResultEventsConnection!
+    @complexity(value: 10, multipliers: ["first", "last"])
 }
 
 type TransactionResultEventsConnection {
   edges: [TransactionResultEventsConnectionEdge]!
   pageInfo: PageInfo!
-
   totalCount: Int!
 }
 
@@ -795,8 +794,7 @@ type Signer implements Node {
   The signature scheme that was used to sign.
   """
   scheme: String
-
-  clist: [TransactionCapability!]!
+  clist: [TransactionCapability!]! @complexity(value: 5, multipliers: ["length"])
 }
 """
 List of capabilities associated with/installed by this signer.
@@ -822,20 +820,18 @@ A transfer of funds from a fungible between two accounts.
 """
 type Transfer implements Node {
   amount: Decimal!
-  block: Block!
+  block: Block! @complexity(value: 1)
   blockHash: String! @deprecated(reason: "Use `block.hash` field instead.")
   chainId: BigInt! @deprecated(reason: "Use `block.chainId` field instead.")
   creationTime: DateTime!
-
   """
   The counterpart of the crosschain-transfer. `null` when it is not a cross-chain-transfer.
   """
-  crossChainTransfer: Transfer
+  crossChainTransfer: Transfer @complexity(value: 1)
   height: BigInt! @deprecated(reason: "Use `block.height` field instead.")
   id: ID!
   moduleHash: String!
   moduleName: String!
-
   """
   The order of the transfer when it is a `defpact` (multi-step transaction) execution.
   """
@@ -843,11 +839,10 @@ type Transfer implements Node {
   receiverAccount: String!
   requestKey: String!
   senderAccount: String!
-
   """
   The transaction that initiated this transfer.
   """
-  transaction: Transaction
+  transaction: Transaction @complexity(value: 1)
 }
 
 """
@@ -872,41 +867,34 @@ type NetworkInfo {
   The version of the API.
   """
   apiVersion: String!
-
   """
   The number of circulating coins.
   """
   coinsInCirculation: Float!
-
   """
   The network hash rate.
   """
   networkHashRate: Float!
-
   """
   The host of the network.
   """
   networkHost: String!
-
   """
   The ID of the network.
   """
   networkId: String!
-
   """
   The total difficulty.
   """
   totalDifficulty: Float!
-
   """
   The total number of transactions.
   """
   transactionCount: Int!
-
   nodeBlockDelay: Int!
-  nodeChains: [String!]!
+  nodeChains: [String!]! @complexity(value: 5, multipliers: ["length"])
   numberOfChains: Int!
-  genesisHeights: [GenesisHeight!]!
+  genesisHeights: [GenesisHeight!]! @complexity(value: 5, multipliers: ["length"])
   nodePackageVersion: String!
   nodeServiceDate: DateTime!
   nodeLatestBehaviorHeight: Int!
@@ -952,10 +940,10 @@ A non-fungible-specific account.
 """
 type NonFungibleAccount implements Node {
   accountName: String!
-  chainAccounts: [NonFungibleChainAccount!]!
+  chainAccounts: [NonFungibleChainAccount!]! @complexity(value: 5, multipliers: ["length"])
   id: ID!
   nonFungibleTokenBalances: [NonFungibleTokenBalance!]!
-
+    @complexity(value: 5, multipliers: ["length"])
   """
   Default page size is 20. Note that custom token related transactions are not included.
   """
@@ -965,6 +953,7 @@ type NonFungibleAccount implements Node {
     first: Int
     last: Int
   ): NonFungibleAccountTransactionsConnection!
+    @complexity(value: 10, multipliers: ["first", "last"])
 }
 
 type NonFungibleAccountTransactionsConnection {
@@ -997,7 +986,7 @@ type NonFungibleChainAccount implements Node {
   chainId: String!
   id: ID!
   nonFungibleTokenBalances: [NonFungibleTokenBalance!]!
-
+    @complexity(value: 5, multipliers: ["length"])
   """
   Default page size is 20. Note that custom token related transactions are not included.
   """
@@ -1007,6 +996,7 @@ type NonFungibleChainAccount implements Node {
     first: Int
     last: Int
   ): NonFungibleChainAccountTransactionsConnection!
+    @complexity(value: 10, multipliers: ["first", "last"])
 }
 
 """
@@ -1022,13 +1012,13 @@ interface IGuard {
 A keyset guard.
 """
 type KeysetGuard implements IGuard {
-  keys: [String!]!
+  keys: [String!]! @complexity(value: 5, multipliers: ["length"])
   predicate: String!
   raw: String!
 }
 
 type UserGuard implements IGuard {
-  args: [String!]!
+  args: [String!]! @complexity(value: 5, multipliers: ["length"])
   fun: String!
   keys: [String!]! @deprecated(reason: "deprecated, use KeysetGuard.keys")
   predicate: String! @deprecated(reason: "deprecated, use KeysetGuard.predicate")
