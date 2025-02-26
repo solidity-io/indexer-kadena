@@ -3,7 +3,7 @@ import TransactionModel, { TransactionAttributes } from '../../models/transactio
 import Event, { EventAttributes } from '../../models/event';
 import Transfer, { TransferAttributes } from '../../models/transfer';
 import { getNftTransfers, getCoinTransfers } from './transfers';
-import { QueryTypes, Transaction } from 'sequelize';
+import { Transaction } from 'sequelize';
 import Signer from '../../models/signer';
 import Guard from '../../models/guard';
 import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
@@ -171,19 +171,15 @@ export async function processTransaction(
       )
       .join(', ');
 
-    const query = `
+    const newBalancesQuery = `
       INSERT INTO "Balances" ("chainId", account, module, "tokenId", "hasTokenId", "createdAt", "updatedAt")
       VALUES ${values}
       ON CONFLICT ("chainId", account, module, "tokenId") DO NOTHING
-      RETURNING id, "chainId", account, module;
     `;
 
-    const insertedBalances = await sequelize.query<BalanceInsertResult>(query, {
-      type: QueryTypes.SELECT, // Use SELECT to retrieve rows with RETURNING
+    await sequelize.query(newBalancesQuery, {
       transaction: tx,
     });
-
-    await saveGuards(insertedBalances ?? [], tx);
 
     return eventsAttributes;
   } catch (error) {
@@ -227,12 +223,4 @@ export async function getGuardsFromBalances(balances: BalanceInsertResult[]) {
     }));
 
   return filteredGuards;
-}
-
-async function saveGuards(balances: BalanceInsertResult[], tx?: Transaction) {
-  const filteredGuards = await getGuardsFromBalances(balances);
-  await Guard.bulkCreate(filteredGuards, {
-    transaction: tx,
-    ignoreDuplicates: true,
-  });
 }

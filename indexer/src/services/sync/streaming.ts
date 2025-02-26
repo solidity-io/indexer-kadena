@@ -6,6 +6,7 @@ import { uint64ToInt64 } from '../../utils/int-uint-64';
 import Block, { BlockAttributes } from '../../models/block';
 import { sequelize } from '../../config/database';
 import StreamingError from '../../models/streaming-error';
+import { backfillGuards } from './guards';
 
 const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');
 const SYNC_NETWORK = getRequiredEnvString('SYNC_NETWORK');
@@ -49,6 +50,9 @@ export async function startStreaming() {
     },
     1000 * 60 * 10,
   );
+
+  backfillGuards(); // run when initialize
+  setInterval(backfillGuards, 1000 * 60 * 60); // every one hour
 }
 
 function processPayload(payload: any) {

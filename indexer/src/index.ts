@@ -8,8 +8,8 @@ import { usePostgraphile } from './server/metrics';
 import { useKadenaGraphqlServer } from './kadena-server/server';
 import { closeDatabase } from './config/database';
 import { initializeDatabase } from './config/init';
-import { startGuardsBackfill } from './services/sync/guards';
 import { startBackfillCoinbaseTransactions } from './services/sync/coinbase';
+import { backfillBalances } from './services/sync/balances';
 
 program
   .option('-s, --streaming', 'Start streaming blockchain data')
@@ -39,7 +39,9 @@ async function main() {
     if (options.streaming) {
       await startStreaming();
     } else if (options.guards) {
-      await startGuardsBackfill();
+      await backfillBalances();
+      await closeDatabase();
+      process.exit(0);
     } else if (options.coinbase) {
       await startBackfillCoinbaseTransactions();
     } else if (options.oldGraphql) {

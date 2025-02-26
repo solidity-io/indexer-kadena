@@ -65,8 +65,10 @@
     "typescript": "^5.3.3"
   },
   "scripts": {
+    "build": "tsc",
     "create:database": "ts-node src/index.ts --database && yarn migrate:up",
     "dev": "docker-compose -f docker-compose.yml up && docker-compose logs -f indexer",
+    "dev:guards": "ts-node src/index.ts --guards",
     "dev:database": "ts-node src/index.ts --database",
     "dev:streaming": "ts-node src/index.ts --streaming",
     "dev:graphql": "ts-node src/index.ts --graphql",
