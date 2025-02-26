@@ -75,3 +75,58 @@ func getEnvAsInt(key string) int {
 	}
 	return value
 }
+
+func GetMinHeights(network string) map[int]int {
+	minHeights := make(map[int]int)
+	if network == "mainnet01" {
+		minHeights = map[int]int{
+			0:  0,
+			1:  0,
+			2:  0,
+			3:  0,
+			4:  0,
+			5:  0,
+			6:  0,
+			7:  0,
+			8:  0,
+			9:  0,
+			10: 852054,
+			11: 852054,
+			12: 852054,
+			13: 852054,
+			14: 852054,
+			15: 852054,
+			16: 852054,
+			17: 852054,
+			18: 852054,
+			19: 852054,
+		}
+	}
+
+	if network == "testnet04" {
+		minHeights = map[int]int{
+			0:  0,
+			1:  0,
+			2:  0,
+			3:  0,
+			4:  0,
+			5:  0,
+			6:  0,
+			7:  0,
+			8:  0,
+			9:  0,
+			10: 332604,
+			11: 332604,
+			12: 332604,
+			13: 332604,
+			14: 332604,
+			15: 332604,
+			16: 332604,
+			17: 332604,
+			18: 332604,
+			19: 332604,
+		}
+	}
+
+	return minHeights
+}

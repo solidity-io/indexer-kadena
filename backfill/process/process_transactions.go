@@ -31,12 +31,8 @@ type CmdData struct {
 	} `json:"payload"`
 }
 
-func PrepareTransactions(network string, blockId int64, payload fetch.ProcessedPayload) ([]repository.TransactionAttributes, error) {
+func PrepareTransactions(network string, blockId int64, payload fetch.ProcessedPayload, block repository.BlockAttributes) ([]repository.TransactionAttributes, error) {
 	transactions := payload.Transactions
-
-	if len(transactions) == 0 {
-		return []repository.TransactionAttributes{}, nil
-	}
 
 	transactionRecords := make([]repository.TransactionAttributes, 0, len(transactions))
 
@@ -91,9 +87,14 @@ func PrepareTransactions(network string, blockId int64, payload fetch.ProcessedP
 			}
 		}
 
-		chainId, err := strconv.Atoi(cmdData.Meta.ChainId)
-		if err != nil {
-			return nil, fmt.Errorf("converting ChainId for transaction %s: %w", t.Hash, err)
+		var chainId int
+		if cmdData.Meta.ChainId != "" {
+			chainId, err = strconv.Atoi(cmdData.Meta.ChainId)
+			if err != nil {
+				return nil, fmt.Errorf("converting ChainId for transaction %s: %w", t.Hash, err)
+			}
+		} else {
+			chainId = block.ChainId
 		}
 
 		txId := strconv.Itoa(t.TxId)
@@ -136,6 +137,14 @@ func PrepareTransactions(network string, blockId int64, payload fetch.ProcessedP
 		}
 		transactionRecords = append(transactionRecords, transactionRecord)
 	}
+
+	coinbaseTx, err := processCoinbaseTransaction(string(payload.Coinbase), blockId, block.CreationTime, int64(block.ChainId))
+
+	if err != nil {
+		return nil, fmt.Errorf("processing coinbase transaction %d: %w", blockId, err)
+	}
+
+	transactionRecords = append(transactionRecords, coinbaseTx)
 
 	return transactionRecords, nil
 }

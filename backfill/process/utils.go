@@ -86,6 +86,13 @@ func (g *GasLimit) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
+	// Attempt to unmarshal the data as a float
+	var floatValue float64
+	if err := json.Unmarshal(data, &floatValue); err == nil {
+		*g = GasLimit(fmt.Sprintf("%.0f", floatValue)) // Convert float to int-like string
+		return nil
+	}
+
 	// Attempt to unmarshal the data as a string
 	var stringValue string
 	if err := json.Unmarshal(data, &stringValue); err == nil {
@@ -93,8 +100,16 @@ func (g *GasLimit) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 
+	var tempStruct struct {
+		Int int `json:"int"`
+	}
+	if err := json.Unmarshal(data, &tempStruct); err == nil {
+		*g = GasLimit(strconv.Itoa(tempStruct.Int)) // Convert int to string and assign
+		return nil
+	}
+
 	// If neither, return an error
-	return fmt.Errorf("data is neither int nor string: %s", string(data))
+	return fmt.Errorf("data is neither int nor string nor float not { int: <some_number> }: %s", string(data))
 }
 
 func convertToFloat64(event fetch.Event, index int) (float64, bool) {

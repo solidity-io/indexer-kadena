@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -54,9 +55,21 @@ func SaveTransactions(db pgx.Tx, transactions []TransactionAttributes) ([]int64,
 	batch := &pgx.Batch{}
 
 	for _, t := range transactions {
-		code, err := json.Marshal(t.Code)
+		var codeStr string
+		json.Unmarshal(t.Code, &codeStr)
+		codeStrCleaned := strings.ReplaceAll(codeStr, "\u0000", "")
+		if codeStrCleaned != codeStr {
+			fmt.Printf("Code cleaned: %s\n", t.RequestKey)
+		}
+
+		codeCleaned, err := json.Marshal(codeStrCleaned)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal code: %v", err)
+		}
+
+		code := t.Code
+		if codeStrCleaned != "" {
+			code = codeCleaned
 		}
 
 		data, err := json.Marshal(t.Data)
