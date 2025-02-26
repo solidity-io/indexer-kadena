@@ -15,23 +15,21 @@ function calculateReward(csvContent: string, cutHeight: number): number {
   const averageHeight = cutHeight / 20; // number of chains
 
   let totalReward = 0;
-  let previousRow: RewardRow | null = null;
 
-  for (const row of parsed.data) {
+  for (let i = 0; i < parsed.data.length; i += 1) {
+    const row = parsed.data[i];
+    const previousHeight = i === 0 ? 0 : parsed.data[i - 1][0];
     const height = row[0];
     const reward = row[1];
 
     if (averageHeight < height) {
-      if (previousRow) {
-        const remainingHeight = height - averageHeight;
-        const proportionedReward = remainingHeight * reward;
-        totalReward += proportionedReward;
-      }
+      const remainingHeight = averageHeight - previousHeight;
+      const proportionedReward = remainingHeight * reward;
+      totalReward += proportionedReward;
       break;
     }
 
-    totalReward += reward;
-    previousRow = row;
+    totalReward = totalReward + reward * (height - previousHeight);
   }
 
   return totalReward;
@@ -54,18 +52,13 @@ function calculateTokenPayments(csvContent: string, targetTimestamp: number): nu
   let totalSum = 0;
   let previousRow: CsvRow | null = null;
 
+  const targetDate = new Date(targetTimestamp / 1000);
   for (const row of parsed.data) {
     const creationTimeISO = row[1];
     const amount = row[3];
 
-    const creationTimestamp = new Date(creationTimeISO).getTime();
-
-    if (targetTimestamp < creationTimestamp) {
-      if (previousRow) {
-        const remainingTime = creationTimestamp - targetTimestamp;
-        const proportionedPayment = remainingTime * amount;
-        totalSum += proportionedPayment;
-      }
+    const creationDate = new Date(creationTimeISO);
+    if (targetDate < creationDate) {
       break;
     }
 
