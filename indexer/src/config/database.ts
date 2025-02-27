@@ -9,7 +9,7 @@ const DB_PASSWORD = getRequiredEnvString('DB_PASSWORD');
 const DB_NAME = getRequiredEnvString('DB_NAME');
 const DB_HOST = getRequiredEnvString('DB_HOST');
 const DB_SSL_ENABLED = getRequiredEnvString('DB_SSL_ENABLED');
-const DB_CONNECTION = `postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}`;
+const DB_CONNECTION = `postgres://${DB_USERNAME}:${encodeURIComponent(DB_PASSWORD)}@${DB_HOST}/${DB_NAME}`;
 
 const isSslEnabled = DB_SSL_ENABLED === 'true';
 

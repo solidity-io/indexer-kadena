@@ -6,36 +6,17 @@ import Guard from '../../models/guard';
 const CONCURRENCY_LIMIT = 4; // Number of concurrent fetches allowed
 const limitFetch = pLimit(CONCURRENCY_LIMIT);
 
-export async function startGuardsBackfill() {
-  await sequelize.authenticate();
-  console.log('Connected to the database.');
-
-  await rootPgPool.query(
-    `
-        BEGIN;
-        SET enable_seqscan = OFF;
-        WITH combined AS (
-            SELECT "chainId", "from_acct" AS "account", "modulename" AS "module"
-            FROM "Transfers"
-            UNION ALL
-            SELECT "chainId", "to_acct" AS "account", "modulename" AS "module"
-            FROM "Transfers"
-        )
-        INSERT INTO "Balances" ("chainId", "account", "module", "createdAt", "updatedAt", "tokenId")
-        SELECT "chainId", "account", "module", NOW() AS "createdAt", NOW() AS "updatedAt", '' AS "tokenId"
-        FROM combined
-        GROUP BY "chainId", "account", "module"
-        ON CONFLICT ("chainId", "account", "module", "tokenId") DO NOTHING;
-        DELETE FROM "Guards";
-        ALTER SEQUENCE "Guards_id_seq" RESTART WITH 1;
-        COMMIT;
-      `,
-  );
-
-  console.log('Balances backfilled successfully.');
+export async function backfillGuards() {
   console.log('Starting guards backfill ...');
 
-  const limit = 10000; // Number of rows to process in one batch
+  const deleteGuardsQuery = `
+    DELETE FROM "Guards";
+    ALTER SEQUENCE "Guards_id_seq" RESTART WITH 1;
+  `;
+
+  await rootPgPool.query(deleteGuardsQuery);
+
+  const limit = 1000; // Number of rows to process in one batch
   let offset = 0;
 
   while (true) {
@@ -86,6 +67,5 @@ export async function startGuardsBackfill() {
     }
   }
 
-  await closeDatabase();
-  process.exit(0);
+  console.log('Guards backfilled successfully.');
 }

@@ -1,16 +1,13 @@
 package process
 
 import (
+	"fmt"
 	"go-backfill/fetch"
 	"go-backfill/repository"
 )
 
-func PrepareTransfers(network string, payload fetch.ProcessedPayload, transactionsId []int64) []repository.TransferAttributes {
+func PrepareTransfers(network string, payload fetch.ProcessedPayload, transactionsId []int64) ([]repository.TransferAttributes, error) {
 	transactions := payload.Transactions
-
-	if len(transactions) == 0 {
-		return []repository.TransferAttributes{}
-	}
 
 	const avgTransfersPerTransaction = 80
 	transfers := make([]repository.TransferAttributes, 0, len(transactions)*avgTransfersPerTransaction)
@@ -23,5 +20,14 @@ func PrepareTransfers(network string, payload fetch.ProcessedPayload, transactio
 		transfers = append(transfers, nftTransfers...)
 	}
 
-	return transfers
+	coinbaseDecoded, err := decodeCoinbase(string(payload.Coinbase))
+	if err != nil {
+		return nil, fmt.Errorf("decoding Coinbase JSON of block: %w", err)
+	}
+
+	var coinbaseTxId = transactionsId[len(transactionsId)-1]
+	coinTransfers := GetCoinTransfers(coinbaseDecoded.Events, payload.Header.ChainId, coinbaseDecoded.ReqKey, coinbaseTxId)
+	transfers = append(transfers, coinTransfers...)
+
+	return transfers, nil
 }

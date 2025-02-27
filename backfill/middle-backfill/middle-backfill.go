@@ -69,15 +69,5 @@ func FetchMaxHeightByChain(pool *pgxpool.Pool) ([]BlockHeight, error) {
 		return nil, fmt.Errorf("error occurred during row iteration: %w", err)
 	}
 
-	// const maxHeight = 5444446
-	// var blockHeights = []BlockHeight{}
-
-	// for i := 0; i < 20; i++ {
-	// 	blockHeights = append(blockHeights, BlockHeight{
-	// 		ChainID:   int64(i),
-	// 		MaxHeight: maxHeight,
-	// 	})
-	// }
-
 	return results, nil
 }

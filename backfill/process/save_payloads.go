@@ -68,7 +68,9 @@ func savePayloads(network string, chainId int, processedPayloads []fetch.Process
 
 	var transactionIdsToSave [][]int64
 	for index, processedPayload := range processedPayloads {
-		txs, err := PrepareTransactions(network, blockIds[index], processedPayload)
+		var blockId = blockIds[index]
+		var currBlock = blocks[index]
+		txs, err := PrepareTransactions(network, blockId, processedPayload, currBlock)
 		if err != nil {
 			return Counters{}, DataSizeTracker{}, fmt.Errorf("saving transactions -> %w", err)
 		}
@@ -98,7 +100,10 @@ func savePayloads(network string, chainId int, processedPayloads []fetch.Process
 	}
 
 	for index, processedPayload := range processedPayloads {
-		transfers := PrepareTransfers(network, processedPayload, transactionIdsToSave[index])
+		transfers, err := PrepareTransfers(network, processedPayload, transactionIdsToSave[index])
+		if err != nil {
+			return Counters{}, DataSizeTracker{}, fmt.Errorf("preparing transfers -> %w", err)
+		}
 		if err := repository.SaveTransfersToDatabase(transfers, tx); err != nil {
 			return Counters{}, DataSizeTracker{}, fmt.Errorf("saving transfers: %w", err)
 		}
