@@ -103,10 +103,10 @@ export default class BlockDbRepository implements BlockRepository {
 
     if (chainIds?.length) {
       queryParams.push(chainIds);
-      conditions += `\nAND b."chainId" = $${queryParams.length}`;
+      conditions += `\nAND b."chainId" = ANY($${queryParams.length})`;
     }
 
-    if (endHeight) {
+    if (endHeight && endHeight - startHeight < 20) {
       queryParams.push(endHeight);
       conditions += `\nAND b."height" <= $${queryParams.length}`;
     }
@@ -128,7 +128,7 @@ export default class BlockDbRepository implements BlockRepository {
       FROM "Blocks" b
       WHERE b.height >= $2
       ${conditions}
-      ORDER BY b.id ${order}
+      ORDER BY b.height ${order}
       LIMIT $1;
     `;
 
