@@ -10,6 +10,7 @@ import { closeDatabase } from './config/database';
 import { initializeDatabase } from './config/init';
 import { startBackfillCoinbaseTransactions } from './services/sync/coinbase';
 import { backfillBalances } from './services/sync/balances';
+import { startMissingBlocks } from './services/sync/missing';
 
 program
   .option('-s, --streaming', 'Start streaming blockchain data')
@@ -18,6 +19,7 @@ program
   .option('-f, --guards', 'Backfill the guards')
   // this option shouldn't be used if you initialize the indexer from the beginning
   .option('-c, --coinbase', 'Backfill coinbase transactions')
+  .option('-m, --missing', 'Missing blocks')
   .option('-z, --database', 'Init the database');
 
 program.parse(process.argv);
@@ -44,6 +46,9 @@ async function main() {
       process.exit(0);
     } else if (options.coinbase) {
       await startBackfillCoinbaseTransactions();
+    } else if (options.missing) {
+      await startMissingBlocks();
+      process.exit(0);
     } else if (options.oldGraphql) {
       await usePostgraphile();
     } else if (options.graphql) {
