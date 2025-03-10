@@ -43,6 +43,7 @@ const KADENA_GRAPHQL_API_PORT = getRequiredEnvString('KADENA_GRAPHQL_API_PORT');
 
 const ALLOWED_ORIGINS = [
   getRequiredEnvString('API_GATEWAY_URL'),
+  getRequiredEnvString('API_KADENA_URL'),
   `http://localhost:${KADENA_GRAPHQL_API_PORT}`,
 ];
 
@@ -120,6 +121,23 @@ const ipFilterMiddleware = (req: Request, res: Response, next: NextFunction) => 
     next(); // Allow access
   } else {
     res.status(403).json({ message: 'Access denied: IP not allowed' });
+  }
+};
+
+const isAllowedOrigin = (origin: string): boolean => {
+  try {
+    const originUrl = new URL(origin);
+    return ALLOWED_ORIGINS.some(allowed => {
+      const allowedUrl = new URL(allowed);
+      // Check if it's an exact match
+      if (originUrl.origin === allowedUrl.origin) return true;
+      // Check if it's a subdomain (only for kadena.io)
+      if (allowedUrl.hostname === 'kadena.io' && originUrl.hostname.endsWith('.kadena.io'))
+        return true;
+      return false;
+    });
+  } catch {
+    return false;
   }
 };
 
@@ -219,15 +237,10 @@ export async function useKadenaGraphqlServer() {
       if (!origin || origin === 'null') {
         return callback(false, 400, 'No origin');
       }
-      try {
-        const url = new URL(origin);
-        if (ALLOWED_ORIGINS.includes(url.origin)) {
-          return callback(true);
-        }
-        return callback(false, 403, 'Forbidden');
-      } catch {
-        return callback(false, 400, 'Invalid origin');
+      if (isAllowedOrigin(origin)) {
+        return callback(true);
       }
+      return callback(false, 403, 'Forbidden');
     },
   });
 
@@ -260,8 +273,7 @@ export async function useKadenaGraphqlServer() {
         }
 
         try {
-          const url = new URL(origin);
-          if (ALLOWED_ORIGINS.includes(url.origin)) {
+          if (isAllowedOrigin(origin)) {
             return callback(null, true);
           }
           return callback(new Error(`Origin ${origin} not allowed by CORS`));
@@ -271,7 +283,6 @@ export async function useKadenaGraphqlServer() {
       },
       methods: ['POST', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
-      // When using credentials: true, you cannot use * for Access-Control-Allow-Origin. You must specify exact origins.
       credentials: true,
     }),
     expressMiddleware(server, {
