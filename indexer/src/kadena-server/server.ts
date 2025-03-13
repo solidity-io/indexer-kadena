@@ -35,7 +35,7 @@ import {
 import { depthLimit } from '@graphile/depth-limit';
 
 // Maximum allowed complexity
-const MAX_COMPLEXITY = 1000;
+const MAX_COMPLEXITY = 2500;
 
 const typeDefs = readFileSync(join(__dirname, './config/schema.graphql'), 'utf-8');
 
