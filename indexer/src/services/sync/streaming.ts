@@ -7,6 +7,7 @@ import Block, { BlockAttributes } from '../../models/block';
 import { sequelize } from '../../config/database';
 import StreamingError from '../../models/streaming-error';
 import { backfillGuards } from './guards';
+import { Transaction } from 'sequelize';
 
 const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');
 const SYNC_NETWORK = getRequiredEnvString('SYNC_NETWORK');
@@ -30,16 +31,20 @@ export async function startStreaming() {
         return;
       }
       blocksAlreadyReceived.add(block.header.hash);
-      const blockData = await saveBlock({ header: block.header, payload });
+
+      const tx = await sequelize.transaction();
+      const blockData = await saveBlock({ header: block.header, payload }, tx);
       if (blockData === null) {
         await StreamingError.create({
           hash: block.header.hash,
           chainId: block.header.chainId,
         });
+        await tx.rollback();
         return;
       }
+      await tx.commit();
     } catch (error) {
-      console.log(error);
+      console.log('Event Error:', error);
     }
   });
 
@@ -55,7 +60,7 @@ export async function startStreaming() {
   setInterval(backfillGuards, 1000 * 60 * 60); // every one hour
 }
 
-function processPayload(payload: any) {
+export function processPayload(payload: any) {
   const transactions = payload.transactions;
   transactions.forEach((transaction: any) => {
     transaction[0] = getDecoded(transaction[0]);
@@ -79,12 +84,10 @@ function processPayload(payload: any) {
   return payloadData;
 }
 
-async function saveBlock(parsedData: any): Promise<DispatchInfo | null> {
+export async function saveBlock(parsedData: any, tx?: Transaction): Promise<DispatchInfo | null> {
   const headerData = parsedData.header;
   const payloadData = parsedData.payload;
   const transactions = payloadData.transactions || [];
-
-  const tx = await sequelize.transaction();
 
   try {
     const blockAttribute = {
@@ -120,7 +123,6 @@ async function saveBlock(parsedData: any): Promise<DispatchInfo | null> {
       eventsCreated.map(t => `${t.module}.${t.name}`).filter(Boolean),
     );
 
-    await tx.commit();
     return {
       hash: createdBlock.hash,
       chainId: createdBlock.chainId.toString(),
@@ -129,7 +131,6 @@ async function saveBlock(parsedData: any): Promise<DispatchInfo | null> {
       qualifiedEventNames: Array.from(uniqueQualifiedEventNames),
     };
   } catch (error) {
-    await tx.rollback();
     console.error(`Error saving block to the database: ${error}`);
     return null;
   }
