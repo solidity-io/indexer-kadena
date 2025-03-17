@@ -30,7 +30,7 @@
     "prettier": "^3.5.1"
   },
   "lint-staged": {
-    "*.{yml,yaml,go,json,md,js,ts}": [
+    "*.{yml,yaml,json,md,js,ts}": [
       "prettier --write"
     ]
   }

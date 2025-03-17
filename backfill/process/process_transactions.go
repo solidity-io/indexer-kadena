@@ -138,6 +138,11 @@ func PrepareTransactions(network string, blockId int64, payload fetch.ProcessedP
 		transactionRecords = append(transactionRecords, transactionRecord)
 	}
 
+	// TODO: This will be removed after TransactionDetails migration
+	// if network == "mainnet01" {
+	// 	return transactionRecords, nil
+	// }
+
 	coinbaseTx, err := processCoinbaseTransaction(string(payload.Coinbase), blockId, block.CreationTime, int64(block.ChainId))
 
 	if err != nil {
