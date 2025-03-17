@@ -5,6 +5,7 @@ import { handleSingleQuery } from '../../../utils/raw-query';
 import BalanceRepository, {
   FungibleAccountOutput,
   FungibleChainAccountOutput,
+  GetTokensParams,
   INonFungibleAccount,
   INonFungibleChainAccount,
   INonFungibleTokenBalance,
@@ -16,6 +17,7 @@ import {
 import { fungibleAccountValidator } from '../schema-validator/fungible-account-validator';
 import { fungibleChainAccountValidator } from '../schema-validator/fungible-chain-account-validator';
 import { nonFungibleTokenBalanceValidator } from '../schema-validator/non-fungible-token-balance-validator';
+import { getPageInfo, getPaginationParams } from '../../pagination';
 
 export default class BalanceDbRepository implements BalanceRepository {
   // TODO: waiting for orphan blocks mechanism to be ready
@@ -489,5 +491,52 @@ export default class BalanceDbRepository implements BalanceRepository {
 
     const output = balances.map(r => fungibleChainAccountValidator.validate(r));
     return output;
+  }
+
+  async getTokens(params: GetTokensParams) {
+    const { limit, order, after, before } = getPaginationParams(params);
+
+    const queryParams: any[] = [limit];
+    let conditions = '';
+
+    if (after) {
+      const [module, chainId] = after.split(',');
+      queryParams.push(module);
+      queryParams.push(chainId);
+      conditions += `\nAND (module, "chainId") > ($${queryParams.length - 1}, $${queryParams.length})`;
+    }
+
+    if (before) {
+      const [module, chainId] = before.split(',');
+      queryParams.push(module);
+      queryParams.push(chainId);
+      conditions += `\nAND (module, "chainId") < ($${queryParams.length - 1}, $${queryParams.length})`;
+    }
+
+    const query = `
+      SELECT DISTINCT module, "chainId"
+      FROM "Balances"
+      WHERE module != 'coin'
+      ${conditions}
+      ORDER BY module, "chainId"
+      LIMIT $1
+    `;
+
+    const { rows } = await rootPgPool.query(query, queryParams);
+
+    const edges = rows.map(row => {
+      const cursor = `${row.module},${row.chainId}`;
+      return {
+        cursor,
+        node: {
+          id: Buffer.from(`Token:[${cursor}]`).toString('base64'),
+          name: row.module,
+          chainId: String(row.chainId),
+        },
+      };
+    });
+
+    const pageInfo = getPageInfo({ edges, order, limit, after, before });
+    return pageInfo;
   }
 }

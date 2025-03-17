@@ -1,4 +1,6 @@
-import { FungibleAccount, FungibleChainAccount } from '../../config/graphql-types';
+import { FungibleAccount, FungibleChainAccount, PageInfo, Token } from '../../config/graphql-types';
+import { PaginationsParams } from '../pagination';
+import { ConnectionEdge } from '../types';
 
 export interface INonFungibleTokenBalance {
   id: string;
@@ -29,6 +31,10 @@ export type FungibleAccountOutput = Omit<
 
 export type FungibleChainAccountOutput = Omit<FungibleChainAccount, 'transactions' | 'transfers'>;
 
+export type TokenOutput = Token;
+
+export interface GetTokensParams extends PaginationsParams {}
+
 export default interface BalanceRepository {
   getAccountInfo(accountName: string, fungibleName?: string | null): Promise<FungibleAccountOutput>;
 
@@ -58,6 +64,11 @@ export default interface BalanceRepository {
     chainId: string,
     tokenId: string,
   ): Promise<INonFungibleTokenBalance | null>;
+
+  getTokens(params: GetTokensParams): Promise<{
+    pageInfo: PageInfo;
+    edges: ConnectionEdge<TokenOutput>[];
+  }>;
 
   /** methods below use balance from node */
   getAccountInfo_NODE(
