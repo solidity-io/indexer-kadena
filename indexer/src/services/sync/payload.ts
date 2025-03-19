@@ -8,7 +8,8 @@ import Signer from '../../models/signer';
 import Guard from '../../models/guard';
 import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
 import { sequelize } from '../../config/database';
-import { processCoinbaseTransaction } from './coinbase';
+import { addCoinbaseTransactions } from './coinbase';
+import { getRequiredEnvString } from '../../utils/helpers';
 
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
@@ -20,6 +21,8 @@ interface BalanceInsertResult {
   module: string;
 }
 
+const NETWORK_ID = getRequiredEnvString('SYNC_NETWORK');
+
 export async function processPayloadKey(
   block: BlockAttributes,
   payloadData: any,
@@ -27,17 +30,18 @@ export async function processPayloadKey(
 ): Promise<EventAttributes[]> {
   const transactions = payloadData.transactions || [];
 
-  const transactionPromises = transactions.map((transactionArray: any) =>
-    processTransaction(transactionArray, block, tx),
-  );
-
-  await processCoinbaseTransaction(payloadData.coinbase, {
-    id: block.id,
-    chainId: block.chainId,
-    creationTime: block.creationTime,
+  const transactionPromises = transactions.map((transactionInfo: any) => {
+    return processTransaction(transactionInfo, block, tx);
   });
+  const normalTransactions = (await Promise.all(transactionPromises)).flat();
 
-  return (await Promise.all(transactionPromises)).flat();
+  // TODO: This will be removed after TransactionDetails migration
+  if (NETWORK_ID === 'mainnet01') return normalTransactions;
+
+  const coinbase = await addCoinbaseTransactions([block], tx!);
+  const coinbaseTransactions = (await Promise.all(coinbase)).flat();
+
+  return [...normalTransactions, ...coinbaseTransactions];
 }
 
 export async function processTransaction(

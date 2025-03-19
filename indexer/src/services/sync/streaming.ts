@@ -57,7 +57,7 @@ export async function startStreaming() {
   );
 
   backfillGuards(); // run when initialize
-  setInterval(backfillGuards, 1000 * 60 * 60); // every one hour
+  setInterval(backfillGuards, 1000 * 60 * 60 * 12); // every one 12 hours
 }
 
 export function processPayload(payload: any) {

@@ -46,8 +46,11 @@ export async function startBackfillCoinbaseTransactions() {
   process.exit(0);
 }
 
-async function addCoinbaseTransactions(rows: Array<any>, tx: Transaction) {
-  const fetchPromises = rows.map(async (row, index) => {
+export async function addCoinbaseTransactions(
+  rows: Array<any>,
+  tx: Transaction,
+): Promise<EventAttributes[]> {
+  const fetchPromises = rows.map(async row => {
     const output = await processCoinbaseTransaction(row.coinbase, {
       id: row.id,
       chainId: row.chainId,
@@ -93,6 +96,8 @@ async function addCoinbaseTransactions(rows: Array<any>, tx: Transaction) {
   await Event.bulkCreate(eventsToAdd, {
     transaction: tx,
   });
+
+  return eventsToAdd;
 }
 
 export async function processCoinbaseTransaction(

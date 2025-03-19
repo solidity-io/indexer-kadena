@@ -152,13 +152,23 @@ export type ExecutionPayload = {
 export type FungibleAccount = Node & {
   __typename?: 'FungibleAccount';
   accountName: Scalars['String']['output'];
+  /**
+   * Uses "length" multiplier which scales with the number of items in the returned array.
+   * Each chain account requires a separate database lookup, so complexity = 5 × array_length.
+   * Example: 3 chain accounts = 5 × 3 = 15 complexity points.
+   * This pattern is ideal for array fields where complexity scales linearly with result size.
+   */
   chainAccounts: Array<FungibleChainAccount>;
   fungibleName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   totalBalance: Scalars['Decimal']['output'];
-  /** Default page size is 20. */
+  /**
+   * Default page size is 20.
+   * Uses "first" multiplier to control pagination complexity.
+   * Transactions are expensive operations requiring joins, so base value is higher.
+   * Example: requesting 20 transactions = 10 × 20 = 200 complexity points.
+   */
   transactions: FungibleAccountTransactionsConnection;
-  /** Default page size is 20. */
   transfers: FungibleAccountTransfersConnection;
 };
 
@@ -468,10 +478,7 @@ export type Query = {
   fungibleAccount?: Maybe<FungibleAccount>;
   /** Retrieve an account by public key. */
   fungibleAccountsByPublicKey: Array<FungibleAccount>;
-  /**
-   * Retrieve an account by its name and fungible, such as coin, on a specific chain.
-   * @deprecated deprecated, use Query.fungibleChainAccounts
-   */
+  /** Retrieve an account by its name and fungible, such as coin, on a specific chain. */
   fungibleChainAccount?: Maybe<FungibleChainAccount>;
   /** Retrieve an account by its name and fungible, such as coin, on a specific chain. */
   fungibleChainAccounts?: Maybe<Array<FungibleChainAccount>>;
@@ -506,6 +513,7 @@ export type Query = {
   nonFungibleChainAccount?: Maybe<NonFungibleChainAccount>;
   /** Execute arbitrary Pact code via a local call without gas-estimation or signature-verification (e.g. (+ 1 2) or (coin.get-details <account>)). */
   pactQuery: Array<PactQueryResponse>;
+  tokens?: Maybe<QueryTokensConnection>;
   /** Retrieve one transaction by its unique key. Throws an error if multiple transactions are found. */
   transaction?: Maybe<Transaction>;
   /**
@@ -621,6 +629,13 @@ export type QueryPactQueryArgs = {
   pactQuery: Array<PactQuery>;
 };
 
+export type QueryTokensArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type QueryTransactionArgs = {
   blockHash?: InputMaybe<Scalars['String']['input']>;
   minimumDepth?: InputMaybe<Scalars['Int']['input']>;
@@ -664,7 +679,7 @@ export type QueryTransfersArgs = {
 
 export type QueryBlocksFromDepthConnection = {
   __typename?: 'QueryBlocksFromDepthConnection';
-  edges: Array<Maybe<QueryBlocksFromDepthConnectionEdge>>;
+  edges: Array<QueryBlocksFromDepthConnectionEdge>;
   pageInfo: PageInfo;
 };
 
@@ -676,7 +691,7 @@ export type QueryBlocksFromDepthConnectionEdge = {
 
 export type QueryBlocksFromHeightConnection = {
   __typename?: 'QueryBlocksFromHeightConnection';
-  edges: Array<Maybe<QueryBlocksFromHeightConnectionEdge>>;
+  edges: Array<QueryBlocksFromHeightConnectionEdge>;
   pageInfo: PageInfo;
 };
 
@@ -711,9 +726,21 @@ export type QueryEventsConnectionEdge = {
   node: Event;
 };
 
+export type QueryTokensConnection = {
+  __typename?: 'QueryTokensConnection';
+  edges: Array<QueryTokensEdge>;
+  pageInfo: PageInfo;
+};
+
+export type QueryTokensEdge = {
+  __typename?: 'QueryTokensEdge';
+  cursor: Scalars['String']['output'];
+  node: Token;
+};
+
 export type QueryTransactionsByPublicKeyConnection = {
   __typename?: 'QueryTransactionsByPublicKeyConnection';
-  edges: Array<Maybe<QueryTransactionsByPublicKeyConnectionEdge>>;
+  edges: Array<QueryTransactionsByPublicKeyConnectionEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars['Int']['output'];
 };
@@ -810,6 +837,13 @@ export type SubscriptionNewBlocksFromDepthArgs = {
 export type SubscriptionTransactionArgs = {
   chainId?: InputMaybe<Scalars['String']['input']>;
   requestKey: Scalars['String']['input'];
+};
+
+export type Token = {
+  __typename?: 'Token';
+  chainId: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
 };
 
 /** A transaction. */
@@ -1260,7 +1294,7 @@ export type ResolversTypes = {
   Query: ResolverTypeWrapper<{}>;
   QueryBlocksFromDepthConnection: ResolverTypeWrapper<
     Omit<QueryBlocksFromDepthConnection, 'edges'> & {
-      edges: Array<Maybe<ResolversTypes['QueryBlocksFromDepthConnectionEdge']>>;
+      edges: Array<ResolversTypes['QueryBlocksFromDepthConnectionEdge']>;
     }
   >;
   QueryBlocksFromDepthConnectionEdge: ResolverTypeWrapper<
@@ -1268,7 +1302,7 @@ export type ResolversTypes = {
   >;
   QueryBlocksFromHeightConnection: ResolverTypeWrapper<
     Omit<QueryBlocksFromHeightConnection, 'edges'> & {
-      edges: Array<Maybe<ResolversTypes['QueryBlocksFromHeightConnectionEdge']>>;
+      edges: Array<ResolversTypes['QueryBlocksFromHeightConnectionEdge']>;
     }
   >;
   QueryBlocksFromHeightConnectionEdge: ResolverTypeWrapper<
@@ -1290,9 +1324,11 @@ export type ResolversTypes = {
   QueryEventsConnectionEdge: ResolverTypeWrapper<
     Omit<QueryEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }
   >;
+  QueryTokensConnection: ResolverTypeWrapper<QueryTokensConnection>;
+  QueryTokensEdge: ResolverTypeWrapper<QueryTokensEdge>;
   QueryTransactionsByPublicKeyConnection: ResolverTypeWrapper<
     Omit<QueryTransactionsByPublicKeyConnection, 'edges'> & {
-      edges: Array<Maybe<ResolversTypes['QueryTransactionsByPublicKeyConnectionEdge']>>;
+      edges: Array<ResolversTypes['QueryTransactionsByPublicKeyConnectionEdge']>;
     }
   >;
   QueryTransactionsByPublicKeyConnectionEdge: ResolverTypeWrapper<
@@ -1320,6 +1356,7 @@ export type ResolversTypes = {
   Signer: ResolverTypeWrapper<Signer>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
+  Token: ResolverTypeWrapper<Token>;
   Transaction: ResolverTypeWrapper<
     Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & {
       cmd: ResolversTypes['TransactionCommand'];
@@ -1495,13 +1532,13 @@ export type ResolversParentTypes = {
   PageInfo: PageInfo;
   Query: {};
   QueryBlocksFromDepthConnection: Omit<QueryBlocksFromDepthConnection, 'edges'> & {
-    edges: Array<Maybe<ResolversParentTypes['QueryBlocksFromDepthConnectionEdge']>>;
+    edges: Array<ResolversParentTypes['QueryBlocksFromDepthConnectionEdge']>;
   };
   QueryBlocksFromDepthConnectionEdge: Omit<QueryBlocksFromDepthConnectionEdge, 'node'> & {
     node: ResolversParentTypes['Block'];
   };
   QueryBlocksFromHeightConnection: Omit<QueryBlocksFromHeightConnection, 'edges'> & {
-    edges: Array<Maybe<ResolversParentTypes['QueryBlocksFromHeightConnectionEdge']>>;
+    edges: Array<ResolversParentTypes['QueryBlocksFromHeightConnectionEdge']>;
   };
   QueryBlocksFromHeightConnectionEdge: Omit<QueryBlocksFromHeightConnectionEdge, 'node'> & {
     node: ResolversParentTypes['Block'];
@@ -1519,8 +1556,10 @@ export type ResolversParentTypes = {
   QueryEventsConnectionEdge: Omit<QueryEventsConnectionEdge, 'node'> & {
     node: ResolversParentTypes['Event'];
   };
+  QueryTokensConnection: QueryTokensConnection;
+  QueryTokensEdge: QueryTokensEdge;
   QueryTransactionsByPublicKeyConnection: Omit<QueryTransactionsByPublicKeyConnection, 'edges'> & {
-    edges: Array<Maybe<ResolversParentTypes['QueryTransactionsByPublicKeyConnectionEdge']>>;
+    edges: Array<ResolversParentTypes['QueryTransactionsByPublicKeyConnectionEdge']>;
   };
   QueryTransactionsByPublicKeyConnectionEdge: Omit<
     QueryTransactionsByPublicKeyConnectionEdge,
@@ -1542,6 +1581,7 @@ export type ResolversParentTypes = {
   Signer: Signer;
   String: Scalars['String']['output'];
   Subscription: {};
+  Token: Token;
   Transaction: Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & {
     cmd: ResolversParentTypes['TransactionCommand'];
     orphanedTransactions?: Maybe<Array<Maybe<ResolversParentTypes['Transaction']>>>;
@@ -1582,6 +1622,18 @@ export type ResolversParentTypes = {
   };
   UserGuard: UserGuard;
 };
+
+export type ComplexityDirectiveArgs = {
+  multipliers?: Maybe<Array<Scalars['String']['input']>>;
+  value: Scalars['Int']['input'];
+};
+
+export type ComplexityDirectiveResolver<
+  Result,
+  Parent,
+  ContextType = any,
+  Args = ComplexityDirectiveArgs,
+> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
 
 export interface BigIntScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['BigInt'], any> {
   name: 'BigInt';
@@ -2229,6 +2281,12 @@ export type QueryResolvers<
     ContextType,
     RequireFields<QueryPactQueryArgs, 'pactQuery'>
   >;
+  tokens?: Resolver<
+    Maybe<ResolversTypes['QueryTokensConnection']>,
+    ParentType,
+    ContextType,
+    Partial<QueryTokensArgs>
+  >;
   transaction?: Resolver<
     Maybe<ResolversTypes['Transaction']>,
     ParentType,
@@ -2261,7 +2319,7 @@ export type QueryBlocksFromDepthConnectionResolvers<
     ResolversParentTypes['QueryBlocksFromDepthConnection'] = ResolversParentTypes['QueryBlocksFromDepthConnection'],
 > = {
   edges?: Resolver<
-    Array<Maybe<ResolversTypes['QueryBlocksFromDepthConnectionEdge']>>,
+    Array<ResolversTypes['QueryBlocksFromDepthConnectionEdge']>,
     ParentType,
     ContextType
   >;
@@ -2285,7 +2343,7 @@ export type QueryBlocksFromHeightConnectionResolvers<
     ResolversParentTypes['QueryBlocksFromHeightConnection'] = ResolversParentTypes['QueryBlocksFromHeightConnection'],
 > = {
   edges?: Resolver<
-    Array<Maybe<ResolversTypes['QueryBlocksFromHeightConnectionEdge']>>,
+    Array<ResolversTypes['QueryBlocksFromHeightConnectionEdge']>,
     ParentType,
     ContextType
   >;
@@ -2348,13 +2406,33 @@ export type QueryEventsConnectionEdgeResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type QueryTokensConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryTokensConnection'] = ResolversParentTypes['QueryTokensConnection'],
+> = {
+  edges?: Resolver<Array<ResolversTypes['QueryTokensEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type QueryTokensEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryTokensEdge'] = ResolversParentTypes['QueryTokensEdge'],
+> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Token'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryTransactionsByPublicKeyConnectionResolvers<
   ContextType = any,
   ParentType extends
     ResolversParentTypes['QueryTransactionsByPublicKeyConnection'] = ResolversParentTypes['QueryTransactionsByPublicKeyConnection'],
 > = {
   edges?: Resolver<
-    Array<Maybe<ResolversTypes['QueryTransactionsByPublicKeyConnectionEdge']>>,
+    Array<ResolversTypes['QueryTransactionsByPublicKeyConnectionEdge']>,
     ParentType,
     ContextType
   >;
@@ -2474,6 +2552,16 @@ export type SubscriptionResolvers<
     ContextType,
     RequireFields<SubscriptionTransactionArgs, 'requestKey'>
   >;
+};
+
+export type TokenResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Token'] = ResolversParentTypes['Token'],
+> = {
+  chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type TransactionResolvers<
@@ -2731,6 +2819,8 @@ export type Resolvers<ContextType = any> = {
   QueryCompletedBlockHeightsConnectionEdge?: QueryCompletedBlockHeightsConnectionEdgeResolvers<ContextType>;
   QueryEventsConnection?: QueryEventsConnectionResolvers<ContextType>;
   QueryEventsConnectionEdge?: QueryEventsConnectionEdgeResolvers<ContextType>;
+  QueryTokensConnection?: QueryTokensConnectionResolvers<ContextType>;
+  QueryTokensEdge?: QueryTokensEdgeResolvers<ContextType>;
   QueryTransactionsByPublicKeyConnection?: QueryTransactionsByPublicKeyConnectionResolvers<ContextType>;
   QueryTransactionsByPublicKeyConnectionEdge?: QueryTransactionsByPublicKeyConnectionEdgeResolvers<ContextType>;
   QueryTransactionsConnection?: QueryTransactionsConnectionResolvers<ContextType>;
@@ -2740,6 +2830,7 @@ export type Resolvers<ContextType = any> = {
   RawGuard?: RawGuardResolvers<ContextType>;
   Signer?: SignerResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
+  Token?: TokenResolvers<ContextType>;
   Transaction?: TransactionResolvers<ContextType>;
   TransactionCapability?: TransactionCapabilityResolvers<ContextType>;
   TransactionCommand?: TransactionCommandResolvers<ContextType>;
@@ -2755,4 +2846,8 @@ export type Resolvers<ContextType = any> = {
   TransactionSignature?: TransactionSignatureResolvers<ContextType>;
   Transfer?: TransferResolvers<ContextType>;
   UserGuard?: UserGuardResolvers<ContextType>;
+};
+
+export type DirectiveResolvers<ContextType = any> = {
+  complexity?: ComplexityDirectiveResolver<any, any, ContextType>;
 };
