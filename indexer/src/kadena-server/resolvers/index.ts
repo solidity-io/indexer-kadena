@@ -64,6 +64,7 @@ import { totalCountNonFungibleAccountTransactionsConnectionResolver } from './fi
 import { totalCountNonFungibleChainAccountTransactionsConnectionResolver } from './fields/non-fungible-chain-account/transactions-connection/total-count-non-fungible-chain-account-transactions-connection-resolver';
 import { fungibleChainAccountQueryResolver } from './query/fungible-chain-account-query-resolver';
 import { powHashBlockResolver } from './fields/block/pow-hash-block-resolver';
+import { tokensQueryResolver } from './query/tokens-query';
 
 export const resolvers: Resolvers<ResolverContext> = {
   DateTime: DateTimeResolver,
@@ -97,6 +98,7 @@ export const resolvers: Resolvers<ResolverContext> = {
     transactions: transactionsQueryResolver,
     transactionsByPublicKey: transactionsByPublicKeyQueryResolver,
     transfers: transfersQueryResolver,
+    tokens: tokensQueryResolver,
   },
   Block: {
     parent: parentBlockResolver, // data loader set.

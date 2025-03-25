@@ -148,7 +148,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       ]);
 
       const { params: txParams, conditions: txConditions } = this.createTransactionConditions(
-        params,
+        { ...params, after, before },
         blockParams,
       );
 
@@ -156,7 +156,10 @@ export default class TransactionDbRepository implements TransactionRepository {
       transactionsConditions = txConditions;
       blocksConditions = bConditions;
     } else {
-      const { conditions, params: txParams } = this.createTransactionConditions(params, [limit]);
+      const { conditions, params: txParams } = this.createTransactionConditions(
+        { ...params, after, before },
+        [limit],
+      );
       const { blocksConditions: bConditions, blockParams } = this.createBlockConditions(
         params,
         txParams,

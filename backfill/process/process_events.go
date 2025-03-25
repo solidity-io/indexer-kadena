@@ -40,6 +40,11 @@ func PrepareEvents(network string, payload fetch.ProcessedPayload, transactionsI
 		}
 	}
 
+	// TODO: This will be removed after TransactionDetails migration
+	// if network == "mainnet01" {
+	// 	return events, nil
+	// }
+
 	coinbaseDecoded, err := decodeCoinbase(string(payload.Coinbase))
 	if err != nil {
 		return nil, fmt.Errorf("decoding Coinbase JSON of block: %w", err)

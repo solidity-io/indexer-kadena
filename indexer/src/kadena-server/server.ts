@@ -35,17 +35,13 @@ import {
 import { depthLimit } from '@graphile/depth-limit';
 
 // Maximum allowed complexity
-const MAX_COMPLEXITY = 1000;
+const MAX_COMPLEXITY = 2500;
 
 const typeDefs = readFileSync(join(__dirname, './config/schema.graphql'), 'utf-8');
 
 const KADENA_GRAPHQL_API_PORT = getRequiredEnvString('KADENA_GRAPHQL_API_PORT');
 
-const ALLOWED_ORIGINS = [
-  getRequiredEnvString('API_GATEWAY_URL'),
-  getRequiredEnvString('API_KADENA_URL'),
-  `http://localhost:${KADENA_GRAPHQL_API_PORT}`,
-];
+const ALLOWED_ORIGINS = [process.env.API_GATEWAY_URL ?? '', process.env.API_KADENA_URL ?? ''];
 
 const validatePaginationParamsPlugin: ApolloServerPlugin = {
   requestDidStart: async () => ({
@@ -127,13 +123,16 @@ const ipFilterMiddleware = (req: Request, res: Response, next: NextFunction) => 
 const isAllowedOrigin = (origin: string): boolean => {
   try {
     const originUrl = new URL(origin);
+    if (originUrl.hostname === 'localhost') return true;
+
     return ALLOWED_ORIGINS.some(allowed => {
       const allowedUrl = new URL(allowed);
       // Check if it's an exact match
       if (originUrl.origin === allowedUrl.origin) return true;
       // Check if it's a subdomain (only for kadena.io)
-      if (allowedUrl.hostname === 'kadena.io' && originUrl.hostname.endsWith('.kadena.io'))
+      if (allowedUrl.hostname === 'kadena.io' && originUrl.hostname.endsWith('.kadena.io')) {
         return true;
+      }
       return false;
     });
   } catch {
@@ -232,15 +231,6 @@ export async function useKadenaGraphqlServer() {
   const wsServer = new WebSocketServer({
     server: httpServer,
     path: '/graphql',
-    verifyClient: ({ origin }, callback) => {
-      if (!origin || origin === 'null') {
-        return callback(false, 400, 'No origin');
-      }
-      if (isAllowedOrigin(origin)) {
-        return callback(true);
-      }
-      return callback(false, 403, 'Forbidden');
-    },
   });
 
   const serverCleanup = useServer(
@@ -281,13 +271,41 @@ export async function useKadenaGraphqlServer() {
         }
       },
       methods: ['POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'Accept',
+        'Origin',
+        'X-Requested-With',
+        'Cache-Control',
+        'Pragma',
+      ],
+      exposedHeaders: ['Access-Control-Allow-Origin'],
       credentials: true,
+      maxAge: 86400, // 24 hours
     }),
     expressMiddleware(server, {
       context: createGraphqlContext,
     }),
   );
+
+  // Handle OPTIONS requests explicitly
+  app.options('*', (req: Request, res: Response) => {
+    const origin = req.headers.origin;
+    if (origin && isAllowedOrigin(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization, Accept, Origin, X-Requested-With, Cache-Control, Pragma',
+      );
+      res.setHeader('Access-Control-Max-Age', '86400');
+      res.status(204).end();
+    } else {
+      res.status(403).end();
+    }
+  });
 
   app.post('/new-block', ipFilterMiddleware, async (req, res) => {
     const payload = await dispatchInfoSchema.safeParseAsync(req.body);

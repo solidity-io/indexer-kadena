@@ -1,9 +1,9 @@
 import pLimit from 'p-limit';
-import { closeDatabase, rootPgPool, sequelize } from '../../config/database';
+import { rootPgPool, sequelize } from '../../config/database';
 import { getGuardsFromBalances } from './payload';
 import Guard from '../../models/guard';
 
-const CONCURRENCY_LIMIT = 4; // Number of concurrent fetches allowed
+const CONCURRENCY_LIMIT = 50; // Number of concurrent fetches allowed
 const limitFetch = pLimit(CONCURRENCY_LIMIT);
 
 export async function backfillGuards() {
@@ -17,13 +17,19 @@ export async function backfillGuards() {
   await rootPgPool.query(deleteGuardsQuery);
 
   const limit = 1000; // Number of rows to process in one batch
-  let offset = 0;
+  let currentId = 0;
 
   while (true) {
     console.info(`[INFO][DB][METRIC] Processing guards batch: ${offset}-${offset + limit}`);
     const res = await rootPgPool.query(
-      `SELECT b.id, b.account, b."chainId", b.module FROM "Balances" b ORDER BY b.id LIMIT $1 OFFSET $2`,
-      [limit, offset],
+      `
+        SELECT b.id, b.account, b."chainId", b.module
+        FROM "Balances" b
+        WHERE b.id > $2
+        ORDER BY b.id
+        LIMIT $1
+      `,
+      [limit, currentId],
     );
 
     const rows = res.rows;

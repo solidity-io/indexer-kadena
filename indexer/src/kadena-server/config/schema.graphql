@@ -272,6 +272,9 @@ type Query {
     last: Int
     requestKey: String
   ): QueryTransfersConnection! @complexity(value: 10, multipliers: ["first", "last"])
+
+  tokens(after: String, before: String, first: Int, last: Int): QueryTokensConnection!
+    @complexity(value: 10, multipliers: ["first", "last"])
 }
 
 """
@@ -1032,4 +1035,20 @@ type RawGuard implements IGuard {
   keys: [String!]! @deprecated(reason: "deprecated, use KeysetGuard.keys")
   predicate: String! @deprecated(reason: "deprecated, use KeysetGuard.predicate")
   raw: String!
+}
+
+type QueryTokensConnection {
+  edges: [QueryTokensEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryTokensEdge {
+  cursor: String!
+  node: Token!
+}
+
+type Token {
+  id: ID!
+  name: String!
+  chainId: String!
 }
