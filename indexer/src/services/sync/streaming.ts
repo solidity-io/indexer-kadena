@@ -131,11 +131,7 @@ export async function saveBlock(parsedData: any, tx?: Transaction): Promise<Disp
       qualifiedEventNames: Array.from(uniqueQualifiedEventNames),
     };
   } catch (error) {
-    await tx.rollback();
-    console.error(
-      `[ERROR][DB][DATA_CORRUPT] Failed to save block ${parsedData.header.hash} to database:`,
-      error,
-    );
+    console.error(`[ERROR][DB][DATA_CORRUPT] Failed to save block to database:`, error);
     return null;
   }
 }
