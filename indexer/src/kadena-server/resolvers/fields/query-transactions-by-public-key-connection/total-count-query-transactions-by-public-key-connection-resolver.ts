@@ -8,8 +8,6 @@ const schema = zod.object({
 
 export const totalCountQueryTransactionsByPublicKeyConnectionResolver: QueryTransactionsByPublicKeyConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
-    console.log('totalCountQueryTransactionsByPublicKeyConnectionResolver');
-
     const { publicKey } = schema.parse(parent);
 
     const output = await context.transactionRepository.getTransactionsByPublicKeyCount(publicKey);

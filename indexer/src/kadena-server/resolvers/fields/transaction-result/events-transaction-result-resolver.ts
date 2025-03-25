@@ -7,8 +7,6 @@ const schema = zod.object({ databaseTransactionId: zod.string() });
 
 export const eventsTransactionResultResolver: TransactionResultResolvers<ResolverContext>['events'] =
   async (parent, args, context) => {
-    console.log('eventsTransactionResultResolver');
-
     const parentArgs = schema.parse(parent);
 
     const { first, after, before, last } = args;

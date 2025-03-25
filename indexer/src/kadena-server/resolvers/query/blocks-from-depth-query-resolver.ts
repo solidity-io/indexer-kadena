@@ -4,7 +4,6 @@ import { buildBlockOutput } from '../output/build-block-output';
 
 export const blocksFromDepthQueryResolver: QueryResolvers<ResolverContext>['blocksFromDepth'] =
   async (_parent, args, context) => {
-    console.log('blocksFromDepthQueryResolver', args);
     const { minimumDepth, after, before, chainIds, first, last } = args;
     const output = await context.blockRepository.getBlocksFromDepth({
       minimumDepth,

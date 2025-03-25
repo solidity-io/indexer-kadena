@@ -26,7 +26,10 @@ export default async function initCache(context: ResolverContext) {
       };
       MEMORY_CACHE.set(HASH_RATE_AND_TOTAL_DIFFICULTY_KEY, newValue);
     } catch (err) {
-      console.log('Error getting hash rate and total difficulty', err);
+      console.error(
+        '[ERROR][CACHE][CONN_TIMEOUT] Failed to get hash rate and total difficulty',
+        err,
+      );
     }
   }
 
@@ -35,7 +38,7 @@ export default async function initCache(context: ResolverContext) {
       const networkStatistics = await networkRepository.getNetworkStatistics();
       MEMORY_CACHE.set(NETWORK_STATISTICS_KEY, networkStatistics);
     } catch (err) {
-      console.log('Error getting network statistics', err);
+      console.error('[ERROR][CACHE][CONN_TIMEOUT] Failed to get network statistics', err);
     }
   }
 
@@ -44,7 +47,7 @@ export default async function initCache(context: ResolverContext) {
       const nodeInfo = await networkRepository.getNodeInfo();
       MEMORY_CACHE.set(NODE_INFO_KEY, nodeInfo);
     } catch (err) {
-      console.log('Error getting node info', err);
+      console.error('[ERROR][CACHE][CONN_TIMEOUT] Failed to get node info', err);
     }
   }
 

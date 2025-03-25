@@ -22,8 +22,6 @@ async function hashWithBlake2s(input: any) {
 }
 
 export const powHashBlockResolver: BlockResolvers<ResolverContext>['powHash'] = async parent => {
-  console.log('powHashBlockResolver');
-
   const url = `${SYNC_BASE_URL}/${NETWORK_ID}/chain/${parent.chainId}/header/${parent.hash}`;
   const res = await fetch(url, {
     method: 'GET',

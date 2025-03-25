@@ -13,14 +13,14 @@ const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');
 const SYNC_NETWORK = getRequiredEnvString('SYNC_NETWORK');
 
 export async function startStreaming() {
-  console.log('Starting streaming...');
+  console.info('[INFO][WORKER][BIZ_FLOW] Starting blockchain streaming service...');
 
   const blocksAlreadyReceived = new Set<string>();
 
   const eventSource = new EventSource(`${SYNC_BASE_URL}/${SYNC_NETWORK}/block/updates`);
 
   eventSource.onerror = (error: any) => {
-    console.error('Connection error:', error);
+    console.error('[ERROR][NET][CONN_LOST] EventSource connection error:', error);
   };
 
   eventSource.addEventListener('BlockHeader', async (event: any) => {
@@ -44,13 +44,13 @@ export async function startStreaming() {
       }
       await tx.commit();
     } catch (error) {
-      console.log('Event Error:', error);
+      console.error('[ERROR][DATA][DATA_CORRUPT] Failed to process block event:', error);
     }
   });
 
   setInterval(
     () => {
-      console.log('Clearing blocks already received.');
+      console.info('[INFO][CACHE][METRIC] Clearing blocks cache. Freeing memory for new blocks.');
       blocksAlreadyReceived.clear();
     },
     1000 * 60 * 10,
@@ -131,7 +131,7 @@ export async function saveBlock(parsedData: any, tx?: Transaction): Promise<Disp
       qualifiedEventNames: Array.from(uniqueQualifiedEventNames),
     };
   } catch (error) {
-    console.error(`Error saving block to the database: ${error}`);
+    console.error(`[ERROR][DB][DATA_CORRUPT] Failed to save block to database:`, error);
     return null;
   }
 }

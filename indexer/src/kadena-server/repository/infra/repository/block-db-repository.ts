@@ -313,7 +313,7 @@ export default class BlockDbRepository implements BlockRepository {
   }
 
   async getBlocksByEventIds(eventIds: readonly string[]) {
-    console.log('Batching for event IDs:', eventIds);
+    console.info('[INFO][INFRA][INFRA_CONFIG] Batching for event IDs:', eventIds);
 
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.*, e.id as "eventId"
@@ -340,7 +340,7 @@ export default class BlockDbRepository implements BlockRepository {
   }
 
   async getBlocksByTransactionIds(transactionIds: string[]) {
-    console.log('Batching for transactionIds IDs:', transactionIds);
+    console.info('[INFO][INFRA][INFRA_CONFIG] Batching for transactionIds IDs:', transactionIds);
 
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.id,
@@ -379,7 +379,7 @@ export default class BlockDbRepository implements BlockRepository {
   }
 
   async getBlockByHashes(hashes: string[]): Promise<BlockOutput[]> {
-    console.log('Batching for hashes:', hashes);
+    console.info('[INFO][INFRA][INFRA_CONFIG] Batching for hashes:', hashes);
 
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.id,

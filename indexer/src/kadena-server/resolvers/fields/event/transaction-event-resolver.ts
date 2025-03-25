@@ -10,8 +10,6 @@ export const transactionEventResolver: EventResolvers<ResolverContext>['transact
   _args,
   context,
 ) => {
-  console.log('transactionEventResolver');
-
   const { eventId } = schema.parse(parent);
 
   const output = await context.getTransactionsByEventIdsLoader.load(eventId);

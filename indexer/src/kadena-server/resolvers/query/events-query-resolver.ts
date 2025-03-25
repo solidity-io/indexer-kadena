@@ -7,7 +7,6 @@ export const eventsQueryResolver: QueryResolvers<ResolverContext>['events'] = as
   args,
   context,
 ) => {
-  console.log('eventsQueryResolver');
   const {
     after,
     first,

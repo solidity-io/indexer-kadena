@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-console.log('Loading environment variables...');
+console.info('[INFO][INFRA][INFRA_CONFIG] Loading environment variables...');
 dotenv.config();
 
 import { program } from 'commander';
@@ -54,10 +54,10 @@ async function main() {
     } else if (options.graphql) {
       await useKadenaGraphqlServer();
     } else {
-      console.log('No specific task requested.');
+      console.info('[INFO][BIZ][BIZ_FLOW] No specific task requested.');
     }
   } catch (error) {
-    console.error('An error occurred during the initialization:', error);
+    console.error('[ERROR][INFRA][INFRA_CONFIG] Initialization failed:', error);
   }
 }
 
@@ -66,8 +66,8 @@ async function main() {
  * @param signal The signal received, triggering the shutdown process.
  */
 async function handleGracefulShutdown(signal: string) {
-  console.log(`Received ${signal}. Graceful shutdown start.`);
-  console.log('Graceful shutdown complete.');
+  console.info(`[INFO][INFRA][INFRA_DEPLOY] Received ${signal}. Initiating graceful shutdown.`);
+  console.info('[INFO][INFRA][INFRA_DEPLOY] Graceful shutdown complete.');
   process.exit(0);
 }
 

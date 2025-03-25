@@ -283,7 +283,7 @@ export default class TransactionDbRepository implements TransactionRepository {
     const { rows } = await rootPgPool.query(query, [transferId]);
 
     if (!rows?.length) {
-      throw new Error(`Transfer with id ${transferId} not found`);
+      throw new Error(`[ERROR][DB][DATA_MISSING] Transfer with id ${transferId} not found`);
     }
 
     const [row] = rows;
@@ -566,7 +566,7 @@ export default class TransactionDbRepository implements TransactionRepository {
   }
 
   async getTransactionsByEventIds(eventIds: readonly string[]): Promise<TransactionOutput[]> {
-    console.log('Batching for event IDs:', eventIds);
+    console.info('[INFO][INFRA][INFRA_CONFIG] Batching for event IDs:', eventIds);
 
     const { rows } = await rootPgPool.query(
       `SELECT t.id as id,

@@ -5,7 +5,6 @@ import { buildFungibleChainAccount } from '../output/build-fungible-chain-accoun
 export const fungibleChainAccountQueryResolver: QueryResolvers<ResolverContext>['fungibleChainAccount'] =
   async (_parent, args, context) => {
     const { accountName, chainId, fungibleName } = args;
-    console.log('fungibleChainAccountQueryResolver');
     const [account] = await context.balanceRepository.getChainsAccountInfo_NODE(
       accountName,
       fungibleName,

@@ -7,7 +7,6 @@ export const transfersQueryResolver: QueryResolvers<ResolverContext>['transfers'
   args,
   context,
 ) => {
-  console.log('transfersQueryResolver');
   const { after, before, first, last, accountName, blockHash, chainId, fungibleName, requestKey } =
     args;
   const output = await context.transferRepository.getTransfers({
