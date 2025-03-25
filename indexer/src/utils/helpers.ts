@@ -69,7 +69,7 @@ export function calculateDataSize(data: any) {
 export function getRequiredEnvString(key: string): string {
   const value = process.env[key];
   if (!value) {
-    throw new Error(`Environment variable ${key} is required`);
+    throw new Error(`[ERROR][ENV][MISSING] Environment variable ${key} is required`);
   }
   return value;
 }
@@ -86,11 +86,11 @@ export function getRequiredEnvString(key: string): string {
 export function getRequiredEnvNumber(key: string): number {
   const value = process.env[key];
   if (!value) {
-    throw new Error(`Environment variable ${key} is required`);
+    throw new Error(`[ERROR][ENV][MISSING] Environment variable ${key} is required`);
   }
   const parsed = parseInt(value, 10);
   if (isNaN(parsed)) {
-    throw new Error(`Environment variable ${key} must be a valid number`);
+    throw new Error(`[ERROR][ENV][INVALID] Environment variable ${key} must be a valid number`);
   }
   return parsed;
 }

@@ -53,7 +53,7 @@ export async function processTransaction(
   try {
     cmdData = JSON.parse(transactionInfo.cmd);
   } catch (error) {
-    console.error(`Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`);
+    console.error(`[ERROR][DATA][DATA_FORMAT] Failed to parse transaction command JSON: ${error}`);
     throw error;
   }
 
@@ -183,8 +183,10 @@ export async function processTransaction(
 
     return eventsAttributes;
   } catch (error) {
-    console.error(`Error saving transaction to the database: ${error}`);
-    return [];
+    console.error(
+      `[ERROR][DB][DATA_CORRUPT] Failed to save transaction ${transactionInfo.hash}: ${error}`,
+    );
+    throw error;
   }
 }
 

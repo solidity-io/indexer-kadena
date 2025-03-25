@@ -9,8 +9,6 @@ const schema = zod.object({
 
 export const totalCountFungibleAccountTransactionsConnectionResolver: FungibleAccountTransactionsConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
-    console.log('totalCountFungibleAccountTransactionsConnectionResolver');
-
     const { accountName, fungibleName } = schema.parse(parent);
 
     const output = await context.transactionRepository.getTransactionsCount({

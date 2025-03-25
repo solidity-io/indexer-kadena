@@ -10,7 +10,6 @@ const schema = zod.object({
 
 export const crossChainTransferTransferResolver: TransferResolvers<ResolverContext>['crossChainTransfer'] =
   async (parent, _args, context) => {
-    console.log('crossChainTransferTransferResolver');
     const { pactId, amount } = schema.parse(parent);
     if (!pactId) return null;
 

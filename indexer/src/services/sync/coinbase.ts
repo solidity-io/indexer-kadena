@@ -6,13 +6,13 @@ import Event, { EventAttributes } from '../../models/event';
 import { getCoinTransfers } from './transfers';
 
 export async function startBackfillCoinbaseTransactions() {
-  console.log('Starting coinbase backfill ...');
+  console.info('[INFO][SYNC][COINBASE] Starting coinbase backfill ...');
 
   const limit = 1000; // Number of rows to process in one batch
   let offset = 0;
 
   while (true) {
-    console.log(`Fetching rows from offset: ${offset}, limit: ${limit}`);
+    console.info(`[INFO][SYNC][COINBASE] Fetching rows from offset: ${offset}, limit: ${limit}`);
     const res = await rootPgPool.query(
       `SELECT b.id, b.coinbase, b."chainId", b."creationTime" FROM "Blocks" b ORDER BY b.id LIMIT $1 OFFSET $2`,
       [limit, offset],
@@ -20,7 +20,7 @@ export async function startBackfillCoinbaseTransactions() {
 
     const rows = res.rows;
     if (rows.length === 0) {
-      console.log('No more rows to process.');
+      console.info('[INFO][SYNC][COINBASE] No more rows to process.');
       break;
     }
 
@@ -28,15 +28,17 @@ export async function startBackfillCoinbaseTransactions() {
     try {
       await addCoinbaseTransactions(rows, tx);
       await tx.commit();
-      console.log(`Batch at offset ${offset} processed successfully.`);
+      console.info(`[INFO][SYNC][COINBASE] Batch at offset ${offset} processed successfully.`);
       offset += limit;
     } catch (batchError) {
-      console.error(`Error processing batch at offset ${offset}:`, batchError);
+      console.error(`[ERROR][SYNC][COINBASE] Processing batch at offset ${offset}:`, batchError);
       try {
         await tx.rollback();
-        console.log(`Transaction for batch at offset ${offset} rolled back.`);
+        console.info(
+          `[INFO][SYNC][COINBASE] Transaction for batch at offset ${offset} rolled back.`,
+        );
       } catch (rollbackError) {
-        console.error('Error during rollback:', rollbackError);
+        console.error('[ERROR][SYNC][COINBASE] Error during rollback:', rollbackError);
       }
       break;
     }

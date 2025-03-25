@@ -4,8 +4,6 @@ import { buildTransactionOutput } from '../../output/build-transaction-output';
 
 export const transactionsNonFungibleAccountResolver: NonFungibleAccountResolvers<ResolverContext>['transactions'] =
   async (parent, args, context) => {
-    console.log('transactionsNonFungibleAccountResolver');
-
     const { first, after, last, before } = args;
     const output = await context.transactionRepository.getTransactions({
       accountName: parent.accountName,

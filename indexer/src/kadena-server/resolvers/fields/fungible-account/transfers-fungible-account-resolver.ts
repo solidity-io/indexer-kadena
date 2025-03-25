@@ -4,8 +4,6 @@ import { buildTransferOutput } from '../../output/build-transfer-output';
 
 export const transfersFungibleAccountResolver: FungibleAccountResolvers<ResolverContext>['transfers'] =
   async (parent, args, context) => {
-    console.log('transfersFungibleAccountResolver');
-
     const { first, after, before, last } = args;
     const output = await context.transferRepository.getTransfers({
       accountName: parent.accountName,

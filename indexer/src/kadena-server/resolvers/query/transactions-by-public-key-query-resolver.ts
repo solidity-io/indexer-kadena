@@ -4,7 +4,6 @@ import { buildTransactionOutput } from '../output/build-transaction-output';
 
 export const transactionsByPublicKeyQueryResolver: QueryResolvers<ResolverContext>['transactionsByPublicKey'] =
   async (_parent, args, context) => {
-    console.log('transactionsByPublicKeyQueryResolver');
     const { publicKey, first, after, before, last } = args;
     const output = await context.transactionRepository.getTransactionsByPublicKey({
       publicKey,

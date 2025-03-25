@@ -7,7 +7,7 @@ const CONCURRENCY_LIMIT = 4; // Number of concurrent fetches allowed
 const limitFetch = pLimit(CONCURRENCY_LIMIT);
 
 export async function backfillGuards() {
-  console.log('Starting guards backfill ...');
+  console.info('[INFO][WORKER][BIZ_FLOW] Starting guards backfill process...');
 
   const deleteGuardsQuery = `
     DELETE FROM "Guards";
@@ -20,7 +20,7 @@ export async function backfillGuards() {
   let offset = 0;
 
   while (true) {
-    console.log(`Fetching rows from offset: ${offset}, limit: ${limit}`);
+    console.info(`[INFO][DB][METRIC] Processing guards batch: ${offset}-${offset + limit}`);
     const res = await rootPgPool.query(
       `SELECT b.id, b.account, b."chainId", b.module FROM "Balances" b ORDER BY b.id LIMIT $1 OFFSET $2`,
       [limit, offset],
@@ -28,7 +28,7 @@ export async function backfillGuards() {
 
     const rows = res.rows;
     if (rows.length === 0) {
-      console.log('No more rows to process.');
+      console.info('[INFO][DB][DATA_MISSING] No more balance rows to process. Backfill complete.');
       break;
     }
 
@@ -53,19 +53,21 @@ export async function backfillGuards() {
       });
 
       await tx.commit();
-      console.log(`Batch at offset ${offset} processed successfully.`);
+      console.info(`[INFO][DB][BIZ_FLOW] Batch at offset ${offset} processed successfully.`);
       offset += limit;
     } catch (batchError) {
-      console.error(`Error processing batch at offset ${offset}:`, batchError);
+      console.error(
+        `[ERROR][DB][DATA_CORRUPT] Failed to process guards batch at offset ${offset}:`,
+        batchError,
+      );
       try {
         await tx.rollback();
-        console.log(`Transaction for batch at offset ${offset} rolled back.`);
+        console.info(`[INFO][DB][BIZ_FLOW] Transaction for batch at offset ${offset} rolled back.`);
       } catch (rollbackError) {
-        console.error('Error during rollback:', rollbackError);
+        console.error('[ERROR][DB][SYNC_CONFLICT] Transaction rollback failed:', rollbackError);
       }
       break;
     }
   }
-
-  console.log('Guards backfilled successfully.');
+  console.info('[INFO][WORKER][BIZ_FLOW] Guards backfill completed successfully.');
 }

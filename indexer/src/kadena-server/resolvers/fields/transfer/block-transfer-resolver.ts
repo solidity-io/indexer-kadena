@@ -12,8 +12,6 @@ export const blockTransferResolver: TransferResolvers<ResolverContext>['block'] 
   _args,
   context,
 ) => {
-  console.log('blockTransferResolver');
-
   const { blockHash } = schema.parse(parent);
   const output = await context.blockRepository.getBlockByHash(blockHash);
 

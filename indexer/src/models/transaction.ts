@@ -847,7 +847,6 @@ export const kadenaExtensionPlugin = makeExtendSchemaPlugin(build => {
           });
 
           if (results.length > 0) {
-            console.log(results[0]);
             return results[0];
           } else {
             return null;

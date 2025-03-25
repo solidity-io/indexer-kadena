@@ -113,7 +113,6 @@ export function getCoinTransfers(eventsData: any, transactionAttributes: Transac
             Number(JSON.parse(precisionData.result).int),
           );
         }
-        console.log(precisionData);
         requests[`(${modulename}.precision)`] = false;
       }
 

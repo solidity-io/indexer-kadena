@@ -9,8 +9,6 @@ const NETWORK_ID = getRequiredEnvString('SYNC_NETWORK');
 
 export const gasLimitEstimateQueryResolver: QueryResolvers<ResolverContext>['gasLimitEstimate'] =
   async (_parent, args, context) => {
-    console.log('gasLimitEstimateQueryResolver');
-
     const res = await Promise.all(
       args.input.map(input => {
         const parsedInput = parseInput(input);

@@ -7,8 +7,6 @@ const schema = zod.object({ databaseTransactionId: zod.string() });
 
 export const blockTransactionResultResolver: TransactionResultResolvers<ResolverContext>['block'] =
   async (parent, _args, context) => {
-    console.log('blockTransactionResultResolver');
-
     const parentArgs = schema.parse(parent);
 
     const output = await context.getBlocksByTransactionIdsLoader.load(
