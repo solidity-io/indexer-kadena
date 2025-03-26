@@ -122,7 +122,7 @@ export async function processCoinbaseTransaction(
   const transactionAttributes = {
     blockId: block.id,
     chainId: block.chainId,
-    creationtime: block.creationTime.toString(),
+    creationtime: Math.trunc(Number(block.creationTime) / 1000000).toString(),
     hash: coinbase.reqKey,
     result: coinbase.result,
     logs: coinbase.logs,

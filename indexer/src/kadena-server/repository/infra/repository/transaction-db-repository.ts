@@ -203,7 +203,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         JOIN "Transactions" t ON b.id = t."blockId"
         LEFT JOIN "TransactionDetails" td ON t.id = td."transactionId"
         ${transactionsConditions}
-        ORDER BY t.id ${order}
+        ORDER BY t.creationtime ${order}
         LIMIT $1
       `;
     } else {
@@ -212,7 +212,7 @@ export default class TransactionDbRepository implements TransactionRepository {
           SELECT t.id, t."blockId", t.hash, t.num_events, t.txid, t.logs, t.result, t.requestkey, t."chainId"
           FROM "Transactions" t
           ${transactionsConditions}
-          ORDER BY t.id ${order}
+          ORDER BY t.creationtime ${order}
           LIMIT $1
         )
         SELECT
@@ -425,7 +425,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       ) filtered_signers ON t.id = filtered_signers."transactionId"
       LEFT JOIN "TransactionDetails" td on t.id = td."transactionId"
       ${cursorCondition}
-      ORDER BY t.id ${order}
+      ORDER BY t.creationtime ${order}
       LIMIT $1;
     `;
 

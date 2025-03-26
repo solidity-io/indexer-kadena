@@ -14,7 +14,7 @@ function validate(row: any): TransactionMetaOutput {
   const res = schema.parse(row);
   return {
     chainId: res.chainId,
-    creationTime: new Date(Number(res.creationTime) / 1000),
+    creationTime: new Date(Number(res.creationTime) * 1000),
     gasLimit: res.gasLimit ?? 0,
     gasPrice: Number(res.gasPrice) ?? 0,
     sender: res.sender,

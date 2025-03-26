@@ -40,7 +40,7 @@ func ProcessCoinbaseTransaction(coinbase string, blockId int64, creationTime int
 	txAttribute := repository.TransactionAttributes{
 		BlockId:      blockId,
 		ChainId:      int(chainId),
-		CreationTime: strconv.FormatInt(creationTime, 10),
+		CreationTime: strconv.FormatInt(creationTime/1000000, 10),
 		Hash:         coinbaseDecoded.ReqKey,
 		Result:       coinbaseDecoded.Result,
 		Logs:         coinbaseDecoded.Logs,
