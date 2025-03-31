@@ -6,7 +6,6 @@ export async function syncContract(chainId: number, modulename: any, tokenId: an
     chainId: chainId.toString(),
     code: `(${modulename}.get-manifest "${tokenId}")`,
   });
-  console.log('manifestData', manifestData);
   let contractId;
   if (!manifestData.error) {
     contractId = await saveContract(
@@ -17,7 +16,7 @@ export async function syncContract(chainId: number, modulename: any, tokenId: an
       manifestData.result,
     );
   } else {
-    console.log('No manifest URI found for token ID:', tokenId);
+    console.info('[INFO][SYNC][CONTRACT] No manifest URI found for token ID:', tokenId);
   }
   return contractId;
 }

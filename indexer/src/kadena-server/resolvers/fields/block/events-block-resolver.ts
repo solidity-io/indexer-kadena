@@ -7,7 +7,6 @@ export const eventsBlockResolver: BlockResolvers<ResolverContext>['events'] = as
   args,
   context,
 ) => {
-  console.log('eventsBlockResolver');
   const { hash } = parent;
   const { first, after, before, last } = args;
 

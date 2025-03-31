@@ -45,7 +45,7 @@ const rootPgPool = new Pool({
 // });
 
 export async function usePostgraphile() {
-  console.log('Starting GraphQL server...');
+  console.info('[INFO][API][BIZ_FLOW] Starting GraphQL and metrics server...');
 
   app.use(cors());
 
@@ -85,8 +85,12 @@ export async function usePostgraphile() {
     }),
   );
   app.listen(PORT, () => {
-    console.log(`Metrics server listening at http://localhost:${PORT}/metrics`);
-    console.log(`Postgraphile server listening at http://localhost:${PORT}/graphiql`);
+    console.info(
+      `[INFO][API][BIZ_FLOW] Metrics server available at http://localhost:${PORT}/metrics`,
+    );
+    console.info(
+      `[INFO][API][BIZ_FLOW] GraphQL interface available at http://localhost:${PORT}/graphiql`,
+    );
   });
 }
 

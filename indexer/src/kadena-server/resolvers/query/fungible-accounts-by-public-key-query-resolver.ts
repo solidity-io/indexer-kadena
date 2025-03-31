@@ -4,7 +4,6 @@ import { buildFungibleAccount } from '../output/build-fungible-account-output';
 
 export const fungibleAccountsByPublicKeyQueryResolver: QueryResolvers<ResolverContext>['fungibleAccountsByPublicKey'] =
   async (_parent, args, context) => {
-    console.log('fungibleAccountsByPublicKeyQueryResolver');
     const { publicKey, fungibleName } = args;
     const accounts = await context.balanceRepository.getAccountsByPublicKey_NODE(
       publicKey,

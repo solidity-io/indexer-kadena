@@ -10,6 +10,7 @@ import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
 import { sequelize } from '../../config/database';
 import { addCoinbaseTransactions } from './coinbase';
 import { getRequiredEnvString } from '../../utils/helpers';
+import TransactionDetails, { TransactionDetailsAttributes } from '../../models/transaction-details';
 
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
@@ -20,8 +21,6 @@ interface BalanceInsertResult {
   account: string;
   module: string;
 }
-
-const NETWORK_ID = getRequiredEnvString('SYNC_NETWORK');
 
 export async function processPayloadKey(
   block: BlockAttributes,
@@ -34,9 +33,6 @@ export async function processPayloadKey(
     return processTransaction(transactionInfo, block, tx);
   });
   const normalTransactions = (await Promise.all(transactionPromises)).flat();
-
-  // TODO: This will be removed after TransactionDetails migration
-  if (NETWORK_ID === 'mainnet01') return normalTransactions;
 
   const coinbase = await addCoinbaseTransactions([block], tx!);
   const coinbaseTransactions = (await Promise.all(coinbase)).flat();
@@ -57,7 +53,7 @@ export async function processTransaction(
   try {
     cmdData = JSON.parse(transactionInfo.cmd);
   } catch (error) {
-    console.error(`Error parsing cmd JSON for key ${transactionInfo.cmd}: ${error}`);
+    console.error(`[ERROR][DATA][DATA_FORMAT] Failed to parse transaction command JSON: ${error}`);
     throw error;
   }
 
@@ -66,29 +62,32 @@ export async function processTransaction(
   const eventsData = receiptInfo.events || [];
   const transactionAttributes = {
     blockId: block.id,
-    code: cmdData.payload.exec ? cmdData.payload?.exec?.code : {},
-    data: cmdData.payload.exec ? cmdData.payload?.exec?.data : {},
     chainId: cmdData.meta.chainId,
     creationtime: cmdData.meta.creationTime.toString(),
-    gaslimit: cmdData.meta.gasLimit,
-    gasprice: cmdData.meta.gasPrice,
     hash: transactionInfo.hash,
-    nonce,
-    pactid: receiptInfo.continuation?.pactId || null,
-    continuation: receiptInfo.continuation || {},
-    gas: receiptInfo.gas,
     result: receiptInfo.result || null,
     logs: receiptInfo.logs || null,
     num_events: eventsData ? eventsData.length : 0,
     requestkey: receiptInfo.reqKey,
-    rollback: receiptInfo.result ? receiptInfo.result.status != 'success' : true,
     sender: cmdData?.meta?.sender || null,
+    txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
+  } as TransactionAttributes;
+
+  const transactionDetailsAttributes = {
+    code: cmdData.payload.exec ? cmdData.payload?.exec?.code : {},
+    data: cmdData.payload.exec ? cmdData.payload?.exec?.data : {},
+    gas: receiptInfo.gas,
+    gaslimit: cmdData.meta.gasLimit,
+    gasprice: cmdData.meta.gasPrice,
+    nonce,
+    pactid: receiptInfo.continuation?.pactId || null,
+    continuation: receiptInfo.continuation || {},
+    rollback: receiptInfo.result ? receiptInfo.result.status != 'success' : true,
     sigs: sigsData,
     step: cmdData?.payload?.cont?.step || 0,
     proof: cmdData?.payload?.cont?.proof || null,
     ttl: cmdData.meta.ttl,
-    txid: receiptInfo.txId ? receiptInfo.txId.toString() : null,
-  } as TransactionAttributes;
+  } as TransactionDetailsAttributes;
 
   const eventsAttributes = eventsData.map((eventData: any) => {
     return {
@@ -121,6 +120,16 @@ export async function processTransaction(
     const { id: transactionId } = await TransactionModel.create(transactionAttributes, {
       transaction: tx,
     });
+
+    await TransactionDetails.create(
+      {
+        ...transactionDetailsAttributes,
+        transactionId,
+      },
+      {
+        transaction: tx,
+      },
+    );
 
     const eventsWithTransactionId = eventsAttributes.map(event => ({
       ...event,
@@ -187,8 +196,10 @@ export async function processTransaction(
 
     return eventsAttributes;
   } catch (error) {
-    console.error(`Error saving transaction to the database: ${error}`);
-    return [];
+    console.error(
+      `[ERROR][DB][DATA_CORRUPT] Failed to save transaction ${transactionInfo.hash}: ${error}`,
+    );
+    throw error;
   }
 }
 

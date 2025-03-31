@@ -27,7 +27,10 @@ export const newBlocksFromDepthSubscriptionResolver: SubscriptionResolvers<Resol
           payload => {
             const res = newBlocksFromDepthSubscriptionSchema.safeParse(payload);
             if (!res.success) {
-              console.info('Invalid payload on newBlocksFromDepthSubscription', payload);
+              console.error(
+                '[ERROR][API][BIZ_FLOW] Invalid payload on newBlocksFromDepthSubscription',
+                payload,
+              );
               return false;
             }
             const { chainId, height } = res.data;

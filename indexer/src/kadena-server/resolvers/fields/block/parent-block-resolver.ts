@@ -10,8 +10,6 @@ export const parentBlockResolver: BlockResolvers<ResolverContext>['parent'] = as
   _args,
   context,
 ): Promise<Block | null> => {
-  console.log('parentBlockResolver');
-
   const { parentHash } = schema.parse(parent);
 
   const output = await context.getBlocksByHashesLoader.load(parentHash);

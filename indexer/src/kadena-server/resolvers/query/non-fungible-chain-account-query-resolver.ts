@@ -4,8 +4,6 @@ import { buildNonFungibleChainAccount } from '../output/build-non-fungible-chain
 
 export const nonFungibleChainAccountQueryResolver: QueryResolvers<ResolverContext>['nonFungibleChainAccount'] =
   async (_parent, args, context) => {
-    console.log('nonFungibleChainAccountQueryResolver');
-
     const account = await context.balanceRepository.getNonFungibleChainAccountInfo(
       args.accountName,
       args.chainId,

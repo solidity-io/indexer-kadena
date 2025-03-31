@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-console.log('Loading environment variables...');
+console.info('[INFO][INFRA][INFRA_CONFIG] Loading environment variables...');
 dotenv.config();
 
 import { program } from 'commander';
@@ -8,7 +8,6 @@ import { usePostgraphile } from './server/metrics';
 import { useKadenaGraphqlServer } from './kadena-server/server';
 import { closeDatabase } from './config/database';
 import { initializeDatabase } from './config/init';
-import { startBackfillCoinbaseTransactions } from './services/sync/coinbase';
 import { backfillBalances } from './services/sync/balances';
 import { startMissingBlocks } from './services/sync/missing';
 
@@ -17,8 +16,6 @@ program
   .option('-g, --oldGraphql', 'Start GraphQL server based on Postgraphile')
   .option('-t, --graphql', 'Start GraphQL server based on kadena schema')
   .option('-f, --guards', 'Backfill the guards')
-  // this option shouldn't be used if you initialize the indexer from the beginning
-  .option('-c, --coinbase', 'Backfill coinbase transactions')
   .option('-m, --missing', 'Missing blocks')
   .option('-z, --database', 'Init the database');
 
@@ -44,8 +41,6 @@ async function main() {
       await backfillBalances();
       await closeDatabase();
       process.exit(0);
-    } else if (options.coinbase) {
-      await startBackfillCoinbaseTransactions();
     } else if (options.missing) {
       await startMissingBlocks();
       process.exit(0);
@@ -54,10 +49,10 @@ async function main() {
     } else if (options.graphql) {
       await useKadenaGraphqlServer();
     } else {
-      console.log('No specific task requested.');
+      console.info('[INFO][BIZ][BIZ_FLOW] No specific task requested.');
     }
   } catch (error) {
-    console.error('An error occurred during the initialization:', error);
+    console.error('[ERROR][INFRA][INFRA_CONFIG] Initialization failed:', error);
   }
 }
 
@@ -66,8 +61,8 @@ async function main() {
  * @param signal The signal received, triggering the shutdown process.
  */
 async function handleGracefulShutdown(signal: string) {
-  console.log(`Received ${signal}. Graceful shutdown start.`);
-  console.log('Graceful shutdown complete.');
+  console.info(`[INFO][INFRA][INFRA_DEPLOY] Received ${signal}. Initiating graceful shutdown.`);
+  console.info('[INFO][INFRA][INFRA_DEPLOY] Graceful shutdown complete.');
   process.exit(0);
 }
 

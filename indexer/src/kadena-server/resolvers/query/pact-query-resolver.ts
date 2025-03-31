@@ -6,8 +6,6 @@ export const pactQueryResolver: QueryResolvers<ResolverContext>['pactQuery'] = a
   _parent,
   args,
 ) => {
-  console.log('pactQueryResolver');
-
   const res = await Promise.all(args.pactQuery.map(handleSingleQuery));
 
   return res;
