@@ -1,4 +1,3 @@
-import { closeDatabase, rootPgPool, sequelize } from '../../config/database';
 import TransactionModel, { TransactionCreationAttributes } from '../../models/transaction';
 import Transfer, { TransferAttributes } from '../../models/transfer';
 import { Transaction } from 'sequelize';
@@ -6,56 +5,11 @@ import Event, { EventAttributes } from '../../models/event';
 import { getCoinTransfers } from './transfers';
 import Signer from '../../models/signer';
 import Guard from '../../models/guard';
-import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
-import { TransactionDetailsCreationAttributes } from '../../models/transaction-details';
 
 interface CoinbaseTransactionData {
   transactionAttributes: TransactionCreationAttributes;
   eventsAttributes: EventAttributes[];
   transfersCoinAttributes: TransferAttributes[];
-}
-
-export async function startBackfillCoinbaseTransactions() {
-  console.info('[INFO][SYNC][COINBASE] Starting coinbase backfill ...');
-
-  const limit = 1000; // Number of rows to process in one batch
-  let offset = 0;
-
-  while (true) {
-    console.info(`[INFO][SYNC][COINBASE] Fetching rows from offset: ${offset}, limit: ${limit}`);
-    const res = await rootPgPool.query(
-      `SELECT b.id, b.coinbase, b."chainId", b."creationTime" FROM "Blocks" b ORDER BY b.id LIMIT $1 OFFSET $2`,
-      [limit, offset],
-    );
-
-    const rows = res.rows;
-    if (rows.length === 0) {
-      console.info('[INFO][SYNC][COINBASE] No more rows to process.');
-      break;
-    }
-
-    const tx = await sequelize.transaction();
-    try {
-      await addCoinbaseTransactions(rows, tx);
-      await tx.commit();
-      console.info(`[INFO][SYNC][COINBASE] Batch at offset ${offset} processed successfully.`);
-      offset += limit;
-    } catch (batchError) {
-      console.error(`[ERROR][SYNC][COINBASE] Processing batch at offset ${offset}:`, batchError);
-      try {
-        await tx.rollback();
-        console.info(
-          `[INFO][SYNC][COINBASE] Transaction for batch at offset ${offset} rolled back.`,
-        );
-      } catch (rollbackError) {
-        console.error('[ERROR][SYNC][COINBASE] Error during rollback:', rollbackError);
-      }
-      break;
-    }
-  }
-
-  await closeDatabase();
-  process.exit(0);
 }
 
 export async function addCoinbaseTransactions(
