@@ -11,8 +11,6 @@ export const blockEventResolver: EventResolvers<ResolverContext>['block'] = asyn
   _args,
   context,
 ) => {
-  console.log('blockEventResolver');
-
   const { eventId } = schema.parse(parent);
 
   const output = await context.getBlocksByEventIdsLoader.load(eventId);

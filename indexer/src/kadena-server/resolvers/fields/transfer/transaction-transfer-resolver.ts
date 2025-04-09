@@ -7,8 +7,6 @@ const schema = zod.object({ transferId: zod.string() });
 
 export const transactionTransferResolver: TransferResolvers<ResolverContext>['transaction'] =
   async (parent, _args, context) => {
-    console.log('transactionTransferResolver');
-
     const { transferId } = schema.parse(parent);
 
     const transaction = await context.transactionRepository.getTransactionByTransferId(transferId);

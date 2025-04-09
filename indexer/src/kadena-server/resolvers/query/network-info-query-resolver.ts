@@ -6,7 +6,6 @@ export const networkInfoQueryResolver: QueryResolvers<ResolverContext>['networkI
   _parent,
   context,
 ) => {
-  console.log('networkInfoQueryResolver');
   const output = await context.networkRepository.getAllInfo();
   return output;
 };

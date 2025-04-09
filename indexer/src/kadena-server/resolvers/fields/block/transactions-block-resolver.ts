@@ -7,7 +7,6 @@ export const transactionsBlockResolver: BlockResolvers<ResolverContext>['transac
   args,
   context,
 ) => {
-  console.log('transactionsBlockResolver');
   const { hash } = parent;
   const { first, last, before, after } = args;
   const output = await context.transactionRepository.getTransactions({

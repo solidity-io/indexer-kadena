@@ -56,9 +56,9 @@ export const sequelize = new Sequelize(
 export async function closeDatabase(): Promise<void> {
   try {
     await sequelize.close();
-    console.log('Connection has been closed successfully.');
+    console.info('[INFO][DB][CONN] Database connection closed successfully.');
   } catch (error) {
-    console.error('Unable to close the connection:', error);
+    console.error('[ERROR][DB][CONN_LOST] Failed to close database connection:', error);
     throw error;
   }
 }

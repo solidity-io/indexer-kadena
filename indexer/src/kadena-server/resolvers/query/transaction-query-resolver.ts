@@ -7,7 +7,6 @@ export const transactionQueryResolver: QueryResolvers<ResolverContext>['transact
   args,
   context,
 ) => {
-  console.log('transactionQueryResolver');
   const { requestKey, blockHash, minimumDepth } = args;
   const transactions = await context.transactionRepository.getTransactionsByRequestKey({
     requestKey,

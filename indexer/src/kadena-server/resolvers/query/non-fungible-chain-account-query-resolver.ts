@@ -4,19 +4,22 @@ import { buildNonFungibleChainAccount } from '../output/build-non-fungible-chain
 
 export const nonFungibleChainAccountQueryResolver: QueryResolvers<ResolverContext>['nonFungibleChainAccount'] =
   async (_parent, args, context) => {
-    console.log('nonFungibleChainAccountQueryResolver');
-
     const account = await context.balanceRepository.getNonFungibleChainAccountInfo(
       args.accountName,
       args.chainId,
     );
+
+    if (!account) return null;
 
     const params = (account?.nonFungibleTokenBalances ?? []).map(n => ({
       tokenId: n.tokenId,
       chainId: n.chainId,
     }));
 
-    const nftsInfo = await context.pactGateway.getNftsInfo(params ?? []);
+    const nftsInfo = await context.pactGateway.getNftsInfo(
+      params ?? [],
+      account?.accountName ?? '',
+    );
 
     const output = buildNonFungibleChainAccount(account, nftsInfo);
     return output;

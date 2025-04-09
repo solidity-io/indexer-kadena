@@ -8,8 +8,6 @@ const schema = zod.object({
 
 export const totalCountTransactionResultEventsConnectionResolver: TransactionResultEventsConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
-    console.log('totalCountTransactionResultEventsConnectionResolver');
-
     const { databaseTransactionId } = schema.parse(parent);
 
     const output = await context.eventRepository.getTotalTransactionEventsCount({

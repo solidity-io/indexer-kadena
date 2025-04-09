@@ -15,7 +15,6 @@ const schema = zod.object({
 
 export const totalCountQueryTransactionsConnectionResolver: QueryTransactionsConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
-    console.log('totalCountQueryTransactionsConnectionResolver');
     const {
       accountName,
       blockHash,

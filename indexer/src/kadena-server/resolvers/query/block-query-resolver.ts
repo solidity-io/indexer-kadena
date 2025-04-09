@@ -7,7 +7,6 @@ export const blockQueryResolver: QueryResolvers<ResolverContext>['block'] = asyn
   args,
   context,
 ): Promise<Block | null> => {
-  console.log('blockQueryResolver');
   const { hash } = args;
   const output = await context.blockRepository.getBlockByHash(hash);
 

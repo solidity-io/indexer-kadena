@@ -25,12 +25,12 @@ export const dispatch = async (dispatchInfo: DispatchInfo) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || response.statusText);
+      throw new Error(`[ERROR][INT][INT_API] ${errorData.message} || ${response.statusText}`);
     }
     return true;
   } catch (err: unknown) {
     const errorData = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Dispatcher error:', errorData);
+    console.error('[ERROR][INT][INT_API] Dispatcher error:', errorData);
     return false;
   }
 };

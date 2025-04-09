@@ -21,5 +21,5 @@ export async function backfillBalances() {
     `,
   );
 
-  console.log('Balances backfilled successfully.');
+  console.info('[INFO][SYNC][BALANCES] Balances backfilled successfully.');
 }

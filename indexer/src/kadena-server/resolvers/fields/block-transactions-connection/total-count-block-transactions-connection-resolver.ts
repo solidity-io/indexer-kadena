@@ -8,8 +8,6 @@ const schema = zod.object({
 
 export const totalCountBlockTransactionsConnectionResolver: BlockTransactionsConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
-    console.log('totalCountBlockTransactionsConnectionResolver');
-
     const { blockHash } = schema.parse(parent);
 
     const total = await context.blockRepository.getTotalCountOfBlockEvents(blockHash);

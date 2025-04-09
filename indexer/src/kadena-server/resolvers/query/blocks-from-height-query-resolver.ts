@@ -4,7 +4,6 @@ import { buildBlockOutput } from '../output/build-block-output';
 
 export const blocksFromHeightQueryResolver: QueryResolvers<ResolverContext>['blocksFromHeight'] =
   async (_parent, args, context) => {
-    console.log('blocksFromHeightQueryResolver');
     const output = await context.blockRepository.getBlocksBetweenHeights(args);
 
     const edges = output.edges.map(e => ({

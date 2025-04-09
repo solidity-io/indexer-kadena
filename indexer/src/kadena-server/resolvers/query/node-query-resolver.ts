@@ -7,6 +7,5 @@ export const nodeQueryResolver: QueryResolvers<ResolverContext>['node'] = async 
   parent,
   context,
 ) => {
-  console.log('nodeQueryResolver');
   return getNode(context, parent.id);
 };

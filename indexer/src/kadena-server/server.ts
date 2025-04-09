@@ -217,7 +217,6 @@ export async function useKadenaGraphqlServer() {
                 `Sorry, too complicated query! Exceeded the maximum allowed complexity.`,
               );
             }
-            console.log('Used query complexity points:', complexity);
           },
         }),
       },
@@ -266,7 +265,7 @@ export async function useKadenaGraphqlServer() {
           if (isAllowedOrigin(origin)) {
             return callback(null, true);
           }
-          return callback(new Error(`Origin ${origin} not allowed by CORS`));
+          return callback(new Error(`[ERROR][CORS][ORIGIN] Origin ${origin} not allowed by CORS`));
         } catch (error) {
           return callback(null, false);
         }
@@ -351,5 +350,5 @@ export async function useKadenaGraphqlServer() {
 
   await initCache(context);
   await new Promise<void>(resolve => httpServer.listen({ port: KADENA_GRAPHQL_API_PORT }, resolve));
-  console.log(`Server running on port ${KADENA_GRAPHQL_API_PORT}.`);
+  console.info(`[INFO][API][BIZ_FLOW] GraphQL server started on port ${KADENA_GRAPHQL_API_PORT}.`);
 }

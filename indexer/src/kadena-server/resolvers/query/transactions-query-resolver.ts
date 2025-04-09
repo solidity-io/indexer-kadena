@@ -7,7 +7,6 @@ export const transactionsQueryResolver: QueryResolvers<ResolverContext>['transac
   args,
   context,
 ) => {
-  console.log('transactionsQueryResolver');
   const {
     after,
     before,
@@ -25,7 +24,7 @@ export const transactionsQueryResolver: QueryResolvers<ResolverContext>['transac
 
   if (!accountName && !fungibleName && !blockHash && !requestKey) {
     throw new Error(
-      'At least one of accountName, fungibleName, blockHash, or requestKey must be provided',
+      '[ERROR][QUERY][BIZ_FLOW] At least one of accountName, fungibleName, blockHash, or requestKey must be provided',
     );
   }
 
