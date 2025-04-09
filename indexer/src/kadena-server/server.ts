@@ -150,12 +150,12 @@ export async function useKadenaGraphqlServer() {
     introspection: true,
     validationRules: [
       depthLimit({
-        maxDepth: 7, // Reasonable depth for most queries
-        maxListDepth: 5, // Prevent deeply nested array queries
-        maxSelfReferentialDepth: 2, // Limit recursive queries
+        maxDepth: 15, // Reasonable depth for most queries
+        maxListDepth: 8, // Prevent deeply nested array queries
+        maxSelfReferentialDepth: 3, // Limit recursive queries
         maxIntrospectionDepth: 15, // Limit introspection query depth
         maxIntrospectionListDepth: 8, // Limit introspection array depth
-        maxIntrospectionSelfReferentialDepth: 2,
+        maxIntrospectionSelfReferentialDepth: 3,
         revealDetails: false, // Don't expose limits to clients
       }),
     ],
@@ -214,7 +214,7 @@ export async function useKadenaGraphqlServer() {
             // like compare it with max and throw error when the threshold is reached
             if (complexity > MAX_COMPLEXITY) {
               throw new Error(
-                `Sorry, too complicated query! ${complexity} exceeded the maximum allowed complexity of ${MAX_COMPLEXITY}`,
+                `Sorry, too complicated query! Exceeded the maximum allowed complexity.`,
               );
             }
             console.log('Used query complexity points:', complexity);
