@@ -1,5 +1,6 @@
 import { rootPgPool } from '../../../../config/database';
 import TransactionRepository, {
+  GetSignersParams,
   GetTransactionsByPublicKeyParams,
   GetTransactionsByRequestKey,
   GetTransactionsCountParams,
@@ -626,8 +627,9 @@ export default class TransactionDbRepository implements TransactionRepository {
     return eventIds.map(eventId => transactionMap[eventId]) as TransactionOutput[];
   }
 
-  async getSigners(transactionId: string, orderIndex?: number) {
-    const queryParams: Array<string | number> = [transactionId];
+  async getSigners(params: GetSignersParams) {
+    const { transactionId, requestKey, orderIndex } = params;
+    const queryParams: Array<string | number> = [];
     let query = `
       SELECT s.pubkey as "publicKey",
         s.address as "address",
@@ -636,12 +638,21 @@ export default class TransactionDbRepository implements TransactionRepository {
         t.requestkey as "requestKey"
       FROM "Signers" s
       JOIN "Transactions" t on s."transactionId" = t.id
-      WHERE t.id = $1
     `;
 
+    if (transactionId) {
+      queryParams.push(transactionId);
+      query += `\nWHERE t.id = $1`;
+    }
+
+    if (requestKey) {
+      queryParams.push(requestKey);
+      query += `\nWHERE t.requestkey = $1`;
+    }
+
     if (orderIndex) {
-      query += `\nAND s."orderIndex" = $2`;
       queryParams.push(orderIndex);
+      query += `\nAND s."orderIndex" = $2`;
     }
 
     const { rows } = await rootPgPool.query(query, queryParams);

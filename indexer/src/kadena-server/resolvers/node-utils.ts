@@ -76,7 +76,7 @@ export const getNode = async (context: ResolverContext, id: string) => {
 
   if (type === 'Signer') {
     const [requestKey, orderIndex] = JSON.parse(params);
-    const [output] = await context.transactionRepository.getSigners(requestKey, orderIndex);
+    const [output] = await context.transactionRepository.getSigners({ requestKey, orderIndex });
     return output;
   }
 

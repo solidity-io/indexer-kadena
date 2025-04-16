@@ -8,6 +8,12 @@ export interface GetTransactionsByPublicKeyParams extends PaginationsParams {
   publicKey: string;
 }
 
+export interface GetSignersParams {
+  transactionId?: string;
+  requestKey?: string;
+  orderIndex?: string;
+}
+
 export interface GetTransactionsCountParams {
   blockHash?: string | null;
   accountName?: string | null;
@@ -48,5 +54,5 @@ export default interface TransactionRepository {
   }>;
   getTransactionsByPublicKeyCount(publicKey: string): Promise<number>;
   getTransactionsByEventIds(eventIds: string[]): Promise<TransactionOutput[]>;
-  getSigners(transactionId: string, orderIndex?: number): Promise<SignerOutput[]>;
+  getSigners(params: GetSignersParams): Promise<SignerOutput[]>;
 }
