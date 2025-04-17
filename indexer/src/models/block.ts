@@ -1,7 +1,22 @@
+/**
+ * Block model definition.
+ *
+ * This module defines the Block model, which represents a block in the Kadena blockchain.
+ * Each block contains metadata about the block itself, references to related blocks,
+ * and cryptographic information needed for blockchain verification.
+ *
+ * The module also exports a PostGraphile plugin that extends the GraphQL schema
+ * with custom block queries for API consumers.
+ */
+
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../config/database';
 import { gql, makeExtendSchemaPlugin } from 'postgraphile';
 
+/**
+ * Interface defining the attributes of a Block.
+ * These attributes mirror the structure of blocks in the Kadena blockchain.
+ */
 export interface BlockAttributes {
   id: number;
   nonce: string;
@@ -25,6 +40,11 @@ export interface BlockAttributes {
   transactionsCount: number;
 }
 
+/**
+ * Sequelize Model class for Block.
+ * Implements the BlockAttributes interface and defines the structure and behavior
+ * of Block objects in the application.
+ */
 class Block extends Model<BlockAttributes> implements BlockAttributes {
   /** The unique identifier for the block record. */
   declare id: number;
@@ -87,6 +107,13 @@ class Block extends Model<BlockAttributes> implements BlockAttributes {
   declare transactionsCount: number;
 }
 
+/**
+ * Initialize the Block model with its attributes and configuration.
+ * This defines the database schema for the Blocks table and sets up indexes for efficient querying.
+ *
+ * TODO: [OPTIMIZATION] Consider adding additional indexes for common query patterns
+ * or removing unused indexes to improve database performance.
+ */
 Block.init(
   {
     id: {
@@ -223,6 +250,14 @@ Block.init(
   },
 );
 
+/**
+ * PostGraphile plugin that extends the GraphQL schema with custom Block queries.
+ * This allows API consumers to query blocks by height and perform search operations
+ * across blocks, transactions, addresses, and tokens.
+ *
+ * TODO: [OPTIMIZATION] Consider implementing caching mechanisms for frequently used queries
+ * to improve API response times.
+ */
 export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
   return {
     typeDefs: gql`
@@ -240,6 +275,10 @@ export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
     `,
     resolvers: {
       Query: {
+        /**
+         * Resolver to find a block by its height and chain ID.
+         * Uses a direct SQL query for optimal performance.
+         */
         blockByHeight: async (_query, args, context, resolveInfo) => {
           const { height, chainId } = args;
           const { rootPgPool } = context;
@@ -249,10 +288,19 @@ export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
           );
           return rows[0];
         },
+
+        /**
+         * Resolver for the searchAll query that searches across multiple entities.
+         * Performs parallel queries for different entity types and combines the results.
+         *
+         * TODO: [OPTIMIZATION] This function performs multiple separate queries that could
+         * potentially be optimized or consolidated for better performance.
+         */
         searchAll: async (_query, args, context, resolveInfo) => {
           const { searchTerm, limit, heightFilter } = args;
           const { rootPgPool } = context;
 
+          // Query to search for blocks by various hash fields
           const blocksQuery = `
           SELECT * FROM public."Blocks" WHERE LOWER(hash) = LOWER($1) 
           UNION ALL
@@ -268,6 +316,7 @@ export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
           LIMIT $2;
         `;
 
+          // Query to search for transactions by various identifiers
           const transactionsQuery = `
           SELECT * FROM public."Transactions" WHERE LOWER(requestkey) = LOWER($1)
           UNION ALL
@@ -279,6 +328,7 @@ export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
           LIMIT $2;
         `;
 
+          // Query to search for accounts/addresses
           const addressesQuery = `
           SELECT DISTINCT account, module, qualname, network, -1 as "chainId"
           FROM public."Balances"
@@ -287,6 +337,7 @@ export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
           LIMIT $2
         `;
 
+          // Query to search for token contracts
           const tokensQuery = `
           SELECT DISTINCT network, type, module, precision, -1 as "chainId" 
           FROM public."Contracts"
@@ -295,6 +346,7 @@ export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
           LIMIT $2
         `;
 
+          // Execute all queries in parallel for better performance
           const [blocks, transactions, addresses, tokens] = await Promise.all([
             rootPgPool.query(blocksQuery, [`${searchTerm}`, limit, heightFilter]),
             rootPgPool.query(transactionsQuery, [`${searchTerm}`, limit]),
@@ -302,6 +354,7 @@ export const blockQueryPlugin = makeExtendSchemaPlugin(build => {
             rootPgPool.query(tokensQuery, [`%${searchTerm}%`, limit]),
           ]);
 
+          // Combine and return the search results
           return {
             blocks: blocks.rows,
             transactions: transactions.rows,

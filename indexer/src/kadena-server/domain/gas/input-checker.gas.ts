@@ -1,3 +1,16 @@
+/**
+ * @file input-checker.gas.ts
+ * @description Input type determination for gas estimation
+ *
+ * This file provides functionality to analyze parsed input data and determine
+ * which specific type of gas estimation input it represents. The system supports
+ * multiple input formats to accommodate different client use cases.
+ *
+ * The input checker acts as a bridge between the raw parsed input and the
+ * transaction builder, transforming generic input objects into properly typed
+ * and structured data with appropriate defaults for the estimation process.
+ */
+
 import { GasLimitEstimationError } from '../../errors/gas-limit-estimation-error';
 import { IGasLimitEstimationInput } from './parser.gas';
 import {
@@ -10,7 +23,29 @@ import {
   UserInput,
 } from './types.gas';
 
+/**
+ * Determines the specific type of gas estimation input
+ *
+ * This function analyzes the parsed input data and categorizes it into one of the
+ * supported input types based on which fields are present. It also adds appropriate
+ * default values for the preflight and signatureVerification flags based on the
+ * input type.
+ *
+ * The function implements a cascading check that evaluates input against increasingly
+ * simpler formats:
+ * 1. Full transaction (cmd + hash + sigs)
+ * 2. Stringified command (cmd only)
+ * 3. Full command (payload + meta + signers)
+ * 4. Partial command (payload + [meta | (signers + chainId)])
+ * 5. Payload (payload + chainId)
+ * 6. Code (code + chainId)
+ *
+ * @param input - The parsed input object to analyze
+ * @returns A properly typed UserInput with appropriate defaults
+ * @throws {GasLimitEstimationError} If the input doesn't match any supported format
+ */
 export function determineInputType(input: IGasLimitEstimationInput): UserInput {
+  // Check for full transaction format
   if ('cmd' in input && 'hash' in input && 'sigs' in input) {
     return {
       type: 'full-transaction',
@@ -18,38 +53,45 @@ export function determineInputType(input: IGasLimitEstimationInput): UserInput {
       signatureVerification: true,
       ...input,
     } as FullTransactionInput;
-  } else if ('cmd' in input) {
+  }
+  // Check for stringified command format
+  else if ('cmd' in input) {
     return {
       type: 'stringified-command',
       preflight: true,
       signatureVerification: false,
       ...input,
     } as StringifiedCommandInput;
-  } else if ('payload' in input && 'meta' in input && 'signers' in input) {
+  }
+  // Check for full command format
+  else if ('payload' in input && 'meta' in input && 'signers' in input) {
     return {
       type: 'full-command',
       preflight: 'networkId' in input ? true : false,
       signatureVerification: false,
       ...input,
     } as FullCommandInput;
-  } else if (
-    'payload' in input &&
-    ('meta' in input || ('signers' in input && 'chainId' in input))
-  ) {
+  }
+  // Check for partial command format
+  else if ('payload' in input && ('meta' in input || ('signers' in input && 'chainId' in input))) {
     return {
       type: 'partial-command',
       preflight: 'networkId' in input ? true : false,
       signatureVerification: false,
       ...input,
     } as PartialCommandInput;
-  } else if ('payload' in input && 'chainId' in input) {
+  }
+  // Check for payload format
+  else if ('payload' in input && 'chainId' in input) {
     return {
       type: 'payload',
       preflight: false,
       signatureVerification: false,
       ...input,
     } as PayloadInput;
-  } else if ('code' in input && 'chainId' in input) {
+  }
+  // Check for code format
+  else if ('code' in input && 'chainId' in input) {
     return {
       type: 'code',
       preflight: false,
@@ -58,6 +100,7 @@ export function determineInputType(input: IGasLimitEstimationInput): UserInput {
     } as CodeInput;
   }
 
+  // If none of the above formats match, throw error
   throw new GasLimitEstimationError(
     'Unknown input type. Please see the README for the accepted input format.',
   );
