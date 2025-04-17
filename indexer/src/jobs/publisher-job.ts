@@ -1,6 +1,5 @@
 /**
- * @file publisher-job.ts
- * @description Block event publishing system for the Kadena indexer
+ * Block event publishing system for the Kadena indexer
  *
  * This file implements the notification system that publishes blockchain events
  * to the GraphQL subscription system. When new blocks are indexed, this publisher

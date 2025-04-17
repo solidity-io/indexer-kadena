@@ -1,6 +1,5 @@
 /**
- * @file output/build-non-fungible-account-output.ts
- * @description Builder function for transforming non-fungible token accounts into GraphQL-compatible format
+ * Builder function for transforming non-fungible token accounts into GraphQL-compatible format
  *
  * This file is responsible for preparing NFT account data from the database and blockchain
  * to be returned through the GraphQL API. It combines data from the database repository with

@@ -1,6 +1,5 @@
 /**
- * @file chainweb-node.ts
- * @description Utility functions for formatting and normalizing Kadena blockchain node responses
+ * Utility functions for formatting and normalizing Kadena blockchain node responses
  *
  * This file provides helper functions for processing raw data retrieved from Kadena
  * blockchain nodes, particularly focusing on formatting balance values and security

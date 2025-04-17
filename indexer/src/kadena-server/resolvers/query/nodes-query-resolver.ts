@@ -1,6 +1,5 @@
 /**
- * @file query/nodes-query-resolver.ts
- * @description GraphQL resolver for the 'nodes' query implementing batch retrieval of multiple nodes
+ * GraphQL resolver for the 'nodes' query implementing batch retrieval of multiple nodes
  *
  * This file implements the resolver for the 'nodes' query in the GraphQL schema,
  * which allows clients to retrieve multiple objects in the system given their global IDs

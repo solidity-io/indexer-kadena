@@ -1,6 +1,5 @@
 /**
- * @file errors/gas-limit-estimation-error.ts
- * @description Custom error class for handling gas limit estimation failures
+ * Custom error class for handling gas limit estimation failures
  *
  * This file defines a specialized error class for dealing with errors that occur
  * during gas limit estimation for Pact transactions on the Kadena blockchain.

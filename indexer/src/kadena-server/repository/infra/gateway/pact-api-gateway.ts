@@ -1,6 +1,5 @@
 /**
- * @file repository/infra/gateway/pact-api-gateway.ts
- * @description Implementation of the PactGateway interface for interacting with Pact smart contracts
+ * Implementation of the PactGateway interface for interacting with Pact smart contracts
  *
  * This file provides a concrete implementation of the PactGateway interface that
  * communicates directly with the Kadena blockchain using Pact query operations.

@@ -1,6 +1,5 @@
 /**
- * @file transaction-meta-schema-validator.ts
- * @description Validation and transformation utilities for transaction metadata
+ * Validation and transformation utilities for transaction metadata
  *
  * This file provides schema validation and data transformation functions for
  * transaction metadata in the Kadena indexer. Transaction metadata includes

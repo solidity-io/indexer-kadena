@@ -1,6 +1,5 @@
 /**
- * @file config.js
- * @description Database configuration for Sequelize ORM and migrations
+ * Database configuration for Sequelize ORM and migrations
  *
  * This file defines the database connection configuration for the Kadena Indexer,
  * specifically for use with Sequelize ORM and database migrations. It handles

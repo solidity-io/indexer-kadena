@@ -1,6 +1,5 @@
 /**
- * @file init.ts
- * @description Cache initialization and management for the Kadena Indexer
+ * Cache initialization and management for the Kadena Indexer
  *
  * This file implements an in-memory caching system using node-cache to improve
  * performance by reducing repeated database queries and network requests for

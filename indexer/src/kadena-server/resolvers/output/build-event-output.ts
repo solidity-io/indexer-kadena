@@ -1,6 +1,5 @@
 /**
- * @file output/build-event-output.ts
- * @description Builder function for transforming database event entities into GraphQL-compatible format
+ * Builder function for transforming database event entities into GraphQL-compatible format
  *
  * This file is responsible for preparing event data from the database to be returned through
  * the GraphQL API. It transforms an EventOutput from the repository into a format that matches

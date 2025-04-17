@@ -1,6 +1,5 @@
 /**
- * @file repository/pagination.ts
- * @description Pagination utilities implementing the Relay Connection specification
+ * Pagination utilities implementing the Relay Connection specification
  *
  * This file provides utility functions and types for implementing cursor-based pagination
  * following the Relay Connection specification for GraphQL. It handles cursor encoding/decoding,

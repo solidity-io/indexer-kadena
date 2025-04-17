@@ -1,6 +1,5 @@
 /**
- * @file node-info-validator.ts
- * @description Validation and transformation utilities for blockchain node information
+ * Validation and transformation utilities for blockchain node information
  *
  * This file provides schema validation and data transformation functions for
  * Kadena blockchain node information in the indexer. It ensures that data retrieved

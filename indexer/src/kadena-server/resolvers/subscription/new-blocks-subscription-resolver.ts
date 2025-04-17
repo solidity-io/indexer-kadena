@@ -1,6 +1,5 @@
 /**
- * @file subscription/new-blocks-subscription-resolver.ts
- * @description GraphQL subscription resolver for real-time block updates
+ * GraphQL subscription resolver for real-time block updates
  *
  * This file implements the resolver for the 'newBlocks' subscription in the GraphQL schema,
  * which allows clients to receive real-time updates when new blocks are added to the blockchain.

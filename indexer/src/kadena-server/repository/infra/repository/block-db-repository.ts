@@ -1,6 +1,5 @@
 /**
- * @file repository/infra/repository/block-db-repository.ts
- * @description Database implementation of the BlockRepository interface
+ * Database implementation of the BlockRepository interface
  *
  * This file provides a concrete implementation of the BlockRepository interface
  * for retrieving blockchain block data from the PostgreSQL database. Blocks are

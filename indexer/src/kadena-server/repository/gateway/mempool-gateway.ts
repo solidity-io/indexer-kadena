@@ -1,6 +1,5 @@
 /**
- * @file repository/gateway/mempool-gateway.ts
- * @description Interface for interactions with the Kadena blockchain mempool
+ * Interface for interactions with the Kadena blockchain mempool
  *
  * This file defines the interface for querying the mempool of the Kadena blockchain.
  * The mempool contains pending transactions that have been submitted to the network

@@ -1,6 +1,5 @@
 /**
- * @file query/tokens-query.ts
- * @description GraphQL resolver for the 'tokens' query
+ * GraphQL resolver for the 'tokens' query
  *
  * This file implements the resolver for the 'tokens' query in the GraphQL schema,
  * which allows clients to retrieve a paginated list of all tokens (both fungible and

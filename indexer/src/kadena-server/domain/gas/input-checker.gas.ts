@@ -1,6 +1,5 @@
 /**
- * @file input-checker.gas.ts
- * @description Input type determination for gas estimation
+ * Input type determination for gas estimation
  *
  * This file provides functionality to analyze parsed input data and determine
  * which specific type of gas estimation input it represents. The system supports

@@ -1,6 +1,5 @@
 /**
- * @file utils/hashrate.ts
- * @description Utility functions for calculating blockchain network hashrate
+ * Utility functions for calculating blockchain network hashrate
  *
  * This file provides functions to calculate the network hashrate based on block
  * difficulty and timestamps. The hashrate is an important metric that indicates

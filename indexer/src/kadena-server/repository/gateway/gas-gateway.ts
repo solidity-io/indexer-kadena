@@ -1,6 +1,5 @@
 /**
- * @file repository/gateway/gas-gateway.ts
- * @description Interface for gas estimation operations on the Kadena blockchain
+ * Interface for gas estimation operations on the Kadena blockchain
  *
  * This file defines the interface for estimating gas costs for transactions on the
  * Kadena blockchain. Gas estimation is a critical operation that allows users to

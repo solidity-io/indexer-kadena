@@ -1,6 +1,5 @@
 /**
- * @file repository/gateway/pact-gateway.ts
- * @description Interface for interactions with the Pact smart contract language on Kadena blockchain
+ * Interface for interactions with the Pact smart contract language on Kadena blockchain
  *
  * This file defines the interface for accessing Pact smart contract functionality on the
  * Kadena blockchain. The PactGateway interface provides methods for retrieving NFT information

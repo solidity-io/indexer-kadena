@@ -1,6 +1,5 @@
 /**
- * @file query/last-block-height-query-resolver.ts
- * @description GraphQL resolver for the 'lastBlockHeight' query
+ * GraphQL resolver for the 'lastBlockHeight' query
  *
  * This file implements the resolver for the 'lastBlockHeight' query in the GraphQL schema,
  * which allows clients to retrieve the height of the most recent block indexed by the system.

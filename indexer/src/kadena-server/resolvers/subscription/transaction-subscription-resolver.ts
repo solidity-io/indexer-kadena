@@ -1,6 +1,5 @@
 /**
- * @file subscription/transaction-subscription-resolver.ts
- * @description GraphQL subscription resolver for real-time transaction updates
+ * GraphQL subscription resolver for real-time transaction updates
  *
  * This file implements the resolver for the 'transaction' subscription in the GraphQL schema,
  * which allows clients to receive real-time updates when a specific transaction is added

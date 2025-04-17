@@ -1,6 +1,5 @@
 /**
- * @file query/events-query-resolver.ts
- * @description GraphQL resolver for the 'events' query with advanced filtering
+ * GraphQL resolver for the 'events' query with advanced filtering
  *
  * This file implements the resolver for the 'events' query in the GraphQL schema,
  * which allows clients to retrieve blockchain events with various filtering options.

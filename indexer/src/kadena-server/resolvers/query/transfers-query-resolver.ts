@@ -1,6 +1,5 @@
 /**
- * @file query/transfers-query-resolver.ts
- * @description GraphQL resolver for the 'transfers' query with filtering and pagination
+ * GraphQL resolver for the 'transfers' query with filtering and pagination
  *
  * This file implements the resolver for the 'transfers' query in the GraphQL schema,
  * which allows clients to retrieve token transfer records with various filtering options.

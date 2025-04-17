@@ -1,6 +1,5 @@
 /**
- * @file query/transactions-query-resolver.ts
- * @description GraphQL resolver for the 'transactions' query with advanced filtering
+ * GraphQL resolver for the 'transactions' query with advanced filtering
  *
  * This module implements a GraphQL resolver for the 'transactions' query in the Kadena blockchain indexer.
  * The resolver provides a flexible interface for querying blockchain transactions with various

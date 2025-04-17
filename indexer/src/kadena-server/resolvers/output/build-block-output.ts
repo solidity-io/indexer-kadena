@@ -1,6 +1,5 @@
 /**
- * @file output/build-block-output.ts
- * @description Builder function for transforming database block entities into GraphQL-compatible format
+ * Builder function for transforming database block entities into GraphQL-compatible format
  *
  * This file is responsible for preparing block data from the database to be returned through
  * the GraphQL API. It transforms a BlockOutput from the repository into a format that matches

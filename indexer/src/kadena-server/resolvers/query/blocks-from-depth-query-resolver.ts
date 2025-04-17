@@ -1,6 +1,5 @@
 /**
- * @file query/blocks-from-depth-query-resolver.ts
- * @description GraphQL resolver for the 'blocksFromDepth' query
+ * GraphQL resolver for the 'blocksFromDepth' query
  *
  * This file implements the resolver for the 'blocksFromDepth' query in the GraphQL schema,
  * which allows clients to retrieve blocks that have reached a specific confirmation depth

@@ -1,6 +1,5 @@
 /**
- * @file query/block-query-resolver.ts
- * @description GraphQL resolver for the 'block' query
+ * GraphQL resolver for the 'block' query
  *
  * This file implements the resolver for the 'block' query in the GraphQL schema,
  * which allows clients to retrieve a single block by its hash. It serves as the

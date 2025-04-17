@@ -1,6 +1,5 @@
 /**
- * @file repository/infra/repository/network-db-repository.ts
- * @description Database and API implementation of the NetworkRepository interface
+ * Database and API implementation of the NetworkRepository interface
  *
  * This file provides a concrete implementation of the NetworkRepository interface that
  * retrieves network statistics, hash rate, difficulty, and node information through a

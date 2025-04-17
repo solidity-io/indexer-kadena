@@ -1,6 +1,5 @@
 /**
- * @file repository/types.ts
- * @description Common type definitions for repository interfaces
+ * Common type definitions for repository interfaces
  *
  * This file provides shared types used across repository implementations.
  * It defines core interfaces that enable consistent pagination and data

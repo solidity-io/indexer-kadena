@@ -1,6 +1,5 @@
 /**
- * @file utils/raw-query.ts
- * @description Utilities for executing Pact queries against the Kadena blockchain
+ * Utilities for executing Pact queries against the Kadena blockchain
  *
  * This file provides functions to send and manage raw Pact code queries to the Kadena blockchain.
  * It handles the communication with the blockchain node, error handling, timeouts, and

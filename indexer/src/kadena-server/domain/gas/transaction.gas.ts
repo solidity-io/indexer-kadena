@@ -1,6 +1,5 @@
 /**
- * @file transaction.gas.ts
- * @description Transaction payload builder for gas estimation
+ * Transaction payload builder for gas estimation
  *
  * This file provides functionality to build transaction payloads from various input formats
  * for gas estimation purposes. It transforms different types of user inputs into a standardized

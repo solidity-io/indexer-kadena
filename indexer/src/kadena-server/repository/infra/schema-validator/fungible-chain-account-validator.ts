@@ -1,6 +1,5 @@
 /**
- * @file fungible-chain-account-validator.ts
- * @description Validation and transformation utilities for chain-specific fungible token account data
+ * Validation and transformation utilities for chain-specific fungible token account data
  *
  * This file provides schema validation and data transformation functions for
  * chain-specific fungible token accounts in the Kadena blockchain indexer.

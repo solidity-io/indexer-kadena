@@ -1,6 +1,5 @@
 /**
- * @file metrics.ts
- * @description Express server setup for Prometheus metrics and GraphQL API endpoints
+ * Express server setup for Prometheus metrics and GraphQL API endpoints
  *
  * This file configures and starts an Express web server that provides two main functionalities:
  * 1. A Prometheus metrics endpoint for monitoring system performance

@@ -1,6 +1,5 @@
 /**
- * @file parser.gas.ts
- * @description Input parser for gas estimation requests
+ * Input parser for gas estimation requests
  *
  * This file provides functionality to parse and validate raw input strings
  * for the gas estimation system. It uses Zod for schema validation to ensure

@@ -1,6 +1,5 @@
 /**
- * @file query/completed-block-heights-query-resolver.ts
- * @description GraphQL resolver for the 'completedBlockHeights' query
+ * GraphQL resolver for the 'completedBlockHeights' query
  *
  * This file implements the resolver for the 'completedBlockHeights' query in the GraphQL schema,
  * which allows clients to retrieve blocks at specific completed heights or within a height range.

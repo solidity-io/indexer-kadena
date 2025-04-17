@@ -1,6 +1,5 @@
 /**
- * @file subscription/events-subscription-resolver.ts
- * @description GraphQL subscription resolver for real-time blockchain event updates
+ * GraphQL subscription resolver for real-time blockchain event updates
  *
  * This file implements the resolver for the 'events' subscription in the GraphQL schema,
  * which allows clients to receive real-time updates when specific types of events are

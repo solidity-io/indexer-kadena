@@ -1,6 +1,5 @@
 /**
- * @file query/network-info-query-resolver.ts
- * @description GraphQL resolver for the 'networkInfo' query
+ * GraphQL resolver for the 'networkInfo' query
  *
  * This file implements the resolver for the 'networkInfo' query in the GraphQL schema,
  * which allows clients to retrieve general information about the Kadena blockchain network,

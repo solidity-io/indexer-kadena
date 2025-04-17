@@ -1,6 +1,5 @@
 /**
- * @file server.ts
- * @description GraphQL server initialization and configuration for the Kadena Indexer
+ * GraphQL server initialization and configuration for the Kadena Indexer
  *
  * This file sets up and configures the Apollo GraphQL server that serves as the primary
  * API interface for the Kadena Indexer. It includes:

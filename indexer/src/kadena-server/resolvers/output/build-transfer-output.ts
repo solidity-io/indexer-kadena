@@ -1,6 +1,5 @@
 /**
- * @file output/build-transfer-output.ts
- * @description Builder function for transforming database transfer entities into GraphQL-compatible format
+ * Builder function for transforming database transfer entities into GraphQL-compatible format
  *
  * This file is responsible for preparing transfer data from the database to be returned through
  * the GraphQL API. It transforms a TransferOutput from the repository into a format that matches

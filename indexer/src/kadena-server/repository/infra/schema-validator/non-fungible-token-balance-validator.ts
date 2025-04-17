@@ -1,6 +1,5 @@
 /**
- * @file non-fungible-token-balance-validator.ts
- * @description Validation and transformation utilities for non-fungible token (NFT) balance data
+ * Validation and transformation utilities for non-fungible token (NFT) balance data
  *
  * This file provides schema validation and data transformation functions for
  * non-fungible token balances in the Kadena blockchain indexer. NFT balances represent

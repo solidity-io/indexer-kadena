@@ -1,6 +1,5 @@
 /**
- * @file query/transaction-query-resolver.ts
- * @description GraphQL resolver for the 'transaction' query
+ * GraphQL resolver for the 'transaction' query
  *
  * This file implements the resolver for the 'transaction' query in the GraphQL schema,
  * which allows clients to retrieve a specific transaction by its request key,

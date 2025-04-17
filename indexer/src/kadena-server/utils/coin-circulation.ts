@@ -1,6 +1,5 @@
 /**
- * @file utils/coin-circulation.ts
- * @description Utilities for calculating the circulating supply of KDA coins
+ * Utilities for calculating the circulating supply of KDA coins
  *
  * This file provides functions for determining the total circulating supply of KDA coins
  * by combining miner rewards from block production and token payments from the initial

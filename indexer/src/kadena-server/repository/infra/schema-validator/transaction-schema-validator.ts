@@ -1,6 +1,5 @@
 /**
- * @file transaction-schema-validator.ts
- * @description Validation and transformation utilities for blockchain transaction data
+ * Validation and transformation utilities for blockchain transaction data
  *
  * This file provides schema validation and data transformation functions for
  * blockchain transactions in the Kadena indexer. It ensures that data retrieved

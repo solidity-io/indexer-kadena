@@ -1,6 +1,5 @@
 /**
- * @file subscription/new-blocks-from-depth-subscription-resolver.ts
- * @description GraphQL subscription resolver for blocks that reach a specific confirmation depth
+ * GraphQL subscription resolver for blocks that reach a specific confirmation depth
  *
  * This file implements the resolver for the 'newBlocksFromDepth' subscription in the GraphQL schema,
  * which allows clients to receive real-time updates when blocks reach a specified minimum

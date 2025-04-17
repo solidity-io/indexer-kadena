@@ -1,6 +1,5 @@
 /**
- * @file types.gas.ts
- * @description Type definitions for the gas estimation system
+ * Type definitions for the gas estimation system
  *
  * This file defines the type interfaces used by the gas estimation system. Gas is the
  * execution fee mechanism in the Kadena blockchain, similar to Ethereum's gas concept.

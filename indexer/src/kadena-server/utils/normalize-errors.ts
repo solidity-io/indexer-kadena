@@ -1,6 +1,5 @@
 /**
- * @file utils/normalize-errors.ts
- * @description Error formatting and normalization for the GraphQL API
+ * Error formatting and normalization for the GraphQL API
  *
  * This file provides utilities for standardizing and enriching error responses
  * in the GraphQL API. It handles specific types of errors (like validation errors)

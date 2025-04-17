@@ -1,6 +1,5 @@
 /**
- * @file query/graph-configuration-query-resolver.ts
- * @description GraphQL resolver for the 'graphConfiguration' query
+ * GraphQL resolver for the 'graphConfiguration' query
  *
  * This file implements the resolver for the 'graphConfiguration' query in the GraphQL schema,
  * which allows clients to retrieve configuration and capability information about the GraphQL API,

@@ -1,6 +1,5 @@
 /**
- * @file resolvers/node-utils.ts
- * @description Utilities for Node interface resolution in the GraphQL API
+ * Utilities for Node interface resolution in the GraphQL API
  *
  * This file implements the Relay Global Object Identification specification,
  * which allows clients to fetch any entity in the system using a global ID.

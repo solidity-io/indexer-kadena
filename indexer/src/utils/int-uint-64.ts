@@ -1,6 +1,5 @@
 /**
- * @file int-uint-64.ts
- * @description Utility functions for handling 64-bit integer conversions
+ * Utility functions for handling 64-bit integer conversions
  *
  * This file provides conversion functions between signed int64 and unsigned uint64 values.
  * These conversions are necessary because PostgreSQL does not natively support unsigned 64-bit

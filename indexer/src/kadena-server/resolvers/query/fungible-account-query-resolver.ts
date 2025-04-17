@@ -1,6 +1,5 @@
 /**
- * @file query/fungible-account-query-resolver.ts
- * @description GraphQL resolver for the 'fungibleAccount' query
+ * GraphQL resolver for the 'fungibleAccount' query
  *
  * This file implements the resolver for the 'fungibleAccount' query in the GraphQL schema,
  * which allows clients to retrieve information about a specific account's fungible token

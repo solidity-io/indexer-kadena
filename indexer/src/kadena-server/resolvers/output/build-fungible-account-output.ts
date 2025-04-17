@@ -1,6 +1,5 @@
 /**
- * @file output/build-fungible-account-output.ts
- * @description Builder function for transforming database fungible account entities into GraphQL-compatible format
+ * Builder function for transforming database fungible account entities into GraphQL-compatible format
  *
  * This file is responsible for preparing fungible account data from the database to be returned
  * through the GraphQL API. It transforms a FungibleAccountOutput from the repository into a format

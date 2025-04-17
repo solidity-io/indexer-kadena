@@ -1,6 +1,5 @@
 /**
- * @file signer-schema-validator.ts
- * @description Validation and transformation utilities for transaction signer data
+ * Validation and transformation utilities for transaction signer data
  *
  * This file provides schema validation and data transformation functions for
  * transaction signers in the Kadena blockchain indexer. Signers represent the parties

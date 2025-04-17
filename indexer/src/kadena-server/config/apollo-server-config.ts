@@ -1,6 +1,5 @@
 /**
- * @file config/apollo-server-config.ts
- * @description Apollo Server configuration for the Kadena Indexer GraphQL API
+ * Apollo Server configuration for the Kadena Indexer GraphQL API
  *
  * This file defines the configuration for the Apollo Server GraphQL implementation,
  * including:

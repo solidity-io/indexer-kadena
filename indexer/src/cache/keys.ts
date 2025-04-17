@@ -1,6 +1,5 @@
 /**
- * @file keys.ts
- * @description Cache key constants for the memory cache system
+ * Cache key constants for the memory cache system
  *
  * This file defines standardized string constants used as keys in the
  * application's in-memory cache. Using defined constants instead of

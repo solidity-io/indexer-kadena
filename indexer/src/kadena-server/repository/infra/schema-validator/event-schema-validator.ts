@@ -1,6 +1,5 @@
 /**
- * @file event-schema-validator.ts
- * @description Validation and transformation utilities for blockchain event data
+ * Validation and transformation utilities for blockchain event data
  *
  * This file provides schema validation and data transformation functions for
  * blockchain events in the Kadena indexer. Events represent actions or state changes

@@ -1,6 +1,5 @@
 /**
- * @file query/node-query-resolver.ts
- * @description GraphQL resolver for the 'node' query implementing Relay Global Object Identification
+ * GraphQL resolver for the 'node' query implementing Relay Global Object Identification
  *
  * This file implements the resolver for the 'node' query in the GraphQL schema,
  * which allows clients to retrieve any object in the system given its global ID.

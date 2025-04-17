@@ -1,6 +1,5 @@
 /**
- * @file repository/infra/gateway/gas-api-gateway.ts
- * @description Implementation of the GasGateway interface for estimating transaction gas costs
+ * Implementation of the GasGateway interface for estimating transaction gas costs
  *
  * This file provides a concrete implementation of the GasGateway interface that
  * communicates with the Kadena blockchain node to estimate the gas required for

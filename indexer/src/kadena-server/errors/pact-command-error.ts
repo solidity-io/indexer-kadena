@@ -1,6 +1,5 @@
 /**
- * @file errors/pact-command-error.ts
- * @description Custom error class for handling Pact command execution failures
+ * Custom error class for handling Pact command execution failures
  *
  * This file defines a specialized error class for dealing with errors that occur
  * during the execution of Pact commands against the Kadena blockchain. It provides

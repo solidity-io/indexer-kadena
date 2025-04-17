@@ -1,6 +1,5 @@
 /**
- * @file query/blocks-from-height-query-resolver.ts
- * @description GraphQL resolver for the 'blocksFromHeight' query
+ * GraphQL resolver for the 'blocksFromHeight' query
  *
  * This file implements the resolver for the 'blocksFromHeight' query in the GraphQL schema,
  * which allows clients to retrieve blocks within a specific height range (or starting from

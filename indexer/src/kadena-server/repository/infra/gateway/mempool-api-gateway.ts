@@ -1,6 +1,5 @@
 /**
- * @file repository/infra/gateway/mempool-api-gateway.ts
- * @description Implementation of the MempoolGateway interface for querying pending transactions
+ * Implementation of the MempoolGateway interface for querying pending transactions
  *
  * This file provides a concrete implementation of the MempoolGateway interface that
  * communicates with the Kadena blockchain node to retrieve information about pending

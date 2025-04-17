@@ -1,6 +1,5 @@
 /**
- * @file resolvers/index.ts
- * @description Central resolver registry for the Kadena Indexer GraphQL API
+ * Central resolver registry for the Kadena Indexer GraphQL API
  *
  * This file aggregates and registers all resolvers for the GraphQL schema,
  * organizing them into logical groups that match the schema structure.

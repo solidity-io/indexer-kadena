@@ -1,6 +1,5 @@
 /**
- * @file output/build-transaction-output.ts
- * @description Builder function for transforming database transaction entities into GraphQL-compatible format
+ * Builder function for transforming database transaction entities into GraphQL-compatible format
  *
  * This file is responsible for preparing transaction data from the database to be returned through
  * the GraphQL API. It transforms a TransactionOutput from the repository into a format that matches

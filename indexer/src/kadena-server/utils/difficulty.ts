@@ -1,6 +1,5 @@
 /**
- * @file utils/difficulty.ts
- * @description Utilities for calculating blockchain difficulty and related metrics
+ * Utilities for calculating blockchain difficulty and related metrics
  *
  * This file provides functions and interfaces for working with blockchain difficulty,
  * which is a measure of how hard it is to find a new block. It includes utilities for

@@ -1,6 +1,5 @@
 /**
- * @file base64-id-generators.ts
- * @description Utility functions for generating Base64 encoded global IDs
+ * Utility functions for generating Base64 encoded global IDs
  *
  * This file provides functions for creating globally unique identifiers that
  * conform to the Relay Global Object Identification specification. These IDs

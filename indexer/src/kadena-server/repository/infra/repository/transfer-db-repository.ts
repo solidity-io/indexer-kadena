@@ -1,6 +1,5 @@
 /**
- * @file repository/infra/repository/transfer-db-repository.ts
- * @description Database implementation of the TransferRepository interface
+ * Database implementation of the TransferRepository interface
  *
  * This file provides a concrete implementation of the TransferRepository interface
  * for retrieving token transfer data from the PostgreSQL database. Transfers represent

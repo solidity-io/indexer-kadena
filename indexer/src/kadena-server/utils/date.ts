@@ -1,6 +1,5 @@
 /**
- * @file utils/date.ts
- * @description Utility functions for date and timestamp conversions
+ * Utility functions for date and timestamp conversions
  *
  * This file provides functions to handle conversion between different timestamp
  * formats and JavaScript Date objects. It specifically addresses the challenge
