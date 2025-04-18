@@ -11,3 +11,4 @@ draft/
 .vercel
 indexer/indexer
 .cursor
+indexer/tests/logs/*

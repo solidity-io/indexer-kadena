@@ -45,8 +45,8 @@ async function* iteratorFn(
       minimumDepth,
     });
 
-    if (newEvents.length > 1) {
-      lastEventId = Number(newEvents[0].id);
+    if (newEvents.length > 0) {
+      lastEventId = Number(newEvents[0].eventId);
       yield newEvents.map(e => buildEventOutput(e));
     }
 

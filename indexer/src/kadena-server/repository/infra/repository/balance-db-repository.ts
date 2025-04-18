@@ -685,26 +685,30 @@ export default class BalanceDbRepository implements BalanceRepository {
 
     // Handle cursor-based pagination
     if (after) {
-      const [module, chainId] = after.split(',');
-      queryParams.push(module);
-      queryParams.push(chainId);
-      conditions += `\nAND (module, "chainId") > ($${queryParams.length - 1}, $${queryParams.length})`;
+      queryParams.push(after);
+      conditions += `\WHERE id < $${queryParams.length}`;
     }
 
     if (before) {
-      const [module, chainId] = before.split(',');
-      queryParams.push(module);
-      queryParams.push(chainId);
-      conditions += `\nAND (module, "chainId") < ($${queryParams.length - 1}, $${queryParams.length})`;
+      queryParams.push(before);
+      conditions += `\WHERE id > $${queryParams.length}`;
     }
 
     // Query distinct token modules excluding the native 'coin' module
     const query = `
-      SELECT DISTINCT module, "chainId"
-      FROM "Balances"
-      WHERE module != 'coin'
+      WITH unique_modules AS (
+        SELECT DISTINCT module, "chainId", MIN(id) as id
+        FROM "Balances"
+        WHERE module != 'coin'
+        GROUP BY module, "chainId"
+      )
+      SELECT
+        um.module,
+        um."chainId",
+        um.id
+      FROM unique_modules um
       ${conditions}
-      ORDER BY module, "chainId"
+      ORDER BY um.id ${order}
       LIMIT $1
     `;
 
@@ -712,11 +716,10 @@ export default class BalanceDbRepository implements BalanceRepository {
 
     // Format results as GraphQL connection edges
     const edges = rows.map(row => {
-      const cursor = `${row.module},${row.chainId}`;
       return {
-        cursor,
+        cursor: row.id.toString(),
         node: {
-          id: Buffer.from(`Token:[${cursor}]`).toString('base64'),
+          id: Buffer.from(`Token:[${`${row.module},${row.chainId}`}]`).toString('base64'),
           name: row.module,
           chainId: String(row.chainId),
         },

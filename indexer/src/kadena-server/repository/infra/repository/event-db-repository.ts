@@ -259,15 +259,15 @@ export default class EventDbRepository implements EventRepository {
     }
 
     if (fromHeight && toHeight) {
-      queryParams.push(fromHeight);
+      blockQueryParams.push(fromHeight);
       let op = localOperator(blockQueryParams.length);
       conditions += `${op} b."height" >= $${blockQueryParams.length + queryParams.length}`;
-      queryParams.push(toHeight);
+      blockQueryParams.push(toHeight);
       conditions += `\nAND b."height" <= $${blockQueryParams.length + queryParams.length}`;
     }
 
     if (minimumDepth) {
-      queryParams.push(minimumDepth);
+      blockQueryParams.push(minimumDepth);
       const op = localOperator(blockQueryParams.length);
       conditions += `${op} b."height" <= $${blockQueryParams.length + queryParams.length}`;
     }
@@ -513,7 +513,7 @@ export default class EventDbRepository implements EventRepository {
    * @returns Promise resolving to the ID of the most recent event
    */
   async getLastEventId(): Promise<number> {
-    const query = `SELECT last_value AS lastValue from "Events_id_seq"`;
+    const query = `SELECT last_value AS "lastValue" from "Events_id_seq"`;
     const { rows } = await rootPgPool.query(query);
     const totalCount = parseInt(rows[0].lastValue, 10);
     return totalCount;

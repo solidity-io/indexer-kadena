@@ -116,54 +116,57 @@ export default class TransactionDbRepository implements TransactionRepository {
   ) {
     const { accountName, after, before, requestKey, fungibleName, hasTokenId = false } = params;
     let conditions = '';
-    const transactionParams: (string | number)[] = [...queryParams];
 
+    const transactionParams: (string | number)[] = [];
+
+    const localOperator = (paramsLength: number) => (paramsLength > 1 ? `\nAND` : 'WHERE');
+    
     // Add sender account condition for regular (non-NFT) transactions
     if (accountName && !hasTokenId) {
       transactionParams.push(accountName);
-      const op = operator(transactionParams.length);
-      conditions += `${op} t.sender = $${transactionParams.length}`;
+      const op = localOperator(transactionParams.length);
+      conditions += `${op} t.sender = $${queryParams.length + transactionParams.length}`;
     }
 
     // Add 'after' cursor condition for pagination
     if (after) {
       transactionParams.push(after);
-      const op = operator(transactionParams.length);
-      conditions += `${op} t.id < $${transactionParams.length}`;
+      const op = localOperator(transactionParams.length);
+      conditions += `${op} t.creationtime < $${queryParams.length + transactionParams.length}`;
     }
 
     // Add 'before' cursor condition for pagination
     if (before) {
       transactionParams.push(before);
-      const op = operator(transactionParams.length);
-      conditions += `${op} t.id > $${transactionParams.length}`;
+      const op = localOperator(transactionParams.length);
+      conditions += `${op} t.creationtime > $${queryParams.length + transactionParams.length}`;
     }
 
     // Add request key condition for exact transaction lookup
     if (requestKey) {
       transactionParams.push(requestKey);
-      const op = operator(transactionParams.length);
-      conditions += `${op} t."requestkey" = $${transactionParams.length}`;
+      const op = localOperator(transactionParams.length);
+      conditions += `${op} t."requestkey" = $${queryParams.length + transactionParams.length}`;
     }
 
     // Add fungible token name condition using a subquery on Events table
     if (fungibleName) {
       transactionParams.push(fungibleName);
-      const op = operator(transactionParams.length);
+      const op = localOperator(transactionParams.length);
       conditions += `
         ${op} EXISTS
         (
           SELECT 1
           FROM "Events" e
           WHERE e."transactionId" = t.id
-          AND e."module" = $${transactionParams.length}
+          AND e."module" = $${queryParams.length + transactionParams.length}
         )`;
     }
 
     // Add NFT ownership condition using a subquery on Transfers table
     if (accountName && hasTokenId) {
       transactionParams.push(accountName);
-      const op = operator(transactionParams.length);
+      const op = localOperator(queryParams.length + transactionParams.length);
       conditions += `
         ${op} EXISTS
         (
@@ -174,7 +177,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         )`;
     }
 
-    return { conditions, params: transactionParams };
+    return { conditions, params: [...queryParams, ...transactionParams] };
   }
 
   /**
@@ -258,6 +261,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         )
         SELECT
           t.id AS id,
+          t.creationtime AS "creationTime",
           t.hash AS "hashTransaction",
           td.nonce AS "nonceTransaction",
           td.sigs AS sigs,
@@ -288,7 +292,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       // Transaction-first query strategy: filter transactions first, then join to blocks
       query = `
         WITH filtered_transactions AS (
-          SELECT t.id, t."blockId", t.hash, t.num_events, t.txid, t.logs, t.result, t.requestkey, t."chainId"
+          SELECT t.id, t."blockId", t.hash, t.num_events, t.txid, t.logs, t.result, t.requestkey, t."chainId", t.creationtime
           FROM "Transactions" t
           ${transactionsConditions}
           ORDER BY t.creationtime ${order}
@@ -296,6 +300,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         )
         SELECT
           t.id AS id,
+          t.creationtime AS "creationTime",
           t.hash AS "hashTransaction",
           td.nonce AS "nonceTransaction",
           td.sigs AS sigs,
@@ -329,7 +334,7 @@ export default class TransactionDbRepository implements TransactionRepository {
 
     // Transform database rows into GraphQL-compatible edges with cursors
     const edges = rows.map(row => ({
-      cursor: row.id.toString(),
+      cursor: row.creationTime.toString(),
       node: transactionValidator.validate(row),
     }));
 
@@ -497,18 +502,19 @@ export default class TransactionDbRepository implements TransactionRepository {
     let cursorCondition = '';
 
     if (after) {
-      cursorCondition = `\nAND t.id < $3`;
+      cursorCondition = `\nWHERE t.creationtime < $3`;
       queryParams.push(after);
     }
 
     if (before) {
-      cursorCondition = `\nAND t.id > $3`;
+      cursorCondition = `\nWHERE t.creationtime > $3`;
       queryParams.push(before);
     }
 
     const query = `
       SELECT
         t.id as id,
+        t.creationtime as "creationTime",
         t.hash as "hashTransaction",
         td.nonce as "nonceTransaction",
         td.sigs as sigs,
@@ -544,7 +550,7 @@ export default class TransactionDbRepository implements TransactionRepository {
     const { rows } = await rootPgPool.query(query, queryParams);
 
     const edges = rows.map(row => ({
-      cursor: row.id.toString(),
+      cursor: row.creationTime.toString(),
       node: transactionValidator.validate(row),
     }));
 
