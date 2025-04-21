@@ -120,7 +120,7 @@ export default class TransactionDbRepository implements TransactionRepository {
     const transactionParams: (string | number)[] = [];
 
     const localOperator = (paramsLength: number) => (paramsLength > 1 ? `\nAND` : 'WHERE');
-    
+
     // Add sender account condition for regular (non-NFT) transactions
     if (accountName && !hasTokenId) {
       transactionParams.push(accountName);
