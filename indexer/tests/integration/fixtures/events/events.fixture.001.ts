@@ -1,6 +1,12 @@
-export const eventsSeed001 = {
+export const eventsFixture001 = {
   data: {
     events: {
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: true,
+        startCursor: 'MzA2',
+        endCursor: 'MjE=',
+      },
       edges: [
         {
           cursor: 'MzA2',
