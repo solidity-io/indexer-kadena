@@ -122,12 +122,11 @@ export default class TransferDbRepository implements TransferRepository {
 
     if (blockHash) {
       queryParams.push(blockHash);
-      const op = operator(queryParams.length);
       query = `
         WITH filtered_block AS (
           SELECT id, height, hash
           FROM "Blocks" b
-          ${op} b.hash = $${queryParams.length}
+          WHERE b.hash = $${queryParams.length}
         )
         select transfers.id as id,
         transfers.amount as "transferAmount",
