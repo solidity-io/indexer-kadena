@@ -1,3 +1,19 @@
+/**
+ * Database implementation of the BlockRepository interface
+ *
+ * This file provides a concrete implementation of the BlockRepository interface
+ * for retrieving blockchain block data from the PostgreSQL database. Blocks are
+ * the fundamental units of the Kadena blockchain, containing transactions, events,
+ * and metadata about the chain state.
+ *
+ * The implementation includes support for:
+ * - Retrieving individual blocks by hash
+ * - Querying blocks by height ranges and confirmation depth
+ * - Supporting paginated access with cursor-based navigation
+ * - Providing chain metadata and miner information
+ * - Optimized batch retrieval through DataLoader patterns
+ */
+
 import { FindOptions, Op, QueryTypes } from 'sequelize';
 import { rootPgPool, sequelize } from '../../../../config/database';
 import BlockModel, { BlockAttributes } from '../../../../models/block';
@@ -18,7 +34,25 @@ import { NODE_INFO_KEY } from '../../../../cache/keys';
 import { GetNodeInfo } from '../../application/network-repository';
 import { TransactionOutput } from '../../application/transaction-repository';
 
+/**
+ * Database implementation of the BlockRepository interface
+ *
+ * This class provides methods to access and query blockchain block data
+ * stored in the PostgreSQL database. It handles the complex SQL queries
+ * needed to retrieve and filter blocks with their related data, while
+ * providing rich filtering, pagination, and caching capabilities.
+ */
 export default class BlockDbRepository implements BlockRepository {
+  /**
+   * Retrieves a block by its unique hash
+   *
+   * This method fetches a single block from the database using its hash,
+   * which uniquely identifies the block in the blockchain.
+   *
+   * @param hash - The block hash to look up
+   * @returns Promise resolving to the block data if found
+   * @throws Error if the block is not found
+   */
   async getBlockByHash(hash: string) {
     const block = await BlockModel.findOne({
       where: { hash },
@@ -31,6 +65,16 @@ export default class BlockDbRepository implements BlockRepository {
     return blockValidator.mapFromSequelize(block);
   }
 
+  /**
+   * Retrieves blocks that have reached a minimum confirmation depth
+   *
+   * This method fetches blocks that have at least the specified number of
+   * confirmations, supporting cursor-based pagination for efficient navigation
+   * through large result sets.
+   *
+   * @param params - Object containing minimum depth and pagination parameters
+   * @returns Promise resolving to page info and block edges
+   */
   async getBlocksFromDepth(params: GetBlocksFromDepthParams) {
     const {
       minimumDepth,
@@ -70,6 +114,16 @@ export default class BlockDbRepository implements BlockRepository {
     return pageInfo;
   }
 
+  /**
+   * Retrieves blocks within a specific height range
+   *
+   * This method fetches blocks between the specified start and end heights,
+   * supporting cursor-based pagination and chain filtering for efficient
+   * navigation through large result sets.
+   *
+   * @param params - Object containing height range and pagination parameters
+   * @returns Promise resolving to page info and block edges
+   */
   async getBlocksBetweenHeights(params: GetBlocksBetweenHeightsParams) {
     const {
       startHeight,
@@ -143,6 +197,18 @@ export default class BlockDbRepository implements BlockRepository {
     return pageInfo;
   }
 
+  /**
+   * Retrieves miner account information for a specific block
+   *
+   * This method fetches the account details of the miner who produced a
+   * specific block, including their balance and guard (security predicate).
+   * The data is retrieved from both the database and the blockchain node.
+   *
+   * @param hash - The block hash to look up
+   * @param chainId - The chain ID where the block exists
+   * @returns Promise resolving to the miner's account information
+   * @throws Error if the miner account is not found
+   */
   async getMinerData(hash: string, chainId: string) {
     const balanceRows = await sequelize.query(
       `SELECT ba.id,
@@ -183,11 +249,30 @@ export default class BlockDbRepository implements BlockRepository {
     };
   }
 
+  /**
+   * Retrieves all chain IDs from the blockchain node
+   *
+   * This method fetches the list of active chain IDs from the cached
+   * node information, which is useful for queries that need to access
+   * data across all chains.
+   *
+   * @returns Promise resolving to an array of chain IDs
+   */
   async getChainIds() {
     const nodeInfo = MEMORY_CACHE.get(NODE_INFO_KEY) as GetNodeInfo;
     return nodeInfo.nodeChains.map(chainId => Number(chainId));
   }
 
+  /**
+   * Retrieves information about completed blocks with pagination
+   *
+   * This method identifies blocks that have been fully processed by the
+   * indexer, which is useful for determining blockchain synchronization
+   * status and identifying potential gaps in indexed data.
+   *
+   * @param params - Object containing filter and pagination parameters
+   * @returns Promise resolving to page info and block edges
+   */
   async getCompletedBlocks(params: GetCompletedBlocksParams) {
     const {
       first,
@@ -312,6 +397,16 @@ export default class BlockDbRepository implements BlockRepository {
     return pageInfo;
   }
 
+  /**
+   * Retrieves blocks associated with specific event IDs
+   *
+   * This batch-oriented method is designed for use with DataLoader,
+   * fetching multiple blocks in a single database query when given
+   * a list of event IDs.
+   *
+   * @param eventIds - Array of event IDs to find blocks for
+   * @returns Promise resolving to an array of blocks
+   */
   async getBlocksByEventIds(eventIds: readonly string[]) {
     console.info('[INFO][INFRA][INFRA_CONFIG] Batching for event IDs:', eventIds);
 
@@ -339,6 +434,16 @@ export default class BlockDbRepository implements BlockRepository {
     return eventIds.map(eventId => blockMap[eventId]) as BlockOutput[];
   }
 
+  /**
+   * Retrieves blocks associated with specific transaction IDs
+   *
+   * This batch-oriented method is designed for use with DataLoader,
+   * fetching multiple blocks in a single database query when given
+   * a list of transaction IDs.
+   *
+   * @param transactionIds - Array of transaction IDs to find blocks for
+   * @returns Promise resolving to an array of blocks
+   */
   async getBlocksByTransactionIds(transactionIds: string[]) {
     console.info('[INFO][INFRA][INFRA_CONFIG] Batching for transactionIds IDs:', transactionIds);
 
@@ -378,6 +483,16 @@ export default class BlockDbRepository implements BlockRepository {
     return transactionIds.map(id => blockMap[id]) as BlockOutput[];
   }
 
+  /**
+   * Retrieves multiple blocks by their hashes in a single query
+   *
+   * This batch-oriented method is designed for use with DataLoader,
+   * efficiently fetching multiple blocks in a single database query
+   * when given a list of block hashes.
+   *
+   * @param hashes - Array of block hashes to retrieve
+   * @returns Promise resolving to an array of blocks
+   */
   async getBlockByHashes(hashes: string[]): Promise<BlockOutput[]> {
     console.info('[INFO][INFRA][INFRA_CONFIG] Batching for hashes:', hashes);
 
@@ -415,6 +530,15 @@ export default class BlockDbRepository implements BlockRepository {
     return hashes.map(hash => blockMap[hash]) as BlockOutput[];
   }
 
+  /**
+   * Retrieves the height of the lowest indexed block
+   *
+   * This method queries the database for the minimum block height, which
+   * is useful for determining the earliest point in blockchain history
+   * that has been indexed.
+   *
+   * @returns Promise resolving to the lowest block height
+   */
   async getLowestBlockHeight(): Promise<number> {
     const block = await BlockModel.findOne({
       order: [['height', 'ASC']],
@@ -424,6 +548,15 @@ export default class BlockDbRepository implements BlockRepository {
     return block?.height || 0;
   }
 
+  /**
+   * Retrieves the height of the most recent indexed block
+   *
+   * This method queries the database for the maximum block height, which
+   * is useful for determining how up-to-date the indexer is with the
+   * blockchain head.
+   *
+   * @returns Promise resolving to the highest block height
+   */
   async getLastBlockHeight(): Promise<number> {
     const block = await BlockModel.findOne({
       order: [['height', 'DESC']],
@@ -433,6 +566,15 @@ export default class BlockDbRepository implements BlockRepository {
     return block?.height || 0;
   }
 
+  /**
+   * Counts the total number of events in a specific block
+   *
+   * This method performs a COUNT query to determine how many events
+   * were emitted during the transactions in a particular block.
+   *
+   * @param blockHash - The hash of the block to count events for
+   * @returns Promise resolving to the total count of events in the block
+   */
   async getTotalCountOfBlockEvents(blockHash: string): Promise<number> {
     const block = await BlockModel.findOne({
       where: { hash: blockHash },
@@ -442,6 +584,15 @@ export default class BlockDbRepository implements BlockRepository {
     return block?.transactionsCount || 0;
   }
 
+  /**
+   * Retrieves the most recent blocks created after a specific timestamp
+   *
+   * This method is useful for real-time data synchronization and
+   * subscription features that need to track the latest blocks.
+   *
+   * @param params - Object containing timestamp and filters
+   * @returns Promise resolving to an array of recent blocks
+   */
   async getLatestBlocks(params: GetLatestBlocksParams): Promise<BlockOutput[]> {
     const { creationTime, lastBlockId, chainIds = [] } = params;
     const blocks = await BlockModel.findAll({
@@ -458,6 +609,16 @@ export default class BlockDbRepository implements BlockRepository {
     return output;
   }
 
+  /**
+   * Orders transactions by the confirmation depth of their containing blocks
+   *
+   * This method sorts a list of transactions based on how deeply confirmed
+   * their blocks are in the blockchain, which is useful for determining
+   * transaction finality and security.
+   *
+   * @param transactions - Array of transactions to order
+   * @returns Promise resolving to the ordered array of transactions
+   */
   async getTransactionsOrderedByBlockDepth(
     transactions: TransactionOutput[],
   ): Promise<TransactionOutput[]> {

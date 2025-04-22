@@ -1,3 +1,22 @@
+/**
+ * Transaction Database Repository Implementation
+ *
+ * This module provides the concrete PostgreSQL implementation of the TransactionRepository interface.
+ * It handles all database operations related to blockchain transactions, including complex queries,
+ * pagination, filtering, and relationships with other entities.
+ *
+ * Key features:
+ * 1. Dynamic SQL query construction based on filtering parameters
+ * 2. Optimized query strategies for different access patterns
+ * 3. Implementation of cursor-based pagination
+ * 4. Data validation against schema validators
+ * 5. Caching integration for performance optimization
+ * 6. Support for complex transaction relationships (events, transfers, signers)
+ *
+ * This implementation uses raw SQL queries for maximum performance and flexibility,
+ * particularly when dealing with complex joins and conditions across multiple tables.
+ */
+
 import { rootPgPool } from '../../../../config/database';
 import TransactionRepository, {
   GetSignersParams,
@@ -15,9 +34,28 @@ import { MEMORY_CACHE } from '../../../../cache/init';
 import { NETWORK_STATISTICS_KEY } from '../../../../cache/keys';
 import { NetworkStatistics } from '../../application/network-repository';
 
+/**
+ * Helper function to determine the appropriate SQL operator based on parameter position.
+ * For the first condition in a query, we use 'WHERE', for subsequent conditions, we use 'AND'.
+ *
+ * @param paramsLength - The current number of parameters in the query
+ * @returns The appropriate SQL operator ('WHERE' or 'AND')
+ */
 const operator = (paramsLength: number) => (paramsLength > 2 ? `\nAND` : 'WHERE');
 
+/**
+ * Database-specific implementation of the TransactionRepository interface.
+ * This class handles all transaction-related database operations using PostgreSQL.
+ */
 export default class TransactionDbRepository implements TransactionRepository {
+  /**
+   * Creates SQL conditions for filtering transactions by block-related attributes.
+   * This handles conditions like block hash, chain ID, height range, and confirmation depth.
+   *
+   * @param params - Transaction query parameters containing block filter conditions
+   * @param queryParams - Current array of query parameters (for parameter indexing)
+   * @returns Object containing the generated SQL conditions and updated parameter array
+   */
   private createBlockConditions(
     params: GetTransactionsParams,
     queryParams: Array<string | number>,
@@ -26,30 +64,35 @@ export default class TransactionDbRepository implements TransactionRepository {
     let blocksConditions = '';
     const blockParams: (string | number)[] = [...queryParams];
 
+    // Add block hash condition if specified
     if (blockHash) {
       blockParams.push(blockHash);
       const op = operator(blockParams.length);
       blocksConditions += `${op} b.hash = $${blockParams.length}`;
     }
 
+    // Add chain ID condition if specified
     if (chainId) {
       blockParams.push(chainId);
       const op = operator(blockParams.length);
       blocksConditions += `${op} b."chainId" = $${blockParams.length}`;
     }
 
+    // Add maximum height condition if specified
     if (maxHeight) {
       blockParams.push(maxHeight);
       const op = operator(blockParams.length);
       blocksConditions += `${op} b."height" <= $${blockParams.length}`;
     }
 
+    // Add minimum height condition if specified
     if (minHeight) {
       blockParams.push(minHeight);
       const op = operator(blockParams.length);
       blocksConditions += `${op} b."height" >= $${blockParams.length}`;
     }
 
+    // Add minimum confirmation depth condition if specified
     if (minimumDepth) {
       blockParams.push(minimumDepth);
       const op = operator(blockParams.length);
@@ -59,40 +102,55 @@ export default class TransactionDbRepository implements TransactionRepository {
     return { blocksConditions, blockParams };
   }
 
+  /**
+   * Creates SQL conditions for filtering transactions by transaction-specific attributes.
+   * This handles conditions like account name, cursor-based pagination, request key,
+   * fungible token name, and NFT token ownership.
+   *
+   * @param params - Transaction query parameters containing transaction filter conditions
+   * @param queryParams - Current array of query parameters (for parameter indexing)
+   * @returns Object containing the generated SQL conditions and updated parameter array
+   */
   private createTransactionConditions(
     params: GetTransactionsParams,
     queryParams: Array<string | number>,
   ) {
     const { accountName, after, before, requestKey, fungibleName, hasTokenId = false } = params;
     let conditions = '';
+
     const transactionParams: (string | number)[] = [];
 
     const localOperator = (paramsLength: number) => (paramsLength > 1 ? `\nAND` : 'WHERE');
 
+    // Add sender account condition for regular (non-NFT) transactions
     if (accountName && !hasTokenId) {
       transactionParams.push(accountName);
       const op = localOperator(transactionParams.length);
       conditions += `${op} t.sender = $${queryParams.length + transactionParams.length}`;
     }
 
+    // Add 'after' cursor condition for pagination
     if (after) {
       transactionParams.push(after);
       const op = localOperator(transactionParams.length);
       conditions += `${op} t.creationtime < $${queryParams.length + transactionParams.length}`;
     }
 
+    // Add 'before' cursor condition for pagination
     if (before) {
       transactionParams.push(before);
       const op = localOperator(transactionParams.length);
       conditions += `${op} t.creationtime > $${queryParams.length + transactionParams.length}`;
     }
 
+    // Add request key condition for exact transaction lookup
     if (requestKey) {
       transactionParams.push(requestKey);
       const op = localOperator(transactionParams.length);
       conditions += `${op} t."requestkey" = $${queryParams.length + transactionParams.length}`;
     }
 
+    // Add fungible token name condition using a subquery on Events table
     if (fungibleName) {
       transactionParams.push(fungibleName);
       const op = localOperator(transactionParams.length);
@@ -106,6 +164,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         )`;
     }
 
+    // Add NFT ownership condition using a subquery on Transfers table
     if (accountName && hasTokenId) {
       transactionParams.push(accountName);
       const op = localOperator(queryParams.length + transactionParams.length);
@@ -122,6 +181,14 @@ export default class TransactionDbRepository implements TransactionRepository {
     return { conditions, params: [...queryParams, ...transactionParams] };
   }
 
+  /**
+   * Retrieves transactions based on specified parameters with pagination.
+   * This method dynamically constructs SQL queries based on the provided filters,
+   * optimizing the query strategy based on whether block or transaction conditions are primary.
+   *
+   * @param params - Transaction query parameters with filtering and pagination options
+   * @returns Promise resolving to paginated transaction results
+   */
   async getTransactions(params: GetTransactionsParams) {
     const {
       blockHash,
@@ -135,18 +202,26 @@ export default class TransactionDbRepository implements TransactionRepository {
       minimumDepth,
     } = params;
 
+    // Process pagination parameters
     const { limit, order, after, before } = getPaginationParams({
       after: afterEncoded,
       before: beforeEncoded,
       first,
       last,
     });
+
+    // Determine if block-based filtering is the primary access pattern
+    // This affects the query strategy for optimal performance
     const isBlockQueryFirst = blockHash || minHeight || maxHeight || minimumDepth || chainId;
 
+    // Initialize query parameters and condition strings
     const queryParams: (string | number)[] = [];
     let blocksConditions = '';
     let transactionsConditions = '';
+
+    // Build query conditions based on the primary access pattern
     if (isBlockQueryFirst) {
+      // Start with block conditions when block filtering is primary
       const { blockParams, blocksConditions: bConditions } = this.createBlockConditions(params, [
         limit,
       ]);
@@ -160,6 +235,7 @@ export default class TransactionDbRepository implements TransactionRepository {
       transactionsConditions = txConditions;
       blocksConditions = bConditions;
     } else {
+      // Start with transaction conditions when transaction filtering is primary
       const { conditions, params: txParams } = this.createTransactionConditions(
         { ...params, after, before },
         [limit],
@@ -174,8 +250,10 @@ export default class TransactionDbRepository implements TransactionRepository {
       blocksConditions = bConditions;
     }
 
+    // Construct the appropriate SQL query based on the primary access pattern
     let query = '';
     if (isBlockQueryFirst) {
+      // Block-first query strategy: filter blocks first, then join to transactions
       query = `
         WITH filtered_block AS (
           SELECT b.id, b.hash, b."chainId", b.height
@@ -212,6 +290,7 @@ export default class TransactionDbRepository implements TransactionRepository {
         LIMIT $1
       `;
     } else {
+      // Transaction-first query strategy: filter transactions first, then join to blocks
       query = `
         WITH filtered_transactions AS (
           SELECT t.id, t."blockId", t.hash, t.num_events, t.txid, t.logs, t.result, t.requestkey, t."chainId", t.creationtime
@@ -251,8 +330,10 @@ export default class TransactionDbRepository implements TransactionRepository {
       `;
     }
 
+    // Execute the query with the constructed parameters
     const { rows } = await rootPgPool.query(query, queryParams);
 
+    // Transform database rows into GraphQL-compatible edges with cursors
     const edges = rows.map(row => ({
       cursor: row.creationTime.toString(),
       node: transactionValidator.validate(row),
@@ -262,6 +343,13 @@ export default class TransactionDbRepository implements TransactionRepository {
     return pageInfo;
   }
 
+  /**
+   * Retrieves a transaction associated with a specific transfer.
+   * This method finds the transaction that contains a specific transfer by ID.
+   *
+   * @param transferId - ID of the transfer
+   * @returns Promise resolving to the associated transaction
+   */
   async getTransactionByTransferId(transferId: string) {
     const query = `
       SELECT t.id as id,
@@ -302,6 +390,14 @@ export default class TransactionDbRepository implements TransactionRepository {
     return output;
   }
 
+  /**
+   * Retrieves metadata for a transaction by its ID.
+   * This method handles the specific case of transaction metadata retrieval,
+   * validating the result against the expected schema.
+   *
+   * @param transactionId - ID of the transaction
+   * @returns Promise resolving to the transaction metadata
+   */
   async getTransactionMetaInfoById(transactionId: string) {
     const query = `
       SELECT t.id as id,
@@ -323,6 +419,14 @@ export default class TransactionDbRepository implements TransactionRepository {
     return output;
   }
 
+  /**
+   * Retrieves transactions by their request key.
+   * This is a specialized lookup method for finding transactions by their
+   * unique request key identifier, with optional block filtering.
+   *
+   * @param params - Request key search parameters
+   * @returns Promise resolving to matching transactions
+   */
   async getTransactionsByRequestKey(params: GetTransactionsByRequestKey) {
     const { requestKey, blockHash, minimumDepth } = params;
     const queryParams: (string | number)[] = [requestKey];
@@ -373,6 +477,14 @@ export default class TransactionDbRepository implements TransactionRepository {
     return output;
   }
 
+  /**
+   * Retrieves transactions associated with a specific public key with pagination.
+   * This method finds transactions where the specified public key is a signer,
+   * supporting cursor-based pagination.
+   *
+   * @param params - Public key and pagination parameters
+   * @returns Promise resolving to paginated transaction results
+   */
   async getTransactionsByPublicKey({
     publicKey,
     first,
@@ -447,6 +559,13 @@ export default class TransactionDbRepository implements TransactionRepository {
     return pageInfo;
   }
 
+  /**
+   * Counts transactions associated with a specific public key.
+   * This provides an efficient count for transactions signed by a specific key.
+   *
+   * @param publicKey - The public key to count transactions for
+   * @returns Promise resolving to the count of matching transactions
+   */
   async getTransactionsByPublicKeyCount(publicKey: string) {
     const query = `
       SELECT COUNT(*) as count
@@ -462,6 +581,13 @@ export default class TransactionDbRepository implements TransactionRepository {
     return totalCount;
   }
 
+  /**
+   * Counts transactions matching the specified filter parameters.
+   * This method efficiently counts matching transactions without retrieving full data.
+   *
+   * @param params - Filtering parameters
+   * @returns Promise resolving to the count of matching transactions
+   */
   async getTransactionsCount(params: GetTransactionsCountParams): Promise<number> {
     const hasNoParams = Object.values(params).every(v => !v);
 
@@ -579,6 +705,13 @@ export default class TransactionDbRepository implements TransactionRepository {
     return totalCount;
   }
 
+  /**
+   * Retrieves transactions associated with specific events.
+   * This method finds transactions that contain any of the specified event IDs.
+   *
+   * @param eventIds - Array of event IDs
+   * @returns Promise resolving to matching transactions
+   */
   async getTransactionsByEventIds(eventIds: readonly string[]): Promise<TransactionOutput[]> {
     console.info('[INFO][INFRA][INFRA_CONFIG] Batching for event IDs:', eventIds);
 
@@ -627,9 +760,21 @@ export default class TransactionDbRepository implements TransactionRepository {
     return eventIds.map(eventId => transactionMap[eventId]) as TransactionOutput[];
   }
 
+  /**
+   * Retrieves signers for a specific transaction.
+   * This method gets the cryptographic signers associated with a transaction,
+   * optionally filtered by order index for multi-signature transactions.
+   *
+   * @param params - The GetSignersParam Object
+   * @param params.transactionId - The transaction unique identifier on the 'transactions' table
+   * @param params.requestKey - The unique identifier of the transaction on the blockchain
+   * @param params.orderIndex - Optional argument to retrieve single signer from signers list
+   * @returns Promise resolving to an array of signers
+   */
   async getSigners(params: GetSignersParams) {
     const { transactionId, requestKey, orderIndex } = params;
     const queryParams: Array<string | number> = [];
+
     let query = `
       SELECT s.pubkey as "publicKey",
         s.address as "address",

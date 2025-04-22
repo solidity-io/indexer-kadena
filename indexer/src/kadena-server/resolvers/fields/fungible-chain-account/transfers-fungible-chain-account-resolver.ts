@@ -1,7 +1,19 @@
+/**
+ * Resolver for the transfers field of the FungibleChainAccount type.
+ */
 import { ResolverContext } from '../../../config/apollo-server-config';
 import { FungibleChainAccountResolvers } from '../../../config/graphql-types';
 import { buildTransferOutput } from '../../output/build-transfer-output';
 
+/**
+ * Resolver function for the transfers field of the FungibleChainAccount type.
+ * Retrieves transfers for a specific account, fungible token, and chain.
+ *
+ * @param parent - The parent object containing accountName, fungibleName, and chainId
+ * @param args - GraphQL pagination arguments
+ * @param context - The resolver context
+ * @returns A paginated connection of transfers
+ */
 export const transfersFungibleChainAccountResolver: FungibleChainAccountResolvers<ResolverContext>['transfers'] =
   async (parent, args, context) => {
     const { first, after, last, before } = args;
@@ -24,7 +36,7 @@ export const transfersFungibleChainAccountResolver: FungibleChainAccountResolver
       edges,
       pageInfo: output.pageInfo,
       // for resolvers
-      totalCount: -1,
+      totalCount: -1, // Placeholder value for separate resolver
       accountName: parent.accountName,
       chainId: parent.chainId,
       fungibleName: parent.fungibleName,

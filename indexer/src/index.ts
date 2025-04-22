@@ -1,4 +1,16 @@
+/**
+ * Main entry point for the Kadena Indexer application.
+ * This file orchestrates the initialization and execution of various services based on command line arguments.
+ * The indexer supports multiple operation modes:
+ * - Streaming blockchain data
+ * - Running GraphQL servers (both Postgraphile and Kadena schema based)
+ * - Backfilling guards
+ * - Processing missing blocks
+ * - Database initialization
+ */
+
 import dotenv from 'dotenv';
+// Load environment variables from .env file
 console.info('[INFO][INFRA][INFRA_CONFIG] Loading environment variables...');
 dotenv.config();
 
@@ -11,6 +23,10 @@ import { initializeDatabase } from './config/init';
 import { backfillBalances } from './services/sync/balances';
 import { startMissingBlocks } from './services/sync/missing';
 
+/**
+ * Command-line interface configuration using Commander.
+ * Defines various operation modes for the indexer through command line flags.
+ */
 program
   .option('-s, --streaming', 'Start streaming blockchain data')
   .option('-g, --oldGraphql', 'Start GraphQL server based on Postgraphile')
@@ -26,6 +42,16 @@ const options = program.opts();
 /**
  * Main function to orchestrate the blockchain data synchronization process.
  * It initializes the database and starts the requested synchronization process based on the command line arguments.
+ *
+ * The function handles different operational modes:
+ * - Database initialization
+ * - Blockchain data streaming
+ * - Guard backfilling
+ * - Missing blocks processing
+ * - GraphQL server initialization (both Postgraphile and Kadena schema versions)
+ *
+ * TODO: [OPTIMIZATION] Consider implementing a more modular approach for service initialization
+ * that would allow easier addition of new services without modifying this main function.
  */
 async function main() {
   try {
@@ -53,20 +79,29 @@ async function main() {
     }
   } catch (error) {
     console.error('[ERROR][INFRA][INFRA_CONFIG] Initialization failed:', error);
+    // TODO: [OPTIMIZATION] Implement more detailed error logging and possibly retry mechanisms
   }
 }
 
 /**
  * Handles graceful shutdown of the application when receiving termination signals.
- * @param signal The signal received, triggering the shutdown process.
+ * Ensures that resources are properly released before the application exits.
+ *
+ * @param signal The signal received, triggering the shutdown process (e.g., SIGINT, SIGTERM).
+ *
+ * TODO: [OPTIMIZATION] Enhance shutdown procedure to properly close all active connections,
+ * finish pending operations, and ensure data consistency before exiting.
  */
 async function handleGracefulShutdown(signal: string) {
   console.info(`[INFO][INFRA][INFRA_DEPLOY] Received ${signal}. Initiating graceful shutdown.`);
+  // TODO: [OPTIMIZATION] Add actual cleanup operations here (database connections, active streams, etc.)
   console.info('[INFO][INFRA][INFRA_DEPLOY] Graceful shutdown complete.');
   process.exit(0);
 }
 
+// Register signal handlers for graceful shutdown
 process.on('SIGINT', handleGracefulShutdown);
 process.on('SIGTERM', handleGracefulShutdown);
 
+// Execute the main function to start the application
 main();
