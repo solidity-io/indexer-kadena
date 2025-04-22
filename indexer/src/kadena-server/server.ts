@@ -182,6 +182,39 @@ const validatePaginationParamsPlugin: ApolloServerPlugin = {
 };
 
 /**
+ * Apollo Server plugin that ensures all error responses are sanitized
+ *
+ * This plugin provides an additional layer of security by ensuring that
+ * no sensitive information like stack traces or file paths are included
+ * in GraphQL error responses, regardless of where they're generated.
+ *
+ * While the formatError function handles most cases, this plugin acts
+ * as a final safeguard to catch any errors that might bypass that function.
+ */
+const securitySanitizationPlugin: ApolloServerPlugin = {
+  requestDidStart: async () => ({
+    willSendResponse: async ({ response }) => {
+      // If there are errors in the response, ensure they don't contain sensitive data
+      if (response.body.kind === 'single' && response.body.singleResult.errors) {
+        response.body.singleResult.errors = response.body.singleResult.errors.map(error => {
+          // Create a sanitized copy without extensions that might contain sensitive data
+          if (error.extensions) {
+            return {
+              ...error,
+              locations: undefined,
+              path: undefined,
+              code: error.extensions.code,
+              extensions: undefined,
+            };
+          }
+          return error;
+        });
+      }
+    },
+  }),
+};
+
+/**
  * List of allowed CIDR ranges for restricted endpoints
  * These ranges restrict access to sensitive operations to trusted IP addresses
  */
@@ -270,6 +303,7 @@ export async function useKadenaGraphqlServer() {
     ],
     plugins: [
       validatePaginationParamsPlugin,
+      securitySanitizationPlugin,
       ApolloServerPluginDrainHttpServer({ httpServer }),
       {
         async serverWillStart() {
