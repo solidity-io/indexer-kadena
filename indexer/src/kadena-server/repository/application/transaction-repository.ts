@@ -36,10 +36,10 @@ export interface GetTransactionsByPublicKeyParams extends PaginationsParams {
 
 /**
  * This function has two methods of getting the signers on transactions.
- * 
+ *
  * The first method is by passing only the 'trasanctionId'.
  * The second method is by passing 'requestKey' and 'orderIndex' together.
- * 
+ *
  * Both methods will result in the same return type and value.
  */
 export interface GetSignersParams {
