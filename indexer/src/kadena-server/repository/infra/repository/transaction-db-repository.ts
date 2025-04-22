@@ -19,6 +19,7 @@
 
 import { rootPgPool } from '../../../../config/database';
 import TransactionRepository, {
+  GetSignersParams,
   GetTransactionsByPublicKeyParams,
   GetTransactionsByRequestKey,
   GetTransactionsCountParams,
@@ -764,12 +765,16 @@ export default class TransactionDbRepository implements TransactionRepository {
    * This method gets the cryptographic signers associated with a transaction,
    * optionally filtered by order index for multi-signature transactions.
    *
-   * @param transactionId - ID of the transaction
-   * @param orderIndex - Optional order index for multi-signature transactions
+   * @param params - The GetSignersParam Object
+   * @param params.transactionId - The transaction unique identifier on the 'transactions' table
+   * @param params.requestKey - The unique identifier of the transaction on the blockchain
+   * @param params.orderIndex - Optional argument to retrieve single signer from signers list
    * @returns Promise resolving to an array of signers
    */
-  async getSigners(transactionId: string, orderIndex?: number) {
-    const queryParams: Array<string | number> = [transactionId];
+  async getSigners(params: GetSignersParams) {
+    const { transactionId, requestKey, orderIndex } = params;
+    const queryParams: Array<string | number> = [];
+
     let query = `
       SELECT s.pubkey as "publicKey",
         s.address as "address",
@@ -778,12 +783,21 @@ export default class TransactionDbRepository implements TransactionRepository {
         t.requestkey as "requestKey"
       FROM "Signers" s
       JOIN "Transactions" t on s."transactionId" = t.id
-      WHERE t.id = $1
     `;
 
+    if (transactionId) {
+      queryParams.push(transactionId);
+      query += `\nWHERE t.id = $1`;
+    }
+
+    if (requestKey) {
+      queryParams.push(requestKey);
+      query += `\nWHERE t.requestkey = $1`;
+    }
+
     if (orderIndex) {
-      query += `\nAND s."orderIndex" = $2`;
       queryParams.push(orderIndex);
+      query += `\nAND s."orderIndex" = $2`;
     }
 
     const { rows } = await rootPgPool.query(query, queryParams);

@@ -123,7 +123,7 @@ export const getNode = async (context: ResolverContext, id: string) => {
   if (type === 'Signer') {
     // Resolve Signer node - requires requestKey and orderIndex
     const [requestKey, orderIndex] = JSON.parse(params);
-    const [output] = await context.transactionRepository.getSigners(requestKey, orderIndex);
+    const [output] = await context.transactionRepository.getSigners({ requestKey, orderIndex });
     return output;
   }
 

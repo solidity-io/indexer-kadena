@@ -35,6 +35,20 @@ export interface GetTransactionsByPublicKeyParams extends PaginationsParams {
 }
 
 /**
+ * This function has two methods of getting the signers on transactions.
+ * 
+ * The first method is by passing only the 'trasanctionId'.
+ * The second method is by passing 'requestKey' and 'orderIndex' together.
+ * 
+ * Both methods will result in the same return type and value.
+ */
+export interface GetSignersParams {
+  transactionId?: string;
+  requestKey?: string;
+  orderIndex?: string;
+}
+
+/**
  * Parameters for filtering transactions in count and retrieval operations.
  * These parameters enable precise querying of transactions based on various attributes.
  */
@@ -180,9 +194,11 @@ export default interface TransactionRepository {
   /**
    * Retrieves signers for a specific transaction.
    *
-   * @param transactionId - ID of the transaction
-   * @param orderIndex - Optional order index for multi-signature transactions
+   * @param params - The GetSignersParam Object
+   * @param params.transactionId - The transaction unique identifier on the 'transactions' table
+   * @param params.requestKey - The unique identifier of the transaction on the blockchain
+   * @param params.orderIndex - Optional argument to retrieve single signer from signers list
    * @returns Promise resolving to an array of signers
    */
-  getSigners(transactionId: string, orderIndex?: number): Promise<SignerOutput[]>;
+  getSigners(params: GetSignersParams): Promise<SignerOutput[]>;
 }
