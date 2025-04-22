@@ -34,5 +34,6 @@ export const fungibleAccountQueryResolver: QueryResolvers<ResolverContext>['fung
       args.accountName,
       args.fungibleName,
     );
+
     return buildFungibleAccount(account);
   };

@@ -84,7 +84,7 @@ export const fungibleAccountsByPublicKeyFixture001 = {
           },
         ],
         fungibleName: 'coin',
-        id: '0',
+        id: 'RnVuZ2libGVBY2NvdW50OlsiY29pbiIsIjIwZDI3ZjQ2NjcwZmJhNWFiYTI2YTYyOTFhMzUwZmM3MmI0NjcyOWFmMWQ5Nzc2NjYxNDc5YzQ4NjBjMjE1ZGEiXQ==',
         totalBalance: 0,
         transactions: {
           edges: [

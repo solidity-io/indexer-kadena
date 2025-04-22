@@ -10,7 +10,9 @@ export const fungibleAccountsByPublicKeyQueryResolver: QueryResolvers<ResolverCo
       fungibleName,
     );
 
-    const output = accounts.map(acc => buildFungibleAccount(acc));
+    const output = accounts
+      .map(acc => buildFungibleAccount(acc))
+      .filter((acc): acc is NonNullable<typeof acc> => acc !== null);
 
     return output;
   };

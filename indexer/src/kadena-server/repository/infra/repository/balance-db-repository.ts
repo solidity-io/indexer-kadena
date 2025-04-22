@@ -69,7 +69,7 @@ export default class BalanceDbRepository implements BalanceRepository {
       throw new Error('Account not found.');
     }
 
-    const accountInfo = fungibleAccountValidator.mapFromSequelize(account);
+    const accountInfo = fungibleAccountValidator.validate(account);
     const totalBalance = fungibleAccountValidator.validateTotalBalance(rows[0]);
     return { ...accountInfo, totalBalance };
   }
@@ -352,7 +352,7 @@ export default class BalanceDbRepository implements BalanceRepository {
   ): Promise<INonFungibleTokenBalance | null> {
     const queryParams = [accountName, tokenId, chainId];
     let query = `
-      SELECT b.id, b."chainId", b.balance, b."tokenId", b.account, b."hasTokenId"
+      SELECT b.id, b."chainId", b.balance, b."tokenId", b.account, b.module, b."hasTokenId"
       FROM "Balances" b
       WHERE b.account = $1
       AND b."tokenId" = $2
@@ -382,7 +382,7 @@ export default class BalanceDbRepository implements BalanceRepository {
   async getAccountInfo_NODE(
     accountName: string,
     fungibleName = 'coin',
-  ): Promise<FungibleAccountOutput> {
+  ): Promise<FungibleAccountOutput | null> {
     const query = `
       SELECT DISTINCT b."chainId"
       FROM "Balances" b
@@ -390,6 +390,8 @@ export default class BalanceDbRepository implements BalanceRepository {
       AND b.module = $2
     `;
     const { rows } = await rootPgPool.query(query, [accountName, fungibleName]);
+
+    if (rows.length === 0) return null;
 
     const chainIds = rows.map(r => Number(r.chainId));
 
@@ -406,13 +408,12 @@ export default class BalanceDbRepository implements BalanceRepository {
     const balancesNumber = balances.map(b => formatBalance_NODE(b));
     const totalBalance = balancesNumber.reduce((acc, cur) => acc + cur, 0);
 
-    const accountInfo = fungibleAccountValidator.mapFromSequelize({
+    const accountInfo = fungibleAccountValidator.validate({
+      id: -1,
       account: accountName,
       module: fungibleName,
-      chainId: -1,
-      balance: BigInt(-1),
-      hasTokenId: false,
     });
+
     return { ...accountInfo, totalBalance };
   }
 
@@ -502,7 +503,7 @@ export default class BalanceDbRepository implements BalanceRepository {
       // If no guard rows found, try with k: prefix for direct account lookup
       const params = [`k:${publicKey}`, fungibleName];
       const query = `
-        SELECT b.account, b."chainId"
+        SELECT b.id, b.account, b."chainId"
         FROM "Balances" b
         WHERE b.account = $1
         AND b.module = $2
@@ -510,78 +511,19 @@ export default class BalanceDbRepository implements BalanceRepository {
       const { rows } = await rootPgPool.query(query, params);
 
       if (!rows.length) return [];
-
-      // Query each chain directly using Pact code
-      const balancePromises = rows.map(r => {
-        const query = {
-          chainId: r.chainId.toString(),
-          code: `(${fungibleName}.details \"${r.account}\")`,
-        };
-        return handleSingleQuery(query);
-      });
-
-      const balances = (await Promise.all(balancePromises)).filter(b => b.status === 'success');
-      const balancesNumber = balances.map(q => formatBalance_NODE(q));
-      const totalBalance = balancesNumber.reduce((acc, cur) => acc + cur, 0);
-
-      const accountInfo = fungibleAccountValidator.mapFromSequelize({
-        account: `k:${publicKey}`,
-        module: fungibleName,
-        chainId: -1,
-        balance: BigInt(-1),
-        hasTokenId: false,
-      });
-      return [{ ...accountInfo, totalBalance }];
+      return this.processAccounts(rows, fungibleName);
     } else {
       // Handle accounts associated with public key via guards
       const params = [publicKey, fungibleName];
       const query = `
-        SELECT b.account, b."chainId"
+        SELECT b.id, b.account, b."chainId"
         FROM "Balances" b
         JOIN "Guards" g ON b.id = g."balanceId"
         WHERE g."publicKey" = $1
         AND b.module = $2
       `;
       const { rows } = await rootPgPool.query(query, params);
-
-      // Group chains by account for efficient querying
-      const groupedByAccount: Record<string, string[]> = rows.reduce(
-        (acc, cur) => {
-          if (!acc[cur.account]) {
-            acc[cur.account] = [];
-          }
-          acc[cur.account].push(cur.chainId);
-          return acc;
-        },
-        {} as Record<string, string[]>,
-      );
-
-      // Process each account and get balances from node
-      const accountsPromises = Object.entries(groupedByAccount).map(
-        async ([account, chainIds], index) => {
-          const balances = chainIds.map(async c => {
-            const query = {
-              chainId: c.toString(),
-              code: `(${fungibleName}.details \"${account}\")`,
-            };
-            const result = await handleSingleQuery(query);
-            return formatBalance_NODE(result);
-          });
-
-          const balancesNumber = await Promise.all(balances);
-          const totalBalance: Number = balancesNumber.reduce((acc, cur) => acc + cur, 0);
-
-          return {
-            id: index.toString(),
-            accountName: account,
-            totalBalance,
-            fungibleName,
-          };
-        },
-      );
-
-      const accounts = await Promise.all(accountsPromises);
-      return accounts;
+      return this.processAccounts(rows, fungibleName);
     }
   }
 
@@ -728,5 +670,49 @@ export default class BalanceDbRepository implements BalanceRepository {
 
     const pageInfo = getPageInfo({ edges, order, limit, after, before });
     return pageInfo;
+  }
+
+  private async processAccounts(
+    rows: { id: string; account: string; chainId: string }[],
+    fungibleName: string,
+  ): Promise<FungibleAccountOutput[]> {
+    const groupedByAccount: Record<string, string[]> = rows.reduce(
+      (acc, cur) => {
+        if (!acc[cur.account]) {
+          acc[cur.account] = [];
+        }
+        acc[cur.account].push(cur.chainId);
+        return acc;
+      },
+      {} as Record<string, string[]>,
+    );
+
+    const accountsPromises = Object.entries(groupedByAccount).map(
+      async ([account, chainIds], index) => {
+        const balances = chainIds.map(async c => {
+          const query = {
+            chainId: c.toString(),
+            code: `(${fungibleName}.details \"${account}\")`,
+          };
+          const result = await handleSingleQuery(query);
+          return formatBalance_NODE(result);
+        });
+
+        const balancesNumber = await Promise.all(balances);
+        const totalBalance: Number = balancesNumber.reduce((acc, cur) => acc + cur, 0);
+
+        const accountInfo = fungibleAccountValidator.validate({
+          id: index,
+          account,
+          module: fungibleName,
+        });
+        return {
+          ...accountInfo,
+          totalBalance,
+        };
+      },
+    );
+
+    return Promise.all(accountsPromises);
   }
 }

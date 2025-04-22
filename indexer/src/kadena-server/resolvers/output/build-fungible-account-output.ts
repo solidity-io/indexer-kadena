@@ -29,7 +29,8 @@ import { FungibleAccountOutput } from '../../repository/application/balance-repo
  * @param account - The fungible account entity from the database repository
  * @returns A GraphQL-compatible fungible account object with placeholders for related entities
  */
-export const buildFungibleAccount = (account: FungibleAccountOutput) => {
+export const buildFungibleAccount = (account: FungibleAccountOutput | null) => {
+  if (!account) return null;
   return {
     ...account,
     // resolvers
