@@ -121,6 +121,9 @@ export default class BlockDbRepository implements BlockRepository {
    * supporting cursor-based pagination and chain filtering for efficient
    * navigation through large result sets.
    *
+   * Uses keyset pagination with compound cursors (height:id) for better performance
+   * when navigating through large datasets.
+   *
    * @param params - Object containing height range and pagination parameters
    * @returns Promise resolving to page info and block edges
    */
@@ -146,13 +149,37 @@ export default class BlockDbRepository implements BlockRepository {
     let conditions = '';
 
     if (before) {
-      queryParams.push(before);
-      conditions += `\nAND b.id > $${queryParams.length}`;
+      // Try to parse as compound cursor format (height:id)
+      const [height, id] = before.split(':');
+      const beforeHeight = parseInt(height, 10);
+      const beforeId = parseInt(id, 10);
+
+      // Check if values are valid numbers
+      if (!isNaN(beforeHeight) && !isNaN(beforeId)) {
+        queryParams.push(beforeHeight, beforeId);
+        conditions += `\nAND (b.height < $${queryParams.length - 1} OR (b.height = $${queryParams.length - 1} AND b.id > $${queryParams.length}))`;
+      } else {
+        queryParams.push(before);
+        conditions += `\nAND b.id > $${queryParams.length}`;
+      }
     }
 
     if (after) {
-      queryParams.push(after);
-      conditions += `\nAND b.id < $${queryParams.length}`;
+      // Try to parse as compound cursor format (height:id)
+      const [height, id] = after.split(':');
+      const afterHeight = parseInt(height, 10);
+      const afterId = parseInt(id, 10);
+
+      // Check if values are valid numbers
+      if (!isNaN(afterHeight) && !isNaN(afterId)) {
+        // For forward pagination with "after", we want records where:
+        // (height < afterHeight) OR (height = afterHeight AND id < afterId)
+        queryParams.push(afterHeight, afterId);
+        conditions += `\nAND (b.height < $${queryParams.length - 1} OR (b.height = $${queryParams.length - 1} AND b.id < $${queryParams.length}))`;
+      } else {
+        queryParams.push(after);
+        conditions += `\nAND b.id < $${queryParams.length}`;
+      }
     }
 
     if (chainIds?.length) {
@@ -182,14 +209,14 @@ export default class BlockDbRepository implements BlockRepository {
       FROM "Blocks" b
       WHERE b.height >= $2
       ${conditions}
-      ORDER BY b.height, b.id ${order}
+      ORDER BY b.height ${order}, b.id ${order}
       LIMIT $1;
     `;
 
     const { rows: blockRows } = await rootPgPool.query(query, queryParams);
 
     const edges = blockRows.map(row => ({
-      cursor: row.id.toString(),
+      cursor: `${row.height.toString()}:${row.id.toString()}`,
       node: blockValidator.validate(row),
     }));
 
@@ -494,8 +521,6 @@ export default class BlockDbRepository implements BlockRepository {
    * @returns Promise resolving to an array of blocks
    */
   async getBlockByHashes(hashes: string[]): Promise<BlockOutput[]> {
-    console.info('[INFO][INFRA][INFRA_CONFIG] Batching for hashes:', hashes);
-
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.id,
         b.hash,
@@ -647,127 +672,5 @@ export default class BlockDbRepository implements BlockRepository {
     const output = rows.map(r => transactions.find(t => t.blockHash === r.root_hash)) as any;
 
     return output;
-  }
-
-  async getLastBlocksWithDepth(
-    chainIdsParam: string[],
-    minimumDepth: number,
-    startingTimestamp: number,
-    id?: string,
-  ): Promise<BlockOutput[]> {
-    const chainIds = chainIdsParam.length ? chainIdsParam.map(Number) : await this.getChainIds();
-    const maxHeights = await this.getMaxHeights();
-
-    const queryParams: any[] = [];
-    const conditions: string[] = [];
-
-    chainIds.forEach(chainId => {
-      const maxHeight = maxHeights[chainId];
-      if (maxHeight !== undefined) {
-        conditions.push(
-          `("chainId" = $${queryParams.length + 1} AND height <= $${queryParams.length + 2})`,
-        );
-        queryParams.push(chainId, maxHeight - minimumDepth);
-      }
-    });
-
-    queryParams.push(startingTimestamp.toFixed());
-
-    let query = `
-      SELECT *
-      FROM "Blocks"
-      WHERE ${conditions.join(' OR ')}
-      AND "creationTime" > $${queryParams.length}
-    `;
-
-    if (id) {
-      queryParams.push(id);
-      query += `
-        AND id > $${queryParams.length}
-        ORDER BY id DESC
-        LIMIT 100
-      `;
-    } else {
-      query += `
-        ORDER BY id DESC
-        LIMIT 5
-      `;
-    }
-
-    const { rows: blockRows } = await rootPgPool.query(query, queryParams);
-
-    const blocksToReturn = blockRows.map(row => blockValidator.validate(row));
-    const blockHashToDepth = await this.createBlockDepthMap(blocksToReturn, 'hash', minimumDepth);
-
-    return blocksToReturn.filter(block => blockHashToDepth[block.hash] >= minimumDepth);
-  }
-
-  async getConfirmationDepth(blockHash: string, minimumDepth: number): Promise<number> {
-    const query = `
-      WITH RECURSIVE BlockDescendants AS (
-        SELECT hash, parent, 0 AS depth, height, "chainId"
-        FROM "Blocks"
-        WHERE hash = $1
-        UNION ALL
-        SELECT b.hash, b.parent, d.depth + 1 AS depth, b.height, b."chainId"
-        FROM BlockDescendants d
-        JOIN "Blocks" b ON d.hash = b.parent AND b.height = d.height + 1 AND b."chainId" = d."chainId"
-        WHERE d.depth <= $2
-      )
-      SELECT MAX(depth) AS depth
-      FROM BlockDescendants;
-    `;
-
-    const { rows } = await rootPgPool.query(query, [blockHash, minimumDepth]);
-
-    if (rows.length && rows[0].depth) {
-      return Number(rows[0].depth);
-    } else {
-      return 0;
-    }
-  }
-
-  /**
-   *
-   * @param items - all the items to create a block depth map for
-   * @param hashProp - the property of the item that contains the block hash
-   * @returns a map of block hashes to their confirmation depths
-   */
-  async createBlockDepthMap<T>(
-    items: T[],
-    hashProp: keyof T,
-    minimumDepth: number,
-  ): Promise<Record<string, number>> {
-    const uniqueBlockHashes = [...new Set(items.map(item => item[hashProp]))];
-
-    const confirmationDepths = await Promise.all(
-      uniqueBlockHashes.map(blockHash =>
-        this.getConfirmationDepth(blockHash as string, minimumDepth),
-      ),
-    );
-
-    return uniqueBlockHashes.reduce((map: Record<string, number>, blockHash, index) => {
-      map[blockHash as string] = confirmationDepths[index];
-      return map;
-    }, {});
-  }
-
-  async getMaxHeights(): Promise<Record<string, number>> {
-    const chainIds = await this.getChainIds();
-
-    const maxHeightsByChainIdPromises = chainIds.map(async chainId => {
-      const query = `
-        SELECT MAX(height) as max_height
-        FROM "Blocks"
-        WHERE "chainId" = $1
-      `;
-
-      const { rows } = await rootPgPool.query(query, [chainId]);
-      return { [chainId.toString()]: parseInt(rows[0].max_height, 10) };
-    });
-
-    const maxHeightsArray = await Promise.all(maxHeightsByChainIdPromises);
-
-    return Object.assign({}, ...maxHeightsArray);
   }
 }
