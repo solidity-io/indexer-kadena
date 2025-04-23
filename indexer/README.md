@@ -151,42 +151,56 @@ yarn dev:hot:graphql
 The following commands will aid in the maintenance of the indexer.
 
 ```bash
-# Identifying Missing Blocks - Scan for and store any blocks that were missed.
+# Identifying Missing Blocks - Scan for and store any blocks that were missed in the streaming process.
 yarn dev:missing
-
-# Processing Headers - Start the header processing from S3 to the database.
-yarn dev:headers
-
-# Processing Payloads - Start the payload processing from S3 to the database.
-yarn dev:payloads
 
 # Update GraphQL - Makers a hot reload (without building)
 yarn dev:hot:graphql
 
 # Generate GraphQL types - Generate the GraphQL types from the schema.
 yarn graphql:generate-types
-
-# Run the pagination tests offline
-yarn test
 ```
 
-### 5.3. Local Workflow Testing
+## 6. Running Tests
 
-**NOTE:** This is not being actively maintained at the moment.
+The Kadena Indexer project includes several types of tests to ensure the functionality and reliability of the codebase. Below are the instructions to run these tests:
 
-Install act for local testing:
+### 6.1. Unit Tests
+
+Unit tests are designed to test individual components or functions in isolation. To run the unit tests, use the following command:
 
 ```bash
-# For MacOS
-brew install act
-
-# For Linux
-sudo apt-get update
-sudo apt-get install act
+yarn test:unit
 ```
 
-Then run the indexer workflow by using the following command:
+This command will execute all the unit tests located in the `tests/unit` directory.
+
+### 6.2. Integration Tests
+
+Integration tests are used to test the queries and subscriptions of the GraphQL API. To run the integration tests, use the following command:
 
 ```bash
-yarn run-indexer-workflow
+yarn test:integration
 ```
+
+This command will execute the integration tests located in the `tests/integration` directory, using the environment variables specified in the `.env.testing` file.
+
+### 6.3. Specific Integration File Test
+
+File tests are executed using the same environment as the integration tests. To run a specific integration test (eg. events), use the following command:
+
+```bash
+yarn test:file tests/integration/events.query.test.ts
+```
+
+This command will run tests using the environment variables from the `.env.testing` file.
+
+### 6.4. Smoke Tests
+
+Smoke tests are a subset of integration tests that verify the basic functionality of the application. To run the smoke tests, use the following command:
+
+```bash
+yarn test:smoke
+```
+
+This command will start the necessary services using Docker Compose, wait for a few seconds to ensure they are up and running, execute the smoke tests located in `tests/docker/smoke.test.ts`, and then shut down the services.
