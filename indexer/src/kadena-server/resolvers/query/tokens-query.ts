@@ -29,7 +29,6 @@ export const tokensQueryResolver: QueryResolvers<ResolverContext>['tokens'] = as
   args,
   context,
 ) => {
-  console.log('tokensQueryResolver');
   const { after, before, first, last } = args;
   const output = await context.balanceRepository.getTokens({ after, before, first, last });
   return output;
