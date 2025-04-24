@@ -22,7 +22,13 @@ import { PactQueryResponse } from '../kadena-server/config/graphql-types';
  * @returns A normalized numeric balance value or 0 if no valid balance is found
  */
 export const formatBalance_NODE = (queryResult: PactQueryResponse) => {
-  const resultParsed = JSON.parse(queryResult.result ?? '{}');
+  let resultParsed;
+  try {
+    resultParsed = JSON.parse(queryResult.result ?? '{}');
+  } catch (error) {
+    return 0;
+  }
+
   if (resultParsed?.balance?.decimal) {
     return Number(resultParsed.balance.decimal);
   } else if (resultParsed?.balance) {
@@ -48,7 +54,12 @@ export const formatBalance_NODE = (queryResult: PactQueryResponse) => {
  * @returns A normalized guard object with standardized properties including the raw representation
  */
 export const formatGuard_NODE = (queryResult: PactQueryResponse) => {
-  const resultParsed = JSON.parse(queryResult.result ?? '{}');
+  let resultParsed;
+  try {
+    resultParsed = JSON.parse(queryResult.result ?? '{}');
+  } catch (error) {
+    return { raw: 'null', keys: [], predicate: '' };
+  }
 
   // Handle function-based guards (fun format)
   if (resultParsed.guard?.fun) {
@@ -71,5 +82,9 @@ export const formatGuard_NODE = (queryResult: PactQueryResponse) => {
   }
 
   // Default case for other guard formats
-  return { raw: JSON.stringify(resultParsed.guard), keys: [], predicate: '' };
+  return {
+    raw: resultParsed.guard ? JSON.stringify(resultParsed.guard) : 'null',
+    keys: [],
+    predicate: '',
+  };
 };
