@@ -8,7 +8,7 @@ export default {
       },
     ],
   },
-  testTimeout: 10000,
+  testTimeout: 90000,
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',

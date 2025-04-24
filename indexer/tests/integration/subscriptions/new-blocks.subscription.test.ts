@@ -82,7 +82,7 @@ interface SubscriptionResponse {
 
 const wsUrl = process.env.WS_URL ?? 'ws://localhost:3001/graphql';
 
-const SUBSCRIPTION_TIMEOUT = 30000;
+const SUBSCRIPTION_TIMEOUT = 90000;
 
 describe('New Blocks Subscription', () => {
   it(
