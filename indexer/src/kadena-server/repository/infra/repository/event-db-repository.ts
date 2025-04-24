@@ -227,12 +227,6 @@ export default class EventDbRepository implements EventRepository {
       eventConditions += `\nAND e.id < $${queryParams.length}`;
     }
 
-    if (requestKey) {
-      blockQueryParams.push(requestKey);
-      const op = localOperator(blockQueryParams.length);
-      conditions += `${op} t."requestkey" = $${blockQueryParams.length + queryParams.length}`;
-    }
-
     if (blockHash) {
       blockQueryParams.push(blockHash);
       const op = localOperator(blockQueryParams.length);
@@ -272,8 +266,10 @@ export default class EventDbRepository implements EventRepository {
       conditions += `${op} b."height" <= $${blockQueryParams.length + queryParams.length}`;
     }
 
+    const isHeightChainOrBlockHash = fromHeight || toHeight || blockHash || chainId;
+
     let query = '';
-    if (fromHeight || toHeight || blockHash || chainId) {
+    if (isHeightChainOrBlockHash) {
       query = `
         WITH block_filtered AS (
           select *
@@ -296,6 +292,35 @@ export default class EventDbRepository implements EventRepository {
         WHERE e.module = $2
         AND e.name = $3
         ${eventConditions}
+        ORDER BY b.height ${order}
+        LIMIT $1
+      `;
+    } else if (requestKey) {
+      queryParams.push(requestKey);
+      query = `
+        WITH event_transaction_filtered AS (
+          SELECT e.*, t."blockId"
+          FROM "Transactions" t
+          JOIN "Events" e ON t.id = e."transactionId"
+          WHERE e.module = $2
+          AND e.name = $3
+          AND t.requestkey = $${blockQueryParams.length + queryParams.length}
+          ${eventConditions}
+          ORDER BY e.id ${order}
+        )
+        SELECT
+          et.id as id,
+          et.requestkey as "requestKey",
+          et."chainId" as "chainId",
+          b.height as height,
+          et."orderIndex" as "orderIndex",
+          et.module as "moduleName",
+          et.name as name,
+          et.params as parameters,
+          b.hash as "blockHash"
+        FROM event_transaction_filtered et
+        JOIN "Blocks" b ON b.id = et."blockId"
+        ${conditions}
         LIMIT $1
       `;
     } else {
@@ -306,7 +331,7 @@ export default class EventDbRepository implements EventRepository {
           WHERE e.module = $2
           AND e.name = $3
           ${eventConditions}
-          ORDER BY e.module, e.name ${order}
+          ORDER BY e.id ${order}
         )
         SELECT
           e.id as id,
@@ -329,7 +354,7 @@ export default class EventDbRepository implements EventRepository {
     const { rows } = await rootPgPool.query(query, [...queryParams, ...blockQueryParams]);
 
     const edges = rows.map(row => ({
-      cursor: row.id.toString(),
+      cursor: isHeightChainOrBlockHash ? row.height.toString() : row.id.toString(),
       node: eventValidator.validate(row),
     }));
 

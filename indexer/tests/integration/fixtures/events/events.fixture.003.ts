@@ -1,24 +1,15 @@
-export const eventsSeed003 = {
+export const eventsFixture003 = {
   data: {
     events: {
+      pageInfo: {
+        hasNextPage: true,
+        hasPreviousPage: false,
+        startCursor: 'NTM3Mjg0Mw==',
+        endCursor: 'NTM3Mjg0Mw==',
+      },
       edges: [
         {
-          cursor: 'MTY4Mzg3ODA=',
-          node: {
-            id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsImhIRk1TSmY1aTlrZHN6MGFFeGtpQWxROWhvMVJPbkR2aDc3dkJtVW9RR1kiXQ==',
-            chainId: 0,
-            height: 5372843,
-            moduleName: 'coin',
-            name: 'TRANSFER',
-            orderIndex: 0,
-            parameters:
-              '["k:46a7054882aeb28a09babc0a403b9df3df09b13f30efb8cff6da3597793c8232","c50b9acb49ca25f59193b95b4e08e52e2ec89fa1bf308e6436f39a40ac2dc4f3",0.000905]',
-            qualifiedName: 'coin.TRANSFER',
-            requestKey: 'hHFMSJf5i9kdsz0aExkiAlQ9ho1ROnDvh77vBmUoQGY',
-          },
-        },
-        {
-          cursor: 'MTY4Mzg3Nzk=',
+          cursor: 'NTM3Mjg0Mw==',
           node: {
             id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsIkhzN1VHZlhzb2hocTR6XzZyRXBKUWZtR2tCcUxEYVRlNm5ubXFRaFBtdVkiXQ==',
             chainId: 0,
@@ -33,7 +24,7 @@ export const eventsSeed003 = {
           },
         },
         {
-          cursor: 'MTY4Mzg3ODE=',
+          cursor: 'NTM3Mjg0Mw==',
           node: {
             id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsIkZUaFpXM3FvMU95bWJfYmpsQU9zRkN2VUtScG8zN2x0OTZpMDJrUXFITkUiXQ==',
             chainId: 0,
@@ -48,7 +39,7 @@ export const eventsSeed003 = {
           },
         },
         {
-          cursor: 'MTY4Mzg3ODI=',
+          cursor: 'NTM3Mjg0Mw==',
           node: {
             id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsInJLXzR3SmNQVTVwbEFVbU1DcXVBSDRxcFhxUWVNX1RNN0NJNGtYSV9lelkiXQ==',
             chainId: 0,
@@ -63,7 +54,7 @@ export const eventsSeed003 = {
           },
         },
         {
-          cursor: 'MTY4Mzg3ODM=',
+          cursor: 'NTM3Mjg0Mw==',
           node: {
             id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsIi0xcm1xWlh6dXZVcDQ1RURERGFYMVVtRGtWa19Ha3o0MTVLVXZfZTRqUGsiXQ==',
             chainId: 0,
@@ -78,7 +69,7 @@ export const eventsSeed003 = {
           },
         },
         {
-          cursor: 'MTY4Mzg3ODQ=',
+          cursor: 'NTM3Mjg0Mw==',
           node: {
             id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsIngxaDRXYkRJclJPS3hnanhvRnd4Tmt5cWdFcVRqOWcxNHBWVV8yR0JVQWsiXQ==',
             chainId: 0,
@@ -93,7 +84,7 @@ export const eventsSeed003 = {
           },
         },
         {
-          cursor: 'MTY4Mzg3ODU=',
+          cursor: 'NTM3Mjg0Mw==',
           node: {
             id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsIjZ6cXdkYnVJVm9KR3BTcnV0a2ZybGU3aVFlNVB1UDhWM0hzVWt3OUhaVTQiXQ==',
             chainId: 0,
@@ -108,7 +99,7 @@ export const eventsSeed003 = {
           },
         },
         {
-          cursor: 'MTY4Mzg3ODY=',
+          cursor: 'NTM3Mjg0Mw==',
           node: {
             id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsInhPTzAwX1V5TkVyVXFUYkkzd3NxRUw0c3VjNm1RNC1OLVo3RmhXWjV0ODgiXQ==',
             chainId: 0,
@@ -120,6 +111,21 @@ export const eventsSeed003 = {
               '["k:12d8fdcaac1eb04a94aaf38644272541522da276d9eaec91412d21592018ba21","c50b9acb49ca25f59193b95b4e08e52e2ec89fa1bf308e6436f39a40ac2dc4f3",0.000256]',
             qualifiedName: 'coin.TRANSFER',
             requestKey: 'xOO00_UyNErUqTbI3wsqEL4suc6mQ4-N-Z7FhWZ5t88',
+          },
+        },
+        {
+          cursor: 'NTM3Mjg0Mw==',
+          node: {
+            id: 'RXZlbnQ6WyJPTmQ3c3RJakpidXdNcVJtbHlRNzFYaFQteFZ2eVZ5LUEwWDJEQm9tdzFnIiwiMCIsIklEbC1heVAtaHNObEczNkhUUVdlNFJpZU8ycWIwa1NjR1YxZkMyQmd1aDAiXQ==',
+            chainId: 0,
+            height: 5372843,
+            moduleName: 'coin',
+            name: 'TRANSFER',
+            orderIndex: 0,
+            parameters:
+              '["k:e38c49ccddedec46d0f547974c9c1418206ec1f08223e128b3211fc427010495","c50b9acb49ca25f59193b95b4e08e52e2ec89fa1bf308e6436f39a40ac2dc4f3",0.000523]',
+            qualifiedName: 'coin.TRANSFER',
+            requestKey: 'IDl-ayP-hsNlG36HTQWe4RieO2qb0kScGV1fC2Bguh0',
           },
         },
       ],

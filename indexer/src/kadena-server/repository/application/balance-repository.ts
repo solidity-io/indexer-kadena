@@ -211,7 +211,7 @@ export default interface BalanceRepository {
   getAccountInfo_NODE(
     accountName: string,
     fungibleName?: string | null,
-  ): Promise<FungibleAccountOutput>;
+  ): Promise<FungibleAccountOutput | null>;
 
   /**
    * Retrieves fungible token information for an account across specified chains from blockchain nodes.

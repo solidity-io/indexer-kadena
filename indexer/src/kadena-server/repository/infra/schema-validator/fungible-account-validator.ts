@@ -92,31 +92,10 @@ const validateTotalBalance = (row: any): string => {
 };
 
 /**
- * Transforms a Sequelize balance model instance into the standardized output format
- *
- * This function works specifically with Sequelize ORM model instances,
- * converting them to the standardized partial FungibleAccountOutput format.
- * Like validate(), it doesn't include the total balance in its output.
- *
- * @param balanceModel - A Sequelize Balance model instance
- * @returns A transformed partial FungibleAccountOutput object
- */
-const mapFromSequelize = (
-  balanceModel: BalanceAttributes,
-): Omit<FungibleAccountOutput, 'totalBalance'> => {
-  return {
-    id: getBase64ID(balanceModel.module, balanceModel.account),
-    accountName: balanceModel.account,
-    fungibleName: balanceModel.module,
-  };
-};
-
-/**
  * Exported validator object providing validation and transformation functionality
  * This pattern allows for easy mocking in tests and consistent usage across the codebase
  */
 export const fungibleAccountValidator = {
   validate,
   validateTotalBalance,
-  mapFromSequelize,
 };

@@ -12,6 +12,12 @@ export const getEventsQuery = (params: any): string => {
   const queryGql = gql`
     query {
       events(${query}) {
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
         edges {
           cursor
           node {
