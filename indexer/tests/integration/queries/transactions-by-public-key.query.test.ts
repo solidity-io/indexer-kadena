@@ -1,8 +1,8 @@
 import { GraphQLClient } from 'graphql-request';
-import { getTransactionsByPublicKeyQuery } from './builders/transactions-by-public-key.builder';
-import { transactionsByPublicKeyFixture001 } from './fixtures/transactions-by-public-key/transactions-by-public-key.fixture.001';
-import { transactionsByPublicKeyFixture002 } from './fixtures/transactions-by-public-key/transactions-by-public-key.fixture.002';
-import { transactionsByPublicKeyFixture003 } from './fixtures/transactions-by-public-key/transactions-by-public-key.fixture.003';
+import { getTransactionsByPublicKeyQuery } from '../builders/transactions-by-public-key.builder';
+import { transactionsByPublicKeyFixture001 } from '../fixtures/transactions-by-public-key/transactions-by-public-key.fixture.001';
+import { transactionsByPublicKeyFixture002 } from '../fixtures/transactions-by-public-key/transactions-by-public-key.fixture.002';
+import { transactionsByPublicKeyFixture003 } from '../fixtures/transactions-by-public-key/transactions-by-public-key.fixture.003';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('TransactionsByPublicKey', () => {

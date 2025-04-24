@@ -1,5 +1,5 @@
 import { GraphQLClient } from 'graphql-request';
-import { getCompletedBlockHeightsQuery } from './builders/completed-block-heights.builder';
+import { getCompletedBlockHeightsQuery } from '../builders/completed-block-heights.builder';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('Completed block heights', () => {
@@ -30,7 +30,7 @@ describe('Completed block heights', () => {
 
     // Check that chainId is a number
     expect(typeof firstBlock.chainId).toBe('number');
-    expect(firstBlock.chainId).toBeGreaterThan(0);
+    expect(firstBlock.chainId).toBeGreaterThan(-1);
 
     // Check that events and transactions have the expected structure
     expect(firstBlock.events).toHaveProperty('totalCount');

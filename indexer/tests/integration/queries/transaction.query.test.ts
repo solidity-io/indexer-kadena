@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
-import { getTransactionQuery } from './builders/transaction.builder';
-import { transactionFixture001 } from './fixtures/transaction/transaction.fixture.001';
+import { getTransactionQuery } from '../builders/transaction.builder';
+import { transactionFixture001 } from '../fixtures/transaction/transaction.fixture.001';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('Transaction', () => {

@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
-import { getNodesQuery } from './builders/nodes.builder';
-import { nodesFixture001 } from './fixtures/nodes/nodes.fixture.001';
+import { getNodesQuery } from '../builders/nodes.builder';
+import { nodesFixture001 } from '../fixtures/nodes/nodes.fixture.001';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('Nodes', () => {

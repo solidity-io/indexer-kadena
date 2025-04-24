@@ -1,5 +1,5 @@
 import { createClient, ExecutionResult, Sink } from 'graphql-ws';
-import { getNewBlocksFromDepthSubscriptionQuery } from './builders/new-blocks-from-depth-subscription.builder';
+import { getNewBlocksSubscriptionQuery } from '../builders/new-blocks-subscription.builder';
 import WebSocket from 'ws';
 
 interface Block {
@@ -77,25 +77,23 @@ interface Block {
 }
 
 interface SubscriptionResponse {
-  newBlocksFromDepth: Array<Block>;
+  newBlocks: Array<Block>;
 }
 
 const wsUrl = process.env.WS_URL ?? 'ws://localhost:3001/graphql';
 
 const SUBSCRIPTION_TIMEOUT = 30000;
 
-describe('New Blocks From Depth Subscription', () => {
+describe('New Blocks Subscription', () => {
   it(
-    'should receive new blocks with minimum depth',
+    'should receive new blocks',
     async () => {
       const client = createClient({
         url: wsUrl,
         webSocketImpl: WebSocket,
       });
 
-      const subscription = getNewBlocksFromDepthSubscriptionQuery({
-        minimumDepth: 1,
-      });
+      const subscription = getNewBlocksSubscriptionQuery({});
 
       let unsubscribeFn: (() => void) | undefined;
       let timeoutId: NodeJS.Timeout | undefined;
@@ -147,12 +145,12 @@ describe('New Blocks From Depth Subscription', () => {
         ])) as SubscriptionResponse;
 
         // Verify the block structure
-        expect(result).toHaveProperty('newBlocksFromDepth');
-        expect(Array.isArray(result.newBlocksFromDepth)).toBe(true);
-        expect(result.newBlocksFromDepth.length).toBeGreaterThan(0);
+        expect(result).toHaveProperty('newBlocks');
+        expect(Array.isArray(result.newBlocks)).toBe(true);
+        expect(result.newBlocks.length).toBeGreaterThan(0);
 
         // Check each block in the array
-        result.newBlocksFromDepth.forEach(block => {
+        result.newBlocks.forEach(block => {
           expect(block).toHaveProperty('chainId');
           expect(block).toHaveProperty('creationTime');
           expect(block).toHaveProperty('difficulty');
@@ -198,15 +196,14 @@ describe('New Blocks From Depth Subscription', () => {
   );
 
   it(
-    'should receive new blocks with minimum depth and chainIds filter',
+    'should receive new blocks from chainId 2 and 9',
     async () => {
       const client = createClient({
         url: wsUrl,
         webSocketImpl: WebSocket,
       });
 
-      const subscription = getNewBlocksFromDepthSubscriptionQuery({
-        minimumDepth: 1,
+      const subscription = getNewBlocksSubscriptionQuery({
         chainIds: ['2', '9'],
       });
 
@@ -260,13 +257,13 @@ describe('New Blocks From Depth Subscription', () => {
         ])) as SubscriptionResponse;
 
         // Verify the block structure
-        expect(result).toHaveProperty('newBlocksFromDepth');
-        expect(Array.isArray(result.newBlocksFromDepth)).toBe(true);
-        expect(result.newBlocksFromDepth.length).toBeGreaterThan(0);
+        expect(result).toHaveProperty('newBlocks');
+        expect(Array.isArray(result.newBlocks)).toBe(true);
+        expect(result.newBlocks.length).toBeGreaterThan(0);
 
         // Check each block in the array
-        result.newBlocksFromDepth.forEach(block => {
-          expect(['2', '9']).toContain(block.chainId);
+        result.newBlocks.forEach(block => {
+          expect([2, 9]).toContain(block.chainId);
           expect(block).toHaveProperty('creationTime');
           expect(block).toHaveProperty('difficulty');
           expect(block).toHaveProperty('epoch');

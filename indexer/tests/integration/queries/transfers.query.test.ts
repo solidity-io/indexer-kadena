@@ -1,13 +1,13 @@
 import { GraphQLClient } from 'graphql-request';
-import { getTransfersQuery, getTransfersQueryTwo } from './builders/transfers.builder';
-import { transfersFixture001 } from './fixtures/transfers/transfers.fixture.001';
-import { transfersFixture002 } from './fixtures/transfers/transfers.fixture.002';
-import { transfersFixture003 } from './fixtures/transfers/transfers.fixture.003';
-import { transfersFixture004 } from './fixtures/transfers/transfers.fixture.004';
-import { transfersFixture005 } from './fixtures/transfers/transfers.fixture.005';
-import { transfersFixture006 } from './fixtures/transfers/transfers.fixture.006';
-import { transfersFixture007 } from './fixtures/transfers/transfers.fixture.007';
-import { transfersFixture008 } from './fixtures/transfers/transfers.fixture.008';
+import { getTransfersQuery, getTransfersQueryTwo } from '../builders/transfers.builder';
+import { transfersFixture001 } from '../fixtures/transfers/transfers.fixture.001';
+import { transfersFixture002 } from '../fixtures/transfers/transfers.fixture.002';
+import { transfersFixture003 } from '../fixtures/transfers/transfers.fixture.003';
+import { transfersFixture004 } from '../fixtures/transfers/transfers.fixture.004';
+import { transfersFixture005 } from '../fixtures/transfers/transfers.fixture.005';
+import { transfersFixture006 } from '../fixtures/transfers/transfers.fixture.006';
+import { transfersFixture007 } from '../fixtures/transfers/transfers.fixture.007';
+import { transfersFixture008 } from '../fixtures/transfers/transfers.fixture.008';
 
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 

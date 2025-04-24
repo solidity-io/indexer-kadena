@@ -1,5 +1,5 @@
 import { createClient, ExecutionResult, Sink } from 'graphql-ws';
-import { getEventsSubscriptionQuery } from './builders/events-subscription.builder';
+import { getEventsSubscriptionQuery } from '../builders/events-subscription.builder';
 import WebSocket from 'ws';
 
 interface Event {

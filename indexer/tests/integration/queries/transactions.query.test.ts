@@ -1,14 +1,14 @@
 import { GraphQLClient } from 'graphql-request';
-import { getTransactionsQuery } from './builders/transactions.builders';
-import { transactionsFixture001 } from './fixtures/transactions/transactions.fixture.001';
-import { transactionsFixture002 } from './fixtures/transactions/transactions.fixture.002';
-import { transactionsFixture003 } from './fixtures/transactions/transactions.fixture.003';
-import { transactionsFixture004 } from './fixtures/transactions/transactions.fixture.004';
-import { transactionsFixture005 } from './fixtures/transactions/transactions.fixture.005';
-import { transactionsFixture006 } from './fixtures/transactions/transactions.fixture.006';
-import { transactionsFixture007 } from './fixtures/transactions/transactions.fixture.007';
-import { transactionsFixture008 } from './fixtures/transactions/transactions.fixture.008';
-import { transactionsFixture009 } from './fixtures/transactions/transactions.fixture.009';
+import { getTransactionsQuery } from '../builders/transactions.builders';
+import { transactionsFixture001 } from '../fixtures/transactions/transactions.fixture.001';
+import { transactionsFixture002 } from '../fixtures/transactions/transactions.fixture.002';
+import { transactionsFixture003 } from '../fixtures/transactions/transactions.fixture.003';
+import { transactionsFixture004 } from '../fixtures/transactions/transactions.fixture.004';
+import { transactionsFixture005 } from '../fixtures/transactions/transactions.fixture.005';
+import { transactionsFixture006 } from '../fixtures/transactions/transactions.fixture.006';
+import { transactionsFixture007 } from '../fixtures/transactions/transactions.fixture.007';
+import { transactionsFixture008 } from '../fixtures/transactions/transactions.fixture.008';
+import { transactionsFixture009 } from '../fixtures/transactions/transactions.fixture.009';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('Transactions', () => {

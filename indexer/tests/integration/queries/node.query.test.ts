@@ -1,15 +1,15 @@
 import { GraphQLClient } from 'graphql-request';
-import { getNodeQuery } from './builders/node.builder';
-import { nodeFixture001 } from './fixtures/node/node.fixture.001';
-import { nodeFixture002 } from './fixtures/node/node.fixture.002';
-import { nodeFixture003 } from './fixtures/node/node.fixture.003';
-import { nodeFixture004 } from './fixtures/node/node.fixture.004';
-import { nodeFixture005 } from './fixtures/node/node.fixture.005';
-import { nodeFixture006 } from './fixtures/node/node.fixture.006';
-import { nodeFixture007 } from './fixtures/node/node.fixture.007';
-import { nodeFixture008 } from './fixtures/node/node.fixture.008';
-import { nodeFixture009 } from './fixtures/node/node.fixture.009';
-import { nodeFixture010 } from './fixtures/node/node.fixture.010';
+import { getNodeQuery } from '../builders/node.builder';
+import { nodeFixture001 } from '../fixtures/node/node.fixture.001';
+import { nodeFixture002 } from '../fixtures/node/node.fixture.002';
+import { nodeFixture003 } from '../fixtures/node/node.fixture.003';
+import { nodeFixture004 } from '../fixtures/node/node.fixture.004';
+import { nodeFixture005 } from '../fixtures/node/node.fixture.005';
+import { nodeFixture006 } from '../fixtures/node/node.fixture.006';
+import { nodeFixture007 } from '../fixtures/node/node.fixture.007';
+import { nodeFixture008 } from '../fixtures/node/node.fixture.008';
+import { nodeFixture009 } from '../fixtures/node/node.fixture.009';
+import { nodeFixture010 } from '../fixtures/node/node.fixture.010';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('Node', () => {

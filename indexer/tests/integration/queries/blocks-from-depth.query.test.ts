@@ -1,7 +1,7 @@
 import { GraphQLClient } from 'graphql-request';
-import { getBlocksFromDepthQuery } from './builders/blocks-from-depth.builder';
-import { blocksFromDepthFixture001 } from './fixtures/blocks-from-depth/blocks-from-depth.fixture.001';
-import { blocksFromDepthFixture002 } from './fixtures/blocks-from-depth/blocks-from-depth.fixture.002';
+import { getBlocksFromDepthQuery } from '../builders/blocks-from-depth.builder';
+import { blocksFromDepthFixture001 } from '../fixtures/blocks-from-depth/blocks-from-depth.fixture.001';
+import { blocksFromDepthFixture002 } from '../fixtures/blocks-from-depth/blocks-from-depth.fixture.002';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('Blocks from depth', () => {

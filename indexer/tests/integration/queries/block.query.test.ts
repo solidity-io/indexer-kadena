@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
-import { getBlockQuery } from './builders/block.builder';
-import { blockFixture001 } from './fixtures/block/block.fixture.001';
+import { getBlockQuery } from '../builders/block.builder';
+import { blockFixture001 } from '../fixtures/block/block.fixture.001';
 
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
