@@ -5,33 +5,47 @@
  * which allows clients to receive real-time updates when blocks reach a specified minimum
  * confirmation depth. This is particularly useful for applications that need to wait for
  * a certain number of confirmations before considering a transaction finalized.
- *
- * Unlike the standard newBlocks subscription, this subscription uses a PubSub event
- * filtering mechanism to only notify clients when blocks meet their criteria.
  */
 
-import { withFilter } from 'graphql-subscriptions';
 import { ResolverContext } from '../../config/apollo-server-config';
-import {
-  SubscriptionNewBlocksFromDepthArgs,
-  SubscriptionResolvers,
-} from '../../config/graphql-types';
-import { NEW_BLOCKS_FROM_DEPTH_EVENT } from './consts';
-import zod from 'zod';
-import { blockQueryResolver } from '../query/block-query-resolver';
+import { SubscriptionResolvers } from '../../config/graphql-types';
+import { BlockOutput } from '../../repository/application/block-repository';
 
-/**
- * Zod schema for validating incoming block notification events
- *
- * This schema ensures that the payload from the PubSub system contains
- * the required properties (chainId, height, hash) and that they are of
- * the correct types before processing the event.
- */
-const newBlocksFromDepthSubscriptionSchema = zod.object({
-  chainId: zod.string(),
-  height: zod.number(),
-  hash: zod.string(),
-});
+async function* iteratorFn(
+  chainIds: string[],
+  minimumDepth: number,
+  context: ResolverContext,
+): AsyncGenerator<BlockOutput[], void, unknown> {
+  const startingTimestamp = new Date().getTime() / 1000000;
+  const blockResult = await context.blockRepository.getLastBlocksWithDepth(
+    chainIds,
+    minimumDepth,
+    startingTimestamp,
+  );
+
+  let lastBlockId: string | undefined;
+
+  if (blockResult.length > 0) {
+    lastBlockId = blockResult[0].blockId.toString();
+    yield [];
+  }
+
+  while (context.signal) {
+    const newBlocks = await context.blockRepository.getLastBlocksWithDepth(
+      chainIds,
+      minimumDepth,
+      startingTimestamp,
+      lastBlockId,
+    );
+
+    if (newBlocks.length > 0) {
+      lastBlockId = newBlocks[0].blockId.toString();
+      yield newBlocks;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
+  }
+}
 
 /**
  * GraphQL subscription resolver for the 'newBlocksFromDepth' subscription
@@ -47,34 +61,11 @@ const newBlocksFromDepthSubscriptionSchema = zod.object({
  * - Blocks on chains specified by the chainIds argument (or all chains if not specified)
  * - Blocks with a depth (confirmations) greater than or equal to minimumDepth
  *
- * This approach allows for a single PubSub event stream to serve multiple clients with
- * different filtering requirements.
  */
 export const newBlocksFromDepthSubscriptionResolver: SubscriptionResolvers<ResolverContext>['newBlocksFromDepth'] =
   {
-    resolve: async (payload: any, _args: any, context: ResolverContext) => {
-      const res = await (blockQueryResolver as any)({}, { hash: payload.hash }, context);
-      return [res];
-    },
-    subscribe: (_parent, args: SubscriptionNewBlocksFromDepthArgs, context) => {
-      return {
-        [Symbol.asyncIterator]: withFilter(
-          () => context.pubSub.asyncIterator(NEW_BLOCKS_FROM_DEPTH_EVENT),
-          payload => {
-            const res = newBlocksFromDepthSubscriptionSchema.safeParse(payload);
-            if (!res.success) {
-              console.error(
-                '[ERROR][API][BIZ_FLOW] Invalid payload on newBlocksFromDepthSubscription',
-                payload,
-              );
-              return false;
-            }
-            const { chainId, height } = res.data;
-            return (
-              (!args.chainIds || args.chainIds.includes(chainId)) && height >= args.minimumDepth
-            );
-          },
-        ),
-      };
+    resolve: (payload: any) => payload,
+    subscribe: (_root, args, context) => {
+      return iteratorFn(args.chainIds ?? [], args.minimumDepth, context);
     },
   };

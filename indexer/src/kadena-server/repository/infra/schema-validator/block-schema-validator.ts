@@ -93,6 +93,7 @@ const validate = (row: any): BlockOutput => {
       chainId,
       hash,
     })),
+    blockId: res.id,
   };
 };
 
@@ -126,6 +127,7 @@ const mapFromSequelize = (blockModel: BlockAttributes): BlockOutput => {
       chainId,
       hash,
     })),
+    blockId: blockModel.id,
   };
 };
 
