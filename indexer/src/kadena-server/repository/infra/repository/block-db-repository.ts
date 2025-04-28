@@ -158,9 +158,6 @@ export default class BlockDbRepository implements BlockRepository {
       if (!isNaN(beforeHeight) && !isNaN(beforeId)) {
         queryParams.push(beforeHeight, beforeId);
         conditions += `\nAND (b.height < $${queryParams.length - 1} OR (b.height = $${queryParams.length - 1} AND b.id > $${queryParams.length}))`;
-      } else {
-        queryParams.push(before);
-        conditions += `\nAND b.id > $${queryParams.length}`;
       }
     }
 
@@ -176,9 +173,6 @@ export default class BlockDbRepository implements BlockRepository {
         // (height < afterHeight) OR (height = afterHeight AND id < afterId)
         queryParams.push(afterHeight, afterId);
         conditions += `\nAND (b.height < $${queryParams.length - 1} OR (b.height = $${queryParams.length - 1} AND b.id < $${queryParams.length}))`;
-      } else {
-        queryParams.push(after);
-        conditions += `\nAND b.id < $${queryParams.length}`;
       }
     }
 
