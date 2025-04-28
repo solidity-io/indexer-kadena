@@ -99,12 +99,15 @@ describe('New Blocks From Depth Subscription', () => {
 
       let unsubscribeFn: (() => void) | undefined;
       let timeoutId: NodeJS.Timeout | undefined;
+      let messageCount = 0;
 
-      // Create a promise that will resolve when we receive the first block
+      // Create a promise that will resolve when we receive the second block
       const firstBlockPromise = new Promise<SubscriptionResponse>((resolve, reject) => {
         const sink: Sink<ExecutionResult> = {
           next: (data: ExecutionResult) => {
-            if (data.data) {
+            messageCount++;
+            // Only process the second message
+            if (messageCount === 2 && data.data) {
               resolve(data.data as unknown as SubscriptionResponse);
               // Unsubscribe after receiving the block
               if (unsubscribeFn) {
@@ -212,12 +215,15 @@ describe('New Blocks From Depth Subscription', () => {
 
       let unsubscribeFn: (() => void) | undefined;
       let timeoutId: NodeJS.Timeout | undefined;
+      let messageCount = 0;
 
-      // Create a promise that will resolve when we receive the first block
+      // Create a promise that will resolve when we receive the second block
       const firstBlockPromise = new Promise<SubscriptionResponse>((resolve, reject) => {
         const sink: Sink<ExecutionResult> = {
           next: (data: ExecutionResult) => {
-            if (data.data) {
+            messageCount++;
+            // Only process the second message
+            if (messageCount === 2 && data.data) {
               resolve(data.data as unknown as SubscriptionResponse);
               // Unsubscribe after receiving the block
               if (unsubscribeFn) {
@@ -266,7 +272,7 @@ describe('New Blocks From Depth Subscription', () => {
 
         // Check each block in the array
         result.newBlocksFromDepth.forEach(block => {
-          expect(['2', '9']).toContain(block.chainId);
+          expect([2, 9]).toContain(block.chainId);
           expect(block).toHaveProperty('creationTime');
           expect(block).toHaveProperty('difficulty');
           expect(block).toHaveProperty('epoch');

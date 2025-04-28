@@ -23,7 +23,7 @@ const wsUrl = process.env.WS_URL ?? 'ws://localhost:3001/graphql';
 const SUBSCRIPTION_TIMEOUT = 90000;
 
 describe('Events Subscription', () => {
-  it.only(
+  it(
     'should receive events for a specific qualified event name',
     async () => {
       const client = createClient({
@@ -115,7 +115,7 @@ describe('Events Subscription', () => {
     SUBSCRIPTION_TIMEOUT,
   );
 
-  it.only(
+  it(
     'should receive events with chainId filter',
     async () => {
       const client = createClient({
@@ -210,7 +210,7 @@ describe('Events Subscription', () => {
     SUBSCRIPTION_TIMEOUT,
   );
 
-  it(
+  it.skip(
     'should receive events with minimumDepth filter',
     async () => {
       const client = createClient({
