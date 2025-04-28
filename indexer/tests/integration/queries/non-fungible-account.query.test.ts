@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
-import { nonFungibleAccountFixture001 } from './fixtures/non-fungible-account/non-fungible-account.fixture.001';
-import { getNonFungibleAccountQuery } from './builders/non-fungible-account.builder';
+import { nonFungibleAccountFixture001 } from '../fixtures/non-fungible-account/non-fungible-account.fixture.001';
+import { getNonFungibleAccountQuery } from '../builders/non-fungible-account.builder';
 
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 

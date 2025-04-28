@@ -1,7 +1,7 @@
 import { GraphQLClient } from 'graphql-request';
-import { getTokensQuery } from './builders/tokens.builder';
-import { tokensFixture001 } from './fixtures/tokens/tokens.fixture.001';
-import { tokensFixture002 } from './fixtures/tokens/tokens.fixture.002';
+import { getTokensQuery } from '../builders/tokens.builder';
+import { tokensFixture001 } from '../fixtures/tokens/tokens.fixture.001';
+import { tokensFixture002 } from '../fixtures/tokens/tokens.fixture.002';
 
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 

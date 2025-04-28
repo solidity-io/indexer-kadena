@@ -1,5 +1,5 @@
 import { createClient, ExecutionResult, Sink } from 'graphql-ws';
-import { getNewBlocksSubscriptionQuery } from './builders/new-blocks-subscription.builder';
+import { getNewBlocksFromDepthSubscriptionQuery } from '../builders/new-blocks-from-depth-subscription.builder';
 import WebSocket from 'ws';
 
 interface Block {
@@ -77,32 +77,37 @@ interface Block {
 }
 
 interface SubscriptionResponse {
-  newBlocks: Array<Block>;
+  newBlocksFromDepth: Array<Block>;
 }
 
 const wsUrl = process.env.WS_URL ?? 'ws://localhost:3001/graphql';
 
-const SUBSCRIPTION_TIMEOUT = 30000;
+const SUBSCRIPTION_TIMEOUT = 90000;
 
-describe('New Blocks Subscription', () => {
+describe('New Blocks From Depth Subscription', () => {
   it(
-    'should receive new blocks',
+    'should receive new blocks with minimum depth',
     async () => {
       const client = createClient({
         url: wsUrl,
         webSocketImpl: WebSocket,
       });
 
-      const subscription = getNewBlocksSubscriptionQuery({});
+      const subscription = getNewBlocksFromDepthSubscriptionQuery({
+        minimumDepth: 1,
+      });
 
       let unsubscribeFn: (() => void) | undefined;
       let timeoutId: NodeJS.Timeout | undefined;
+      let messageCount = 0;
 
-      // Create a promise that will resolve when we receive the first block
+      // Create a promise that will resolve when we receive the second block
       const firstBlockPromise = new Promise<SubscriptionResponse>((resolve, reject) => {
         const sink: Sink<ExecutionResult> = {
           next: (data: ExecutionResult) => {
-            if (data.data) {
+            messageCount++;
+            // Only process the second message
+            if (messageCount === 2 && data.data) {
               resolve(data.data as unknown as SubscriptionResponse);
               // Unsubscribe after receiving the block
               if (unsubscribeFn) {
@@ -145,12 +150,12 @@ describe('New Blocks Subscription', () => {
         ])) as SubscriptionResponse;
 
         // Verify the block structure
-        expect(result).toHaveProperty('newBlocks');
-        expect(Array.isArray(result.newBlocks)).toBe(true);
-        expect(result.newBlocks.length).toBeGreaterThan(0);
+        expect(result).toHaveProperty('newBlocksFromDepth');
+        expect(Array.isArray(result.newBlocksFromDepth)).toBe(true);
+        expect(result.newBlocksFromDepth.length).toBeGreaterThan(0);
 
         // Check each block in the array
-        result.newBlocks.forEach(block => {
+        result.newBlocksFromDepth.forEach(block => {
           expect(block).toHaveProperty('chainId');
           expect(block).toHaveProperty('creationTime');
           expect(block).toHaveProperty('difficulty');
@@ -196,25 +201,29 @@ describe('New Blocks Subscription', () => {
   );
 
   it(
-    'should receive new blocks from chainId 2 and 9',
+    'should receive new blocks with minimum depth and chainIds filter',
     async () => {
       const client = createClient({
         url: wsUrl,
         webSocketImpl: WebSocket,
       });
 
-      const subscription = getNewBlocksSubscriptionQuery({
+      const subscription = getNewBlocksFromDepthSubscriptionQuery({
+        minimumDepth: 1,
         chainIds: ['2', '9'],
       });
 
       let unsubscribeFn: (() => void) | undefined;
       let timeoutId: NodeJS.Timeout | undefined;
+      let messageCount = 0;
 
-      // Create a promise that will resolve when we receive the first block
+      // Create a promise that will resolve when we receive the second block
       const firstBlockPromise = new Promise<SubscriptionResponse>((resolve, reject) => {
         const sink: Sink<ExecutionResult> = {
           next: (data: ExecutionResult) => {
-            if (data.data) {
+            messageCount++;
+            // Only process the second message
+            if (messageCount === 2 && data.data) {
               resolve(data.data as unknown as SubscriptionResponse);
               // Unsubscribe after receiving the block
               if (unsubscribeFn) {
@@ -257,12 +266,12 @@ describe('New Blocks Subscription', () => {
         ])) as SubscriptionResponse;
 
         // Verify the block structure
-        expect(result).toHaveProperty('newBlocks');
-        expect(Array.isArray(result.newBlocks)).toBe(true);
-        expect(result.newBlocks.length).toBeGreaterThan(0);
+        expect(result).toHaveProperty('newBlocksFromDepth');
+        expect(Array.isArray(result.newBlocksFromDepth)).toBe(true);
+        expect(result.newBlocksFromDepth.length).toBeGreaterThan(0);
 
         // Check each block in the array
-        result.newBlocks.forEach(block => {
+        result.newBlocksFromDepth.forEach(block => {
           expect([2, 9]).toContain(block.chainId);
           expect(block).toHaveProperty('creationTime');
           expect(block).toHaveProperty('difficulty');

@@ -1,8 +1,8 @@
 import { GraphQLClient } from 'graphql-request';
-import { getPactQueryBuilder } from './builders/pact-query.builder';
-import { pactQueryFixture001 } from './fixtures/pact-query/pact-query.fixture.001';
-import { pactQueryFixture002 } from './fixtures/pact-query/pact-query.fixture.002';
-import { pactQueryFixture003 } from './fixtures/pact-query/pact-query.fixture.003';
+import { getPactQueryBuilder } from '../builders/pact-query.builder';
+import { pactQueryFixture001 } from '../fixtures/pact-query/pact-query.fixture.001';
+import { pactQueryFixture002 } from '../fixtures/pact-query/pact-query.fixture.002';
+import { pactQueryFixture003 } from '../fixtures/pact-query/pact-query.fixture.003';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('PactQuery', () => {

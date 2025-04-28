@@ -1,9 +1,9 @@
 import { GraphQLClient } from 'graphql-request';
-import { getBlocksFromHeightQuery } from './builders/blocks-from-height.builder';
-import { blocksFromHeightFixture001 } from './fixtures/blocks-from-height/blocks-from-height.fixture.001';
-import { blocksFromHeightFixture002 } from './fixtures/blocks-from-height/blocks-from-height.fixture.002';
-import { blocksFromHeightFixture003 } from './fixtures/blocks-from-height/blocks-from-height.fixture.003';
-import { blocksFromHeightFixture004 } from './fixtures/blocks-from-height/blocks-from-height.fixture.004';
+import { getBlocksFromHeightQuery } from '../builders/blocks-from-height.builder';
+import { blocksFromHeightFixture001 } from '../fixtures/blocks-from-height/blocks-from-height.fixture.001';
+import { blocksFromHeightFixture002 } from '../fixtures/blocks-from-height/blocks-from-height.fixture.002';
+import { blocksFromHeightFixture003 } from '../fixtures/blocks-from-height/blocks-from-height.fixture.003';
+import { blocksFromHeightFixture004 } from '../fixtures/blocks-from-height/blocks-from-height.fixture.004';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('Blocks from height', () => {

@@ -1,6 +1,6 @@
 import { GraphQLClient } from 'graphql-request';
-import { getFungibleAccountsByPublicKeyQuery } from './builders/fungible-accounts-by-public-key.builder';
-import { fungibleAccountsByPublicKeyFixture001 } from './fixtures/fungible-accounts-by-public-key/fungible-accounts-by-public-key.fixture.001';
+import { getFungibleAccountsByPublicKeyQuery } from '../builders/fungible-accounts-by-public-key.builder';
+import { fungibleAccountsByPublicKeyFixture001 } from '../fixtures/fungible-accounts-by-public-key/fungible-accounts-by-public-key.fixture.001';
 
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 

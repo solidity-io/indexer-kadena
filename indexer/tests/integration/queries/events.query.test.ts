@@ -1,11 +1,11 @@
 import { GraphQLClient } from 'graphql-request';
-import { getEventsQuery } from './builders/events.builder';
-import { eventsFixture001 } from './fixtures/events/events.fixture.001';
-import { eventsFixture002 } from './fixtures/events/events.fixture.002';
-import { eventsFixture003 } from './fixtures/events/events.fixture.003';
-import { eventsFixture004 } from './fixtures/events/events.fixture.004';
-import { eventsFixture005 } from './fixtures/events/events.fixture.005';
-import { eventsFixture006 } from './fixtures/events/events.fixture.006';
+import { getEventsQuery } from '../builders/events.builder';
+import { eventsFixture001 } from '../fixtures/events/events.fixture.001';
+import { eventsFixture002 } from '../fixtures/events/events.fixture.002';
+import { eventsFixture003 } from '../fixtures/events/events.fixture.003';
+import { eventsFixture004 } from '../fixtures/events/events.fixture.004';
+import { eventsFixture005 } from '../fixtures/events/events.fixture.005';
+import { eventsFixture006 } from '../fixtures/events/events.fixture.006';
 const client = new GraphQLClient(process.env.API_URL ?? 'http://localhost:3001/graphql');
 
 describe('Events', () => {
