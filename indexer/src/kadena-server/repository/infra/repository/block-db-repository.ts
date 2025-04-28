@@ -673,4 +673,126 @@ export default class BlockDbRepository implements BlockRepository {
 
     return output;
   }
+
+  async getLastBlocksWithDepth(
+    chainIdsParam: string[],
+    minimumDepth: number,
+    startingTimestamp: number,
+    id?: string,
+  ): Promise<BlockOutput[]> {
+    const chainIds = chainIdsParam.length ? chainIdsParam.map(Number) : await this.getChainIds();
+    const maxHeights = await this.getMaxHeights();
+
+    const queryParams: any[] = [];
+    const conditions: string[] = [];
+
+    chainIds.forEach(chainId => {
+      const maxHeight = maxHeights[chainId];
+      if (maxHeight !== undefined) {
+        conditions.push(
+          `("chainId" = $${queryParams.length + 1} AND height <= $${queryParams.length + 2})`,
+        );
+        queryParams.push(chainId, maxHeight - minimumDepth);
+      }
+    });
+
+    queryParams.push(startingTimestamp.toFixed());
+
+    let query = `
+      SELECT *
+      FROM "Blocks"
+      WHERE ${conditions.join(' OR ')}
+      AND "creationTime" > $${queryParams.length}
+    `;
+
+    if (id) {
+      queryParams.push(id);
+      query += `
+        AND id > $${queryParams.length}
+        ORDER BY id DESC
+        LIMIT 100
+      `;
+    } else {
+      query += `
+        ORDER BY id DESC
+        LIMIT 5
+      `;
+    }
+
+    const { rows: blockRows } = await rootPgPool.query(query, queryParams);
+
+    const blocksToReturn = blockRows.map(row => blockValidator.validate(row));
+    const blockHashToDepth = await this.createBlockDepthMap(blocksToReturn, 'hash', minimumDepth);
+
+    return blocksToReturn.filter(block => blockHashToDepth[block.hash] >= minimumDepth);
+  }
+
+  async getConfirmationDepth(blockHash: string, minimumDepth: number): Promise<number> {
+    const query = `
+      WITH RECURSIVE BlockDescendants AS (
+        SELECT hash, parent, 0 AS depth, height, "chainId"
+        FROM "Blocks"
+        WHERE hash = $1
+        UNION ALL
+        SELECT b.hash, b.parent, d.depth + 1 AS depth, b.height, b."chainId"
+        FROM BlockDescendants d
+        JOIN "Blocks" b ON d.hash = b.parent AND b.height = d.height + 1 AND b."chainId" = d."chainId"
+        WHERE d.depth <= $2
+      )
+      SELECT MAX(depth) AS depth
+      FROM BlockDescendants;
+    `;
+
+    const { rows } = await rootPgPool.query(query, [blockHash, minimumDepth]);
+
+    if (rows.length && rows[0].depth) {
+      return Number(rows[0].depth);
+    } else {
+      return 0;
+    }
+  }
+
+  /**
+   *
+   * @param items - all the items to create a block depth map for
+   * @param hashProp - the property of the item that contains the block hash
+   * @returns a map of block hashes to their confirmation depths
+   */
+  async createBlockDepthMap<T>(
+    items: T[],
+    hashProp: keyof T,
+    minimumDepth: number,
+  ): Promise<Record<string, number>> {
+    const uniqueBlockHashes = [...new Set(items.map(item => item[hashProp]))];
+
+    const confirmationDepths = await Promise.all(
+      uniqueBlockHashes.map(blockHash =>
+        this.getConfirmationDepth(blockHash as string, minimumDepth),
+      ),
+    );
+
+    return uniqueBlockHashes.reduce((map: Record<string, number>, blockHash, index) => {
+      map[blockHash as string] = confirmationDepths[index];
+      return map;
+    }, {});
+  }
+
+  async getMaxHeights(): Promise<Record<string, number>> {
+    const chainIds = await this.getChainIds();
+
+    const maxHeightsByChainIdPromises = chainIds.map(async chainId => {
+      const query = `
+        SELECT MAX(height) as max_height
+        FROM "Blocks"
+        WHERE "chainId" = $1
+      `;
+
+      const { rows } = await rootPgPool.query(query, [chainId]);
+      return { [chainId.toString()]: parseInt(rows[0].max_height, 10) };
+    });
+
+    const maxHeightsArray = await Promise.all(maxHeightsByChainIdPromises);
+
+    return Object.assign({}, ...maxHeightsArray);
+  }
 }
