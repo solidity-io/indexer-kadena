@@ -3,7 +3,7 @@ export const blocksFromHeightFixture004 = {
     blocksFromHeight: {
       edges: [
         {
-          cursor: 'MzA4MTY4NTg=',
+          cursor: 'MjAwMDAwMDozMDgxNjg1OA==',
           node: {
             chainId: 13,
             creationTime: '2021-09-23T14:27:51.081Z',
@@ -95,7 +95,7 @@ export const blocksFromHeightFixture004 = {
           },
         },
         {
-          cursor: 'MzA3OTAwMDU=',
+          cursor: 'MjAwMDAwMDozMDc5MDAwNQ==',
           node: {
             chainId: 10,
             creationTime: '2021-09-23T14:27:51.875Z',
@@ -187,7 +187,7 @@ export const blocksFromHeightFixture004 = {
           },
         },
         {
-          cursor: 'MzA3NzUzOTg=',
+          cursor: 'MjAwMDAwMDozMDc3NTM5OA==',
           node: {
             chainId: 18,
             creationTime: '2021-09-23T14:27:54.040Z',
@@ -279,7 +279,7 @@ export const blocksFromHeightFixture004 = {
           },
         },
         {
-          cursor: 'MzA3NzAxNDc=',
+          cursor: 'MjAwMDAwMDozMDc3MDE0Nw==',
           node: {
             chainId: 17,
             creationTime: '2021-09-23T14:27:51.293Z',
@@ -371,7 +371,7 @@ export const blocksFromHeightFixture004 = {
           },
         },
         {
-          cursor: 'MzA3Njk2MzE=',
+          cursor: 'MjAwMDAwMDozMDc2OTYzMQ==',
           node: {
             chainId: 14,
             creationTime: '2021-09-23T14:27:51.101Z',

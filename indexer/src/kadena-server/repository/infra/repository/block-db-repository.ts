@@ -121,6 +121,9 @@ export default class BlockDbRepository implements BlockRepository {
    * supporting cursor-based pagination and chain filtering for efficient
    * navigation through large result sets.
    *
+   * Uses keyset pagination with compound cursors (height:id) for better performance
+   * when navigating through large datasets.
+   *
    * @param params - Object containing height range and pagination parameters
    * @returns Promise resolving to page info and block edges
    */
@@ -146,13 +149,31 @@ export default class BlockDbRepository implements BlockRepository {
     let conditions = '';
 
     if (before) {
-      queryParams.push(before);
-      conditions += `\nAND b.id > $${queryParams.length}`;
+      // Try to parse as compound cursor format (height:id)
+      const [height, id] = before.split(':');
+      const beforeHeight = parseInt(height, 10);
+      const beforeId = parseInt(id, 10);
+
+      // Check if values are valid numbers
+      if (!isNaN(beforeHeight) && !isNaN(beforeId)) {
+        queryParams.push(beforeHeight, beforeId);
+        conditions += `\nAND (b.height < $${queryParams.length - 1} OR (b.height = $${queryParams.length - 1} AND b.id > $${queryParams.length}))`;
+      }
     }
 
     if (after) {
-      queryParams.push(after);
-      conditions += `\nAND b.id < $${queryParams.length}`;
+      // Try to parse as compound cursor format (height:id)
+      const [height, id] = after.split(':');
+      const afterHeight = parseInt(height, 10);
+      const afterId = parseInt(id, 10);
+
+      // Check if values are valid numbers
+      if (!isNaN(afterHeight) && !isNaN(afterId)) {
+        // For forward pagination with "after", we want records where:
+        // (height < afterHeight) OR (height = afterHeight AND id < afterId)
+        queryParams.push(afterHeight, afterId);
+        conditions += `\nAND (b.height < $${queryParams.length - 1} OR (b.height = $${queryParams.length - 1} AND b.id < $${queryParams.length}))`;
+      }
     }
 
     if (chainIds?.length) {
@@ -182,14 +203,14 @@ export default class BlockDbRepository implements BlockRepository {
       FROM "Blocks" b
       WHERE b.height >= $2
       ${conditions}
-      ORDER BY b.height, b.id ${order}
+      ORDER BY b.height ${order}, b.id ${order}
       LIMIT $1;
     `;
 
     const { rows: blockRows } = await rootPgPool.query(query, queryParams);
 
     const edges = blockRows.map(row => ({
-      cursor: row.id.toString(),
+      cursor: `${row.height.toString()}:${row.id.toString()}`,
       node: blockValidator.validate(row),
     }));
 
@@ -494,8 +515,6 @@ export default class BlockDbRepository implements BlockRepository {
    * @returns Promise resolving to an array of blocks
    */
   async getBlockByHashes(hashes: string[]): Promise<BlockOutput[]> {
-    console.info('[INFO][INFRA][INFRA_CONFIG] Batching for hashes:', hashes);
-
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.id,
         b.hash,
