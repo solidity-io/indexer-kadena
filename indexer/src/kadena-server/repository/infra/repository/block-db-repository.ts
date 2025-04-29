@@ -429,8 +429,6 @@ export default class BlockDbRepository implements BlockRepository {
    * @returns Promise resolving to an array of blocks
    */
   async getBlocksByEventIds(eventIds: readonly string[]) {
-    console.info('[INFO][INFRA][INFRA_CONFIG] Batching for event IDs:', eventIds);
-
     const { rows: blockRows } = await rootPgPool.query(
       `SELECT b.*, e.id as "eventId"
         FROM "Events" e
