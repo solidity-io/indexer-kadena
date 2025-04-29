@@ -1,6 +1,9 @@
-import { QueryTypes } from 'sequelize';
-import { sequelize } from './database';
 import '../models/guard';
+
+import { QueryTypes } from 'sequelize';
+
+import { setupAssociations } from '../models/setup-associations';
+import { sequelize } from './database';
 
 export async function initializeDatabase(noTrigger = true): Promise<void> {
   try {
@@ -33,6 +36,9 @@ export async function initializeDatabase(noTrigger = true): Promise<void> {
           CREATE EXTENSION btree_gin;
       `);
     await sequelize.sync({ force: false });
+
+    // Setup model associations
+    setupAssociations();
 
     console.info('[INFO][DB][INFRA_CONFIG] Database tables synchronized successfully.');
 

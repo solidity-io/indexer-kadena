@@ -1,52 +1,21 @@
 import { DataTypes, Model } from 'sequelize';
 
 import { sequelize } from '../config/database';
+import type { Pair } from './pair';
 
-export interface TokenInfoAttributes {
-  decimalsToDisplay: number;
-  description: string;
-  discordUrl: string | null;
-  mediumUrl: string | null;
-  telegramUrl: string | null;
-  themeColor: string;
-  twitterUrl: string | null;
-  websiteUrl: string | null;
-}
+class Token extends Model {
+  public id!: number;
+  public address!: string;
+  public name!: string;
+  public symbol!: string;
+  public decimals!: number;
+  public totalSupply!: string;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 
-export interface TokenAttributes {
-  id: number;
-  code: string;
-  icon: string;
-  tokenName: string;
-  tokenSymbol: string;
-  tokenInfo: TokenInfoAttributes;
-  validated: boolean;
-}
-
-/**
- * Represents a token in the blockchain network.
- */
-class Token extends Model<TokenAttributes> implements TokenAttributes {
-  /** The unique identifier for the token record */
-  declare id: number;
-
-  /** The code/identifier of the token (e.g., "n_518dfea5f0d2abe95cbcd8956eb97f3238e274a9.AZUKI") */
-  declare code: string;
-
-  /** URL to the token's icon image */
-  declare icon: string;
-
-  /** The name of the token (e.g., "Azuki") */
-  declare tokenName: string;
-
-  /** The symbol of the token (e.g., "AZUKI") */
-  declare tokenSymbol: string;
-
-  /** Additional token information */
-  declare tokenInfo: TokenInfoAttributes;
-
-  /** Whether the token has been validated */
-  declare validated: boolean;
+  // Type definitions for associations
+  public readonly pairsAsToken0?: Pair[];
+  public readonly pairsAsToken1?: Pair[];
 }
 
 Token.init(
@@ -55,56 +24,34 @@ Token.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-      comment: 'The unique identifier for the token record',
     },
-    code: {
+    address: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-      comment:
-        'The code/identifier of the token (e.g., "n_518dfea5f0d2abe95cbcd8956eb97f3238e274a9.AZUKI")',
     },
-    icon: {
+    name: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: "URL to the token's icon image",
     },
-    tokenName: {
+    symbol: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: 'The name of the token (e.g., "Azuki")',
     },
-    tokenSymbol: {
+    decimals: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    totalSupply: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: 'The symbol of the token (e.g., "AZUKI")',
-    },
-    tokenInfo: {
-      type: DataTypes.JSONB,
-      allowNull: false,
-      comment: 'Additional token information including decimals, description, and social links',
-    },
-    validated: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false,
-      comment: 'Whether the token has been validated',
+      defaultValue: '0',
     },
   },
   {
     sequelize,
-    modelName: 'Token',
-    indexes: [
-      {
-        name: 'tokens_code_idx',
-        fields: ['code'],
-        unique: true,
-      },
-      {
-        name: 'tokens_symbol_idx',
-        fields: ['tokenSymbol'],
-      },
-    ],
+    tableName: 'tokens',
+    timestamps: true,
   },
 );
 

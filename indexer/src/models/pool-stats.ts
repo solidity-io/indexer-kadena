@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
 import { sequelize } from '../config/database';
-import Pair from './pair';
+import type { Pair } from './pair';
 
 export interface PoolStatsAttributes {
   id: number;
@@ -46,8 +46,14 @@ class PoolStats extends Model<PoolStatsAttributes> implements PoolStatsAttribute
   /** 24-hour Annual Percentage Rate */
   declare apr24h: number;
 
-  /** The associated pair */
-  declare pair: Pair;
+  /** The timestamp when these stats were created */
+  declare readonly createdAt: Date;
+
+  /** The timestamp when these stats were last updated */
+  declare readonly updatedAt: Date;
+
+  // Type definitions for associations
+  declare readonly pair?: Pair;
 }
 
 PoolStats.init(
@@ -108,6 +114,8 @@ PoolStats.init(
   {
     sequelize,
     modelName: 'PoolStats',
+    tableName: 'pool_stats',
+    timestamps: true,
     indexes: [
       {
         name: 'pool_stats_pairid_timestamp_idx',
@@ -116,11 +124,5 @@ PoolStats.init(
     ],
   },
 );
-
-// Define associations
-PoolStats.belongsTo(Pair, {
-  foreignKey: 'pairId',
-  as: 'pair',
-});
 
 export default PoolStats;
