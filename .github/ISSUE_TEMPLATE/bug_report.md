@@ -8,13 +8,9 @@ assignees: ''
 
 ## Bug Report
 
-#### Version:
+### Current behavior
 
-- Release: v1.0.0
-- Tag: release-1.0.0
-- Commit: abc123f
-
-<!-- Please specify the commit or tag version. -->
+<!-- Please describe the current behaviour>
 
 ### Expected behavior
 

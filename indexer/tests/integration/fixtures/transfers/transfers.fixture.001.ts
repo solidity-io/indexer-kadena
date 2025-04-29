@@ -1,9 +1,4 @@
-import { GraphQLClient, gql } from 'graphql-request';
-const API_URL = 'http://localhost:3001/graphql';
-
-const client = new GraphQLClient(API_URL);
-
-const resOne = {
+export const transfersFixture001 = {
   data: {
     transfers: {
       totalCount: 2,
@@ -28,26 +23,3 @@ const resOne = {
     },
   },
 };
-
-describe('Transfers Query', () => {
-  it('requestKey: "RNxoNCcQriEZU3p_qLSiJAo7Bi-0-Oe7NkjkPFOKr70"', async () => {
-    const query = gql`
-      query {
-        transfers(requestKey: "RNxoNCcQriEZU3p_qLSiJAo7Bi-0-Oe7NkjkPFOKr70") {
-          totalCount
-          edges {
-            node {
-              amount
-              receiverAccount
-              senderAccount
-              moduleName
-            }
-          }
-        }
-      }
-    `;
-
-    const data = await client.request(query);
-    expect(resOne.data).toMatchObject(data);
-  });
-});
