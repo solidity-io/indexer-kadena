@@ -334,10 +334,21 @@ export default class TransactionDbRepository implements TransactionRepository {
     const { rows } = await rootPgPool.query(query, queryParams);
 
     // Transform database rows into GraphQL-compatible edges with cursors
-    const edges = rows.map(row => ({
-      cursor: row.creationTime.toString(),
-      node: transactionValidator.validate(row),
-    }));
+    const edges = rows
+      .map(row => ({
+        cursor: row.creationTime.toString(),
+        node: transactionValidator.validate(row),
+      }))
+      .sort((a, b) => {
+        // Primary sort is already done by DB query (creationTime DESC)
+        // Add secondary sort by id for consistent ordering when creationTimes are equal
+        const aNode = a.node as unknown as { id: string };
+        const bNode = b.node as unknown as { id: string };
+        if (a.cursor === b.cursor) {
+          return aNode.id > bNode.id ? 1 : -1;
+        }
+        return 0; // Maintain existing order from DB for different creationTimes
+      });
 
     const pageInfo = getPageInfo({ edges, order, limit, after, before });
     return pageInfo;
