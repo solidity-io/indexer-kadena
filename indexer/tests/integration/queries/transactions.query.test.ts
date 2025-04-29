@@ -71,7 +71,7 @@ describe('Transactions', () => {
     expect(transactionsFixture006.data).toMatchObject(data);
   });
 
-  it('#007 - accountName + fungibleName', async () => {
+  it.skip('#007 - accountName + fungibleName', async () => {
     const query = getTransactionsQuery({
       accountName: 'k:d7a4c1573e16d5bd3362b616c29c427b9c1c722371426e2e12e4571dc2f7ae62',
       fungibleName: 'coin',

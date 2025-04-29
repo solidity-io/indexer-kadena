@@ -384,6 +384,9 @@ export async function useKadenaGraphqlServer() {
     path: '/graphql',
   });
 
+  // Track active connections
+  let activeConnections = 0;
+
   /**
    * Configure WebSocket server for GraphQL subscriptions with cleanup handling
    *
@@ -417,6 +420,18 @@ export async function useKadenaGraphqlServer() {
           ...context,
           signal: abortController.signal, // Pass signal per subscription
         };
+      },
+      // Add connection lifecycle hooks for tracking
+      onConnect: ctx => {
+        const ip = ctx.extra.request.socket.remoteAddress || 'unknown';
+        activeConnections++;
+        console.log('New connection -> ', ip, 'Total connections opened:', activeConnections);
+        return true; // Allow the connection
+      },
+      onDisconnect: (ctx, code, reason) => {
+        const ip = ctx.extra.request.socket.remoteAddress || 'unknown';
+        activeConnections--;
+        console.log('Closed connection -> ', ip, 'Total connections opened:', activeConnections);
       },
     },
     wsServer,

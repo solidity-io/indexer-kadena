@@ -713,8 +713,6 @@ export default class TransactionDbRepository implements TransactionRepository {
    * @returns Promise resolving to matching transactions
    */
   async getTransactionsByEventIds(eventIds: readonly string[]): Promise<TransactionOutput[]> {
-    console.info('[INFO][INFRA][INFRA_CONFIG] Batching for event IDs:', eventIds);
-
     const { rows } = await rootPgPool.query(
       `SELECT t.id as id,
       t.hash as "hashTransaction",
