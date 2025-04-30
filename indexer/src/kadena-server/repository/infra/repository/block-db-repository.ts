@@ -92,23 +92,131 @@ export default class BlockDbRepository implements BlockRepository {
       last,
     });
 
-    const query: FindOptions<BlockAttributes> = {
-      where: {
-        height: { [Op.gt]: minimumDepth ?? 0 },
-        ...(after && { id: { [Op.lt]: after } }),
-        ...(before && { id: { [Op.gt]: before } }),
-        ...(!!chainIds?.length && { chainId: { [Op.in]: chainIds } }),
-      },
-      limit,
-      order: [['id', order]],
-    };
+    const chainIdsToUse = chainIds?.length ? chainIds.map(Number) : await this.getChainIds();
 
-    const rows = await BlockModel.findAll(query);
+    let allFetchedBlocks: any[] = [];
+    let lastHeight: number | null = null;
+    let lastChainId: number | null = null;
 
-    const edges = rows.map(row => ({
-      cursor: row.id.toString(),
-      node: blockValidator.mapFromSequelize(row),
-    }));
+    if (after) {
+      const [heightStr, chainIdStr] = after.split(':');
+      lastHeight = parseInt(heightStr, 10);
+      lastChainId = parseInt(chainIdStr, 10);
+
+      if (isNaN(lastHeight) || isNaN(lastChainId)) {
+        lastHeight = null;
+        lastChainId = null;
+      }
+    }
+
+    const batchSize = Math.max(limit * 2, 50); // Fetch more than needed in each batch
+    let hasMoreBlocks = true;
+
+    // Base query parameters and conditions for chain ID filtering
+    const baseQueryParams: any[] = [batchSize];
+    let baseConditions: string[] = [];
+
+    // Add chain ID filtering - only need to do this once since chainIdsToUse doesn't change
+    if (chainIdsToUse.length > 0) {
+      baseQueryParams.push(chainIdsToUse);
+      baseConditions.push(`"chainId" = ANY($${baseQueryParams.length})`);
+    }
+
+    // Keep fetching batches until we have enough blocks that meet the depth requirement
+    while (allFetchedBlocks.length < limit && hasMoreBlocks) {
+      const queryParams: any[] = [...baseQueryParams];
+      let conditions = [...baseConditions];
+
+      if (lastHeight !== null && lastChainId !== null) {
+        queryParams.push(lastHeight);
+        queryParams.push(lastChainId);
+
+        if (order === 'DESC') {
+          // For DESC order, get blocks with lower height or same height but different chain
+          conditions.push(
+            `(height < $${queryParams.length - 1} OR (height = $${queryParams.length - 1} AND "chainId" < $${queryParams.length}))`,
+          );
+        } else {
+          // For ASC order, get blocks with higher height or same height but different chain
+          conditions.push(
+            `(height > $${queryParams.length - 1} OR (height = $${queryParams.length - 1} AND "chainId" > $${queryParams.length}))`,
+          );
+        }
+      }
+
+      if (before) {
+        const [heightStr, chainIdStr] = before.split(':');
+        const beforeHeight = parseInt(heightStr, 10);
+        const beforeChainId = parseInt(chainIdStr, 10);
+
+        if (!isNaN(beforeHeight) && !isNaN(beforeChainId)) {
+          queryParams.push(beforeHeight);
+          queryParams.push(beforeChainId);
+
+          if (order === 'DESC') {
+            // For DESC order with "before", get blocks with higher height
+            conditions.push(
+              `(height > $${queryParams.length - 1} OR (height = $${queryParams.length - 1} AND "chainId" > $${queryParams.length}))`,
+            );
+          } else {
+            // For ASC order with "before", get blocks with lower height
+            conditions.push(
+              `(height < $${queryParams.length - 1} OR (height = $${queryParams.length - 1} AND "chainId" < $${queryParams.length}))`,
+            );
+          }
+        }
+      }
+
+      const query = `
+        SELECT *
+        FROM "Blocks"
+        ${conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''}
+        ORDER BY height ${order}, "chainId" ${order}
+        LIMIT $1
+      `;
+
+      const { rows: blockRows } = await rootPgPool.query(query, queryParams);
+
+      if (blockRows.length < batchSize) {
+        hasMoreBlocks = false;
+      }
+
+      if (blockRows.length === 0) {
+        break; // No more blocks to process
+      }
+
+      if (minimumDepth) {
+        const blockHashToDepth = await this.createBlockDepthMap(blockRows, 'hash', minimumDepth);
+
+        const filteredBlocks = blockRows.filter(
+          block => blockHashToDepth[block.hash] >= minimumDepth,
+        );
+
+        allFetchedBlocks = [...allFetchedBlocks, ...filteredBlocks];
+      } else {
+        allFetchedBlocks = [...allFetchedBlocks, ...blockRows];
+      }
+
+      // Update cursor for next batch using the last block's height and chainId
+      const lastBlock = blockRows[blockRows.length - 1];
+      lastHeight = lastBlock.height;
+      lastChainId = lastBlock.chainId;
+    }
+
+    const edges = allFetchedBlocks
+      .slice(0, limit)
+      .map(row => ({
+        cursor: `${row.height}:${row.chainId}`,
+        node: blockValidator.validate(row),
+      }))
+      .sort((a, b) => {
+        const aNode = a.node as unknown as { id: string };
+        const bNode = b.node as unknown as { id: string };
+        if (a.cursor === b.cursor) {
+          return aNode.id > bNode.id ? 1 : -1;
+        }
+        return 0;
+      });
 
     const pageInfo = getPageInfo({ edges, order, limit, after, before });
     return pageInfo;
