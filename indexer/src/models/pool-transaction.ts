@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
 import { sequelize } from '../config/database';
-import type { Pair } from './pair';
+import type Pair from './pair';
 
 export enum TransactionType {
   SWAP = 'SWAP',

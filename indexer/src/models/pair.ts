@@ -14,6 +14,7 @@ class Pair extends Model {
   public reserve0!: string;
   public reserve1!: string;
   public totalSupply!: string;
+  public key!: string;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -59,6 +60,10 @@ Pair.init(
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: '0',
+    },
+    key: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
   },
   {
