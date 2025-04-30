@@ -19,7 +19,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '310297602',
+                  cursor: 'MzEwMjk3NjAy',
                   node: {
                     chainId: 1,
                     height: 4000000,
@@ -75,7 +75,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '00000000000000127dbb5c111e45ccd8a2f956fd9f40bedd4f789a6abe97137e',
             target: 'gRfVs6R4URWptgvlil3v99Lcz0ob09uoGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgyNA==',
                 hasNextPage: false,
@@ -84,7 +84,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435824',
+                  cursor: 'MTY5MjQzNTgyNA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJVZF90Q0MwY0J0UThyc1hfei1hclJ1NkJVMDlKRXg0dU9NcURYUnF5dGpVIiwiSWtFMmRYbDFORk5vY201TFozcFhla1JzZEZaU1ltaDZjMHRFTUU4M2RURmpUemRFU2pONFkzRlZjRzhpIl0=',
                   },
@@ -111,7 +111,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '309347583',
+                  cursor: 'MzA5MzQ3NTgz',
                   node: {
                     chainId: 2,
                     height: 4000000,
@@ -167,7 +167,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '0000000000000000b8f4b80234e80383ff87414a4b4f59e34c7be1b31b876893',
             target: '-0urCESvo7ocxrV4BXXIAwl2Zqyw8iOgGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTg0Ng==',
                 hasNextPage: false,
@@ -176,7 +176,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435846',
+                  cursor: 'MTY5MjQzNTg0Ng==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJSRXhubjk0VHRYWk85NGE3eW5IN2RxZDVtSExUam5PZFJiZTMyVVg1aXkwIiwiSWxGRU1ISkZUbkJqU0hrNVEweGpTR2xrTXpkWGEzZFJZV0pMUm1OUVJVNVRWRlEzVVc4dGVqSjVRekFpIl0=',
                   },
@@ -203,7 +203,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '303961235',
+                  cursor: 'MzAzOTYxMjM1',
                   node: {
                     chainId: 4,
                     height: 4000000,
@@ -259,7 +259,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000001437d5cb67ebe93df3786dad7fd4f79eb79460bb958f3b4693',
             target: 'IWAyFM823F1i62NT9LEwVT4Snyd4VvPGGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgwMw==',
                 hasNextPage: false,
@@ -268,7 +268,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435803',
+                  cursor: 'MTY5MjQzNTgwMw==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyItcWFfWEREQ0s1NEVSNXhRUXZxRzFjWU85bG9JRnNhLXA2X0dOa2IySU9JIiwiSW1oRmVIZ3hZelJOTlVkcVQxRlZMVXRzVDBWNmVWRkRSWGhoWVdabFZsRlJWWE4yTVdGdE1XZ3dUR2NpIl0=',
                   },
@@ -295,7 +295,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '300985517',
+                  cursor: 'MzAwOTg1NTE3',
                   node: {
                     chainId: 3,
                     height: 4000000,
@@ -351,7 +351,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000000640e99b98ec77ef958fbd6edbb21346a2f08cb14ce3bc1bca',
             target: 'o3Xdn6SnB-Pe5SmKEmNaibQry3PEt0jEGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgyMQ==',
                 hasNextPage: false,
@@ -360,7 +360,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435821',
+                  cursor: 'MTY5MjQzNTgyMQ==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJpZzJUZmpIRjdTMHB0SXdIeDFFbm9wRXpUUjRocmlWS0kycVd2WlBzMWZ3IiwiSWpoZlFtOHlkakF5V2pWV1RqVnpZa0Z4V2tGemVFZzNPWFpvV2xseGEzSkRiMjEwVEVaT2VYcEtPR2NpIl0=',
                   },
@@ -387,7 +387,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '300406095',
+                  cursor: 'MzAwNDA2MDk1',
                   node: {
                     chainId: 5,
                     height: 4000000,
@@ -443,7 +443,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000001304acdf22cf26c837cfd379543d9c4f43a4a143529c32dcdb',
             target: 'LtJRmS47auTwZAvV7LFAka5lYTeKvSbMGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTc4Ng==',
                 hasNextPage: false,
@@ -452,7 +452,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435786',
+                  cursor: 'MTY5MjQzNTc4Ng==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyI0N0l1RzV3NWF0dGlERW11WThUX1dsb3EtdXJoR0lRRlZTeEtkOXBuNW5JIiwiSWs4dFMwOVpRbWszYVhsbGFHaExVM05rVVcxTFZEWkJlVzg0ZG5WelNXcFRjWFZOTm5aMFIxVkpibEVpIl0=',
                   },
@@ -479,7 +479,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '300201405',
+                  cursor: 'MzAwMjAxNDA1',
                   node: {
                     chainId: 7,
                     height: 4000000,
@@ -535,7 +535,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000000d8d62ee50d4488bb4610a21cee281196ed237f94f4d83dc8b',
             target: '_OnhK1pKwuoIf1gU8qaJCb425kuAAQ69GgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTc5MA==',
                 hasNextPage: false,
@@ -544,7 +544,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435790',
+                  cursor: 'MTY5MjQzNTc5MA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJtbGJnaUtlYk9IMVI1TEFmVDRSU2lDaGFIS3Bzc3RSTExqbXFrSUZiYWNFIiwiSW10V1VuVXRNVGt4TldScmNGWnFXa04yTTBoT1ZGWlBXbkZET1hKeE1HWTVkVlZUWlhGNWFrOVBRbFVpIl0=',
                   },
@@ -571,7 +571,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '300198858',
+                  cursor: 'MzAwMTk4ODU4',
                   node: {
                     chainId: 6,
                     height: 4000000,
@@ -627,7 +627,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '0000000000000013121f5b1ca6dd031bb6549dff34d578d85fe53a9b78e6591b',
             target: 'q8G2Qjr52DgC8jeJc-O5skN7VKz0fuCqGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgwOA==',
                 hasNextPage: false,
@@ -636,7 +636,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435808',
+                  cursor: 'MTY5MjQzNTgwOA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJBUmxtYTRLWndkQVZuUHpJWjZwM1ZCS1FfOVh1aVZsLTVlLUlaU3hOckJRIiwiSWtRdE1uSk9ObmxaYkRrNVowMURjVXhrTFZwR1duRTVTRWczVUU1NllsbDRYMmhhVVdkWE1XNVdZa0VpIl0=',
                   },
@@ -663,7 +663,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '291367608',
+                  cursor: 'MjkxMzY3NjA4',
                   node: {
                     chainId: 19,
                     height: 4000000,
@@ -719,7 +719,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000000fd622807c56cce9ce5ef0e69f082a16c32c25f266ba48d7d8',
             target: 'DD0E0PlDIZYq1v_7uSP3-lW472doE27bGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgzNA==',
                 hasNextPage: false,
@@ -728,7 +728,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435834',
+                  cursor: 'MTY5MjQzNTgzNA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJRc08zWXhqaXpudDRnNkJ3UXduUFExNzZaMmpKRVpBTEdRTmN5WFJYOWFNIiwiSWtKeGRsQlpjM05CUzFwRWVVTm1TSFZMTVdKc1VIVldObE0wUVRsTVQycGxPREpEU1c1WmIwNXFjM01pIl0=',
                   },
@@ -755,7 +755,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269968903',
+                  cursor: 'MjY5OTY4OTAz',
                   node: {
                     chainId: 11,
                     height: 4000000,
@@ -811,7 +811,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000000eac07ee5a5dfb9b597187db847c7fcef79e1808d3795683eb',
             target: 'RRqporeotwMXY4C186Y0QjcxITh8Tp_EGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgzNA==',
                 hasNextPage: false,
@@ -820,7 +820,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435834',
+                  cursor: 'MTY5MjQzNTgzNA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJ4WkNkby0tOEwxVUcwTnQ2bFU5UEtTZWZ2UE0wNUdGZzQwbWVkU0pXZkM4IiwiSWtGMVNGZG9VbGRoYTJsQ2RFVXpkQzFUVDNwSGRYVlhZMmRzVldSUmEycG9hbTFmWjB0aFpFNUZNekFpIl0=',
                   },
@@ -847,7 +847,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269960418',
+                  cursor: 'MjY5OTYwNDE4',
                   node: {
                     chainId: 16,
                     height: 4000000,
@@ -903,7 +903,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000000a5b19c7bfd43987d4a4e6e070cde4ec81fa6a5721b7d2b862',
             target: 'SLLAvWvicilGYFGp6xHrwW83w7HHHzeuGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgyMQ==',
                 hasNextPage: false,
@@ -912,7 +912,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435821',
+                  cursor: 'MTY5MjQzNTgyMQ==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJYZjJZbHFqOGhMcmxiMUR4ckgtbTBzNmduTkNWUEx6LUdGQXJyQTlNS3NZIiwiSW1KWVVqbExhbEZHT0ZOTVdISjVkbEZCYjJKb1NHZEVaR280WVRVM2FGQlVPVzVDV1ZCeWNXRnRTalFpIl0=',
                   },
@@ -939,7 +939,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269957357',
+                  cursor: 'MjY5OTU3MzU3',
                   node: {
                     chainId: 12,
                     height: 4000000,
@@ -995,7 +995,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '00000000000000018b3c1176d93641674f8e56b23ab76a0844c72934a8e1ca22',
             target: 'x-wyTxlmuUFygEq5GfhltqFND8xmeNGyGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgzOA==',
                 hasNextPage: false,
@@ -1004,7 +1004,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435838',
+                  cursor: 'MTY5MjQzNTgzOA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJKVVFMYmhPS3pZLVpCNDFmTlByWWRSYk9rdVk1T2xZY3hWOGRPN1RoZ25rIiwiSWsxRldYSlRPRFk0VUhOa05XRkZObE56TFhkaWIxOU1RM1J6YW5sVmMwVnplV2RpZFV0d1UzaEZkekFpIl0=',
                   },
@@ -1031,7 +1031,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269929115',
+                  cursor: 'MjY5OTI5MTE1',
                   node: {
                     chainId: 15,
                     height: 4000000,
@@ -1087,7 +1087,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000000c7bb292ae7e51dcaa5c1a32348857ac986fce819de49b7ec9',
             target: 'nLtkDZF6jAs1eOhk-_KBhJH-KwC4QdXIGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgxNA==',
                 hasNextPage: false,
@@ -1096,7 +1096,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435814',
+                  cursor: 'MTY5MjQzNTgxNA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJXVW16TXk1ZTN2Q1E3bTIwNHFPMjl5WE9TZkFpN3V0Tjl5SUtkWlpOQi1nIiwiSW5oT1RsTjNhRkptVUZKa2JVeGFUbHB1WlhCWmJWVkRXbG96VVV0QmRYRkhaVlZ3Vm1ZeU5qaFVVa1VpIl0=',
                   },
@@ -1123,7 +1123,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269771549',
+                  cursor: 'MjY5NzcxNTQ5',
                   node: {
                     chainId: 10,
                     height: 4000000,
@@ -1179,7 +1179,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '00000000000000126c6d09c698ae730cb15c5513b0a148e115aa42ee378c9570',
             target: 'prZ09oaMxfZgJY79A22HNFW3OB3dygTnGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgyNA==',
                 hasNextPage: false,
@@ -1188,7 +1188,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435824',
+                  cursor: 'MTY5MjQzNTgyNA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJJeHdVdzdPUlpIODBtM08weWV2MF9vdjhXT0xrMlpWSmowR3pPdjlUMml3IiwiSW01cVEzWnRXSFZVVUZFNFRVOTNaRkZuVlhCRmVVTm1ZMU5VY2xVNVJHdHpObEp6T1UxaGJqbEdiMjhpIl0=',
                   },
@@ -1215,7 +1215,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269765422',
+                  cursor: 'MjY5NzY1NDIy',
                   node: {
                     chainId: 14,
                     height: 4000000,
@@ -1271,7 +1271,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000000dd85a21797f339bc0c71cda7acba012b4d89b5fc2f05c2aea',
             target: 'YFdI5bCPAhorQNQ9vq__p6ORVfxTUPu-GgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgzMw==',
                 hasNextPage: false,
@@ -1280,7 +1280,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435833',
+                  cursor: 'MTY5MjQzNTgzMw==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJ1TkdQUHlKMlhnMnRyMm5xdUM2VlJxVEhzVG54cElQMlBMcmd1NUY2ZzNzIiwiSWtjMk5EVnVNR05NWTNnMVIzcG5Yemd3YmpCSGRIQllkbTVZWkhscVpsVlZRek5xWmtzd1VYUk9ObWNpIl0=',
                   },
@@ -1307,7 +1307,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269765372',
+                  cursor: 'MjY5NzY1Mzcy',
                   node: {
                     chainId: 18,
                     height: 4000000,
@@ -1363,7 +1363,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000000764dcef52bb2f9d1dbb1d94ec2becc4a467b78957fb7f0d9c',
             target: '8yfUJGZVp0rCgwlstLooe5YrWeVcmxbFGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgxNQ==',
                 hasNextPage: false,
@@ -1372,7 +1372,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435815',
+                  cursor: 'MTY5MjQzNTgxNQ==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJacmNHSGlRaFQ1Sk42MXJIdjVvRF9TNzBzNkpnd19neklldUoxLXpHTl8wIiwiSWt0U1UwNXJibkZ4ZDBaVGRYQkROSGczTTBnMWRUaElaM1ZoTFRORFRsWmpVWFIzV2pkQ1ZHUkZkM2NpIl0=',
                   },
@@ -1399,7 +1399,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269758574',
+                  cursor: 'MjY5NzU4NTc0',
                   node: {
                     chainId: 17,
                     height: 4000000,
@@ -1455,7 +1455,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '0000000000000015f39afaae87b9518abff57fe51d8493330f934a6a6308e9da',
             target: 'OEjAInTpmNTlsk7F_84iQ_IeHGAk6NivGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTc5OA==',
                 hasNextPage: false,
@@ -1464,7 +1464,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435798',
+                  cursor: 'MTY5MjQzNTc5OA==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJxM0lTeFdzMGl0WWZNXzEyVWRaZ0JvYVdYY1pkcDZyTlVWRUIyczNENE4wIiwiSW5CTlZHeFRabVp1Y1VwNE9IUTBVbFpyWmxWZmVUTjRZaTEwVEVoRVMxTTVUR3h2TFhkelYyTTBWa1VpIl0=',
                   },
@@ -1491,7 +1491,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '269757453',
+                  cursor: 'MjY5NzU3NDUz',
                   node: {
                     chainId: 13,
                     height: 4000000,
@@ -1547,7 +1547,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '00000000000000184baf36e68cd7f603c76b41b6df5ca287d8daf4c125aa0943',
             target: 'MDzkIuJ33_UMlfmvF-lVsO6mCSWqnOm0GgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTgzMw==',
                 hasNextPage: false,
@@ -1556,7 +1556,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435833',
+                  cursor: 'MTY5MjQzNTgzMw==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJaRzdZeE5OdHZwZmdMODd3a2xBSlJ3MUlSSkMyblJhc2JtNU12RGZHTzhRIiwiSWxGcVVYY3dSRjlGVTBKblZUWkhkVXgyUkZkdlZrNWFjazA1Y0hWbWEyVnpNSEl0V1UxTGVuRk1OV3NpIl0=',
                   },
@@ -1583,7 +1583,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '325042639',
+                  cursor: 'MzI1MDQyNjM5',
                   node: {
                     chainId: 8,
                     height: 3999999,
@@ -1639,7 +1639,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '00000000000000126b663c2b0e87a8aef9de5933696d558e8e00205b7cf8c95b',
             target: 'z3mEIbGwhssxQx9y1cP_T4Vo3bG6kSWpGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTc3Mw==',
                 hasNextPage: false,
@@ -1648,7 +1648,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435773',
+                  cursor: 'MTY5MjQzNTc3Mw==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJ4NEZ0eWVLcWVBcjdBRlJmWlBUeHpWSFljU0pUMTBUcU5VQ0VZbTRkTFFBIiwiSWpaMFQzTkViblZtUWxWM01WTnJkMkpIVW5Kb05WQkZjVXBGV1VkaVdGRjFWWHBsTW5kRmVHbGpWVGdpIl0=',
                   },
@@ -1675,7 +1675,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '324664833',
+                  cursor: 'MzI0NjY0ODMz',
                   node: {
                     chainId: 9,
                     height: 3999999,
@@ -1731,7 +1731,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '00000000000000068d54353f90e296677638351d5ea666adc7ff1b9307327c1c',
             target: 'X3DH4sEtvnYkwCySMy6-zliA5Bl6XJWnGgAAAAAAAAA',
             transactions: {
-              totalCount: 0,
+              totalCount: 1,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTc3Mw==',
                 hasNextPage: false,
@@ -1740,7 +1740,7 @@ export const blocksFromHeightFixture003 = {
               },
               edges: [
                 {
-                  cursor: '1692435773',
+                  cursor: 'MTY5MjQzNTc3Mw==',
                   node: {
                     id: 'VHJhbnNhY3Rpb246WyJRWjk1czJJNURZT2J2djBoamRwVnNCVkItRFJseTN4U1VYOV9jSF9ha1hzIiwiSWxkWVUwMUtkWHBYTkROdlkwUllTeTFUVTFBM1l6QkpiMWxuVjIxbVYyaFlUSFp5VEV4YU4xQlNhbk1pIl0=',
                   },
@@ -2146,7 +2146,7 @@ export const blocksFromHeightFixture003 = {
             powHash: '000000000000001ad9d650fd027b7ff9d5cb941575a5a6ceaf169b1fb9b11d1e',
             target: 'NbiVhElEaG_kkDseRpo1dutRiExrYqDgGgAAAAAAAAA',
             transactions: {
-              totalCount: 88,
+              totalCount: 89,
               pageInfo: {
                 endCursor: 'MTY5MjQzNTczMw==',
                 hasNextPage: true,
@@ -2211,13 +2211,13 @@ export const blocksFromHeightFixture003 = {
                 {
                   cursor: 'MTY5MjQzNTczOQ==',
                   node: {
-                    id: 'VHJhbnNhY3Rpb246WyJacmtzZzJrMmhWNkxWVXJfOXN6OXJOd1ExakFhLW5vRk9lUkxSdjdEcjh3IiwiSDRtZnFNUTRqWFU0QTM0b2NlWFBESkFvYlBKSy0yNlJ1RE9mWTR5YjA4MCJd',
+                    id: 'VHJhbnNhY3Rpb246WyJacmtzZzJrMmhWNkxWVXJfOXN6OXJOd1ExakFhLW5vRk9lUkxSdjdEcjh3IiwiQ0NhRUZPX1VkMl9uemJQcF9tUVZKV0J3Slc2Y1lBUnREMFdDYWZ4NHBJZyJd',
                   },
                 },
                 {
                   cursor: 'MTY5MjQzNTczOQ==',
                   node: {
-                    id: 'VHJhbnNhY3Rpb246WyJacmtzZzJrMmhWNkxWVXJfOXN6OXJOd1ExakFhLW5vRk9lUkxSdjdEcjh3IiwiQ0NhRUZPX1VkMl9uemJQcF9tUVZKV0J3Slc2Y1lBUnREMFdDYWZ4NHBJZyJd',
+                    id: 'VHJhbnNhY3Rpb246WyJacmtzZzJrMmhWNkxWVXJfOXN6OXJOd1ExakFhLW5vRk9lUkxSdjdEcjh3IiwiSDRtZnFNUTRqWFU0QTM0b2NlWFBESkFvYlBKSy0yNlJ1RE9mWTR5YjA4MCJd',
                   },
                 },
                 {
@@ -2283,3 +2283,13 @@ export const blocksFromHeightFixture003 = {
     },
   },
 };
+
+// -                   "id": "VHJhbnNhY3Rpb246WyJacmtzZzJrMmhWNkxWVXJfOXN6OXJOd1ExakFhLW5vRk9lUkxSdjdEcjh3IiwiQ0NhRUZPX1VkMl9uemJQcF9tUVZKV0J3Slc2Y1lBUnREMFdDYWZ4NHBJZyJd",
+// +                   "id": "VHJhbnNhY3Rpb246WyJacmtzZzJrMmhWNkxWVXJfOXN6OXJOd1ExakFhLW5vRk9lUkxSdjdEcjh3IiwiSDRtZnFNUTRqWFU0QTM0b2NlWFBESkFvYlBKSy0yNlJ1RE9mWTR5YjA4MCJd",
+//                   },
+//                 },
+//                 Object {
+//                   "cursor": "MTY5MjQzNTczOQ==",
+//                   "node": Object {
+// -                   "id": "VHJhbnNhY3Rpb246WyJacmtzZzJrMmhWNkxWVXJfOXN6OXJOd1ExakFhLW5vRk9lUkxSdjdEcjh3IiwiSDRtZnFNUTRqWFU0QTM0b2NlWFBESkFvYlBKSy0yNlJ1RE9mWTR5YjA4MCJd",
+// +                   "id": "VHJhbnNhY3Rpb246WyJacmtzZzJrMmhWNkxWVXJfOXN6OXJOd1ExakFhLW5vRk9lUkxSdjdEcjh3IiwiQ0NhRUZPX1VkMl9uemJQcF9tUVZKV0J3Slc2Y1lBUnREMFdDYWZ4NHBJZyJd",
