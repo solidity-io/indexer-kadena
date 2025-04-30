@@ -39,4 +39,20 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
     }));
     await PairService.updatePairs(updateParams);
   }
+
+  const swapEvents = events.filter(
+    event => MODULE_NAMES.includes(event.module) && event.name === 'SWAP',
+  );
+
+  if (swapEvents.length > 0) {
+    const swapParams = swapEvents.map(event => ({
+      moduleName: event.module,
+      name: event.name,
+      parameterText: JSON.stringify(event.params),
+      parameters: JSON.stringify(event.params),
+      qualifiedName: event.qualname,
+      chainId: event.chainId,
+    }));
+    await PairService.processSwaps(swapParams);
+  }
 }
