@@ -600,6 +600,27 @@ export default class BlockDbRepository implements BlockRepository {
   }
 
   /**
+   * Counts the total number of transactions in a specific block
+   *
+   * This method performs a COUNT query to determine how many transactions
+   * are associated to a particular block.
+   *
+   * @param blockHash - The hash of the block to count transactions for
+   * @returns Promise resolving to the total count of transactions in the block
+   */
+  async getTotalCountOfBlockTransactions(blockHash: string): Promise<number> {
+    const { rows } = await rootPgPool.query(
+      `SELECT COUNT(*) as "totalCount"
+        FROM "Blocks" b
+        JOIN "Transactions" t ON t."blockId" = b.id
+        WHERE b.hash = $1`,
+      [blockHash],
+    );
+
+    return rows[0].totalCount ?? 0;
+  }
+
+  /**
    * Retrieves the most recent blocks created after a specific timestamp
    *
    * This method is useful for real-time data synchronization and
