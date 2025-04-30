@@ -23,4 +23,20 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
     }));
     await PairService.createPairs(pairParams);
   }
+
+  const pairUpdateEvents = events.filter(
+    event => MODULE_NAMES.includes(event.module) && event.name === 'UPDATE',
+  );
+
+  if (pairUpdateEvents.length > 0) {
+    const updateParams = pairUpdateEvents.map(event => ({
+      moduleName: event.module,
+      name: event.name,
+      parameterText: JSON.stringify(event.params),
+      parameters: JSON.stringify(event.params),
+      qualifiedName: event.qualname,
+      chainId: event.chainId,
+    }));
+    await PairService.updatePairs(updateParams);
+  }
 }

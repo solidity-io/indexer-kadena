@@ -1,19 +1,21 @@
-import { BlockAttributes } from '../../models/block';
-import TransactionModel, { TransactionAttributes } from '../../models/transaction';
-import Event, { EventAttributes } from '../../models/event';
-import Transfer, { TransferAttributes } from '../../models/transfer';
-import { getNftTransfers, getCoinTransfers } from './transfers';
 import { Transaction } from 'sequelize';
-import Signer from '../../models/signer';
-import Guard from '../../models/guard';
-import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
+
 import { sequelize } from '../../config/database';
-import { addCoinbaseTransactions } from './coinbase';
-import { getRequiredEnvString } from '../../utils/helpers';
+import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
+import { BlockAttributes } from '../../models/block';
+import Event, { EventAttributes } from '../../models/event';
+import Signer from '../../models/signer';
+import TransactionModel, { TransactionAttributes } from '../../models/transaction';
 import TransactionDetails, { TransactionDetailsAttributes } from '../../models/transaction-details';
+import Transfer, { TransferAttributes } from '../../models/transfer';
+import { addCoinbaseTransactions } from './coinbase';
+import { processPairCreationEvents } from './pair';
+import { getCoinTransfers, getNftTransfers } from './transfers';
 
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
+
+const MODULE_NAMES = ['kdlaunch.kdswap-exchange', 'sushiswap.sushi-exchange'];
 
 interface BalanceInsertResult {
   id: number;
@@ -135,7 +137,11 @@ export async function processTransaction(
       ...event,
       transactionId,
     })) as EventAttributes[];
+    console.log('eventsWithTransactionId', eventsWithTransactionId);
     await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
+
+    // Process pair creation events
+    await processPairCreationEvents(eventsWithTransactionId);
 
     const signers = (cmdData.signers ?? []).map((signer: any, index: number) => ({
       address: signer.address,
@@ -196,9 +202,7 @@ export async function processTransaction(
 
     return eventsAttributes;
   } catch (error) {
-    console.error(
-      `[ERROR][DB][DATA_CORRUPT] Failed to save transaction ${transactionInfo.hash}: ${error}`,
-    );
+    console.error('Error processing transaction:', error);
     throw error;
   }
 }
