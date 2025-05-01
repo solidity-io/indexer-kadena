@@ -258,4 +258,86 @@ export class PairService {
       }
     }
   }
+
+  /**
+   * Processes liquidity events and records them in the pool transaction history
+   * @param liquidityEvents Array of liquidity events
+   */
+  static async processLiquidityEvents(
+    liquidityEvents: Array<{
+      moduleName: string;
+      name: string;
+      parameterText: string;
+      parameters: string;
+      qualifiedName: string;
+      chainId: number;
+    }>,
+  ): Promise<void> {
+    for (const event of liquidityEvents) {
+      try {
+        // Parse the parameters
+        const [sender, to, token0Ref, token1Ref, amount0, amount1] = JSON.parse(event.parameters);
+
+        // Find the tokens
+        const [token0, token1] = await Promise.all([
+          this.createOrFindToken(token0Ref, null),
+          this.createOrFindToken(token1Ref, null),
+        ]);
+
+        // Find the pair
+        const pair = await Pair.findOne({
+          where: {
+            [Op.or]: [
+              { token0Id: token0.id, token1Id: token1.id },
+              { token0Id: token1.id, token1Id: token0.id },
+            ],
+          },
+        });
+
+        if (!pair) {
+          console.warn(`Pair not found for tokens: ${token0.code} and ${token1.code}`);
+          continue;
+        }
+
+        // Determine if tokens are in correct order
+        const isToken0First = pair.token0Id === token0.id;
+
+        // Create pool transaction record
+        await PoolTransaction.create({
+          pairId: pair.id,
+          transactionHash: event.parameterText,
+          type:
+            event.name === 'ADD_LIQUIDITY'
+              ? TransactionType.ADD_LIQUIDITY
+              : TransactionType.REMOVE_LIQUIDITY,
+          timestamp: new Date(),
+          amount0In: isToken0First ? amount0.toString() : '0',
+          amount1In: isToken0First ? '0' : amount0.toString(),
+          amount0Out: isToken0First ? '0' : amount1.toString(),
+          amount1Out: isToken0First ? amount1.toString() : '0',
+          amountUsd: 0, // TODO: Calculate USD value if needed
+        });
+
+        // Update reserves based on the event type
+        const reserve0 = BigInt(pair.reserve0);
+        const reserve1 = BigInt(pair.reserve1);
+        const amount0BigInt = BigInt(amount0.toString());
+        const amount1BigInt = BigInt(amount1.toString());
+
+        if (event.name === 'ADD_LIQUIDITY') {
+          await pair.update({
+            reserve0: (reserve0 + amount0BigInt).toString(),
+            reserve1: (reserve1 + amount1BigInt).toString(),
+          });
+        } else {
+          await pair.update({
+            reserve0: (reserve0 - amount0BigInt).toString(),
+            reserve1: (reserve1 - amount1BigInt).toString(),
+          });
+        }
+      } catch (error) {
+        console.error('Error processing liquidity event:', error);
+      }
+    }
+  }
 }

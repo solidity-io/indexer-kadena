@@ -55,4 +55,22 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
     }));
     await PairService.processSwaps(swapParams);
   }
+
+  const liquidityEvents = events.filter(
+    event =>
+      MODULE_NAMES.includes(event.module) &&
+      (event.name === 'ADD_LIQUIDITY' || event.name === 'REMOVE_LIQUIDITY'),
+  );
+
+  if (liquidityEvents.length > 0) {
+    const liquidityParams = liquidityEvents.map(event => ({
+      moduleName: event.module,
+      name: event.name,
+      parameterText: JSON.stringify(event.params),
+      parameters: JSON.stringify(event.params),
+      qualifiedName: event.qualname,
+      chainId: event.chainId,
+    }));
+    await PairService.processLiquidityEvents(liquidityParams);
+  }
 }
