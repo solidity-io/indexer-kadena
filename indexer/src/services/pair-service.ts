@@ -241,17 +241,21 @@ export class PairService {
           continue;
         }
 
+        // Calculate USD value (placeholder - implement actual price calculation)
+        const amountUsd = 0; // TODO: Implement price calculation
+
         // Create pool transaction record
         await PoolTransaction.create({
           pairId: pair.id,
-          transactionHash: event.parameterText, // Using parameterText as a unique identifier
+          transactionHash: event.parameterText,
           type: TransactionType.SWAP,
+          maker: sender,
           timestamp: new Date(),
           amount0In: pair.token0Id === tokenIn.id ? amountIn.toString() : '0',
           amount1In: pair.token1Id === tokenIn.id ? amountIn.toString() : '0',
           amount0Out: pair.token0Id === tokenOut.id ? amountOut.toString() : '0',
           amount1Out: pair.token1Id === tokenOut.id ? amountOut.toString() : '0',
-          amountUsd: 0, // TODO: Calculate USD value if needed
+          amountUsd,
         });
       } catch (error) {
         console.error('Error processing swap:', error);
@@ -302,6 +306,9 @@ export class PairService {
         // Determine if tokens are in correct order
         const isToken0First = pair.token0Id === token0.id;
 
+        // Calculate USD value (placeholder - implement actual price calculation)
+        const amountUsd = 0; // TODO: Implement price calculation
+
         // Create pool transaction record
         await PoolTransaction.create({
           pairId: pair.id,
@@ -310,12 +317,13 @@ export class PairService {
             event.name === 'ADD_LIQUIDITY'
               ? TransactionType.ADD_LIQUIDITY
               : TransactionType.REMOVE_LIQUIDITY,
+          maker: sender,
           timestamp: new Date(),
           amount0In: isToken0First ? amount0.toString() : '0',
           amount1In: isToken0First ? '0' : amount0.toString(),
           amount0Out: isToken0First ? '0' : amount1.toString(),
           amount1Out: isToken0First ? amount1.toString() : '0',
-          amountUsd: 0, // TODO: Calculate USD value if needed
+          amountUsd,
         });
 
         // Update reserves based on the event type

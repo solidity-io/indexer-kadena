@@ -14,12 +14,13 @@ class PoolTransaction extends Model {
   public pairId!: number;
   public transactionHash!: string;
   public type!: TransactionType;
-  public timestamp!: Date;
+  public maker!: string;
   public amount0In!: string;
   public amount1In!: string;
   public amount0Out!: string;
   public amount1Out!: string;
   public amountUsd!: number;
+  public timestamp!: Date;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -37,18 +38,21 @@ PoolTransaction.init(
     pairId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: 'pairs',
+        key: 'id',
+      },
     },
     transactionHash: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     type: {
       type: DataTypes.ENUM(...Object.values(TransactionType)),
       allowNull: false,
     },
-    timestamp: {
-      type: DataTypes.DATE,
+    maker: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
     amount0In: {
@@ -72,7 +76,12 @@ PoolTransaction.init(
       defaultValue: '0',
     },
     amountUsd: {
-      type: DataTypes.DECIMAL(24, 8),
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: false,
+      defaultValue: 0,
+    },
+    timestamp: {
+      type: DataTypes.DATE,
       allowNull: false,
     },
   },
