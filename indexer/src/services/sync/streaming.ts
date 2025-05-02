@@ -1,19 +1,24 @@
-import { processPayloadKey } from './payload';
-import { getDecoded, getRequiredEnvString } from '../../utils/helpers';
 import EventSource from 'eventsource';
-import { DispatchInfo } from '../../jobs/publisher-job';
-import { uint64ToInt64 } from '../../utils/int-uint-64';
-import Block, { BlockAttributes } from '../../models/block';
-import { sequelize } from '../../config/database';
-import StreamingError from '../../models/streaming-error';
-import { backfillGuards } from './guards';
 import { Transaction } from 'sequelize';
+
+import { sequelize } from '../../config/database';
+import { DispatchInfo } from '../../jobs/publisher-job';
+import Block, { BlockAttributes } from '../../models/block';
+import StreamingError from '../../models/streaming-error';
+import { PriceUpdaterService } from '../../services/price/price-updater.service';
+import { getDecoded, getRequiredEnvString } from '../../utils/helpers';
+import { uint64ToInt64 } from '../../utils/int-uint-64';
+import { backfillGuards } from './guards';
+import { processPayloadKey } from './payload';
 
 const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');
 const SYNC_NETWORK = getRequiredEnvString('SYNC_NETWORK');
 
 export async function startStreaming() {
   console.info('[INFO][WORKER][BIZ_FLOW] Starting blockchain streaming service...');
+
+  // Initialize price updater
+  PriceUpdaterService.getInstance();
 
   const blocksAlreadyReceived = new Set<string>();
 

@@ -1,15 +1,16 @@
-import dotenv from 'dotenv';
-console.info('[INFO][INFRA][INFRA_CONFIG] Loading environment variables...');
-dotenv.config();
-
 import { program } from 'commander';
-import { startStreaming } from './services/sync/streaming';
-import { usePostgraphile } from './server/metrics';
-import { useKadenaGraphqlServer } from './kadena-server/server';
+import dotenv from 'dotenv';
+
 import { closeDatabase } from './config/database';
 import { initializeDatabase } from './config/init';
+import { useKadenaGraphqlServer } from './kadena-server/server';
+import { usePostgraphile } from './server/metrics';
 import { backfillBalances } from './services/sync/balances';
 import { startMissingBlocks } from './services/sync/missing';
+import { startStreaming } from './services/sync/streaming';
+
+console.info('[INFO][INFRA][INFRA_CONFIG] Loading environment variables...');
+dotenv.config();
 
 program
   .option('-s, --streaming', 'Start streaming blockchain data')
@@ -43,7 +44,6 @@ async function main() {
       process.exit(0);
     } else if (options.missing) {
       await startMissingBlocks();
-      process.exit(0);
     } else if (options.oldGraphql) {
       await usePostgraphile();
     } else if (options.graphql) {

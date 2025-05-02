@@ -8,6 +8,7 @@ import Signer from '../../models/signer';
 import TransactionModel, { TransactionAttributes } from '../../models/transaction';
 import TransactionDetails, { TransactionDetailsAttributes } from '../../models/transaction-details';
 import Transfer, { TransferAttributes } from '../../models/transfer';
+import { PriceService } from '../price/price.service';
 import { addCoinbaseTransactions } from './coinbase';
 import { processPairCreationEvents } from './pair';
 import { getCoinTransfers, getNftTransfers } from './transfers';
@@ -15,7 +16,7 @@ import { getCoinTransfers, getNftTransfers } from './transfers';
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
 
-const MODULE_NAMES = ['kdlaunch.kdswap-exchange', 'sushiswap.sushi-exchange'];
+const DIA_ORACLE_MODULE = 'n_bfb76eab37bf8c84359d6552a1d96a309e030b71.dia-oracle';
 
 interface BalanceInsertResult {
   id: number;
@@ -92,6 +93,20 @@ export async function processTransaction(
   } as TransactionDetailsAttributes;
 
   const eventsAttributes = eventsData.map((eventData: any) => {
+    // Check for DIA oracle price update
+    if (eventData.module.namespace === DIA_ORACLE_MODULE && eventData.name === 'UPDATE') {
+      try {
+        const params = JSON.parse(eventData.params);
+        if (params[0] === 'KDA/USD') {
+          const priceService = PriceService.getInstance();
+          priceService.setKdaUsdPrice(params[2] as number);
+          console.log(`[INFO][PRICE] Updated KDA/USD price from DIA oracle to: $${params[2]}`);
+        }
+      } catch (error) {
+        console.error('[ERROR][PRICE] Failed to process DIA oracle price update:', error);
+      }
+    }
+
     return {
       chainId: transactionAttributes.chainId,
       module: eventData.module.namespace
@@ -137,7 +152,7 @@ export async function processTransaction(
       ...event,
       transactionId,
     })) as EventAttributes[];
-    console.log('eventsWithTransactionId', eventsWithTransactionId);
+    console.log('eventsWithTransactionId', JSON.stringify(eventsWithTransactionId, null, 2));
     await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
 
     // Process pair creation events
