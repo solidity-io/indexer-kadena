@@ -1,4 +1,4 @@
-import { encodeCursor, getPageInfo } from '../../src/kadena-server/repository/pagination';
+import { encodeCursor, getPageInfo } from '../../../src/kadena-server/repository/pagination';
 
 const PAGE_SIZE = 5 + 1;
 

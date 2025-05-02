@@ -29,6 +29,7 @@ import EventRepository, {
 import { getPageInfo, getPaginationParams } from '../../pagination';
 import { ConnectionEdge } from '../../types';
 import { eventValidator } from '../schema-validator/event-schema-validator';
+import EventQueryBuilder from '../query-builders/event-query-builder';
 
 /**
  * Database implementation of the EventRepository interface
@@ -39,6 +40,8 @@ import { eventValidator } from '../schema-validator/event-schema-validator';
  * while providing rich filtering, pagination, and counting capabilities.
  */
 export default class EventDbRepository implements EventRepository {
+  private queryBuilder = new EventQueryBuilder();
+
   /**
    * Retrieves a specific event by its block hash, request key, and order index
    *
@@ -184,9 +187,6 @@ export default class EventDbRepository implements EventRepository {
    * @returns Promise resolving to page info and event edges
    */
   async getEventsWithQualifiedName(params: GetEventsParams) {
-    const HEIGHT_BATCH_SIZE = 200;
-    const localOperator = (paramsLength: number) => (paramsLength > 2 ? `\nAND` : 'WHERE');
-
     const {
       qualifiedEventName,
       blockHash,
@@ -197,7 +197,6 @@ export default class EventDbRepository implements EventRepository {
       last,
       minHeight,
       maxHeight,
-      minimumDepth,
       requestKey,
     } = params;
 
@@ -208,150 +207,23 @@ export default class EventDbRepository implements EventRepository {
       last,
     });
 
-    const splitted = qualifiedEventName.split('.');
-    const name = splitted.pop() ?? '';
-    const module = splitted.join('.');
+    const { query, queryParams } = this.queryBuilder.buildEventsWithQualifiedNameQuery({
+      qualifiedEventName,
+      limit,
+      order,
+      after,
+      before,
+      blockHash,
+      chainId,
+      minHeight,
+      maxHeight,
+      requestKey,
+    });
 
-    const queryParams: (string | number)[] = [limit, module, name];
-    const blockQueryParams: (string | number)[] = [];
-    let conditions = '';
-    let eventConditions = '';
+    const { rows } = await rootPgPool.query(query, queryParams);
 
-    if (before) {
-      queryParams.push(before);
-      eventConditions += `\nAND e.id > $${queryParams.length}`;
-    }
-
-    if (after) {
-      queryParams.push(after);
-      eventConditions += `\nAND e.id < $${queryParams.length}`;
-    }
-
-    if (blockHash) {
-      blockQueryParams.push(blockHash);
-      const op = localOperator(blockQueryParams.length);
-      conditions += `${op} b.hash = $${blockQueryParams.length + queryParams.length}`;
-    }
-
-    if (chainId) {
-      blockQueryParams.push(chainId);
-      const op = localOperator(blockQueryParams.length);
-      conditions += `${op} b."chainId" = $${blockQueryParams.length + queryParams.length}`;
-    }
-
-    let fromHeight = 0;
-    let toHeight = 0;
-    if (minHeight && maxHeight) {
-      fromHeight = minHeight;
-      toHeight = maxHeight - minHeight > 100 ? minHeight + HEIGHT_BATCH_SIZE : toHeight;
-    } else if (minHeight) {
-      fromHeight = minHeight;
-      toHeight = minHeight + HEIGHT_BATCH_SIZE;
-    } else if (maxHeight) {
-      fromHeight = maxHeight - HEIGHT_BATCH_SIZE;
-      toHeight = maxHeight;
-    }
-
-    if (fromHeight && toHeight) {
-      blockQueryParams.push(fromHeight);
-      let op = localOperator(blockQueryParams.length);
-      conditions += `${op} b."height" >= $${blockQueryParams.length + queryParams.length}`;
-      blockQueryParams.push(toHeight);
-      conditions += `\nAND b."height" <= $${blockQueryParams.length + queryParams.length}`;
-    }
-
-    if (minimumDepth) {
-      blockQueryParams.push(minimumDepth);
-      const op = localOperator(blockQueryParams.length);
-      conditions += `${op} b."height" <= $${blockQueryParams.length + queryParams.length}`;
-    }
-
-    const isHeightChainOrBlockHash = fromHeight || toHeight || blockHash || chainId;
-
-    let query = '';
-    if (isHeightChainOrBlockHash) {
-      query = `
-        WITH block_filtered AS (
-          select *
-          from "Blocks" b
-          ${conditions}
-        )
-        SELECT
-          e.id as id,
-          e.requestkey as "requestKey",
-          e."chainId" as "chainId",
-          b.height as height,
-          e."orderIndex" as "orderIndex",
-          e.module as "moduleName",
-          e.name as name,
-          e.params as parameters,
-          b.hash as "blockHash"
-        FROM block_filtered b
-        join "Transactions" t ON t."blockId" = b.id
-        join "Events" e ON e."transactionId" = t.id
-        WHERE e.module = $2
-        AND e.name = $3
-        ${eventConditions}
-        ORDER BY b.height ${order}
-        LIMIT $1
-      `;
-    } else if (requestKey) {
-      queryParams.push(requestKey);
-      query = `
-        WITH event_transaction_filtered AS (
-          SELECT e.*, t."blockId"
-          FROM "Transactions" t
-          JOIN "Events" e ON t.id = e."transactionId"
-          WHERE e.module = $2
-          AND e.name = $3
-          AND t.requestkey = $${blockQueryParams.length + queryParams.length}
-          ${eventConditions}
-          ORDER BY e.id ${order}
-        )
-        SELECT
-          et.id as id,
-          et.requestkey as "requestKey",
-          et."chainId" as "chainId",
-          b.height as height,
-          et."orderIndex" as "orderIndex",
-          et.module as "moduleName",
-          et.name as name,
-          et.params as parameters,
-          b.hash as "blockHash"
-        FROM event_transaction_filtered et
-        JOIN "Blocks" b ON b.id = et."blockId"
-        ${conditions}
-        LIMIT $1
-      `;
-    } else {
-      query = `
-        WITH event_filtered AS (
-          select *
-          from "Events" e
-          WHERE e.module = $2
-          AND e.name = $3
-          ${eventConditions}
-          ORDER BY e.id ${order}
-        )
-        SELECT
-          e.id as id,
-          e.requestkey as "requestKey",
-          e."chainId" as "chainId",
-          b.height as height,
-          e."orderIndex" as "orderIndex",
-          e.module as "moduleName",
-          e.name as name,
-          e.params as parameters,
-          b.hash as "blockHash"
-        FROM event_filtered e
-        join "Transactions" t ON t.id = e."transactionId"
-        join "Blocks" b ON b.id = t."blockId"
-        ${conditions}
-        LIMIT $1
-      `;
-    }
-
-    const { rows } = await rootPgPool.query(query, [...queryParams, ...blockQueryParams]);
+    // Determine cursor based on whether we're using height-based or id-based filtering
+    const isHeightChainOrBlockHash = Boolean(minHeight || maxHeight || blockHash || chainId);
 
     const edges = rows.map(row => ({
       cursor: isHeightChainOrBlockHash ? row.height.toString() : row.id.toString(),
