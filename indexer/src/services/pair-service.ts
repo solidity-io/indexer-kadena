@@ -2,6 +2,8 @@ import { Op } from 'sequelize';
 
 import { sequelize } from '../config/database';
 import Pair from '../models/pair';
+import PoolChart from '../models/pool-chart';
+import PoolStats from '../models/pool-stats';
 import PoolTransaction, { TransactionType } from '../models/pool-transaction';
 import Token from '../models/token';
 
@@ -107,8 +109,8 @@ export class PairService {
   }
 
   /**
-   * Updates pairs based on the provided update events
-   * @param updateEvents Array of pair update events
+   * Updates pairs and their statistics based on the provided update events
+   * @param updateEvents Array of update events
    */
   static async updatePairs(
     updateEvents: Array<{
@@ -135,68 +137,123 @@ export class PairService {
           continue;
         }
 
-        // Calculate old and new ratios
-        const oldReserve0 = BigInt(pair.reserve0);
-        const oldReserve1 = BigInt(pair.reserve1);
-        const newReserve0 = BigInt(reserve0.toString());
-        const newReserve1 = BigInt(reserve1.toString());
+        // Calculate USD values (placeholder - implement actual price calculation)
+        const reserve0Usd = '0'; // TODO: Implement price calculation
+        const reserve1Usd = '0'; // TODO: Implement price calculation
+        const tvlUsd = '0'; // TODO: Implement price calculation
+        const amountUsd = 0; // TODO: Implement price calculation
 
-        // Calculate ratios (multiply by 1000 to avoid floating point)
-        const oldRatio = (oldReserve0 * BigInt(1000)) / oldReserve1;
-        const newRatio = (newReserve0 * BigInt(1000)) / newReserve1;
-
-        // Determine transaction type based on ratio changes
-        let type: TransactionType;
-        let amount0In = '0';
-        let amount1In = '0';
-        let amount0Out = '0';
-        let amount1Out = '0';
-
-        if (oldRatio === newRatio) {
-          // Ratio unchanged - liquidity operation
-          if (newReserve0 > oldReserve0 && newReserve1 > oldReserve1) {
-            type = TransactionType.ADD_LIQUIDITY;
-            amount0In = (newReserve0 - oldReserve0).toString();
-            amount1In = (newReserve1 - oldReserve1).toString();
-          } else {
-            type = TransactionType.REMOVE_LIQUIDITY;
-            amount0Out = (oldReserve0 - newReserve0).toString();
-            amount1Out = (oldReserve1 - newReserve1).toString();
-          }
-        } else {
-          // Ratio changed - swap operation
-          type = TransactionType.SWAP;
-          if (newReserve0 > oldReserve0) {
-            amount0In = (newReserve0 - oldReserve0).toString();
-            amount1Out = (oldReserve1 - newReserve1).toString();
-          } else {
-            amount1In = (newReserve1 - oldReserve1).toString();
-            amount0Out = (oldReserve0 - newReserve0).toString();
-          }
-        }
-
-        // Record the transaction
-        await PoolTransaction.create({
+        // Store chart data
+        await PoolChart.create({
           pairId: pair.id,
-          transactionHash: event.parameterText,
-          type,
+          reserve0: reserve0.toString(),
+          reserve1: reserve1.toString(),
+          totalSupply: pair.totalSupply,
+          reserve0Usd,
+          reserve1Usd,
+          tvlUsd,
           timestamp: new Date(),
-          amount0In,
-          amount1In,
-          amount0Out,
-          amount1Out,
-          amountUsd: 0, // TODO: Calculate USD value if needed
         });
 
-        // Update the reserves
+        // Update pair's current state
         await pair.update({
           reserve0: reserve0.toString(),
           reserve1: reserve1.toString(),
         });
+
+        // Update pool stats
+        await this.updatePoolStats(pair.id);
       } catch (error) {
         console.error('Error updating pair:', error);
       }
     }
+  }
+
+  /**
+   * Updates pool statistics for a given pair
+   * @param pairId ID of the pair to update stats for
+   */
+  private static async updatePoolStats(pairId: number): Promise<void> {
+    const now = new Date();
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+    // Get transactions for different time periods
+    const [transactions24h, transactions7d, transactions30d, transactions1y] = await Promise.all([
+      PoolTransaction.findAll({
+        where: {
+          pairId,
+          timestamp: { [Op.gte]: oneDayAgo },
+        },
+      }),
+      PoolTransaction.findAll({
+        where: {
+          pairId,
+          timestamp: { [Op.gte]: sevenDaysAgo },
+        },
+      }),
+      PoolTransaction.findAll({
+        where: {
+          pairId,
+          timestamp: { [Op.gte]: thirtyDaysAgo },
+        },
+      }),
+      PoolTransaction.findAll({
+        where: {
+          pairId,
+          timestamp: { [Op.gte]: oneYearAgo },
+        },
+      }),
+    ]);
+
+    // Get latest chart data for TVL
+    const latestChart = await PoolChart.findOne({
+      where: { pairId },
+      order: [['timestamp', 'DESC']],
+    });
+
+    // Calculate volumes and fees
+    const volume24h = transactions24h.reduce((sum, tx) => sum + tx.amountUsd, 0);
+    const volume7d = transactions7d.reduce((sum, tx) => sum + tx.amountUsd, 0);
+    const volume30d = transactions30d.reduce((sum, tx) => sum + tx.amountUsd, 0);
+    const volume1y = transactions1y.reduce((sum, tx) => sum + tx.amountUsd, 0);
+
+    const fees24h = transactions24h.reduce((sum, tx) => sum + tx.feeUsd, 0);
+    const fees7d = transactions7d.reduce((sum, tx) => sum + tx.feeUsd, 0);
+    const fees30d = transactions30d.reduce((sum, tx) => sum + tx.feeUsd, 0);
+    const fees1y = transactions1y.reduce((sum, tx) => sum + tx.feeUsd, 0);
+
+    // Calculate APR (assuming 0.3% fee)
+    const apr24h = (fees24h * 365) / (latestChart?.tvlUsd ? parseFloat(latestChart.tvlUsd) : 1);
+
+    // Get TVL history
+    const tvlHistory = await PoolChart.findAll({
+      where: { pairId },
+      attributes: ['timestamp', 'tvlUsd'],
+      order: [['timestamp', 'ASC']],
+    });
+
+    // Update or create pool stats
+    await PoolStats.upsert({
+      pairId,
+      timestamp: now,
+      volume24hUsd: volume24h,
+      volume7dUsd: volume7d,
+      volume30dUsd: volume30d,
+      volume1yUsd: volume1y,
+      fees24hUsd: fees24h,
+      fees7dUsd: fees7d,
+      fees30dUsd: fees30d,
+      fees1yUsd: fees1y,
+      tvlUsd: latestChart?.tvlUsd ? parseFloat(latestChart.tvlUsd) : 0,
+      apr24h,
+      tvlHistory: tvlHistory.map(chart => ({
+        timestamp: chart.timestamp,
+        value: chart.tvlUsd,
+      })),
+    });
   }
 
   /**

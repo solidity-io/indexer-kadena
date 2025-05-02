@@ -1,5 +1,5 @@
 import Pair from './pair';
-import PoolChartData from './pool-chart-data';
+import PoolChart from './pool-chart';
 import PoolStats from './pool-stats';
 import PoolTransaction from './pool-transaction';
 import Token from './token';
@@ -41,13 +41,13 @@ export function setupAssociations() {
     as: 'poolTransactions',
   });
 
-  Pair.hasMany(PoolChartData, {
+  Pair.hasMany(PoolChart, {
     foreignKey: 'pairId',
-    as: 'poolChartData',
+    as: 'poolChart',
   });
 
-  // PoolChartData associations
-  PoolChartData.belongsTo(Pair, {
+  // PoolChart associations
+  PoolChart.belongsTo(Pair, {
     foreignKey: 'pairId',
     as: 'pair',
   });

@@ -20,6 +20,8 @@ class PoolTransaction extends Model {
   public amount0Out!: string;
   public amount1Out!: string;
   public amountUsd!: number;
+  public feeAmount!: string; // Fee amount in tokens
+  public feeUsd!: number; // Fee amount in USD
   public timestamp!: Date;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -76,6 +78,16 @@ PoolTransaction.init(
       defaultValue: '0',
     },
     amountUsd: {
+      type: DataTypes.DECIMAL(20, 2),
+      allowNull: false,
+      defaultValue: 0,
+    },
+    feeAmount: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: '0',
+    },
+    feeUsd: {
       type: DataTypes.DECIMAL(20, 2),
       allowNull: false,
       defaultValue: 0,

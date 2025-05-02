@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 
 import { sequelize } from '../config/database';
-import type PoolChartData from './pool-chart-data';
+import type PoolChart from './pool-chart';
 import type PoolStats from './pool-stats';
 import type PoolTransaction from './pool-transaction';
 import type Token from './token';
@@ -23,7 +23,7 @@ class Pair extends Model {
   public readonly token1?: Token;
   public readonly poolStats?: PoolStats[];
   public readonly poolTransactions?: PoolTransaction[];
-  public readonly poolChartData?: PoolChartData[];
+  public readonly poolChart?: PoolChart[];
 }
 
 Pair.init(
