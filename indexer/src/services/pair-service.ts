@@ -7,6 +7,8 @@ import PoolStats from '../models/pool-stats';
 import PoolTransaction, { TransactionType } from '../models/pool-transaction';
 import Token from '../models/token';
 
+type TokenAmount = number | { decimal: string };
+
 interface CreatePairParams {
   moduleName: string;
   name: string;
@@ -127,6 +129,10 @@ export class PairService {
         // Parse the parameters
         const [key, reserve0, reserve1] = JSON.parse(event.parameters);
 
+        // Convert TokenAmount to string representation
+        const reserve0Str = typeof reserve0 === 'number' ? reserve0.toString() : reserve0.decimal;
+        const reserve1Str = typeof reserve1 === 'number' ? reserve1.toString() : reserve1.decimal;
+
         // Find the pair by key
         const pair = await Pair.findOne({
           where: { key },
@@ -146,8 +152,8 @@ export class PairService {
         // Store chart data
         await PoolChart.create({
           pairId: pair.id,
-          reserve0: reserve0.toString(),
-          reserve1: reserve1.toString(),
+          reserve0: reserve0Str,
+          reserve1: reserve1Str,
           totalSupply: pair.totalSupply,
           reserve0Usd,
           reserve1Usd,
@@ -157,8 +163,8 @@ export class PairService {
 
         // Update pair's current state
         await pair.update({
-          reserve0: reserve0.toString(),
-          reserve1: reserve1.toString(),
+          reserve0: reserve0Str,
+          reserve1: reserve1Str,
         });
 
         // Update pool stats
@@ -277,6 +283,11 @@ export class PairService {
           event.parameters,
         );
 
+        // Convert TokenAmount to string representation
+        const amountInStr = typeof amountIn === 'number' ? amountIn.toString() : amountIn.decimal;
+        const amountOutStr =
+          typeof amountOut === 'number' ? amountOut.toString() : amountOut.decimal;
+
         // Find the tokens
         const [tokenIn, tokenOut] = await Promise.all([
           this.createOrFindToken(tokenInRef, null),
@@ -308,10 +319,10 @@ export class PairService {
           type: TransactionType.SWAP,
           maker: sender,
           timestamp: new Date(),
-          amount0In: pair.token0Id === tokenIn.id ? amountIn.toString() : '0',
-          amount1In: pair.token1Id === tokenIn.id ? amountIn.toString() : '0',
-          amount0Out: pair.token0Id === tokenOut.id ? amountOut.toString() : '0',
-          amount1Out: pair.token1Id === tokenOut.id ? amountOut.toString() : '0',
+          amount0In: pair.token0Id === tokenIn.id ? amountInStr : '0',
+          amount1In: pair.token1Id === tokenIn.id ? amountInStr : '0',
+          amount0Out: pair.token0Id === tokenOut.id ? amountOutStr : '0',
+          amount1Out: pair.token1Id === tokenOut.id ? amountOutStr : '0',
           amountUsd,
         });
       } catch (error) {
@@ -338,6 +349,10 @@ export class PairService {
       try {
         // Parse the parameters
         const [sender, to, token0Ref, token1Ref, amount0, amount1] = JSON.parse(event.parameters);
+
+        // Convert TokenAmount to string representation
+        const amount0Str = typeof amount0 === 'number' ? amount0.toString() : amount0.decimal;
+        const amount1Str = typeof amount1 === 'number' ? amount1.toString() : amount1.decimal;
 
         // Find the tokens
         const [token0, token1] = await Promise.all([
@@ -376,18 +391,18 @@ export class PairService {
               : TransactionType.REMOVE_LIQUIDITY,
           maker: sender,
           timestamp: new Date(),
-          amount0In: isToken0First ? amount0.toString() : '0',
-          amount1In: isToken0First ? '0' : amount0.toString(),
-          amount0Out: isToken0First ? '0' : amount1.toString(),
-          amount1Out: isToken0First ? amount1.toString() : '0',
+          amount0In: isToken0First ? amount0Str : '0',
+          amount1In: isToken0First ? '0' : amount0Str,
+          amount0Out: isToken0First ? '0' : amount1Str,
+          amount1Out: isToken0First ? amount1Str : '0',
           amountUsd,
         });
 
         // Update reserves based on the event type
         const reserve0 = BigInt(pair.reserve0);
         const reserve1 = BigInt(pair.reserve1);
-        const amount0BigInt = BigInt(amount0.toString());
-        const amount1BigInt = BigInt(amount1.toString());
+        const amount0BigInt = BigInt(amount0Str);
+        const amount1BigInt = BigInt(amount1Str);
 
         if (event.name === 'ADD_LIQUIDITY') {
           await pair.update({
