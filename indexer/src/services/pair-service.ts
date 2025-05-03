@@ -6,6 +6,7 @@ import PoolChart from '../models/pool-chart';
 import PoolStats from '../models/pool-stats';
 import PoolTransaction, { TransactionType } from '../models/pool-transaction';
 import Token from '../models/token';
+import { PriceService } from './price/price.service';
 
 type TokenAmount = number | { decimal: string };
 
@@ -424,6 +425,148 @@ export class PairService {
       } catch (error) {
         console.error('Error processing liquidity event:', error);
       }
+    }
+  }
+
+  /**
+   * Finds a direct pair between two tokens
+   * @param token0Id First token ID
+   * @param token1Id Second token ID
+   * @returns The pair if found, null otherwise
+   */
+  private static async findDirectPair(token0Id: number, token1Id: number): Promise<Pair | null> {
+    return Pair.findOne({
+      where: {
+        [Op.or]: [
+          { token0Id, token1Id },
+          { token0Id: token1Id, token1Id: token0Id },
+        ],
+      },
+      include: [
+        { model: Token, as: 'token0' },
+        { model: Token, as: 'token1' },
+      ],
+    });
+  }
+
+  /**
+   * Uses BFS to find the shortest path to KDA and calculates the token price
+   * @param startTokenId Starting token ID
+   * @param startAmount Starting token amount
+   * @returns The KDA amount if a path is found, undefined otherwise
+   */
+  private static async findPathToKda(
+    startTokenId: number,
+    startAmount: bigint,
+  ): Promise<bigint | undefined> {
+    // Get KDA token
+    const kdaToken = await Token.findOne({ where: { code: 'coin' } });
+    if (!kdaToken) {
+      return undefined;
+    }
+
+    // Queue for BFS: [tokenId, amount, path]
+    const queue: Array<[number, bigint, number[]]> = [[startTokenId, startAmount, [startTokenId]]];
+    const visited = new Set<number>([startTokenId]);
+
+    while (queue.length > 0) {
+      const [currentTokenId, currentAmount, path] = queue.shift()!;
+
+      // Try direct path to KDA
+      const directPair = await this.findDirectPair(currentTokenId, kdaToken.id);
+      if (directPair) {
+        const reserve0 = BigInt(directPair.reserve0);
+        const reserve1 = BigInt(directPair.reserve1);
+
+        let kdaAmount: bigint;
+        if (currentTokenId === directPair.token0Id) {
+          kdaAmount = (currentAmount * reserve1) / reserve0;
+        } else {
+          kdaAmount = (currentAmount * reserve0) / reserve1;
+        }
+
+        // Found the shortest path to KDA
+        return kdaAmount;
+      }
+
+      // If path length is 4, don't explore further
+      if (path.length >= 4) {
+        continue;
+      }
+
+      // Find all connected pairs
+      const connectedPairs = await Pair.findAll({
+        where: {
+          [Op.or]: [{ token0Id: currentTokenId }, { token1Id: currentTokenId }],
+        },
+        include: [
+          { model: Token, as: 'token0' },
+          { model: Token, as: 'token1' },
+        ],
+      });
+
+      // Add connected tokens to queue
+      for (const pair of connectedPairs) {
+        const otherTokenId = pair.token0Id === currentTokenId ? pair.token1Id : pair.token0Id;
+
+        // Skip if already visited
+        if (visited.has(otherTokenId)) {
+          continue;
+        }
+
+        // Calculate amount of the other token
+        const reserve0 = BigInt(pair.reserve0);
+        const reserve1 = BigInt(pair.reserve1);
+        const otherTokenAmount =
+          currentTokenId === pair.token0Id
+            ? (currentAmount * reserve1) / reserve0
+            : (currentAmount * reserve0) / reserve1;
+
+        // Add to queue
+        queue.push([otherTokenId, otherTokenAmount, [...path, otherTokenId]]);
+        visited.add(otherTokenId);
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Calculates the USD value of a token amount using KDA price and pair information
+   * @param token The token to calculate value for
+   * @param amount The amount of the token
+   * @returns The USD value of the token amount
+   */
+  static async calculateTokenUsdValue(
+    token: Token,
+    amount: TokenAmount,
+  ): Promise<number | undefined> {
+    try {
+      // Get KDA/USD price
+      const priceService = PriceService.getInstance();
+      const kdaUsdPrice = priceService.getKdaUsdPrice();
+      if (!kdaUsdPrice) {
+        console.warn('KDA/USD price not available');
+        return undefined;
+      }
+
+      // Convert amount to string and then to BigInt
+      const amountStr = typeof amount === 'number' ? amount.toString() : amount.decimal;
+      const amountBigInt = BigInt(amountStr);
+
+      // Find shortest path to KDA using BFS
+      const kdaAmount = await this.findPathToKda(token.id, amountBigInt);
+
+      if (kdaAmount === undefined) {
+        console.warn(`No path found to calculate USD value for token ${token.code}`);
+        return undefined;
+      }
+
+      // Convert to USD
+      return Number(kdaAmount) * kdaUsdPrice;
+    } catch (error) {
+      console.error('Error calculating token USD value:', error);
+      return undefined;
     }
   }
 }
