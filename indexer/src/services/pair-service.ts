@@ -10,6 +10,12 @@ import { PriceService } from './price/price.service';
 
 type TokenAmount = number | { decimal: string };
 
+// Cache for token prices in USD
+interface TokenPriceCache {
+  price: number;
+  timestamp: number;
+}
+
 interface CreatePairParams {
   moduleName: string;
   name: string;
@@ -31,6 +37,9 @@ interface TokenReference {
 }
 
 export class PairService {
+  private static tokenPriceCache: Map<number, TokenPriceCache> = new Map();
+  private static readonly PRICE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
   /**
    * Creates a token if it doesn't exist
    * @param tokenRef Token reference from the parameters
@@ -112,6 +121,28 @@ export class PairService {
   }
 
   /**
+   * Gets the cached price for a token or calculates it if not cached
+   * @param token The token to get price for
+   * @returns The token price in USD
+   */
+  private static async getTokenPriceInUSD(token: Token): Promise<number | undefined> {
+    const now = Date.now();
+    const cached = this.tokenPriceCache.get(token.id);
+
+    // Return cached price if it's still valid
+    if (cached && now - cached.timestamp < this.PRICE_CACHE_TTL) {
+      return cached.price;
+    }
+
+    // Calculate new price
+    const price = await this.calculateTokenPriceInUSD(token, { decimal: '1' });
+    if (price !== undefined) {
+      this.tokenPriceCache.set(token.id, { price, timestamp: now });
+    }
+    return price;
+  }
+
+  /**
    * Updates pairs and their statistics based on the provided update events
    * @param updateEvents Array of update events
    */
@@ -141,6 +172,10 @@ export class PairService {
         // Find the pair by key
         const pair = await Pair.findOne({
           where: { key },
+          include: [
+            { model: Token, as: 'token0' },
+            { model: Token, as: 'token1' },
+          ],
         });
 
         if (!pair) {
@@ -148,11 +183,16 @@ export class PairService {
           continue;
         }
 
-        // Calculate USD values (placeholder - implement actual price calculation)
-        const reserve0Usd = '0'; // TODO: Implement price calculation
-        const reserve1Usd = '0'; // TODO: Implement price calculation
-        const tvlUsd = '0'; // TODO: Implement price calculation
-        const amountUsd = 0; // TODO: Implement price calculation
+        // Get token prices in USD
+        const [token0Price, token1Price] = await Promise.all([
+          pair.token0 ? this.getTokenPriceInUSD(pair.token0) : undefined,
+          pair.token1 ? this.getTokenPriceInUSD(pair.token1) : undefined,
+        ]);
+
+        // Calculate USD values
+        const reserve0Usd = token0Price ? (Number(reserve0Str) * token0Price).toString() : '0';
+        const reserve1Usd = token1Price ? (Number(reserve1Str) * token1Price).toString() : '0';
+        const tvlUsd = (Number(reserve0Usd) + Number(reserve1Usd)).toString();
 
         // Store chart data
         await PoolChart.create({
@@ -314,8 +354,18 @@ export class PairService {
           continue;
         }
 
-        // Calculate USD value (placeholder - implement actual price calculation)
-        const amountUsd = 0; // TODO: Implement price calculation
+        // Get token prices in USD
+        const [tokenInPrice, tokenOutPrice] = await Promise.all([
+          this.getTokenPriceInUSD(tokenIn),
+          this.getTokenPriceInUSD(tokenOut),
+        ]);
+
+        // Calculate USD value
+        const amountUsd = tokenInPrice
+          ? Number(amountInStr) * tokenInPrice
+          : tokenOutPrice
+            ? Number(amountOutStr) * tokenOutPrice
+            : 0;
 
         // Create pool transaction record
         await PoolTransaction.create({
@@ -382,11 +432,18 @@ export class PairService {
           continue;
         }
 
-        // Determine if tokens are in correct order
-        const isToken0First = pair.token0Id === token0.id;
+        // Get token prices in USD
+        const [token0Price, token1Price] = await Promise.all([
+          this.getTokenPriceInUSD(token0),
+          this.getTokenPriceInUSD(token1),
+        ]);
 
-        // Calculate USD value (placeholder - implement actual price calculation)
-        const amountUsd = 0; // TODO: Implement price calculation
+        // Calculate USD value
+        const amountUsd = token0Price
+          ? Number(amount0Str) * token0Price
+          : token1Price
+            ? Number(amount1Str) * token1Price
+            : 0;
 
         // Create pool transaction record
         await PoolTransaction.create({
@@ -398,10 +455,10 @@ export class PairService {
               : TransactionType.REMOVE_LIQUIDITY,
           maker: sender,
           timestamp: new Date(),
-          amount0In: isToken0First ? amount0Str : '0',
-          amount1In: isToken0First ? '0' : amount0Str,
-          amount0Out: isToken0First ? '0' : amount1Str,
-          amount1Out: isToken0First ? amount1Str : '0',
+          amount0In: pair.token0Id === token0.id ? amount0Str : '0',
+          amount1In: pair.token1Id === token0.id ? amount0Str : '0',
+          amount0Out: pair.token0Id === token1.id ? amount1Str : '0',
+          amount1Out: pair.token1Id === token1.id ? amount1Str : '0',
           amountUsd,
         });
 
@@ -537,7 +594,7 @@ export class PairService {
    * @param amount The amount of the token
    * @returns The USD value of the token amount
    */
-  static async calculateTokenUsdValue(
+  static async calculateTokenPriceInUSD(
     token: Token,
     amount: TokenAmount,
   ): Promise<number | undefined> {
