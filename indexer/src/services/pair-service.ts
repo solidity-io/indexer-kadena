@@ -127,7 +127,11 @@ export class PairService {
     for (const event of updateEvents) {
       try {
         // Parse the parameters
-        const [key, reserve0, reserve1] = JSON.parse(event.parameters);
+        const [key, reserve0, reserve1] = JSON.parse(event.parameters) as [
+          string,
+          TokenAmount,
+          TokenAmount,
+        ];
 
         // Convert TokenAmount to string representation
         const reserve0Str = typeof reserve0 === 'number' ? reserve0.toString() : reserve0.decimal;
@@ -281,7 +285,7 @@ export class PairService {
         // Parse the parameters
         const [sender, receiver, amountIn, tokenInRef, amountOut, tokenOutRef] = JSON.parse(
           event.parameters,
-        );
+        ) as [string, string, TokenAmount, TokenReference, TokenAmount, TokenReference];
 
         // Convert TokenAmount to string representation
         const amountInStr = typeof amountIn === 'number' ? amountIn.toString() : amountIn.decimal;
@@ -348,7 +352,9 @@ export class PairService {
     for (const event of liquidityEvents) {
       try {
         // Parse the parameters
-        const [sender, to, token0Ref, token1Ref, amount0, amount1] = JSON.parse(event.parameters);
+        const [sender, to, token0Ref, token1Ref, amount0, amount1] = JSON.parse(
+          event.parameters,
+        ) as [string, string, TokenReference, TokenReference, TokenAmount, TokenAmount];
 
         // Convert TokenAmount to string representation
         const amount0Str = typeof amount0 === 'number' ? amount0.toString() : amount0.decimal;
