@@ -38,7 +38,7 @@ interface TokenReference {
 
 export class PairService {
   private static tokenPriceCache: Map<number, TokenPriceCache> = new Map();
-  private static readonly PRICE_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private static readonly PRICE_CACHE_TTL = parseInt(process.env.PRICE_CACHE_TTL || '300000', 10); // Default 5 minutes
 
   /**
    * Creates a token if it doesn't exist

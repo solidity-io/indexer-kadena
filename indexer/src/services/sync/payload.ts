@@ -95,16 +95,8 @@ export async function processTransaction(
   const eventsAttributes = eventsData.map((eventData: any) => {
     // Check for DIA oracle price update
     if (eventData.module.namespace === DIA_ORACLE_MODULE && eventData.name === 'UPDATE') {
-      try {
-        const params = JSON.parse(eventData.params);
-        if (params[0] === 'KDA/USD') {
-          const priceService = PriceService.getInstance();
-          priceService.setKdaUsdPrice(params[2] as number);
-          console.log(`[INFO][PRICE] Updated KDA/USD price from DIA oracle to: $${params[2]}`);
-        }
-      } catch (error) {
-        console.error('[ERROR][PRICE] Failed to process DIA oracle price update:', error);
-      }
+      const priceService = PriceService.getInstance();
+      priceService.processDiaPriceUpdate(eventData);
     }
 
     return {
@@ -148,10 +140,7 @@ export async function processTransaction(
       },
     );
 
-    const eventsWithTransactionId = eventsAttributes.map(event => ({
-      ...event,
-      transactionId,
-    })) as EventAttributes[];
+    const eventsWithTransactionId = await Promise.all(eventsAttributes);
     console.log('eventsWithTransactionId', JSON.stringify(eventsWithTransactionId, null, 2));
     await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
 
@@ -215,7 +204,7 @@ export async function processTransaction(
       transaction: tx,
     });
 
-    return eventsAttributes;
+    return eventsWithTransactionId;
   } catch (error) {
     console.error('Error processing transaction:', error);
     throw error;
