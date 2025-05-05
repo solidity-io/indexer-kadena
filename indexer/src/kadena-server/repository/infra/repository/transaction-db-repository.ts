@@ -33,6 +33,7 @@ import { signerMetaValidator } from '../schema-validator/signer-schema-validator
 import { MEMORY_CACHE } from '../../../../cache/init';
 import { NETWORK_STATISTICS_KEY } from '../../../../cache/keys';
 import { NetworkStatistics } from '../../application/network-repository';
+import BlockDbRepository from './block-db-repository';
 
 /**
  * Helper function to determine the appropriate SQL operator based on parameter position.
@@ -448,11 +449,6 @@ export default class TransactionDbRepository implements TransactionRepository {
       conditions += `\nAND b."hash" = $${queryParams.length}`;
     }
 
-    if (minimumDepth !== undefined && minimumDepth !== null) {
-      queryParams.push(minimumDepth);
-      conditions += `\nAND b.height >= $${queryParams.length}`;
-    }
-
     const query = `
       SELECT t.id as id,
       t.hash as "hashTransaction",
@@ -483,8 +479,21 @@ export default class TransactionDbRepository implements TransactionRepository {
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
-    const output = rows.map(row => transactionValidator.validate(row));
+    let transactions: TransactionOutput[] = [...rows];
 
+    if (minimumDepth) {
+      const blockRepository = new BlockDbRepository();
+      const blockHashToDepth = await blockRepository.createBlockDepthMap(
+        rows.map(row => ({ hash: row.blockHash })),
+        'hash',
+        minimumDepth,
+      );
+
+      const filteredTxs = rows.filter(event => blockHashToDepth[event.blockHash] >= minimumDepth);
+      transactions = [...filteredTxs];
+    }
+
+    const output = transactions.map(row => transactionValidator.validate(row));
     return output;
   }
 
