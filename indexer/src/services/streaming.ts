@@ -14,13 +14,12 @@
  */
 
 import { processPayloadKey } from './payload';
-import { getDecoded, getRequiredEnvString } from '../../utils/helpers';
+import { getDecoded, getRequiredEnvString } from '@/utils/helpers';
 import EventSource from 'eventsource';
-import { DispatchInfo } from '../../jobs/publisher-job';
-import { uint64ToInt64 } from '../../utils/int-uint-64';
-import Block, { BlockAttributes } from '../../models/block';
-import { sequelize } from '../../config/database';
-import StreamingError from '../../models/streaming-error';
+import { uint64ToInt64 } from '@/utils/int-uint-64';
+import Block, { BlockAttributes } from '@/models/block';
+import { sequelize } from '@/config/database';
+import StreamingError from '@/models/streaming-error';
 import { backfillGuards } from './guards';
 import { Transaction } from 'sequelize';
 
@@ -176,7 +175,7 @@ export function processPayload(payload: any) {
  * TODO: [OPTIMIZATION] Consider implementing batch processing for high transaction volumes
  * to improve database performance.
  */
-export async function saveBlock(parsedData: any, tx?: Transaction): Promise<DispatchInfo | null> {
+export async function saveBlock(parsedData: any, tx?: Transaction): Promise<void> {
   const headerData = parsedData.header;
   const payloadData = parsedData.payload;
   const transactions = payloadData.transactions || [];
@@ -210,24 +209,8 @@ export async function saveBlock(parsedData: any, tx?: Transaction): Promise<Disp
     });
 
     // Process the block's transactions and events
-    const eventsCreated = await processPayloadKey(createdBlock, payloadData, tx);
-
-    // Extract unique request keys and event names for dispatch information
-    const uniqueRequestKeys = new Set(eventsCreated.map(t => t.requestkey).filter(Boolean));
-    const uniqueQualifiedEventNames = new Set(
-      eventsCreated.map(t => `${t.module}.${t.name}`).filter(Boolean),
-    );
-
-    // Return dispatch information for further processing
-    return {
-      hash: createdBlock.hash,
-      chainId: createdBlock.chainId.toString(),
-      height: createdBlock.height,
-      requestKeys: Array.from(uniqueRequestKeys),
-      qualifiedEventNames: Array.from(uniqueQualifiedEventNames),
-    };
+    await processPayloadKey(createdBlock, payloadData, tx);
   } catch (error) {
     console.error(`[ERROR][DB][DATA_CORRUPT] Failed to save block to database:`, error);
-    return null;
   }
 }

@@ -1,5 +1,5 @@
-import { rootPgPool, sequelize } from '../../config/database';
-import { getRequiredEnvString } from '../../utils/helpers';
+import { rootPgPool, sequelize } from '@/config/database';
+import { getRequiredEnvString } from '@/utils/helpers';
 import { processPayload, saveBlock } from './streaming';
 
 const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');

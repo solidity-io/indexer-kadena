@@ -11,8 +11,8 @@
  * 4. Managing relationships between tokens and their contracts
  */
 
-import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
-import Contract, { ContractAttributes } from '../../models/contract';
+import { handleSingleQuery } from '@/utils/raw-query';
+import Contract, { ContractAttributes } from '@/models/contract';
 
 /**
  * Synchronizes a token contract by retrieving its manifest data from the blockchain.

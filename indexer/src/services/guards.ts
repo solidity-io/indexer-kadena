@@ -16,9 +16,9 @@
  */
 
 import pLimit from 'p-limit';
-import { rootPgPool, sequelize } from '../../config/database';
+import { rootPgPool, sequelize } from '@/config/database';
 import { getGuardsFromBalances } from './payload';
-import Guard from '../../models/guard';
+import Guard from '@/models/guard';
 
 /**
  * Maximum number of concurrent blockchain API requests allowed.

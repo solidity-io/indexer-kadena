@@ -176,7 +176,7 @@ async function getMinerRewards(cutHeight: number) {
   // Construct the absolute path to the miner rewards CSV file
   // __dirname is the directory of the current module
   // Navigate to the circulating-coins directory from the current location
-  const filePath = path.resolve(__dirname, '../../circulating-coins/miner_rewards.csv');
+  const filePath = path.resolve(__dirname, '../circulating-coins/miner_rewards.csv');
 
   // Read the CSV file contents asynchronously
   const csvContent = await getCsvContent(filePath);
@@ -200,7 +200,7 @@ async function getMinerRewards(cutHeight: number) {
 async function getTokenPayments(latestCreationTime: number) {
   // Construct the absolute path to the token payments CSV file
   // Similar to the miner rewards file but with a different filename
-  const filePath = path.resolve(__dirname, '../../circulating-coins/token_payments.csv');
+  const filePath = path.resolve(__dirname, '../circulating-coins/token_payments.csv');
 
   // Read the CSV file contents asynchronously
   const csvContent = await getCsvContent(filePath);

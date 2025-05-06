@@ -9,9 +9,9 @@
 
 import { dirtyReadClient } from '@kadena/client-utils/core';
 import type { ChainId } from '@kadena/types';
-import { PactQuery, PactQueryData, PactQueryResponse } from '../config/graphql-types';
-import { getRequiredEnvString } from '../../utils/helpers';
-import { PactCommandError } from '../errors/pact-command-error';
+import { PactQuery, PactQueryData, PactQueryResponse } from '../kadena-server/config/graphql-types';
+import { getRequiredEnvString } from './helpers';
+import { PactCommandError } from '../kadena-server/errors/pact-command-error';
 
 const HOST_URL = getRequiredEnvString('NODE_API_URL');
 const NETWORK_ID = getRequiredEnvString('SYNC_NETWORK');

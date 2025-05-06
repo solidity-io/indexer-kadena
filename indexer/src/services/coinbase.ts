@@ -13,13 +13,13 @@
  * 4. Establishing relationships between coinbase transactions, blocks, and events
  */
 
-import TransactionModel, { TransactionCreationAttributes } from '../../models/transaction';
-import Transfer, { TransferAttributes } from '../../models/transfer';
+import TransactionModel, { TransactionCreationAttributes } from '@/models/transaction';
+import Transfer, { TransferAttributes } from '@/models/transfer';
 import { Transaction } from 'sequelize';
-import Event, { EventAttributes } from '../../models/event';
+import Event, { EventAttributes } from '@/models/event';
 import { getCoinTransfers } from './transfers';
-import Signer from '../../models/signer';
-import Guard from '../../models/guard';
+import Signer from '@/models/signer';
+import Guard from '@/models/guard';
 
 /**
  * Interface representing the structured data of a coinbase transaction.
