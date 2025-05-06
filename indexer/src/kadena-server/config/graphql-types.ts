@@ -456,6 +456,40 @@ export type PageInfo = {
   startCursor?: Maybe<Scalars['String']['output']>;
 };
 
+/** A liquidity pool for a token pair. */
+export type Pool = Node & {
+  __typename?: 'Pool';
+  address: Scalars['String']['output'];
+  apr24h: Scalars['Decimal']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  key: Scalars['String']['output'];
+  reserve0: Scalars['String']['output'];
+  reserve1: Scalars['String']['output'];
+  token0: Token;
+  token1: Token;
+  totalSupply: Scalars['String']['output'];
+  transactionCount24h: Scalars['Int']['output'];
+  tvlUsd: Scalars['Decimal']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  volume7dUsd: Scalars['Decimal']['output'];
+  volume24hUsd: Scalars['Decimal']['output'];
+};
+
+/** Sort options for pools */
+export enum PoolOrderBy {
+  Apr_24HAsc = 'APR_24H_ASC',
+  Apr_24HDesc = 'APR_24H_DESC',
+  TransactionCount_24HAsc = 'TRANSACTION_COUNT_24H_ASC',
+  TransactionCount_24HDesc = 'TRANSACTION_COUNT_24H_DESC',
+  TvlUsdAsc = 'TVL_USD_ASC',
+  TvlUsdDesc = 'TVL_USD_DESC',
+  Volume_7DAsc = 'VOLUME_7D_ASC',
+  Volume_7DDesc = 'VOLUME_7D_DESC',
+  Volume_24HAsc = 'VOLUME_24H_ASC',
+  Volume_24HDesc = 'VOLUME_24H_DESC',
+}
+
 export type Query = {
   __typename?: 'Query';
   /** Retrieve a block by hash. */
@@ -513,7 +547,9 @@ export type Query = {
   nonFungibleChainAccount?: Maybe<NonFungibleChainAccount>;
   /** Execute arbitrary Pact code via a local call without gas-estimation or signature-verification (e.g. (+ 1 2) or (coin.get-details <account>)). */
   pactQuery: Array<PactQueryResponse>;
-  tokens?: Maybe<QueryTokensConnection>;
+  /** Retrieve liquidity pools. Default page size is 20. */
+  pools: QueryPoolsConnection;
+  tokens: QueryTokensConnection;
   /** Retrieve one transaction by its unique key. Throws an error if multiple transactions are found. */
   transaction?: Maybe<Transaction>;
   /**
@@ -629,6 +665,14 @@ export type QueryPactQueryArgs = {
   pactQuery: Array<PactQuery>;
 };
 
+export type QueryPoolsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PoolOrderBy>;
+};
+
 export type QueryTokensArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
@@ -724,6 +768,19 @@ export type QueryEventsConnectionEdge = {
   __typename?: 'QueryEventsConnectionEdge';
   cursor: Scalars['String']['output'];
   node: Event;
+};
+
+export type QueryPoolsConnection = {
+  __typename?: 'QueryPoolsConnection';
+  edges: Array<QueryPoolsConnectionEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type QueryPoolsConnectionEdge = {
+  __typename?: 'QueryPoolsConnectionEdge';
+  cursor: Scalars['String']['output'];
+  node: Pool;
 };
 
 export type QueryTokensConnection = {
@@ -1138,6 +1195,7 @@ export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = 
         transactions: _RefType['NonFungibleChainAccountTransactionsConnection'];
       })
     | (Omit<NonFungibleTokenBalance, 'guard'> & { guard: _RefType['IGuard'] })
+    | Pool
     | Signer
     | (Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & {
         cmd: _RefType['TransactionCommand'];
@@ -1291,6 +1349,8 @@ export type ResolversTypes = {
   PactQueryData: PactQueryData;
   PactQueryResponse: ResolverTypeWrapper<PactQueryResponse>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
+  Pool: ResolverTypeWrapper<Pool>;
+  PoolOrderBy: PoolOrderBy;
   Query: ResolverTypeWrapper<{}>;
   QueryBlocksFromDepthConnection: ResolverTypeWrapper<
     Omit<QueryBlocksFromDepthConnection, 'edges'> & {
@@ -1324,6 +1384,8 @@ export type ResolversTypes = {
   QueryEventsConnectionEdge: ResolverTypeWrapper<
     Omit<QueryEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }
   >;
+  QueryPoolsConnection: ResolverTypeWrapper<QueryPoolsConnection>;
+  QueryPoolsConnectionEdge: ResolverTypeWrapper<QueryPoolsConnectionEdge>;
   QueryTokensConnection: ResolverTypeWrapper<QueryTokensConnection>;
   QueryTokensEdge: ResolverTypeWrapper<QueryTokensEdge>;
   QueryTransactionsByPublicKeyConnection: ResolverTypeWrapper<
@@ -1530,6 +1592,7 @@ export type ResolversParentTypes = {
   PactQueryData: PactQueryData;
   PactQueryResponse: PactQueryResponse;
   PageInfo: PageInfo;
+  Pool: Pool;
   Query: {};
   QueryBlocksFromDepthConnection: Omit<QueryBlocksFromDepthConnection, 'edges'> & {
     edges: Array<ResolversParentTypes['QueryBlocksFromDepthConnectionEdge']>;
@@ -1556,6 +1619,8 @@ export type ResolversParentTypes = {
   QueryEventsConnectionEdge: Omit<QueryEventsConnectionEdge, 'node'> & {
     node: ResolversParentTypes['Event'];
   };
+  QueryPoolsConnection: QueryPoolsConnection;
+  QueryPoolsConnectionEdge: QueryPoolsConnectionEdge;
   QueryTokensConnection: QueryTokensConnection;
   QueryTokensEdge: QueryTokensEdge;
   QueryTransactionsByPublicKeyConnection: Omit<QueryTransactionsByPublicKeyConnection, 'edges'> & {
@@ -2017,6 +2082,7 @@ export type NodeResolvers<
     | 'NonFungibleAccount'
     | 'NonFungibleChainAccount'
     | 'NonFungibleTokenBalance'
+    | 'Pool'
     | 'Signer'
     | 'Transaction'
     | 'Transfer',
@@ -2175,6 +2241,28 @@ export type PageInfoResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type PoolResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Pool'] = ResolversParentTypes['Pool'],
+> = {
+  address?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  apr24h?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  reserve0?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  reserve1?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  token0?: Resolver<ResolversTypes['Token'], ParentType, ContextType>;
+  token1?: Resolver<ResolversTypes['Token'], ParentType, ContextType>;
+  totalSupply?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  transactionCount24h?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  tvlUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  volume7dUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  volume24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type QueryResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query'],
@@ -2281,8 +2369,14 @@ export type QueryResolvers<
     ContextType,
     RequireFields<QueryPactQueryArgs, 'pactQuery'>
   >;
+  pools?: Resolver<
+    ResolversTypes['QueryPoolsConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryPoolsArgs, 'orderBy'>
+  >;
   tokens?: Resolver<
-    Maybe<ResolversTypes['QueryTokensConnection']>,
+    ResolversTypes['QueryTokensConnection'],
     ParentType,
     ContextType,
     Partial<QueryTokensArgs>
@@ -2403,6 +2497,27 @@ export type QueryEventsConnectionEdgeResolvers<
 > = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Event'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type QueryPoolsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryPoolsConnection'] = ResolversParentTypes['QueryPoolsConnection'],
+> = {
+  edges?: Resolver<Array<ResolversTypes['QueryPoolsConnectionEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type QueryPoolsConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['QueryPoolsConnectionEdge'] = ResolversParentTypes['QueryPoolsConnectionEdge'],
+> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['Pool'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2810,6 +2925,7 @@ export type Resolvers<ContextType = any> = {
   NonFungibleTokenBalance?: NonFungibleTokenBalanceResolvers<ContextType>;
   PactQueryResponse?: PactQueryResponseResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
+  Pool?: PoolResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   QueryBlocksFromDepthConnection?: QueryBlocksFromDepthConnectionResolvers<ContextType>;
   QueryBlocksFromDepthConnectionEdge?: QueryBlocksFromDepthConnectionEdgeResolvers<ContextType>;
@@ -2819,6 +2935,8 @@ export type Resolvers<ContextType = any> = {
   QueryCompletedBlockHeightsConnectionEdge?: QueryCompletedBlockHeightsConnectionEdgeResolvers<ContextType>;
   QueryEventsConnection?: QueryEventsConnectionResolvers<ContextType>;
   QueryEventsConnectionEdge?: QueryEventsConnectionEdgeResolvers<ContextType>;
+  QueryPoolsConnection?: QueryPoolsConnectionResolvers<ContextType>;
+  QueryPoolsConnectionEdge?: QueryPoolsConnectionEdgeResolvers<ContextType>;
   QueryTokensConnection?: QueryTokensConnectionResolvers<ContextType>;
   QueryTokensEdge?: QueryTokensEdgeResolvers<ContextType>;
   QueryTransactionsByPublicKeyConnection?: QueryTransactionsByPublicKeyConnectionResolvers<ContextType>;

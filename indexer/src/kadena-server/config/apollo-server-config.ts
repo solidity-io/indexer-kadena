@@ -7,6 +7,7 @@ import BalanceRepository from '../repository/application/balance-repository';
 import EventRepository from '../repository/application/event-repository';
 import TransferRepository from '../repository/application/transfer-repository';
 import NetworkRepository from '../repository/application/network-repository';
+import PoolRepository from '../repository/application/pool-repository';
 import { PubSub } from 'graphql-subscriptions';
 import BlockDbRepository from '../repository/infra/repository/block-db-repository';
 import TransactionDbRepository from '../repository/infra/repository/transaction-db-repository';
@@ -14,6 +15,7 @@ import BalanceDbRepository from '../repository/infra/repository/balance-db-repos
 import EventDbRepository from '../repository/infra/repository/event-db-repository';
 import TransferDbRepository from '../repository/infra/repository/transfer-db-repository';
 import NetworkDbRepository from '../repository/infra/repository/network-db-repository';
+import PoolDbRepository from '../repository/infra/repository/pool-db-repository';
 import GasGateway from '../repository/gateway/gas-gateway';
 import GasApiGateway from '../repository/infra/gateway/gas-api-gateway';
 import MempoolGateway from '../repository/gateway/mempool-gateway';
@@ -34,6 +36,7 @@ export type ResolverContext = {
   transferRepository: TransferRepository;
   transactionRepository: TransactionRepository;
   networkRepository: NetworkRepository;
+  poolRepository: PoolRepository;
   gasGateway: GasGateway;
   mempoolGateway: MempoolGateway;
   pactGateway: PactGateway;
@@ -51,6 +54,7 @@ export const createGraphqlContext = () => {
     eventRepository: new EventDbRepository(),
     transferRepository: new TransferDbRepository(),
     networkRepository: new NetworkDbRepository(),
+    poolRepository: new PoolDbRepository(),
     gasGateway: new GasApiGateway(),
     mempoolGateway: new MempoolApiGateway(),
     pactGateway: new PactApiGateway(),

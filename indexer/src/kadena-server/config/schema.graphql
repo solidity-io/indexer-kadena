@@ -275,6 +275,17 @@ type Query {
 
   tokens(after: String, before: String, first: Int, last: Int): QueryTokensConnection!
     @complexity(value: 10, multipliers: ["first", "last"])
+
+  """
+  Retrieve liquidity pools. Default page size is 20.
+  """
+  pools(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    orderBy: PoolOrderBy = TVL_USD_DESC
+  ): QueryPoolsConnection! @complexity(value: 10, multipliers: ["first", "last"])
 }
 
 """
@@ -1051,4 +1062,52 @@ type Token {
   id: ID!
   name: String!
   chainId: String!
+}
+
+"""
+A liquidity pool for a token pair.
+"""
+type Pool implements Node {
+  id: ID!
+  address: String!
+  token0: Token!
+  token1: Token!
+  reserve0: String!
+  reserve1: String!
+  totalSupply: String!
+  key: String!
+  tvlUsd: Decimal!
+  volume24hUsd: Decimal!
+  volume7dUsd: Decimal!
+  transactionCount24h: Int!
+  apr24h: Decimal!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type QueryPoolsConnection {
+  edges: [QueryPoolsConnectionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type QueryPoolsConnectionEdge {
+  cursor: String!
+  node: Pool!
+}
+
+"""
+Sort options for pools
+"""
+enum PoolOrderBy {
+  TVL_USD_ASC
+  TVL_USD_DESC
+  VOLUME_24H_ASC
+  VOLUME_24H_DESC
+  VOLUME_7D_ASC
+  VOLUME_7D_DESC
+  APR_24H_ASC
+  APR_24H_DESC
+  TRANSACTION_COUNT_24H_ASC
+  TRANSACTION_COUNT_24H_DESC
 }

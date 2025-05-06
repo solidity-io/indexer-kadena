@@ -1,10 +1,16 @@
-import { rootPgPool } from '../../../../config/database';
-import type Token from '../../../../models/token';
+import { Op, QueryTypes } from 'sequelize';
+
+import { sequelize } from '../../../../config/database';
+import Pair from '../../../../models/pair';
+import PoolStats from '../../../../models/pool-stats';
+import { getPageInfo, getPaginationParams } from '../../pagination';
+import { PageInfo } from '../../../config/graphql-types';
+import { GetPoolsParams } from '../../application/pool-repository';
+import { PoolOrderBy } from '../../../config/graphql-types';
 import type PoolRepository from '../../application/pool-repository';
 import type {
   GetPoolChartDataParams,
   GetPoolParams,
-  GetPoolsParams,
   GetPoolTransactionsParams,
   PoolChartDataConnection,
   PoolChartDataOutput,
@@ -14,125 +20,163 @@ import type {
   PoolTransactionOutput,
   PoolTransactionsConnection,
 } from '../../application/pool-repository';
-import { getPageInfo, getPaginationParams } from '../../pagination';
+import { ConnectionEdge } from '../../types';
+import Token from '../../../../models/token';
+
+type OrderDirection = 'ASC' | 'DESC';
+
+const POOL_ORDER_BY_MAP: Record<
+  PoolOrderBy,
+  { model: typeof PoolStats; field: string; direction: OrderDirection }
+> = {
+  [PoolOrderBy.TvlUsdAsc]: { model: PoolStats, field: 'tvlUsd', direction: 'ASC' },
+  [PoolOrderBy.TvlUsdDesc]: { model: PoolStats, field: 'tvlUsd', direction: 'DESC' },
+  [PoolOrderBy.Volume_24HAsc]: { model: PoolStats, field: 'volume24hUsd', direction: 'ASC' },
+  [PoolOrderBy.Volume_24HDesc]: { model: PoolStats, field: 'volume24hUsd', direction: 'DESC' },
+  [PoolOrderBy.Volume_7DAsc]: { model: PoolStats, field: 'volume7dUsd', direction: 'ASC' },
+  [PoolOrderBy.Volume_7DDesc]: { model: PoolStats, field: 'volume7dUsd', direction: 'DESC' },
+  [PoolOrderBy.Apr_24HAsc]: { model: PoolStats, field: 'apr24h', direction: 'ASC' },
+  [PoolOrderBy.Apr_24HDesc]: { model: PoolStats, field: 'apr24h', direction: 'DESC' },
+  [PoolOrderBy.TransactionCount_24HAsc]: {
+    model: PoolStats,
+    field: 'transactionCount24h',
+    direction: 'ASC',
+  },
+  [PoolOrderBy.TransactionCount_24HDesc]: {
+    model: PoolStats,
+    field: 'transactionCount24h',
+    direction: 'DESC',
+  },
+};
 
 export default class PoolDbRepository implements PoolRepository {
-  async getPools(params: GetPoolsParams): Promise<PoolsConnection> {
-    const {
-      first,
-      after,
-      last,
-      before,
-      orderBy = 'totalLiquidityDollar',
-      orderDirection = 'DESC',
-    } = params;
-    const pagination = getPaginationParams({ first, after, last, before });
+  async getPools(params: GetPoolsParams): Promise<{
+    pageInfo: PageInfo;
+    edges: ConnectionEdge<PoolOutput>[];
+    totalCount: number;
+  }> {
+    const { after, before, first, last, orderBy } = params;
+    const pagination = getPaginationParams({ after, before, first, last });
 
-    // Get the latest pool stats for each pair
-    const latestStatsQuery = `
-      WITH latest_stats AS (
-        SELECT DISTINCT ON (pair_id) 
-          pair_id, 
-          "volume24hUsd", 
-          "volume7dUsd", 
-          "transactionCount24h", 
-          "apr24h"
-        FROM "PoolStats"
-        ORDER BY pair_id, timestamp DESC
-      )
-      SELECT 
-        p.id,
-        p."lastPrice",
-        p."token0Id",
-        p."token1Id",
-        p."token0Liquidity",
-        p."token0LiquidityDollar",
-        p."token1Liquidity",
-        p."token1LiquidityDollar",
-        p."totalLiquidityDollar",
-        p."feePercentage",
-        ls."volume24hUsd",
-        ls."volume7dUsd",
-        ls."transactionCount24h",
-        ls."apr24h"
-      FROM "Pairs" p
-      LEFT JOIN latest_stats ls ON p.id = ls.pair_id
-      ORDER BY p."${orderBy}" ${orderDirection}
-      LIMIT $1 OFFSET $2
-    `;
+    // Get the latest stats for each pool
+    const latestStats = await PoolStats.findAll({
+      attributes: ['pairId', [sequelize.fn('MAX', sequelize.col('timestamp')), 'maxTimestamp']],
+      group: ['pairId'],
+    });
 
-    const { rows } = await rootPgPool.query(latestStatsQuery, [
-      pagination.limit,
-      pagination.after ? 0 : pagination.limit,
-    ]);
+    const pairIds = latestStats.map(stat => stat.pairId);
+    const maxTimestamps = latestStats.reduce(
+      (acc, stat) => {
+        const maxTimestamp = stat.get('maxTimestamp') as Date;
+        if (maxTimestamp) {
+          acc[stat.pairId] = maxTimestamp;
+        }
+        return acc;
+      },
+      {} as Record<number, Date>,
+    );
 
-    // Get the tokens for each pair
-    const pairIds = rows.map(row => row.id);
-    const tokensQuery = `
-      SELECT t.*, p.id as pair_id, p."token0Id", p."token1Id"
-      FROM "Tokens" t
-      JOIN "Pairs" p ON t.id = p."token0Id" OR t.id = p."token1Id"
-      WHERE p.id = ANY($1)
-    `;
+    const orderByClause = [
+      ['PoolStats', POOL_ORDER_BY_MAP[orderBy].field, POOL_ORDER_BY_MAP[orderBy].direction],
+    ] as [string, string, 'ASC' | 'DESC'][];
 
-    const { rows: tokenRows } = await rootPgPool.query(tokensQuery, [pairIds]);
+    const pairIdsStr = pairIds.join(',');
+    const timestampsStr = Object.values(maxTimestamps)
+      .map(t => `'${t.toISOString()}'`)
+      .join(',');
 
-    // Map tokens to pairs
-    const tokensByPairId: Record<number, { token0: Token | undefined; token1: Token | undefined }> =
-      {};
-    for (const tokenRow of tokenRows) {
-      const pairId = tokenRow.pair_id;
-      if (!tokensByPairId[pairId]) {
-        tokensByPairId[pairId] = { token0: undefined, token1: undefined };
-      }
+    let whereClause = '';
+    const conditions = [];
 
-      if (tokenRow.id === tokenRow.token0Id) {
-        tokensByPairId[pairId].token0 = tokenRow;
-      } else if (tokenRow.id === tokenRow.token1Id) {
-        tokensByPairId[pairId].token1 = tokenRow;
-      }
+    if (pairIdsStr) {
+      conditions.push(`p.id IN (${pairIdsStr})`);
+    }
+    if (timestampsStr) {
+      conditions.push(`ps.timestamp IN (${timestampsStr})`);
     }
 
-    // Build the output
-    const edges = rows.map(row => {
-      const pairTokens = tokensByPairId[row.id] || { token0: undefined, token1: undefined };
-      return {
-        cursor: row.id.toString(),
-        node: {
-          id: row.id,
-          lastPrice: row.lastPrice,
-          token0: pairTokens.token0,
-          token1: pairTokens.token1,
-          token0Liquidity: row.token0Liquidity,
-          token0LiquidityDollar: row.token0LiquidityDollar,
-          token1Liquidity: row.token1Liquidity,
-          token1LiquidityDollar: row.token1LiquidityDollar,
-          totalLiquidityDollar: row.totalLiquidityDollar,
-          feePercentage: row.feePercentage,
-          volume24hUsd: row.volume24hUsd || 0,
-          volume7dUsd: row.volume7dUsd || 0,
-          transactionCount24h: row.transactionCount24h || 0,
-          apr24h: row.apr24h || 0,
-        } as PoolOutput,
-      };
+    if (conditions.length > 0) {
+      whereClause = `WHERE ${conditions.join(' AND ')}`;
+    }
+
+    const query = `
+      SELECT 
+        p.*,
+        t0.id as "token0Id",
+        t0.name as "token0Name",
+        t1.id as "token1Id",
+        t1.name as "token1Name",
+        ps."tvlUsd",
+        ps."volume24hUsd",
+        ps."volume7dUsd",
+        ps."transactionCount24h",
+        ps."apr24h"
+      FROM "Pairs" p
+      JOIN "Tokens" t0 ON p."token0Id" = t0.id
+      JOIN "Tokens" t1 ON p."token1Id" = t1.id
+      JOIN "PoolStats" ps ON p.id = ps."pairId"
+      ${whereClause}
+      ORDER BY ps."${POOL_ORDER_BY_MAP[orderBy].field}" ${POOL_ORDER_BY_MAP[orderBy].direction}
+      LIMIT ${pagination.limit} OFFSET ${pagination.after ? 0 : pagination.limit}
+    `;
+
+    const pairs = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+    });
+
+    const edges = pairs.map((pair: any) => ({
+      cursor: pair.id.toString(),
+      node: {
+        __typename: 'Pool' as const,
+        id: pair.id.toString(),
+        address: pair.address,
+        token0: {
+          __typename: 'Token' as const,
+          id: pair.token0Id.toString(),
+          chainId: '0',
+          name: pair.token0Name,
+        },
+        token1: {
+          __typename: 'Token' as const,
+          id: pair.token1Id.toString(),
+          chainId: '0',
+          name: pair.token1Name,
+        },
+        reserve0: pair.reserve0,
+        reserve1: pair.reserve1,
+        totalSupply: pair.totalSupply,
+        key: pair.key,
+        tvlUsd: pair.tvlUsd ?? 0,
+        volume24hUsd: pair.volume24hUsd ?? 0,
+        volume7dUsd: pair.volume7dUsd ?? 0,
+        transactionCount24h: pair.transactionCount24h ?? 0,
+        apr24h: pair.apr24h ?? 0,
+        createdAt: pair.createdAt,
+        updatedAt: pair.updatedAt,
+      } as PoolOutput,
+    }));
+
+    const totalCount = await Pair.count({
+      where: {
+        id: {
+          [Op.in]: pairIds,
+        },
+      },
     });
 
     const pageInfo = getPageInfo({
       edges,
-      order: orderDirection as 'ASC' | 'DESC',
+      order: pagination.order,
       limit: pagination.limit,
       after,
       before,
     });
+
     return {
       edges,
-      pageInfo: {
-        hasNextPage: pageInfo.pageInfo.hasNextPage,
-        hasPreviousPage: pageInfo.pageInfo.hasPreviousPage,
-        startCursor: pageInfo.pageInfo.startCursor,
-        endCursor: pageInfo.pageInfo.endCursor,
-      },
-    } as PoolsConnection;
+      pageInfo: pageInfo.pageInfo,
+      totalCount,
+    };
   }
 
   async getPool(params: GetPoolParams): Promise<PoolOutput | null> {
@@ -155,12 +199,16 @@ export default class PoolDbRepository implements PoolRepository {
       WHERE p.id = $1
     `;
 
-    const { rows: pairRows } = await rootPgPool.query(pairQuery, [id]);
-    if (pairRows.length === 0) {
+    const [pairResult] = await sequelize.query(pairQuery, {
+      type: QueryTypes.SELECT,
+      bind: [id],
+    });
+
+    if (!pairResult) {
       return null;
     }
 
-    const pair = pairRows[0];
+    const pair = pairResult as any;
 
     // Get the tokens
     const tokensQuery = `
@@ -169,9 +217,14 @@ export default class PoolDbRepository implements PoolRepository {
       WHERE t.id = $1 OR t.id = $2
     `;
 
-    const { rows: tokenRows } = await rootPgPool.query(tokensQuery, [pair.token0Id, pair.token1Id]);
-    const token0 = tokenRows.find(t => t.id === pair.token0Id);
-    const token1 = tokenRows.find(t => t.id === pair.token1Id);
+    const [tokenResults] = await sequelize.query(tokensQuery, {
+      type: QueryTypes.SELECT,
+      bind: [pair.token0Id, pair.token1Id],
+    });
+
+    const tokens = tokenResults as any[];
+    const token0 = tokens.find(t => t.id === pair.token0Id);
+    const token1 = tokens.find(t => t.id === pair.token1Id);
 
     // Get the latest pool stats
     const statsQuery = `
@@ -186,16 +239,19 @@ export default class PoolDbRepository implements PoolRepository {
       LIMIT 1
     `;
 
-    const { rows: statsRows } = await rootPgPool.query(statsQuery, [id]);
-    const stats =
-      statsRows.length > 0
-        ? statsRows[0]
-        : {
-            volume24hUsd: 0,
-            volume7dUsd: 0,
-            transactionCount24h: 0,
-            apr24h: 0,
-          };
+    const [statsResult] = await sequelize.query(statsQuery, {
+      type: QueryTypes.SELECT,
+      bind: [id],
+    });
+
+    const stats = statsResult
+      ? (statsResult as any)
+      : {
+          volume24hUsd: 0,
+          volume7dUsd: 0,
+          transactionCount24h: 0,
+          apr24h: 0,
+        };
 
     return {
       id: pair.id,
@@ -253,8 +309,12 @@ export default class PoolDbRepository implements PoolRepository {
     query += ` ORDER BY timestamp DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     queryParams.push(pagination.limit, pagination.after ? 0 : pagination.limit);
 
-    const { rows } = await rootPgPool.query(query, queryParams);
+    const [results] = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+      bind: queryParams,
+    });
 
+    const rows = results as any[];
     const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: {
@@ -332,8 +392,12 @@ export default class PoolDbRepository implements PoolRepository {
     }
     queryParams.push(pagination.limit, pagination.after ? 0 : pagination.limit);
 
-    const { rows } = await rootPgPool.query(query, queryParams);
+    const [results] = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+      bind: queryParams,
+    });
 
+    const rows = results as any[];
     const edges = rows.map(row => ({
       cursor: row.id.toString(),
       node: {
@@ -372,12 +436,16 @@ export default class PoolDbRepository implements PoolRepository {
       LIMIT 1
     `;
 
-    const { rows } = await rootPgPool.query(query, [pairId]);
-    if (rows.length === 0) {
+    const [result] = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+      bind: [pairId],
+    });
+
+    if (!result) {
       return null;
     }
 
-    const row = rows[0];
+    const row = result as any;
     return {
       id: row.id,
       timestamp: row.timestamp,

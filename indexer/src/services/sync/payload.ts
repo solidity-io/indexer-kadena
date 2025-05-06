@@ -141,7 +141,6 @@ export async function processTransaction(
     );
 
     const eventsWithTransactionId = await Promise.all(eventsAttributes);
-    console.log('eventsWithTransactionId', JSON.stringify(eventsWithTransactionId, null, 2));
     await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
 
     // Process pair creation events

@@ -1,15 +1,12 @@
-import type { ChartDataType } from '../../../models/pool-chart-data';
-import type { PoolTransactionType } from '../../../models/pool-transaction';
+import type { TransactionType } from '../../../models/pool-transaction';
 import type Token from '../../../models/token';
+import { PageInfo, Pool, PoolOrderBy } from '../../config/graphql-types';
+import { PaginationsParams } from '../pagination';
+import { ConnectionEdge } from '../types';
 
-export interface GetPoolsParams {
-  first?: number;
-  after?: string;
-  last?: number;
-  before?: string;
-  orderBy?: string;
-  orderDirection?: 'asc' | 'desc';
-}
+export type GetPoolsParams = PaginationsParams & {
+  orderBy: PoolOrderBy;
+};
 
 export interface GetPoolParams {
   id: number;
@@ -17,7 +14,7 @@ export interface GetPoolParams {
 
 export interface GetPoolTransactionsParams {
   pairId: number;
-  type?: PoolTransactionType;
+  type?: TransactionType;
   first?: number;
   after?: string;
   last?: number;
@@ -26,7 +23,7 @@ export interface GetPoolTransactionsParams {
 
 export interface GetPoolChartDataParams {
   pairId: number;
-  type: ChartDataType;
+  type: 'TVL' | 'VOLUME' | 'PRICE';
   first?: number;
   after?: string;
   last?: number;
@@ -34,8 +31,8 @@ export interface GetPoolChartDataParams {
   timeRange?: '1D' | '1W' | '1M' | '1Y' | 'ALL';
 }
 
-export interface PoolOutput {
-  id: number;
+export type PoolOutput = Pool & {
+  databasePoolId: string;
   lastPrice: number;
   token0: Token;
   token1: Token;
@@ -49,11 +46,11 @@ export interface PoolOutput {
   volume7dUsd: number;
   transactionCount24h: number;
   apr24h: number;
-}
+};
 
 export interface PoolTransactionOutput {
   id: number;
-  type: PoolTransactionType;
+  type: TransactionType;
   timestamp: Date;
   maker: string;
   amountIn: number;
@@ -125,7 +122,11 @@ export interface PoolChartDataConnection {
 }
 
 export default interface PoolRepository {
-  getPools(params: GetPoolsParams): Promise<PoolsConnection>;
+  getPools(params: GetPoolsParams): Promise<{
+    pageInfo: PageInfo;
+    edges: ConnectionEdge<PoolOutput>[];
+    totalCount: number;
+  }>;
   getPool(params: GetPoolParams): Promise<PoolOutput | null>;
   getPoolTransactions(params: GetPoolTransactionsParams): Promise<PoolTransactionsConnection>;
   getPoolChartData(params: GetPoolChartDataParams): Promise<PoolChartDataConnection>;

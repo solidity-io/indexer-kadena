@@ -29,6 +29,7 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
   );
 
   if (pairUpdateEvents.length > 0) {
+    console.log('pairUpdateEvents', pairUpdateEvents);
     const updateParams = pairUpdateEvents.map(event => ({
       moduleName: event.module,
       name: event.name,
@@ -45,6 +46,7 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
   );
 
   if (swapEvents.length > 0) {
+    console.log('swapEvents', swapEvents);
     const swapParams = swapEvents.map(event => ({
       moduleName: event.module,
       name: event.name,
@@ -63,6 +65,7 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
   );
 
   if (liquidityEvents.length > 0) {
+    console.log('liquidityEvents', liquidityEvents);
     const liquidityParams = liquidityEvents.map(event => ({
       moduleName: event.module,
       name: event.name,
