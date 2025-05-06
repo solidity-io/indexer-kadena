@@ -1,4 +1,4 @@
-import { getCirculationNumber } from '../../src/kadena-server/utils/coin-circulation';
+import { getCirculationNumber } from '../../../src/kadena-server/utils/coin-circulation';
 import fs from 'fs';
 
 // Mock the file system module

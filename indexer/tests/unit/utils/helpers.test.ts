@@ -1,4 +1,4 @@
-import { getDecoded, delay, getRequiredEnvString } from '../../src/utils/helpers';
+import { getDecoded, delay, getRequiredEnvString } from '../../../src/utils/helpers';
 
 jest.useFakeTimers();
 

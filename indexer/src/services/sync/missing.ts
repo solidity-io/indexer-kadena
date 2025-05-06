@@ -34,6 +34,7 @@ export async function startMissingBlocks() {
       AND b1."chainwebVersion" = b2."chainwebVersion"
       AND b2.height > b1.height
     WHERE b1."chainId" = $1
+    AND b1.height > 5000000 AND b2.height > 5000000
     AND NOT EXISTS (
       SELECT 1
       FROM "Blocks" b3
@@ -97,4 +98,6 @@ export async function startMissingBlocks() {
       console.log('Processed:', chainAndHash);
     }
   }
+
+  console.info('[INFO][SYNC][MISSING] Missing blocks synced successfully.');
 }

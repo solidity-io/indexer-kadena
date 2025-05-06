@@ -1,4 +1,4 @@
-import { uint64ToInt64, int64ToUint64String } from '../../src/utils/int-uint-64';
+import { uint64ToInt64, int64ToUint64String } from '../../../src/utils/int-uint-64';
 
 describe('int-uint-64 conversion functions', () => {
   describe('uint64ToInt64', () => {
