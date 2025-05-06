@@ -29,7 +29,7 @@ PoolChart.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'pairs',
+        model: 'Pairs',
         key: 'id',
       },
     },
@@ -67,7 +67,7 @@ PoolChart.init(
   },
   {
     sequelize,
-    tableName: 'pool_charts',
+    modelName: 'PoolChart',
     timestamps: true,
   },
 );

@@ -180,7 +180,6 @@ PoolStats.init(
   {
     sequelize,
     modelName: 'PoolStats',
-    tableName: 'pool_stats',
     timestamps: true,
     indexes: [
       {

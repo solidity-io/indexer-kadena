@@ -68,7 +68,7 @@ Pair.init(
   },
   {
     sequelize,
-    tableName: 'pairs',
+    modelName: 'Pair',
     timestamps: true,
   },
 );

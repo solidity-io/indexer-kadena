@@ -80,7 +80,7 @@ Token.init(
   },
   {
     sequelize,
-    tableName: 'tokens',
+    modelName: 'Token',
     timestamps: true,
   },
 );

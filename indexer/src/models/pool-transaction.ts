@@ -41,7 +41,7 @@ PoolTransaction.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'pairs',
+        model: 'Pairs',
         key: 'id',
       },
     },
@@ -99,7 +99,7 @@ PoolTransaction.init(
   },
   {
     sequelize,
-    tableName: 'pool_transactions',
+    modelName: 'PoolTransaction',
     timestamps: true,
   },
 );
