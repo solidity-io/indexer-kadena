@@ -1,11 +1,15 @@
 # Changelog
 
-## April 15 - May 6, 2025
+## April 22 - May 6, 2025
 
 - docs: comprehensive codebase documentation
 - perf: compound cursor for blockFromHeight
-- refactor: getEventsWithQualifiedName accepts requestKey
+- perf: getEventsWithQualifiedName improved for requestKey param
 - refactor: improved missing blocks velocity
+- refactor: created a separated class to handle query builder of events
+- fix: blocks from depth query
+- fix: minimumDepth argument in transaction and events queries
+- fix: minimumDepth argument in transactions query with query builder approach
 - fix: incorrect blocks from depth response
 - fix: missing index migrations for transactions and transactionsDetails
 - fix: transaction order response when creation time is the same
