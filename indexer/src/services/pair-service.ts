@@ -53,15 +53,17 @@ export class PairService {
     const tokenName = tokenRef.refName.name;
     const tokenNamespace = tokenRef.refName.namespace || '';
 
+    const code = tokenNamespace ? `${tokenNamespace}.${tokenName}` : tokenName;
+
     const [token] = await Token.findOrCreate({
       where: {
-        code: `${tokenNamespace}.${tokenName}`,
+        code,
       },
       defaults: {
-        address: `${tokenNamespace}.${tokenName}`,
+        address: code,
         name: tokenName,
         symbol: tokenName.toUpperCase(),
-        code: `${tokenNamespace}.${tokenName}`,
+        code,
         decimals: 18, // Default to 18 decimals
         totalSupply: '0',
         tokenInfo: {
@@ -97,6 +99,7 @@ export class PairService {
         const token0Ref = params[0] as TokenReference;
         const token1Ref = params[1] as TokenReference;
         const key = params[2] as string;
+        const moduleName = pair.moduleName;
 
         // Create or find both tokens
         const [token0, token1] = await Promise.all([
@@ -113,6 +116,7 @@ export class PairService {
             reserve1: '0',
             totalSupply: '0',
             key: key,
+            address: moduleName,
           },
           { transaction: t },
         );
@@ -307,6 +311,46 @@ export class PairService {
     });
   }
 
+  private static async createOrFindPair(
+    token0: Token,
+    token1: Token,
+    moduleName: string,
+  ): Promise<Pair> {
+    // Try to find existing pair
+    const existingPair = await Pair.findOne({
+      where: {
+        [Op.or]: [
+          { token0Id: token0.id, token1Id: token1.id },
+          { token0Id: token1.id, token1Id: token0.id },
+        ],
+      },
+    });
+
+    if (existingPair) {
+      return existingPair;
+    }
+
+    // Canonize the key by sorting token codes alphabetically
+    const [firstToken, secondToken] = [token0.code, token1.code].sort();
+    const key = `${firstToken}:${secondToken}`;
+
+    // Determine which token should be token0 and token1 based on the sorted order
+    const isToken0First = token0.code === firstToken;
+    const orderedToken0 = isToken0First ? token0 : token1;
+    const orderedToken1 = isToken0First ? token1 : token0;
+
+    // Create new pair if not found
+    return await Pair.create({
+      token0Id: orderedToken0.id,
+      token1Id: orderedToken1.id,
+      reserve0: '0',
+      reserve1: '0',
+      totalSupply: '0',
+      key: key,
+      address: moduleName,
+    });
+  }
+
   /**
    * Processes swap events and records them in the pool transaction history
    * @param swapEvents Array of swap events
@@ -321,8 +365,13 @@ export class PairService {
       chainId: number;
     }>,
   ): Promise<void> {
+    if (!swapEvents || swapEvents.length === 0) {
+      return;
+    }
+
     for (const event of swapEvents) {
       try {
+        // Parse parameters
         // Parse the parameters
         const [sender, receiver, amountIn, tokenInRef, amountOut, tokenOutRef] = JSON.parse(
           event.parameters,
@@ -333,26 +382,14 @@ export class PairService {
         const amountOutStr =
           typeof amountOut === 'number' ? amountOut.toString() : amountOut.decimal;
 
-        // Find the tokens
+        // Create or find both tokens
         const [tokenIn, tokenOut] = await Promise.all([
           this.createOrFindToken(tokenInRef, null),
           this.createOrFindToken(tokenOutRef, null),
         ]);
 
-        // Find the pair
-        const pair = await Pair.findOne({
-          where: {
-            [Op.or]: [
-              { token0Id: tokenIn.id, token1Id: tokenOut.id },
-              { token0Id: tokenOut.id, token1Id: tokenIn.id },
-            ],
-          },
-        });
-
-        if (!pair) {
-          console.warn(`Pair not found for tokens: ${tokenIn.code} and ${tokenOut.code}`);
-          continue;
-        }
+        // Create or find the pair
+        const pair = await this.createOrFindPair(tokenIn, tokenOut, event.moduleName);
 
         // Get token prices in USD
         const [tokenInPrice, tokenOutPrice] = await Promise.all([
@@ -372,7 +409,7 @@ export class PairService {
           pairId: pair.id,
           transactionHash: event.parameterText,
           type: TransactionType.SWAP,
-          maker: sender,
+          maker: event.parameters.split(',')[0],
           timestamp: new Date(),
           amount0In: pair.token0Id === tokenIn.id ? amountInStr : '0',
           amount1In: pair.token1Id === tokenIn.id ? amountInStr : '0',
