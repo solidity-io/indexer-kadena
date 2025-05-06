@@ -1,6 +1,6 @@
 # Changelog
 
-## April 22 - May 6, 2025
+## April 13 - May 6, 2025
 
 - docs: comprehensive codebase documentation
 - perf: compound cursor for blockFromHeight
