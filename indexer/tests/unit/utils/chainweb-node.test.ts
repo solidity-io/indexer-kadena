@@ -1,5 +1,5 @@
-import { formatBalance_NODE, formatGuard_NODE } from '../../src/utils/chainweb-node';
-import { PactQueryResponse } from '../../src/kadena-server/config/graphql-types';
+import { formatBalance_NODE, formatGuard_NODE } from '../../../src/utils/chainweb-node';
+import { PactQueryResponse } from '../../../src/kadena-server/config/graphql-types';
 
 describe('chainweb-node utility functions', () => {
   describe('formatBalance_NODE', () => {

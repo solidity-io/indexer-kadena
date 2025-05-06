@@ -2,7 +2,7 @@ import {
   calculateBlockDifficulty,
   calculateTotalDifficulty,
   BlockWithDifficulty,
-} from '../../src/kadena-server/utils/difficulty';
+} from '../../../src/kadena-server/utils/difficulty';
 
 describe('difficulty utilities', () => {
   describe('calculateBlockDifficulty', () => {
