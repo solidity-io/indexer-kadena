@@ -1082,9 +1082,14 @@ type Pool implements Node {
   totalSupply: String!
   key: String!
   tvlUsd: Decimal!
+  tvlChange24h: Float!
   volume24hUsd: Decimal!
+  volumeChange24h: Float!
   volume7dUsd: Decimal!
+  fees24hUsd: Decimal!
+  feesChange24h: Float!
   transactionCount24h: Int!
+  transactionCountChange24h: Float!
   apr24h: Decimal!
   createdAt: DateTime!
   updatedAt: DateTime!

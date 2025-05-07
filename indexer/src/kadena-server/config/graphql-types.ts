@@ -470,10 +470,15 @@ export type Pool = Node & {
   token1: Token;
   totalSupply: Scalars['String']['output'];
   transactionCount24h: Scalars['Int']['output'];
+  transactionCountChange24h: Scalars['Float']['output'];
   tvlUsd: Scalars['Decimal']['output'];
+  tvlChange24h: Scalars['Float']['output'];
   updatedAt: Scalars['DateTime']['output'];
   volume7dUsd: Scalars['Decimal']['output'];
   volume24hUsd: Scalars['Decimal']['output'];
+  volumeChange24h: Scalars['Float']['output'];
+  fees24hUsd: Scalars['Decimal']['output'];
+  feesChange24h: Scalars['Float']['output'];
 };
 
 /** Sort options for pools */
@@ -2262,10 +2267,15 @@ export type PoolResolvers<
   token1?: Resolver<ResolversTypes['Token'], ParentType, ContextType>;
   totalSupply?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   transactionCount24h?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  transactionCountChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   tvlUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  tvlChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   volume7dUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   volume24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  volumeChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  fees24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  feesChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

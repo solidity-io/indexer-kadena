@@ -231,16 +231,40 @@ export default class PoolDbRepository implements PoolRepository {
 
     // Get the latest pool stats
     const statsQuery = `
+      WITH current_stats AS (
+        SELECT 
+          "tvlUsd",
+          "volume24hUsd",
+          "volume7dUsd",
+          "fees24hUsd",
+          "transactionCount24h",
+          "apr24h",
+          timestamp
+        FROM "PoolStats"
+        WHERE "pairId" = $1
+        ORDER BY timestamp DESC
+        LIMIT 1
+      ),
+      previous_stats AS (
+        SELECT 
+          "tvlUsd",
+          "volume24hUsd",
+          "fees24hUsd",
+          "transactionCount24h"
+        FROM "PoolStats"
+        WHERE "pairId" = $1
+          AND timestamp <= (SELECT timestamp - INTERVAL '24 hours' FROM current_stats)
+        ORDER BY timestamp DESC
+        LIMIT 1
+      )
       SELECT 
-        "tvlUsd",
-        "volume24hUsd",
-        "volume7dUsd",
-        "transactionCount24h",
-        "apr24h"
-      FROM "PoolStats"
-      WHERE "pairId" = $1
-      ORDER BY timestamp DESC
-      LIMIT 1
+        cs.*,
+        ps."tvlUsd" as "previousTvlUsd",
+        ps."volume24hUsd" as "previousVolume24hUsd",
+        ps."fees24hUsd" as "previousFees24hUsd",
+        ps."transactionCount24h" as "previousTransactionCount24h"
+      FROM current_stats cs
+      LEFT JOIN previous_stats ps ON true
     `;
 
     const [statsResult] = await sequelize.query(statsQuery, {
@@ -254,9 +278,37 @@ export default class PoolDbRepository implements PoolRepository {
           tvlUsd: 0,
           volume24hUsd: 0,
           volume7dUsd: 0,
+          fees24hUsd: 0,
           transactionCount24h: 0,
           apr24h: 0,
+          previousTvlUsd: 0,
+          previousVolume24hUsd: 0,
+          previousFees24hUsd: 0,
+          previousTransactionCount24h: 0,
         };
+
+    // Calculate percentage changes
+    const calculatePercentageChange = (current: number, previous: number): number => {
+      if (!previous) return 0;
+      return ((current - previous) / previous) * 100;
+    };
+
+    const tvlChange24h = calculatePercentageChange(
+      parseFloat(stats.tvlUsd),
+      parseFloat(stats.previousTvlUsd),
+    );
+    const volumeChange24h = calculatePercentageChange(
+      parseFloat(stats.volume24hUsd),
+      parseFloat(stats.previousVolume24hUsd),
+    );
+    const feesChange24h = calculatePercentageChange(
+      parseFloat(stats.fees24hUsd),
+      parseFloat(stats.previousFees24hUsd),
+    );
+    const transactionCountChange24h = calculatePercentageChange(
+      stats.transactionCount24h,
+      stats.previousTransactionCount24h,
+    );
 
     return {
       __typename: 'Pool',
@@ -269,20 +321,18 @@ export default class PoolDbRepository implements PoolRepository {
       totalSupply: pair.totalSupply,
       key: pair.key,
       tvlUsd: stats.tvlUsd ?? 0,
+      tvlChange24h,
       volume24hUsd: stats.volume24hUsd ?? 0,
+      volumeChange24h,
       volume7dUsd: stats.volume7dUsd ?? 0,
+      fees24hUsd: stats.fees24hUsd ?? 0,
+      feesChange24h,
       transactionCount24h: stats.transactionCount24h ?? 0,
+      transactionCountChange24h,
       apr24h: stats.apr24h ?? 0,
       createdAt: pair.createdAt,
       updatedAt: pair.updatedAt,
       databasePoolId: pair.id.toString(),
-      lastPrice: 0,
-      token0Liquidity: pair.reserve0,
-      token0LiquidityDollar: 0,
-      token1Liquidity: pair.reserve1,
-      token1LiquidityDollar: 0,
-      totalLiquidityDollar: 0,
-      feePercentage: 0,
     } as PoolOutput;
   }
 
