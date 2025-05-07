@@ -36,7 +36,7 @@ Pair.init(
     address: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      unique: false,
     },
     token0Id: {
       type: DataTypes.INTEGER,
@@ -64,6 +64,7 @@ Pair.init(
     key: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
   },
   {
