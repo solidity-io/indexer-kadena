@@ -369,10 +369,11 @@ export class PairService {
       return;
     }
 
+    const FEE = 0.003; // 0.3% fee
+
     for (const event of swapEvents) {
       try {
         // Parse parameters
-        // Parse the parameters
         const [sender, receiver, amountIn, tokenInRef, amountOut, tokenOutRef] = JSON.parse(
           event.parameters,
         ) as [string, string, TokenAmount, TokenReference, TokenAmount, TokenReference];
@@ -404,6 +405,10 @@ export class PairService {
             ? Number(amountOutStr) * tokenOutPrice
             : 0;
 
+        // Calculate fee amount using the formula: fee_amount = in * (FEE / (1 - FEE))
+        const feeAmount = Number(amountInStr) * (FEE / (1 - FEE));
+        const feeUsd = tokenInPrice ? feeAmount * tokenInPrice : 0;
+
         // Create pool transaction record
         await PoolTransaction.create({
           pairId: pair.id,
@@ -416,6 +421,7 @@ export class PairService {
           amount0Out: pair.token0Id === tokenOut.id ? amountOutStr : '0',
           amount1Out: pair.token1Id === tokenOut.id ? amountOutStr : '0',
           amountUsd,
+          feeUsd,
         });
       } catch (error) {
         console.error('Error processing swap:', error);
