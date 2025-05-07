@@ -423,6 +423,9 @@ export class PairService {
           amountUsd,
           feeUsd,
         });
+
+        // Update pool stats
+        await this.updatePoolStats(pair.id);
       } catch (error) {
         console.error('Error processing swap:', error);
       }
@@ -503,25 +506,11 @@ export class PairService {
           amount0Out: pair.token0Id === token1.id ? amount1Str : '0',
           amount1Out: pair.token1Id === token1.id ? amount1Str : '0',
           amountUsd,
+          feeUsd: 0,
         });
 
-        // Update reserves based on the event type
-        const reserve0 = BigInt(pair.reserve0);
-        const reserve1 = BigInt(pair.reserve1);
-        const amount0BigInt = BigInt(amount0Str);
-        const amount1BigInt = BigInt(amount1Str);
-
-        if (event.name === 'ADD_LIQUIDITY') {
-          await pair.update({
-            reserve0: (reserve0 + amount0BigInt).toString(),
-            reserve1: (reserve1 + amount1BigInt).toString(),
-          });
-        } else {
-          await pair.update({
-            reserve0: (reserve0 - amount0BigInt).toString(),
-            reserve1: (reserve1 - amount1BigInt).toString(),
-          });
-        }
+        // Update pool stats
+        await this.updatePoolStats(pair.id);
       } catch (error) {
         console.error('Error processing liquidity event:', error);
       }
