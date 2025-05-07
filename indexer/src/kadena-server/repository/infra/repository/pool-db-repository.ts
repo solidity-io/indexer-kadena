@@ -4,7 +4,7 @@ import { sequelize } from '../../../../config/database';
 import Pair from '../../../../models/pair';
 import PoolStats from '../../../../models/pool-stats';
 import { getPageInfo, getPaginationParams } from '../../pagination';
-import { PageInfo } from '../../../config/graphql-types';
+import { PageInfo, Token } from '../../../config/graphql-types';
 import { GetPoolsParams } from '../../application/pool-repository';
 import { PoolOrderBy } from '../../../config/graphql-types';
 import type PoolRepository from '../../application/pool-repository';
@@ -21,7 +21,7 @@ import type {
   PoolTransactionsConnection,
 } from '../../application/pool-repository';
 import { ConnectionEdge } from '../../types';
-import Token from '../../../../models/token';
+import TokenModel from '../../../../models/token';
 
 type OrderDirection = 'ASC' | 'DESC';
 
@@ -135,13 +135,13 @@ export default class PoolDbRepository implements PoolRepository {
           id: pair.token0Id.toString(),
           chainId: '0',
           name: pair.token0Name,
-        },
+        } as unknown as Token,
         token1: {
           __typename: 'Token' as const,
           id: pair.token1Id.toString(),
           chainId: '0',
           name: pair.token1Name,
-        },
+        } as unknown as Token,
         reserve0: pair.reserve0,
         reserve1: pair.reserve1,
         totalSupply: pair.totalSupply,
@@ -186,15 +186,15 @@ export default class PoolDbRepository implements PoolRepository {
     const pairQuery = `
       SELECT 
         p.id,
-        p."lastPrice",
+        p.address,
         p."token0Id",
         p."token1Id",
-        p."token0Liquidity",
-        p."token0LiquidityDollar",
-        p."token1Liquidity",
-        p."token1LiquidityDollar",
-        p."totalLiquidityDollar",
-        p."feePercentage"
+        p.reserve0,
+        p.reserve1,
+        p."totalSupply",
+        p.key,
+        p."createdAt",
+        p."updatedAt"
       FROM "Pairs" p
       WHERE p.id = $1
     `;
@@ -217,24 +217,28 @@ export default class PoolDbRepository implements PoolRepository {
       WHERE t.id = $1 OR t.id = $2
     `;
 
-    const [tokenResults] = await sequelize.query(tokensQuery, {
+    const tokens = await sequelize.query(tokensQuery, {
       type: QueryTypes.SELECT,
       bind: [pair.token0Id, pair.token1Id],
     });
 
-    const tokens = tokenResults as any[];
-    const token0 = tokens.find(t => t.id === pair.token0Id);
-    const token1 = tokens.find(t => t.id === pair.token1Id);
+    const token0 = tokens.find((t: any) => t.id === pair.token0Id) as TokenModel;
+    const token1 = tokens.find((t: any) => t.id === pair.token1Id) as TokenModel;
+
+    if (!token0 || !token1) {
+      throw new Error(`Tokens not found for pool ${id}`);
+    }
 
     // Get the latest pool stats
     const statsQuery = `
       SELECT 
+        "tvlUsd",
         "volume24hUsd",
         "volume7dUsd",
         "transactionCount24h",
         "apr24h"
       FROM "PoolStats"
-      WHERE pair_id = $1
+      WHERE "pairId" = $1
       ORDER BY timestamp DESC
       LIMIT 1
     `;
@@ -247,6 +251,7 @@ export default class PoolDbRepository implements PoolRepository {
     const stats = statsResult
       ? (statsResult as any)
       : {
+          tvlUsd: 0,
           volume24hUsd: 0,
           volume7dUsd: 0,
           transactionCount24h: 0,
@@ -254,20 +259,30 @@ export default class PoolDbRepository implements PoolRepository {
         };
 
     return {
-      id: pair.id,
-      lastPrice: pair.lastPrice,
+      __typename: 'Pool',
+      id: pair.id.toString(),
+      address: pair.address,
       token0,
       token1,
-      token0Liquidity: pair.token0Liquidity,
-      token0LiquidityDollar: pair.token0LiquidityDollar,
-      token1Liquidity: pair.token1Liquidity,
-      token1LiquidityDollar: pair.token1LiquidityDollar,
-      totalLiquidityDollar: pair.totalLiquidityDollar,
-      feePercentage: pair.feePercentage,
-      volume24hUsd: stats.volume24hUsd,
-      volume7dUsd: stats.volume7dUsd,
-      transactionCount24h: stats.transactionCount24h,
-      apr24h: stats.apr24h,
+      reserve0: pair.reserve0,
+      reserve1: pair.reserve1,
+      totalSupply: pair.totalSupply,
+      key: pair.key,
+      tvlUsd: stats.tvlUsd ?? 0,
+      volume24hUsd: stats.volume24hUsd ?? 0,
+      volume7dUsd: stats.volume7dUsd ?? 0,
+      transactionCount24h: stats.transactionCount24h ?? 0,
+      apr24h: stats.apr24h ?? 0,
+      createdAt: pair.createdAt,
+      updatedAt: pair.updatedAt,
+      databasePoolId: pair.id.toString(),
+      lastPrice: 0,
+      token0Liquidity: pair.reserve0,
+      token0LiquidityDollar: 0,
+      token1Liquidity: pair.reserve1,
+      token1LiquidityDollar: 0,
+      totalLiquidityDollar: 0,
+      feePercentage: 0,
     } as PoolOutput;
   }
 

@@ -69,6 +69,7 @@ import { newBlocksFromDepthSubscriptionResolver } from './subscription/new-block
 import { newBlocksSubscriptionResolver } from './subscription/new-blocks-subscription-resolver';
 import { transactionSubscriptionResolver } from './subscription/transaction-subscription-resolver';
 import { poolResolvers } from './fields/pool/pool-resolvers';
+import { poolQueryResolver } from './query/pool-query-resolver';
 
 export const resolvers: Resolvers<ResolverContext> = {
   DateTime: DateTimeResolver,
@@ -104,6 +105,7 @@ export const resolvers: Resolvers<ResolverContext> = {
     transactionsByPublicKey: transactionsByPublicKeyQueryResolver,
     transfers: transfersQueryResolver,
     tokens: tokensQueryResolver,
+    pool: poolQueryResolver,
   },
   Block: {
     parent: parentBlockResolver, // data loader set.

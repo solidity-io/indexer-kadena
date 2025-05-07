@@ -286,6 +286,11 @@ type Query {
     last: Int
     orderBy: PoolOrderBy = TVL_USD_DESC
   ): QueryPoolsConnection! @complexity(value: 10, multipliers: ["first", "last"])
+
+  """
+  Retrieve a specific pool by its ID.
+  """
+  pool(id: ID!): Pool @complexity(value: 1)
 }
 
 """

@@ -547,6 +547,8 @@ export type Query = {
   nonFungibleChainAccount?: Maybe<NonFungibleChainAccount>;
   /** Execute arbitrary Pact code via a local call without gas-estimation or signature-verification (e.g. (+ 1 2) or (coin.get-details <account>)). */
   pactQuery: Array<PactQueryResponse>;
+  /** Retrieve a specific pool by its ID. */
+  pool?: Maybe<Pool>;
   /** Retrieve liquidity pools. Default page size is 20. */
   pools: QueryPoolsConnection;
   tokens: QueryTokensConnection;
@@ -663,6 +665,10 @@ export type QueryNonFungibleChainAccountArgs = {
 
 export type QueryPactQueryArgs = {
   pactQuery: Array<PactQuery>;
+};
+
+export type QueryPoolArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type QueryPoolsArgs = {
@@ -2368,6 +2374,12 @@ export type QueryResolvers<
     ParentType,
     ContextType,
     RequireFields<QueryPactQueryArgs, 'pactQuery'>
+  >;
+  pool?: Resolver<
+    Maybe<ResolversTypes['Pool']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryPoolArgs, 'id'>
   >;
   pools?: Resolver<
     ResolversTypes['QueryPoolsConnection'],
