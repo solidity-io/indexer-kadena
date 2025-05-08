@@ -423,6 +423,17 @@ export async function useKadenaGraphqlServer() {
   );
   app.use(express.json());
 
+  /**
+   * Simple health check endpoint
+   *
+   * Returns a 200 OK response to indicate the service is running properly.
+   * This endpoint can be used by load balancers, monitoring tools, and
+   * container orchestration platforms to verify service availability.
+   */
+  app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'OK' });
+  });
+
   // Configure CORS and Express middleware for GraphQL endpoint
   app.use(
     '/graphql',
