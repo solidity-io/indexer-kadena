@@ -331,6 +331,44 @@ export type LiquidityBalance = {
   walletAddress: Scalars['String']['output'];
 };
 
+/** A user's liquidity position in a pool */
+export type LiquidityPosition = {
+  __typename?: 'LiquidityPosition';
+  apr24h: Scalars['Decimal']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  liquidity: Scalars['String']['output'];
+  pairKey: Scalars['String']['output'];
+  token0: Token;
+  token1: Token;
+  updatedAt: Scalars['DateTime']['output'];
+  valueUsd: Scalars['Decimal']['output'];
+  walletAddress: Scalars['String']['output'];
+};
+
+export type LiquidityPositionEdge = {
+  __typename?: 'LiquidityPositionEdge';
+  cursor: Scalars['String']['output'];
+  node: LiquidityPosition;
+};
+
+/** Sort options for liquidity positions */
+export enum LiquidityPositionOrderBy {
+  AprAsc = 'APR_ASC',
+  AprDesc = 'APR_DESC',
+  LiquidityAsc = 'LIQUIDITY_ASC',
+  LiquidityDesc = 'LIQUIDITY_DESC',
+  ValueUsdAsc = 'VALUE_USD_ASC',
+  ValueUsdDesc = 'VALUE_USD_DESC',
+}
+
+export type LiquidityPositionsConnection = {
+  __typename?: 'LiquidityPositionsConnection';
+  edges: Array<LiquidityPositionEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
 /** Information about the network. */
 export type NetworkInfo = {
   __typename?: 'NetworkInfo';
@@ -691,6 +729,8 @@ export type Query = {
   graphConfiguration: GraphConfiguration;
   /** Get the height of the block with the highest height. */
   lastBlockHeight?: Maybe<Scalars['BigInt']['output']>;
+  /** Get user's liquidity positions */
+  liquidityPositions: LiquidityPositionsConnection;
   /** Get information about the network. */
   networkInfo?: Maybe<NetworkInfo>;
   node?: Maybe<Node>;
@@ -799,6 +839,15 @@ export type QueryFungibleChainAccountsByPublicKeyArgs = {
 
 export type QueryGasLimitEstimateArgs = {
   input: Array<Scalars['String']['input']>;
+};
+
+export type QueryLiquidityPositionsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<LiquidityPositionOrderBy>;
+  walletAddress: Scalars['String']['input'];
 };
 
 export type QueryNodeArgs = {
@@ -1496,6 +1545,10 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   KeysetGuard: ResolverTypeWrapper<KeysetGuard>;
   LiquidityBalance: ResolverTypeWrapper<LiquidityBalance>;
+  LiquidityPosition: ResolverTypeWrapper<LiquidityPosition>;
+  LiquidityPositionEdge: ResolverTypeWrapper<LiquidityPositionEdge>;
+  LiquidityPositionOrderBy: LiquidityPositionOrderBy;
+  LiquidityPositionsConnection: ResolverTypeWrapper<LiquidityPositionsConnection>;
   NetworkInfo: ResolverTypeWrapper<NetworkInfo>;
   Node: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Node']>;
   NonFungibleAccount: ResolverTypeWrapper<
@@ -1766,6 +1819,9 @@ export type ResolversParentTypes = {
   Int: Scalars['Int']['output'];
   KeysetGuard: KeysetGuard;
   LiquidityBalance: LiquidityBalance;
+  LiquidityPosition: LiquidityPosition;
+  LiquidityPositionEdge: LiquidityPositionEdge;
+  LiquidityPositionsConnection: LiquidityPositionsConnection;
   NetworkInfo: NetworkInfo;
   Node: ResolversInterfaceTypes<ResolversParentTypes>['Node'];
   NonFungibleAccount: Omit<
@@ -2305,6 +2361,45 @@ export type LiquidityBalanceResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type LiquidityPositionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['LiquidityPosition'] = ResolversParentTypes['LiquidityPosition'],
+> = {
+  apr24h?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  liquidity?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  pairKey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  token0?: Resolver<ResolversTypes['Token'], ParentType, ContextType>;
+  token1?: Resolver<ResolversTypes['Token'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  valueUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  walletAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type LiquidityPositionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['LiquidityPositionEdge'] = ResolversParentTypes['LiquidityPositionEdge'],
+> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['LiquidityPosition'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type LiquidityPositionsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['LiquidityPositionsConnection'] = ResolversParentTypes['LiquidityPositionsConnection'],
+> = {
+  edges?: Resolver<Array<ResolversTypes['LiquidityPositionEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type NetworkInfoResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['NetworkInfo'] = ResolversParentTypes['NetworkInfo'],
@@ -2704,6 +2799,12 @@ export type QueryResolvers<
   >;
   graphConfiguration?: Resolver<ResolversTypes['GraphConfiguration'], ParentType, ContextType>;
   lastBlockHeight?: Resolver<Maybe<ResolversTypes['BigInt']>, ParentType, ContextType>;
+  liquidityPositions?: Resolver<
+    ResolversTypes['LiquidityPositionsConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryLiquidityPositionsArgs, 'orderBy' | 'walletAddress'>
+  >;
   networkInfo?: Resolver<Maybe<ResolversTypes['NetworkInfo']>, ParentType, ContextType>;
   node?: Resolver<
     Maybe<ResolversTypes['Node']>,
@@ -3293,6 +3394,9 @@ export type Resolvers<ContextType = any> = {
   IGuard?: IGuardResolvers<ContextType>;
   KeysetGuard?: KeysetGuardResolvers<ContextType>;
   LiquidityBalance?: LiquidityBalanceResolvers<ContextType>;
+  LiquidityPosition?: LiquidityPositionResolvers<ContextType>;
+  LiquidityPositionEdge?: LiquidityPositionEdgeResolvers<ContextType>;
+  LiquidityPositionsConnection?: LiquidityPositionsConnectionResolvers<ContextType>;
   NetworkInfo?: NetworkInfoResolvers<ContextType>;
   Node?: NodeResolvers<ContextType>;
   NonFungibleAccount?: NonFungibleAccountResolvers<ContextType>;

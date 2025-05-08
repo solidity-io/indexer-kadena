@@ -358,6 +358,18 @@ type Query {
     last: Int
     before: String
   ): PoolTransactionsConnection!
+
+  """
+  Get user's liquidity positions
+  """
+  liquidityPositions(
+    walletAddress: String!
+    first: Int
+    after: String
+    last: Int
+    before: String
+    orderBy: LiquidityPositionOrderBy = VALUE_USD_DESC
+  ): LiquidityPositionsConnection!
 }
 
 """
@@ -1394,4 +1406,43 @@ type LiquidityBalance {
   walletAddress: String!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+"""
+Sort options for liquidity positions
+"""
+enum LiquidityPositionOrderBy {
+  VALUE_USD_ASC
+  VALUE_USD_DESC
+  LIQUIDITY_ASC
+  LIQUIDITY_DESC
+  APR_ASC
+  APR_DESC
+}
+
+"""
+A user's liquidity position in a pool
+"""
+type LiquidityPosition {
+  id: ID!
+  pairKey: String!
+  liquidity: String!
+  walletAddress: String!
+  valueUsd: Decimal!
+  apr24h: Decimal!
+  token0: Token!
+  token1: Token!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type LiquidityPositionsConnection {
+  edges: [LiquidityPositionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type LiquidityPositionEdge {
+  cursor: String!
+  node: LiquidityPosition!
 }

@@ -22,10 +22,12 @@ import MempoolGateway from '../repository/gateway/mempool-gateway';
 import MempoolApiGateway from '../repository/infra/gateway/mempool-api-gateway';
 import PactGateway from '../repository/gateway/pact-gateway';
 import PactApiGateway from '../repository/infra/gateway/pact-api-gateway';
+import { LiquidityPositionRepository } from '../repository/application/liquidity-position-repository';
+import LiquidityPositionDbRepository from '../repository/infra/repository/liquidity-position-db-repository';
 
 export const publishSubscribe = new PubSub();
 
-export type ResolverContext = {
+export interface ResolverContext {
   getBlocksByHashesLoader: DataLoader<string, BlockOutput>;
   getBlocksByTransactionIdsLoader: DataLoader<string, BlockOutput>;
   getBlocksByEventIdsLoader: DataLoader<string, BlockOutput>;
@@ -42,7 +44,8 @@ export type ResolverContext = {
   pactGateway: PactGateway;
   pubSub: PubSub;
   signal: AbortSignal;
-};
+  liquidityPositionRepository: LiquidityPositionRepository;
+}
 
 export const createGraphqlContext = () => {
   const blockRepository = new BlockDbRepository();
@@ -60,6 +63,7 @@ export const createGraphqlContext = () => {
     pactGateway: new PactApiGateway(),
     pubSub: publishSubscribe,
     signal: new AbortController().signal,
+    liquidityPositionRepository: new LiquidityPositionDbRepository(),
   };
 
   return Promise.resolve({

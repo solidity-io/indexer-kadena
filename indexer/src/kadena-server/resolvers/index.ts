@@ -71,6 +71,7 @@ import { transactionSubscriptionResolver } from './subscription/transaction-subs
 import { poolResolvers } from './fields/pool/pool-resolvers';
 import { poolQueryResolver } from './query/pool-query-resolver';
 import { poolTransactionsQueryResolver } from './query/pool-transactions-query-resolver';
+import { liquidityPositionsQueryResolver } from './query/liquidity-positions-query-resolver';
 
 export const resolvers: Resolvers<ResolverContext> = {
   DateTime: DateTimeResolver,
@@ -108,6 +109,7 @@ export const resolvers: Resolvers<ResolverContext> = {
     tokens: tokensQueryResolver,
     pool: poolQueryResolver,
     poolTransactions: poolTransactionsQueryResolver,
+    liquidityPositions: liquidityPositionsQueryResolver,
   },
   Block: {
     parent: parentBlockResolver, // data loader set.
