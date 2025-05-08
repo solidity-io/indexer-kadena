@@ -1,12 +1,23 @@
 import type { TransactionType } from '../../../models/pool-transaction';
 import type Token from '../../../models/token';
-import { PageInfo, Pool, PoolOrderBy } from '../../config/graphql-types';
+import {
+  PageInfo,
+  Pool,
+  PoolOrderBy,
+  PoolCharts,
+  PoolTransactionType,
+  TimeFrame,
+} from '../../config/graphql-types';
 import { PaginationsParams } from '../pagination';
 import { ConnectionEdge } from '../types';
 
-export type GetPoolsParams = PaginationsParams & {
-  orderBy: PoolOrderBy;
-};
+export interface GetPoolsParams {
+  after?: string | null;
+  before?: string | null;
+  first?: number | null;
+  last?: number | null;
+  orderBy?: string;
+}
 
 export interface GetPoolParams {
   id: number;
@@ -14,11 +25,11 @@ export interface GetPoolParams {
 
 export interface GetPoolTransactionsParams {
   pairId: number;
-  type?: TransactionType;
-  first?: number;
-  after?: string;
-  last?: number;
-  before?: string;
+  type?: PoolTransactionType;
+  first?: number | null;
+  after?: string | null;
+  last?: number | null;
+  before?: string | null;
 }
 
 export interface GetPoolChartDataParams {
@@ -33,7 +44,7 @@ export interface GetPoolChartDataParams {
 
 export interface GetPoolChartsParams {
   pairId: number;
-  timeFrame: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR' | 'ALL';
+  timeFrame: TimeFrame;
 }
 
 export type PoolOutput = Pool & {
@@ -53,21 +64,28 @@ export type PoolOutput = Pool & {
   apr24h: number;
 };
 
-export interface PoolTransactionOutput {
-  id: number;
-  type: TransactionType;
-  timestamp: Date;
+export interface PoolTransaction {
+  id: string;
+  type: PoolTransactionType;
   maker: string;
-  amountIn: number;
-  amountOut: number;
-  amountInUsd: number;
-  amountOutUsd: number;
-  token0Amount: number;
-  token1Amount: number;
-  token0AmountUsd: number;
-  token1AmountUsd: number;
-  feesUsd: number;
-  transactionHash: string;
+  amount0In: string;
+  amount1In: string;
+  amount0Out: string;
+  amount1Out: string;
+  amount0: string;
+  amount1: string;
+  amountUsd: string;
+  timestamp: Date;
+  __typename:
+    | 'PoolSwapTransaction'
+    | 'PoolAddLiquidityTransaction'
+    | 'PoolRemoveLiquidityTransaction';
+}
+
+export interface PoolTransactionsConnection {
+  edges: ConnectionEdge<PoolTransaction>[];
+  pageInfo: PageInfo;
+  totalCount: number;
 }
 
 export interface PoolChartDataOutput {
@@ -102,32 +120,6 @@ export interface PoolChartsOutput {
   }[];
 }
 
-export interface PoolsConnection {
-  edges: {
-    cursor: string;
-    node: PoolOutput;
-  }[];
-  pageInfo: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-    startCursor: string | null;
-    endCursor: string | null;
-  };
-}
-
-export interface PoolTransactionsConnection {
-  edges: {
-    cursor: string;
-    node: PoolTransactionOutput;
-  }[];
-  pageInfo: {
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-    startCursor: string | null;
-    endCursor: string | null;
-  };
-}
-
 export interface PoolChartDataConnection {
   edges: {
     cursor: string;
@@ -144,12 +136,10 @@ export interface PoolChartDataConnection {
 export default interface PoolRepository {
   getPools(params: GetPoolsParams): Promise<{
     pageInfo: PageInfo;
-    edges: ConnectionEdge<PoolOutput>[];
+    edges: ConnectionEdge<Pool>[];
     totalCount: number;
   }>;
-  getPool(params: GetPoolParams): Promise<PoolOutput | null>;
+  getPool(params: GetPoolParams): Promise<Pool | null>;
   getPoolTransactions(params: GetPoolTransactionsParams): Promise<PoolTransactionsConnection>;
-  getPoolChartData(params: GetPoolChartDataParams): Promise<PoolChartDataConnection>;
-  getLatestPoolStats(pairId: number): Promise<PoolStatsOutput | null>;
-  getPoolCharts(params: GetPoolChartsParams): Promise<PoolChartsOutput>;
+  getPoolCharts(params: GetPoolChartsParams): Promise<PoolCharts>;
 }

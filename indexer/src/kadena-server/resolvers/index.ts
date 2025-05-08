@@ -70,6 +70,7 @@ import { newBlocksSubscriptionResolver } from './subscription/new-blocks-subscri
 import { transactionSubscriptionResolver } from './subscription/transaction-subscription-resolver';
 import { poolResolvers } from './fields/pool/pool-resolvers';
 import { poolQueryResolver } from './query/pool-query-resolver';
+import { poolTransactionsQueryResolver } from './query/pool-transactions-query-resolver';
 
 export const resolvers: Resolvers<ResolverContext> = {
   DateTime: DateTimeResolver,
@@ -106,6 +107,7 @@ export const resolvers: Resolvers<ResolverContext> = {
     transfers: transfersQueryResolver,
     tokens: tokensQueryResolver,
     pool: poolQueryResolver,
+    poolTransactions: poolTransactionsQueryResolver,
   },
   Block: {
     parent: parentBlockResolver, // data loader set.

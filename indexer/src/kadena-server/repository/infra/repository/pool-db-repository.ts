@@ -4,23 +4,19 @@ import { sequelize } from '../../../../config/database';
 import Pair from '../../../../models/pair';
 import PoolStats from '../../../../models/pool-stats';
 import { getPageInfo, getPaginationParams } from '../../pagination';
-import { PageInfo, Token } from '../../../config/graphql-types';
-import { GetPoolsParams } from '../../application/pool-repository';
-import { PoolOrderBy } from '../../../config/graphql-types';
-import type PoolRepository from '../../application/pool-repository';
-import type {
-  GetPoolChartDataParams,
+import {
+  PageInfo,
+  Pool,
+  PoolCharts,
+  PoolTransactionType,
+  TimeFrame,
+} from '../../../config/graphql-types';
+import {
+  GetPoolsParams,
   GetPoolParams,
   GetPoolTransactionsParams,
-  PoolChartDataConnection,
-  PoolChartDataOutput,
-  PoolOutput,
-  PoolsConnection,
-  PoolStatsOutput,
-  PoolTransactionOutput,
-  PoolTransactionsConnection,
   GetPoolChartsParams,
-  PoolChartsOutput,
+  PoolTransactionsConnection,
 } from '../../application/pool-repository';
 import { ConnectionEdge } from '../../types';
 import TokenModel from '../../../../models/token';
@@ -28,33 +24,25 @@ import TokenModel from '../../../../models/token';
 type OrderDirection = 'ASC' | 'DESC';
 
 const POOL_ORDER_BY_MAP: Record<
-  PoolOrderBy,
+  string,
   { model: typeof PoolStats; field: string; direction: OrderDirection }
 > = {
-  [PoolOrderBy.TvlUsdAsc]: { model: PoolStats, field: 'tvlUsd', direction: 'ASC' },
-  [PoolOrderBy.TvlUsdDesc]: { model: PoolStats, field: 'tvlUsd', direction: 'DESC' },
-  [PoolOrderBy.Volume_24HAsc]: { model: PoolStats, field: 'volume24hUsd', direction: 'ASC' },
-  [PoolOrderBy.Volume_24HDesc]: { model: PoolStats, field: 'volume24hUsd', direction: 'DESC' },
-  [PoolOrderBy.Volume_7DAsc]: { model: PoolStats, field: 'volume7dUsd', direction: 'ASC' },
-  [PoolOrderBy.Volume_7DDesc]: { model: PoolStats, field: 'volume7dUsd', direction: 'DESC' },
-  [PoolOrderBy.Apr_24HAsc]: { model: PoolStats, field: 'apr24h', direction: 'ASC' },
-  [PoolOrderBy.Apr_24HDesc]: { model: PoolStats, field: 'apr24h', direction: 'DESC' },
-  [PoolOrderBy.TransactionCount_24HAsc]: {
-    model: PoolStats,
-    field: 'transactionCount24h',
-    direction: 'ASC',
-  },
-  [PoolOrderBy.TransactionCount_24HDesc]: {
-    model: PoolStats,
-    field: 'transactionCount24h',
-    direction: 'DESC',
-  },
+  TVL_USD_ASC: { model: PoolStats, field: 'tvlUsd', direction: 'ASC' },
+  TVL_USD_DESC: { model: PoolStats, field: 'tvlUsd', direction: 'DESC' },
+  VOLUME_24H_ASC: { model: PoolStats, field: 'volume24hUsd', direction: 'ASC' },
+  VOLUME_24H_DESC: { model: PoolStats, field: 'volume24hUsd', direction: 'DESC' },
+  VOLUME_7D_ASC: { model: PoolStats, field: 'volume7dUsd', direction: 'ASC' },
+  VOLUME_7D_DESC: { model: PoolStats, field: 'volume7dUsd', direction: 'DESC' },
+  APR_24H_ASC: { model: PoolStats, field: 'apr24h', direction: 'ASC' },
+  APR_24H_DESC: { model: PoolStats, field: 'apr24h', direction: 'DESC' },
+  TRANSACTION_COUNT_24H_ASC: { model: PoolStats, field: 'transactionCount24h', direction: 'ASC' },
+  TRANSACTION_COUNT_24H_DESC: { model: PoolStats, field: 'transactionCount24h', direction: 'DESC' },
 };
 
-export default class PoolDbRepository implements PoolRepository {
+export default class PoolDbRepository {
   async getPools(params: GetPoolsParams): Promise<{
     pageInfo: PageInfo;
-    edges: ConnectionEdge<PoolOutput>[];
+    edges: ConnectionEdge<Pool>[];
     totalCount: number;
   }> {
     const { after, before, first, last, orderBy } = params;
@@ -79,7 +67,11 @@ export default class PoolDbRepository implements PoolRepository {
     );
 
     const orderByClause = [
-      ['PoolStats', POOL_ORDER_BY_MAP[orderBy].field, POOL_ORDER_BY_MAP[orderBy].direction],
+      [
+        'PoolStats',
+        POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field,
+        POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction,
+      ],
     ] as [string, string, 'ASC' | 'DESC'][];
 
     const pairIdsStr = pairIds.join(',');
@@ -118,7 +110,7 @@ export default class PoolDbRepository implements PoolRepository {
       JOIN "Tokens" t1 ON p."token1Id" = t1.id
       JOIN "PoolStats" ps ON p.id = ps."pairId"
       ${whereClause}
-      ORDER BY ps."${POOL_ORDER_BY_MAP[orderBy].field}" ${POOL_ORDER_BY_MAP[orderBy].direction}
+      ORDER BY ps."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
       LIMIT ${pagination.limit} OFFSET ${pagination.after ? 0 : pagination.limit}
     `;
 
@@ -129,21 +121,21 @@ export default class PoolDbRepository implements PoolRepository {
     const edges = pairs.map((pair: any) => ({
       cursor: pair.id.toString(),
       node: {
-        __typename: 'Pool' as const,
+        __typename: 'Pool',
         id: pair.id.toString(),
         address: pair.address,
         token0: {
-          __typename: 'Token' as const,
+          __typename: 'Token',
           id: pair.token0Id.toString(),
           chainId: '0',
           name: pair.token0Name,
-        } as unknown as Token,
+        },
         token1: {
-          __typename: 'Token' as const,
+          __typename: 'Token',
           id: pair.token1Id.toString(),
           chainId: '0',
           name: pair.token1Name,
-        } as unknown as Token,
+        },
         reserve0: pair.reserve0,
         reserve1: pair.reserve1,
         totalSupply: pair.totalSupply,
@@ -155,7 +147,7 @@ export default class PoolDbRepository implements PoolRepository {
         apr24h: pair.apr24h ?? 0,
         createdAt: pair.createdAt,
         updatedAt: pair.updatedAt,
-      } as PoolOutput,
+      } as Pool,
     }));
 
     const totalCount = await Pair.count({
@@ -181,7 +173,7 @@ export default class PoolDbRepository implements PoolRepository {
     };
   }
 
-  async getPool(params: GetPoolParams): Promise<PoolOutput | null> {
+  async getPool(params: GetPoolParams): Promise<Pool | null> {
     const { id } = params;
 
     // Get the pair
@@ -334,215 +326,122 @@ export default class PoolDbRepository implements PoolRepository {
       apr24h: stats.apr24h ?? 0,
       createdAt: pair.createdAt,
       updatedAt: pair.updatedAt,
-      databasePoolId: pair.id.toString(),
-    } as PoolOutput;
+      charts: async () =>
+        this.getPoolCharts({ pairId: parseInt(pair.id), timeFrame: TimeFrame.Day }),
+      transactions: async () => this.getPoolTransactions({ pairId: parseInt(pair.id) }),
+    } as unknown as Pool;
   }
 
   async getPoolTransactions(
     params: GetPoolTransactionsParams,
   ): Promise<PoolTransactionsConnection> {
     const { pairId, type, first, after, last, before } = params;
-    const pagination = getPaginationParams({ first, after, last, before });
+    const limit = first || last || 10;
+    const offset = after ? parseInt(Buffer.from(after, 'base64').toString()) : 0;
 
     let query = `
       SELECT 
-        id,
-        type,
-        timestamp,
-        maker,
-        "amountIn",
-        "amountOut",
-        "amountInUsd",
-        "amountOutUsd",
-        "token0Amount",
-        "token1Amount",
-        "token0AmountUsd",
-        "token1AmountUsd",
-        "feesUsd",
-        "transactionHash"
-      FROM "PoolTransactions"
-      WHERE pair_id = $1
+        t.id,
+        t.type,
+        t.maker,
+        t."amount0In",
+        t."amount1In",
+        t."amount0Out",
+        t."amount1Out",
+        t."amountUsd",
+        t."timestamp"
+      FROM "PoolTransactions" t
+      WHERE t."pairId" = $1
     `;
 
-    const queryParams = [pairId];
+    const queryParams: any[] = [pairId];
     let paramIndex = 2;
 
     if (type) {
-      query += ` AND type = $${paramIndex}`;
-      queryParams.push(type as unknown as number);
+      query += ` AND t.type = $${paramIndex}`;
+      queryParams.push(type);
       paramIndex++;
     }
 
-    query += ` ORDER BY timestamp DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    queryParams.push(pagination.limit, pagination.after ? 0 : pagination.limit);
+    query += ` ORDER BY t."timestamp" DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    queryParams.push(limit, offset);
 
-    const [results] = await sequelize.query(query, {
+    const result = await sequelize.query(query, {
       type: QueryTypes.SELECT,
       bind: queryParams,
     });
 
-    const rows = results as any[];
-    const edges = rows.map(row => ({
-      cursor: row.id.toString(),
+    const edges = (result as any[]).map(row => ({
+      cursor: Buffer.from(row.id.toString()).toString('base64'),
       node: {
-        id: row.id,
+        id: row.id.toString(),
         type: row.type,
-        timestamp: row.timestamp,
         maker: row.maker,
-        amountIn: row.amountIn,
-        amountOut: row.amountOut,
-        amountInUsd: row.amountInUsd,
-        amountOutUsd: row.amountOutUsd,
-        token0Amount: row.token0Amount,
-        token1Amount: row.token1Amount,
-        token0AmountUsd: row.token0AmountUsd,
-        token1AmountUsd: row.token1AmountUsd,
-        feesUsd: row.feesUsd,
-        transactionHash: row.transactionHash,
-      } as PoolTransactionOutput,
-    }));
-
-    const pageInfo = getPageInfo({ edges, order: 'DESC', limit: pagination.limit, after, before });
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage: pageInfo.pageInfo.hasNextPage,
-        hasPreviousPage: pageInfo.pageInfo.hasPreviousPage,
-        startCursor: pageInfo.pageInfo.startCursor,
-        endCursor: pageInfo.pageInfo.endCursor,
-      },
-    } as PoolTransactionsConnection;
-  }
-
-  async getPoolChartData(params: GetPoolChartDataParams): Promise<PoolChartDataConnection> {
-    const { pairId, type, first, after, last, before, timeRange = 'ALL' } = params;
-    const pagination = getPaginationParams({ first, after, last, before });
-
-    let timeFilter = '';
-    const now = new Date();
-    let startDate = new Date(0); // Default to epoch start
-
-    switch (timeRange) {
-      case '1D':
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        break;
-      case '1W':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case '1M':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      case '1Y':
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        break;
-      // 'ALL' doesn't need a filter
-    }
-
-    if (timeRange !== 'ALL') {
-      timeFilter = ' AND timestamp >= $2';
-    }
-
-    const query = `
-      SELECT 
-        id,
-        timestamp,
-        "valueUsd"
-      FROM "PoolChartData"
-      WHERE pair_id = $1 AND type = $${timeRange === 'ALL' ? 2 : 3}${timeFilter}
-      ORDER BY timestamp ASC
-      LIMIT $${timeRange === 'ALL' ? 3 : 4} OFFSET $${timeRange === 'ALL' ? 4 : 5}
-    `;
-
-    const queryParams = [pairId, type];
-    if (timeRange !== 'ALL') {
-      queryParams.push(startDate.getTime());
-    }
-    queryParams.push(pagination.limit, pagination.after ? 0 : pagination.limit);
-
-    const [results] = await sequelize.query(query, {
-      type: QueryTypes.SELECT,
-      bind: queryParams,
-    });
-
-    const rows = results as any[];
-    const edges = rows.map(row => ({
-      cursor: row.id.toString(),
-      node: {
-        id: row.id,
+        amount0In:
+          row.type === 'SWAP' ? row.amount0In?.toString() ?? '0' : row.amount0In?.toString() ?? '0',
+        amount1In:
+          row.type === 'SWAP' ? row.amount1In?.toString() ?? '0' : row.amount1In?.toString() ?? '0',
+        amount0Out: row.type === 'SWAP' ? row.amount0Out?.toString() ?? '0' : '0',
+        amount1Out: row.type === 'SWAP' ? row.amount1Out?.toString() ?? '0' : '0',
+        amount0: row.type !== 'SWAP' ? row.amount0In?.toString() ?? '0' : '0',
+        amount1: row.type !== 'SWAP' ? row.amount1In?.toString() ?? '0' : '0',
+        amountUsd: row.amountUsd.toString(),
         timestamp: row.timestamp,
-        valueUsd: row.valueUsd,
-      } as PoolChartDataOutput,
+        __typename: (row.type === 'SWAP'
+          ? 'PoolSwapTransaction'
+          : row.type === 'ADD_LIQUIDITY'
+            ? 'PoolAddLiquidityTransaction'
+            : 'PoolRemoveLiquidityTransaction') as
+          | 'PoolSwapTransaction'
+          | 'PoolAddLiquidityTransaction'
+          | 'PoolRemoveLiquidityTransaction',
+      },
     }));
 
-    const pageInfo = getPageInfo({ edges, order: 'ASC', limit: pagination.limit, after, before });
+    const countQuery = `
+      SELECT COUNT(*)
+      FROM "PoolTransactions"
+      WHERE "pairId" = $1
+      ${type ? 'AND type = $2' : ''}
+    `;
+
+    const countResult = await sequelize.query(countQuery, {
+      type: QueryTypes.SELECT,
+      bind: type ? [pairId, type] : [pairId],
+    });
+
+    const totalCount = parseInt((countResult[0] as any).count);
+
     return {
       edges,
       pageInfo: {
-        hasNextPage: pageInfo.pageInfo.hasNextPage,
-        hasPreviousPage: pageInfo.pageInfo.hasPreviousPage,
-        startCursor: pageInfo.pageInfo.startCursor,
-        endCursor: pageInfo.pageInfo.endCursor,
+        hasNextPage: offset + limit < totalCount,
+        hasPreviousPage: offset > 0,
+        startCursor: edges[0]?.cursor || null,
+        endCursor: edges[edges.length - 1]?.cursor || null,
       },
-    } as PoolChartDataConnection;
+      totalCount,
+    };
   }
 
-  async getLatestPoolStats(pairId: number): Promise<PoolStatsOutput | null> {
-    const query = `
-      SELECT 
-        id,
-        timestamp,
-        "tvlUsd",
-        "volume24hUsd",
-        "volume7dUsd",
-        "fees24hUsd",
-        "transactionCount24h",
-        "apr24h"
-      FROM "PoolStats"
-      WHERE pair_id = $1
-      ORDER BY timestamp DESC
-      LIMIT 1
-    `;
-
-    const [result] = await sequelize.query(query, {
-      type: QueryTypes.SELECT,
-      bind: [pairId],
-    });
-
-    if (!result) {
-      return null;
-    }
-
-    const row = result as any;
-    return {
-      id: row.id,
-      timestamp: row.timestamp,
-      tvlUsd: row.tvlUsd,
-      volume24hUsd: row.volume24hUsd,
-      volume7dUsd: row.volume7dUsd,
-      fees24hUsd: row.fees24hUsd,
-      transactionCount24h: row.transactionCount24h,
-      apr24h: row.apr24h,
-    } as PoolStatsOutput;
-  }
-
-  async getPoolCharts({ pairId, timeFrame }: GetPoolChartsParams): Promise<PoolChartsOutput> {
+  async getPoolCharts({ pairId, timeFrame }: GetPoolChartsParams): Promise<PoolCharts> {
     const now = new Date();
     let startDate: Date;
 
     switch (timeFrame) {
-      case 'DAY':
+      case TimeFrame.Day:
         startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         break;
-      case 'WEEK':
+      case TimeFrame.Week:
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
-      case 'MONTH':
+      case TimeFrame.Month:
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
-      case 'YEAR':
+      case TimeFrame.Year:
         startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
         break;
-      case 'ALL':
+      case TimeFrame.All:
         startDate = new Date(0); // Beginning of Unix time
         break;
       default:

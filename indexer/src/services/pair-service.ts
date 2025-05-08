@@ -501,10 +501,30 @@ export class PairService {
               : TransactionType.REMOVE_LIQUIDITY,
           maker: sender,
           timestamp: new Date(),
-          amount0In: pair.token0Id === token0.id ? amount0Str : '0',
-          amount1In: pair.token1Id === token0.id ? amount0Str : '0',
-          amount0Out: pair.token0Id === token1.id ? amount1Str : '0',
-          amount1Out: pair.token1Id === token1.id ? amount1Str : '0',
+          amount0In:
+            event.name === 'ADD_LIQUIDITY'
+              ? pair.token0Id === token0.id
+                ? amount0Str
+                : amount1Str
+              : '0',
+          amount1In:
+            event.name === 'ADD_LIQUIDITY'
+              ? pair.token1Id === token0.id
+                ? amount0Str
+                : amount1Str
+              : '0',
+          amount0Out:
+            event.name === 'REMOVE_LIQUIDITY'
+              ? pair.token0Id === token1.id
+                ? amount0Str
+                : amount1Str
+              : '0',
+          amount1Out:
+            event.name === 'REMOVE_LIQUIDITY'
+              ? pair.token1Id === token1.id
+                ? amount0Str
+                : amount1Str
+              : '0',
           amountUsd,
           feeUsd: 0,
         });

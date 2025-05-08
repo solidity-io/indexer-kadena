@@ -349,6 +349,15 @@ type Query {
   Retrieve a specific pool by its ID.
   """
   pool(id: ID!): Pool @complexity(value: 1)
+
+  poolTransactions(
+    pairId: Int!
+    type: PoolTransactionType
+    first: Int
+    after: String
+    last: Int
+    before: String
+  ): PoolTransactionsConnection!
 }
 
 """
@@ -1155,6 +1164,23 @@ type Pool implements Node {
   Get chart data for this pool
   """
   charts(timeFrame: TimeFrame!): PoolCharts!
+  """
+  Get transactions for this pool
+  """
+  transactions(
+    """
+    Type of transactions to fetch
+    """
+    type: PoolTransactionType
+    """
+    Number of items to fetch
+    """
+    first: Int
+    """
+    Cursor for pagination
+    """
+    after: String
+  ): PoolTransactionsConnection! @complexity(value: 10, multipliers: ["first"])
 }
 
 type QueryPoolsConnection {
@@ -1183,3 +1209,156 @@ enum PoolOrderBy {
   TRANSACTION_COUNT_24H_ASC
   TRANSACTION_COUNT_24H_DESC
 }
+
+"""
+Transaction type for pool events
+"""
+enum PoolTransactionType {
+  """
+  Swap transaction
+  """
+  SWAP
+  """
+  Add liquidity transaction
+  """
+  ADD_LIQUIDITY
+  """
+  Remove liquidity transaction
+  """
+  REMOVE_LIQUIDITY
+}
+
+"""
+A swap transaction in a pool
+"""
+type PoolSwapTransaction {
+  """
+  Unique identifier
+  """
+  id: ID!
+  """
+  User who made the swap
+  """
+  maker: String!
+  """
+  Amount of token0 swapped in
+  """
+  amount0In: Decimal!
+  """
+  Amount of token1 swapped in
+  """
+  amount1In: Decimal!
+  """
+  Amount of token0 swapped out
+  """
+  amount0Out: Decimal!
+  """
+  Amount of token1 swapped out
+  """
+  amount1Out: Decimal!
+  """
+  Total amount in USD
+  """
+  amountUsd: Decimal!
+  """
+  Transaction timestamp
+  """
+  timestamp: DateTime!
+}
+
+"""
+An add liquidity transaction in a pool
+"""
+type PoolAddLiquidityTransaction {
+  """
+  Unique identifier
+  """
+  id: ID!
+  """
+  User who added liquidity
+  """
+  maker: String!
+  """
+  Amount of token0 added
+  """
+  amount0: Decimal!
+  """
+  Amount of token1 added
+  """
+  amount1: Decimal!
+  """
+  Total amount in USD
+  """
+  amountUsd: Decimal!
+  """
+  Transaction timestamp
+  """
+  timestamp: DateTime!
+}
+
+"""
+A remove liquidity transaction in a pool
+"""
+type PoolRemoveLiquidityTransaction {
+  """
+  Unique identifier
+  """
+  id: ID!
+  """
+  User who removed liquidity
+  """
+  maker: String!
+  """
+  Amount of token0 removed
+  """
+  amount0: Decimal!
+  """
+  Amount of token1 removed
+  """
+  amount1: Decimal!
+  """
+  Total amount in USD
+  """
+  amountUsd: Decimal!
+  """
+  Transaction timestamp
+  """
+  timestamp: DateTime!
+}
+
+"""
+Connection type for pool transactions
+"""
+type PoolTransactionsConnection {
+  """
+  List of transaction edges
+  """
+  edges: [PoolTransactionEdge!]!
+  """
+  Pagination information
+  """
+  pageInfo: PageInfo!
+  """
+  Total number of transactions
+  """
+  totalCount: Int!
+}
+
+"""
+Edge type for pool transactions
+"""
+type PoolTransactionEdge {
+  """
+  Cursor for pagination
+  """
+  cursor: String!
+  """
+  The transaction node
+  """
+  node: PoolTransaction!
+}
+
+"""
+Union type for all pool transactions
+"""
+union PoolTransaction = PoolSwapTransaction | PoolAddLiquidityTransaction | PoolRemoveLiquidityTransaction

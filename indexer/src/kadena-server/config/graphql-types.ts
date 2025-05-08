@@ -484,6 +484,8 @@ export type Pool = Node & {
   totalSupply: Scalars['String']['output'];
   transactionCount24h: Scalars['Int']['output'];
   transactionCountChange24h: Scalars['Float']['output'];
+  /** Get transactions for this pool */
+  transactions: PoolTransactionsConnection;
   tvlChange24h: Scalars['Float']['output'];
   tvlUsd: Scalars['Decimal']['output'];
   updatedAt: Scalars['DateTime']['output'];
@@ -495,6 +497,30 @@ export type Pool = Node & {
 /** A liquidity pool for a token pair. */
 export type PoolChartsArgs = {
   timeFrame: TimeFrame;
+};
+
+/** A liquidity pool for a token pair. */
+export type PoolTransactionsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  type?: InputMaybe<PoolTransactionType>;
+};
+
+/** An add liquidity transaction in a pool */
+export type PoolAddLiquidityTransaction = {
+  __typename?: 'PoolAddLiquidityTransaction';
+  /** Amount of token0 added */
+  amount0: Scalars['Decimal']['output'];
+  /** Amount of token1 added */
+  amount1: Scalars['Decimal']['output'];
+  /** Total amount in USD */
+  amountUsd: Scalars['Decimal']['output'];
+  /** Unique identifier */
+  id: Scalars['ID']['output'];
+  /** User who added liquidity */
+  maker: Scalars['String']['output'];
+  /** Transaction timestamp */
+  timestamp: Scalars['DateTime']['output'];
 };
 
 /** Chart data for a pool */
@@ -521,6 +547,80 @@ export enum PoolOrderBy {
   Volume_24HAsc = 'VOLUME_24H_ASC',
   Volume_24HDesc = 'VOLUME_24H_DESC',
 }
+
+/** A remove liquidity transaction in a pool */
+export type PoolRemoveLiquidityTransaction = {
+  __typename?: 'PoolRemoveLiquidityTransaction';
+  /** Amount of token0 removed */
+  amount0: Scalars['Decimal']['output'];
+  /** Amount of token1 removed */
+  amount1: Scalars['Decimal']['output'];
+  /** Total amount in USD */
+  amountUsd: Scalars['Decimal']['output'];
+  /** Unique identifier */
+  id: Scalars['ID']['output'];
+  /** User who removed liquidity */
+  maker: Scalars['String']['output'];
+  /** Transaction timestamp */
+  timestamp: Scalars['DateTime']['output'];
+};
+
+/** A swap transaction in a pool */
+export type PoolSwapTransaction = {
+  __typename?: 'PoolSwapTransaction';
+  /** Amount of token0 swapped in */
+  amount0In: Scalars['Decimal']['output'];
+  /** Amount of token0 swapped out */
+  amount0Out: Scalars['Decimal']['output'];
+  /** Amount of token1 swapped in */
+  amount1In: Scalars['Decimal']['output'];
+  /** Amount of token1 swapped out */
+  amount1Out: Scalars['Decimal']['output'];
+  /** Total amount in USD */
+  amountUsd: Scalars['Decimal']['output'];
+  /** Unique identifier */
+  id: Scalars['ID']['output'];
+  /** User who made the swap */
+  maker: Scalars['String']['output'];
+  /** Transaction timestamp */
+  timestamp: Scalars['DateTime']['output'];
+};
+
+/** Union type for all pool transactions */
+export type PoolTransaction =
+  | PoolAddLiquidityTransaction
+  | PoolRemoveLiquidityTransaction
+  | PoolSwapTransaction;
+
+/** Edge type for pool transactions */
+export type PoolTransactionEdge = {
+  __typename?: 'PoolTransactionEdge';
+  /** Cursor for pagination */
+  cursor: Scalars['String']['output'];
+  /** The transaction node */
+  node: PoolTransaction;
+};
+
+/** Transaction type for pool events */
+export enum PoolTransactionType {
+  /** Add liquidity transaction */
+  AddLiquidity = 'ADD_LIQUIDITY',
+  /** Remove liquidity transaction */
+  RemoveLiquidity = 'REMOVE_LIQUIDITY',
+  /** Swap transaction */
+  Swap = 'SWAP',
+}
+
+/** Connection type for pool transactions */
+export type PoolTransactionsConnection = {
+  __typename?: 'PoolTransactionsConnection';
+  /** List of transaction edges */
+  edges: Array<PoolTransactionEdge>;
+  /** Pagination information */
+  pageInfo: PageInfo;
+  /** Total number of transactions */
+  totalCount: Scalars['Int']['output'];
+};
 
 export type Query = {
   __typename?: 'Query';
@@ -581,6 +681,7 @@ export type Query = {
   pactQuery: Array<PactQueryResponse>;
   /** Retrieve a specific pool by its ID. */
   pool?: Maybe<Pool>;
+  poolTransactions: PoolTransactionsConnection;
   /** Retrieve liquidity pools. Default page size is 20. */
   pools: QueryPoolsConnection;
   tokens: QueryTokensConnection;
@@ -701,6 +802,15 @@ export type QueryPactQueryArgs = {
 
 export type QueryPoolArgs = {
   id: Scalars['ID']['input'];
+};
+
+export type QueryPoolTransactionsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
+  pairId: Scalars['Int']['input'];
+  type?: InputMaybe<PoolTransactionType>;
 };
 
 export type QueryPoolsArgs = {
@@ -1203,6 +1313,10 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of union types */
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
+  PoolTransaction:
+    | PoolAddLiquidityTransaction
+    | PoolRemoveLiquidityTransaction
+    | PoolSwapTransaction;
   TransactionInfo:
     | TransactionMempoolInfo
     | (Omit<TransactionResult, 'block' | 'events' | 'transfers'> & {
@@ -1247,7 +1361,7 @@ export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = 
         transactions: _RefType['NonFungibleChainAccountTransactionsConnection'];
       })
     | (Omit<NonFungibleTokenBalance, 'guard'> & { guard: _RefType['IGuard'] })
-    | Pool
+    | (Omit<Pool, 'transactions'> & { transactions: _RefType['PoolTransactionsConnection'] })
     | Signer
     | (Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & {
         cmd: _RefType['TransactionCommand'];
@@ -1402,9 +1516,24 @@ export type ResolversTypes = {
   PactQueryData: PactQueryData;
   PactQueryResponse: ResolverTypeWrapper<PactQueryResponse>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
-  Pool: ResolverTypeWrapper<Pool>;
+  Pool: ResolverTypeWrapper<
+    Omit<Pool, 'transactions'> & { transactions: ResolversTypes['PoolTransactionsConnection'] }
+  >;
+  PoolAddLiquidityTransaction: ResolverTypeWrapper<PoolAddLiquidityTransaction>;
   PoolCharts: ResolverTypeWrapper<PoolCharts>;
   PoolOrderBy: PoolOrderBy;
+  PoolRemoveLiquidityTransaction: ResolverTypeWrapper<PoolRemoveLiquidityTransaction>;
+  PoolSwapTransaction: ResolverTypeWrapper<PoolSwapTransaction>;
+  PoolTransaction: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['PoolTransaction']>;
+  PoolTransactionEdge: ResolverTypeWrapper<
+    Omit<PoolTransactionEdge, 'node'> & { node: ResolversTypes['PoolTransaction'] }
+  >;
+  PoolTransactionType: PoolTransactionType;
+  PoolTransactionsConnection: ResolverTypeWrapper<
+    Omit<PoolTransactionsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['PoolTransactionEdge']>;
+    }
+  >;
   Query: ResolverTypeWrapper<{}>;
   QueryBlocksFromDepthConnection: ResolverTypeWrapper<
     Omit<QueryBlocksFromDepthConnection, 'edges'> & {
@@ -1438,8 +1567,14 @@ export type ResolversTypes = {
   QueryEventsConnectionEdge: ResolverTypeWrapper<
     Omit<QueryEventsConnectionEdge, 'node'> & { node: ResolversTypes['Event'] }
   >;
-  QueryPoolsConnection: ResolverTypeWrapper<QueryPoolsConnection>;
-  QueryPoolsConnectionEdge: ResolverTypeWrapper<QueryPoolsConnectionEdge>;
+  QueryPoolsConnection: ResolverTypeWrapper<
+    Omit<QueryPoolsConnection, 'edges'> & {
+      edges: Array<ResolversTypes['QueryPoolsConnectionEdge']>;
+    }
+  >;
+  QueryPoolsConnectionEdge: ResolverTypeWrapper<
+    Omit<QueryPoolsConnectionEdge, 'node'> & { node: ResolversTypes['Pool'] }
+  >;
   QueryTokensConnection: ResolverTypeWrapper<QueryTokensConnection>;
   QueryTokensEdge: ResolverTypeWrapper<QueryTokensEdge>;
   QueryTransactionsByPublicKeyConnection: ResolverTypeWrapper<
@@ -1648,8 +1783,20 @@ export type ResolversParentTypes = {
   PactQueryData: PactQueryData;
   PactQueryResponse: PactQueryResponse;
   PageInfo: PageInfo;
-  Pool: Pool;
+  Pool: Omit<Pool, 'transactions'> & {
+    transactions: ResolversParentTypes['PoolTransactionsConnection'];
+  };
+  PoolAddLiquidityTransaction: PoolAddLiquidityTransaction;
   PoolCharts: PoolCharts;
+  PoolRemoveLiquidityTransaction: PoolRemoveLiquidityTransaction;
+  PoolSwapTransaction: PoolSwapTransaction;
+  PoolTransaction: ResolversUnionTypes<ResolversParentTypes>['PoolTransaction'];
+  PoolTransactionEdge: Omit<PoolTransactionEdge, 'node'> & {
+    node: ResolversParentTypes['PoolTransaction'];
+  };
+  PoolTransactionsConnection: Omit<PoolTransactionsConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['PoolTransactionEdge']>;
+  };
   Query: {};
   QueryBlocksFromDepthConnection: Omit<QueryBlocksFromDepthConnection, 'edges'> & {
     edges: Array<ResolversParentTypes['QueryBlocksFromDepthConnectionEdge']>;
@@ -1676,8 +1823,12 @@ export type ResolversParentTypes = {
   QueryEventsConnectionEdge: Omit<QueryEventsConnectionEdge, 'node'> & {
     node: ResolversParentTypes['Event'];
   };
-  QueryPoolsConnection: QueryPoolsConnection;
-  QueryPoolsConnectionEdge: QueryPoolsConnectionEdge;
+  QueryPoolsConnection: Omit<QueryPoolsConnection, 'edges'> & {
+    edges: Array<ResolversParentTypes['QueryPoolsConnectionEdge']>;
+  };
+  QueryPoolsConnectionEdge: Omit<QueryPoolsConnectionEdge, 'node'> & {
+    node: ResolversParentTypes['Pool'];
+  };
   QueryTokensConnection: QueryTokensConnection;
   QueryTokensEdge: QueryTokensEdge;
   QueryTransactionsByPublicKeyConnection: Omit<QueryTransactionsByPublicKeyConnection, 'edges'> & {
@@ -2332,12 +2483,32 @@ export type PoolResolvers<
   totalSupply?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   transactionCount24h?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   transactionCountChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  transactions?: Resolver<
+    ResolversTypes['PoolTransactionsConnection'],
+    ParentType,
+    ContextType,
+    Partial<PoolTransactionsArgs>
+  >;
   tvlChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   tvlUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   volume7dUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   volume24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   volumeChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PoolAddLiquidityTransactionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['PoolAddLiquidityTransaction'] = ResolversParentTypes['PoolAddLiquidityTransaction'],
+> = {
+  amount0?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  amount1?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  amountUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  maker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2348,6 +2519,69 @@ export type PoolChartsResolvers<
   fees?: Resolver<Array<ResolversTypes['ChartDataPoint']>, ParentType, ContextType>;
   tvl?: Resolver<Array<ResolversTypes['ChartDataPoint']>, ParentType, ContextType>;
   volume?: Resolver<Array<ResolversTypes['ChartDataPoint']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PoolRemoveLiquidityTransactionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['PoolRemoveLiquidityTransaction'] = ResolversParentTypes['PoolRemoveLiquidityTransaction'],
+> = {
+  amount0?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  amount1?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  amountUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  maker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PoolSwapTransactionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['PoolSwapTransaction'] = ResolversParentTypes['PoolSwapTransaction'],
+> = {
+  amount0In?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  amount0Out?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  amount1In?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  amount1Out?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  amountUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  maker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PoolTransactionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['PoolTransaction'] = ResolversParentTypes['PoolTransaction'],
+> = {
+  __resolveType: TypeResolveFn<
+    'PoolAddLiquidityTransaction' | 'PoolRemoveLiquidityTransaction' | 'PoolSwapTransaction',
+    ParentType,
+    ContextType
+  >;
+};
+
+export type PoolTransactionEdgeResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['PoolTransactionEdge'] = ResolversParentTypes['PoolTransactionEdge'],
+> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  node?: Resolver<ResolversTypes['PoolTransaction'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PoolTransactionsConnectionResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['PoolTransactionsConnection'] = ResolversParentTypes['PoolTransactionsConnection'],
+> = {
+  edges?: Resolver<Array<ResolversTypes['PoolTransactionEdge']>, ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2462,6 +2696,12 @@ export type QueryResolvers<
     ParentType,
     ContextType,
     RequireFields<QueryPoolArgs, 'id'>
+  >;
+  poolTransactions?: Resolver<
+    ResolversTypes['PoolTransactionsConnection'],
+    ParentType,
+    ContextType,
+    RequireFields<QueryPoolTransactionsArgs, 'pairId'>
   >;
   pools?: Resolver<
     ResolversTypes['QueryPoolsConnection'],
@@ -3021,7 +3261,13 @@ export type Resolvers<ContextType = any> = {
   PactQueryResponse?: PactQueryResponseResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Pool?: PoolResolvers<ContextType>;
+  PoolAddLiquidityTransaction?: PoolAddLiquidityTransactionResolvers<ContextType>;
   PoolCharts?: PoolChartsResolvers<ContextType>;
+  PoolRemoveLiquidityTransaction?: PoolRemoveLiquidityTransactionResolvers<ContextType>;
+  PoolSwapTransaction?: PoolSwapTransactionResolvers<ContextType>;
+  PoolTransaction?: PoolTransactionResolvers<ContextType>;
+  PoolTransactionEdge?: PoolTransactionEdgeResolvers<ContextType>;
+  PoolTransactionsConnection?: PoolTransactionsConnectionResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   QueryBlocksFromDepthConnection?: QueryBlocksFromDepthConnectionResolvers<ContextType>;
   QueryBlocksFromDepthConnectionEdge?: QueryBlocksFromDepthConnectionEdgeResolvers<ContextType>;
