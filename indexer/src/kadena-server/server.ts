@@ -88,7 +88,11 @@ const KADENA_GRAPHQL_API_PORT = getRequiredEnvString('KADENA_GRAPHQL_API_PORT');
 /**
  * Array of domains allowed to access the GraphQL API
  */
-const ALLOWED_ORIGINS = [process.env.API_GATEWAY_URL ?? '', process.env.API_KADENA_URL ?? ''];
+const ALLOWED_ORIGINS = [
+  process.env.API_GATEWAY_URL ?? '',
+  process.env.API_KADENA_URL ?? '',
+  process.env.MONITORING_URL ?? '',
+];
 
 /**
  * Apollo Server plugin that validates pagination parameters in GraphQL requests
@@ -437,6 +441,17 @@ export async function useKadenaGraphqlServer() {
     wsServer,
   );
   app.use(express.json());
+
+  /**
+   * Simple health check endpoint
+   *
+   * Returns a 200 OK response to indicate the service is running properly.
+   * This endpoint can be used by load balancers, monitoring tools, and
+   * container orchestration platforms to verify service availability.
+   */
+  app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({ status: 'OK' });
+  });
 
   // Configure CORS and Express middleware for GraphQL endpoint
   app.use(
