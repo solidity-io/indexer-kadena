@@ -13,9 +13,9 @@
  * ensuring that contract information is properly stored and referenced.
  */
 
-import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
-import { TransactionAttributes, TransactionCreationAttributes } from '../../models/transaction';
-import { TransferAttributes } from '../../models/transfer';
+import { handleSingleQuery } from '@/utils/raw-query';
+import { TransactionAttributes, TransactionCreationAttributes } from '@/models/transaction';
+import { TransferAttributes } from '@/models/transfer';
 import { getContract, saveContract, syncContract } from './contract';
 
 /**

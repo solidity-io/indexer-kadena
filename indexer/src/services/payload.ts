@@ -14,19 +14,19 @@
  * 6. Extracting guard information for security validation
  */
 
-import { BlockAttributes } from '../../models/block';
-import TransactionModel, { TransactionAttributes } from '../../models/transaction';
-import Event, { EventAttributes } from '../../models/event';
-import Transfer, { TransferAttributes } from '../../models/transfer';
+import { BlockAttributes } from '@/models/block';
+import TransactionModel, { TransactionAttributes } from '@/models/transaction';
+import Event, { EventAttributes } from '@/models/event';
+import Transfer, { TransferAttributes } from '@/models/transfer';
 import { getNftTransfers, getCoinTransfers } from './transfers';
 import { Transaction } from 'sequelize';
-import Signer from '../../models/signer';
-import Guard from '../../models/guard';
-import { handleSingleQuery } from '../../kadena-server/utils/raw-query';
-import { sequelize } from '../../config/database';
+import Signer from '@/models/signer';
+import Guard from '@/models/guard';
+import { handleSingleQuery } from '@/utils/raw-query';
+import { sequelize } from '@/config/database';
 import { addCoinbaseTransactions } from './coinbase';
-import { getRequiredEnvString } from '../../utils/helpers';
-import TransactionDetails, { TransactionDetailsAttributes } from '../../models/transaction-details';
+import { getRequiredEnvString } from '@/utils/helpers';
+import TransactionDetails, { TransactionDetailsAttributes } from '@/models/transaction-details';
 
 // Constants for array indices in the transaction data structure
 const TRANSACTION_INDEX = 0;

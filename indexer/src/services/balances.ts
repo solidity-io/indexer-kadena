@@ -15,7 +15,7 @@
  * and consistent view of token balances derived from transfer activities.
  */
 
-import { rootPgPool } from '../../config/database';
+import { rootPgPool } from '@/config/database';
 
 /**
  * Backfills balance information by aggregating data from the Transfers table.
