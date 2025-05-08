@@ -31,6 +31,11 @@ export interface GetPoolChartDataParams {
   timeRange?: '1D' | '1W' | '1M' | '1Y' | 'ALL';
 }
 
+export interface GetPoolChartsParams {
+  pairId: number;
+  timeFrame: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR' | 'ALL';
+}
+
 export type PoolOutput = Pool & {
   databasePoolId: string;
   lastPrice: number;
@@ -82,6 +87,21 @@ export interface PoolStatsOutput {
   apr24h: number;
 }
 
+export interface PoolChartsOutput {
+  volume: {
+    timestamp: Date;
+    value: number;
+  }[];
+  tvl: {
+    timestamp: Date;
+    value: number;
+  }[];
+  fees: {
+    timestamp: Date;
+    value: number;
+  }[];
+}
+
 export interface PoolsConnection {
   edges: {
     cursor: string;
@@ -131,4 +151,5 @@ export default interface PoolRepository {
   getPoolTransactions(params: GetPoolTransactionsParams): Promise<PoolTransactionsConnection>;
   getPoolChartData(params: GetPoolChartDataParams): Promise<PoolChartDataConnection>;
   getLatestPoolStats(pairId: number): Promise<PoolStatsOutput | null>;
+  getPoolCharts(params: GetPoolChartsParams): Promise<PoolChartsOutput>;
 }

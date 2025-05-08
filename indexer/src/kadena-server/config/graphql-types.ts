@@ -104,6 +104,15 @@ export type BlockTransactionsConnectionEdge = {
   node: Transaction;
 };
 
+/** A single data point in a chart */
+export type ChartDataPoint = {
+  __typename?: 'ChartDataPoint';
+  /** The timestamp of the data point */
+  timestamp: Scalars['DateTime']['output'];
+  /** The value at this timestamp */
+  value: Scalars['Decimal']['output'];
+};
+
 /** The payload of an cont transaction. */
 export type ContinuationPayload = {
   __typename?: 'ContinuationPayload';
@@ -461,7 +470,11 @@ export type Pool = Node & {
   __typename?: 'Pool';
   address: Scalars['String']['output'];
   apr24h: Scalars['Decimal']['output'];
+  /** Get chart data for this pool */
+  charts: PoolCharts;
   createdAt: Scalars['DateTime']['output'];
+  fees24hUsd: Scalars['Decimal']['output'];
+  feesChange24h: Scalars['Float']['output'];
   id: Scalars['ID']['output'];
   key: Scalars['String']['output'];
   reserve0: Scalars['String']['output'];
@@ -471,14 +484,28 @@ export type Pool = Node & {
   totalSupply: Scalars['String']['output'];
   transactionCount24h: Scalars['Int']['output'];
   transactionCountChange24h: Scalars['Float']['output'];
-  tvlUsd: Scalars['Decimal']['output'];
   tvlChange24h: Scalars['Float']['output'];
+  tvlUsd: Scalars['Decimal']['output'];
   updatedAt: Scalars['DateTime']['output'];
   volume7dUsd: Scalars['Decimal']['output'];
   volume24hUsd: Scalars['Decimal']['output'];
   volumeChange24h: Scalars['Float']['output'];
-  fees24hUsd: Scalars['Decimal']['output'];
-  feesChange24h: Scalars['Float']['output'];
+};
+
+/** A liquidity pool for a token pair. */
+export type PoolChartsArgs = {
+  timeFrame: TimeFrame;
+};
+
+/** Chart data for a pool */
+export type PoolCharts = {
+  __typename?: 'PoolCharts';
+  /** Fees data points */
+  fees: Array<ChartDataPoint>;
+  /** TVL data points */
+  tvl: Array<ChartDataPoint>;
+  /** Volume data points */
+  volume: Array<ChartDataPoint>;
 };
 
 /** Sort options for pools */
@@ -907,6 +934,20 @@ export type SubscriptionTransactionArgs = {
   requestKey: Scalars['String']['input'];
 };
 
+/** Time frame for chart data */
+export enum TimeFrame {
+  /** All available data */
+  All = 'ALL',
+  /** Last 24 hours */
+  Day = 'DAY',
+  /** Last 30 days */
+  Month = 'MONTH',
+  /** Last 7 days */
+  Week = 'WEEK',
+  /** Last 365 days */
+  Year = 'YEAR',
+}
+
 export type Token = {
   __typename?: 'Token';
   chainId: Scalars['String']['output'];
@@ -1249,6 +1290,7 @@ export type ResolversTypes = {
     Omit<BlockTransactionsConnectionEdge, 'node'> & { node: ResolversTypes['Transaction'] }
   >;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  ChartDataPoint: ResolverTypeWrapper<ChartDataPoint>;
   ContinuationPayload: ResolverTypeWrapper<ContinuationPayload>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Decimal: ResolverTypeWrapper<Scalars['Decimal']['output']>;
@@ -1361,6 +1403,7 @@ export type ResolversTypes = {
   PactQueryResponse: ResolverTypeWrapper<PactQueryResponse>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
   Pool: ResolverTypeWrapper<Pool>;
+  PoolCharts: ResolverTypeWrapper<PoolCharts>;
   PoolOrderBy: PoolOrderBy;
   Query: ResolverTypeWrapper<{}>;
   QueryBlocksFromDepthConnection: ResolverTypeWrapper<
@@ -1429,6 +1472,7 @@ export type ResolversTypes = {
   Signer: ResolverTypeWrapper<Signer>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
+  TimeFrame: TimeFrame;
   Token: ResolverTypeWrapper<Token>;
   Transaction: ResolverTypeWrapper<
     Omit<Transaction, 'cmd' | 'orphanedTransactions' | 'result'> & {
@@ -1507,6 +1551,7 @@ export type ResolversParentTypes = {
     node: ResolversParentTypes['Transaction'];
   };
   Boolean: Scalars['Boolean']['output'];
+  ChartDataPoint: ChartDataPoint;
   ContinuationPayload: ContinuationPayload;
   DateTime: Scalars['DateTime']['output'];
   Decimal: Scalars['Decimal']['output'];
@@ -1604,6 +1649,7 @@ export type ResolversParentTypes = {
   PactQueryResponse: PactQueryResponse;
   PageInfo: PageInfo;
   Pool: Pool;
+  PoolCharts: PoolCharts;
   Query: {};
   QueryBlocksFromDepthConnection: Omit<QueryBlocksFromDepthConnection, 'edges'> & {
     edges: Array<ResolversParentTypes['QueryBlocksFromDepthConnectionEdge']>;
@@ -1802,6 +1848,16 @@ export type BlockTransactionsConnectionEdgeResolvers<
 > = {
   cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   node?: Resolver<ResolversTypes['Transaction'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type ChartDataPointResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['ChartDataPoint'] = ResolversParentTypes['ChartDataPoint'],
+> = {
+  timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  value?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2258,7 +2314,15 @@ export type PoolResolvers<
 > = {
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   apr24h?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  charts?: Resolver<
+    ResolversTypes['PoolCharts'],
+    ParentType,
+    ContextType,
+    RequireFields<PoolChartsArgs, 'timeFrame'>
+  >;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  fees24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  feesChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   reserve0?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2268,14 +2332,22 @@ export type PoolResolvers<
   totalSupply?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   transactionCount24h?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   transactionCountChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  tvlUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   tvlChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  tvlUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   volume7dUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   volume24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   volumeChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  fees24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
-  feesChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PoolChartsResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['PoolCharts'] = ResolversParentTypes['PoolCharts'],
+> = {
+  fees?: Resolver<Array<ResolversTypes['ChartDataPoint']>, ParentType, ContextType>;
+  tvl?: Resolver<Array<ResolversTypes['ChartDataPoint']>, ParentType, ContextType>;
+  volume?: Resolver<Array<ResolversTypes['ChartDataPoint']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2915,6 +2987,7 @@ export type Resolvers<ContextType = any> = {
   BlockNeighbor?: BlockNeighborResolvers<ContextType>;
   BlockTransactionsConnection?: BlockTransactionsConnectionResolvers<ContextType>;
   BlockTransactionsConnectionEdge?: BlockTransactionsConnectionEdgeResolvers<ContextType>;
+  ChartDataPoint?: ChartDataPointResolvers<ContextType>;
   ContinuationPayload?: ContinuationPayloadResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
   Decimal?: GraphQLScalarType;
@@ -2948,6 +3021,7 @@ export type Resolvers<ContextType = any> = {
   PactQueryResponse?: PactQueryResponseResolvers<ContextType>;
   PageInfo?: PageInfoResolvers<ContextType>;
   Pool?: PoolResolvers<ContextType>;
+  PoolCharts?: PoolChartsResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   QueryBlocksFromDepthConnection?: QueryBlocksFromDepthConnectionResolvers<ContextType>;
   QueryBlocksFromDepthConnectionEdge?: QueryBlocksFromDepthConnectionEdgeResolvers<ContextType>;

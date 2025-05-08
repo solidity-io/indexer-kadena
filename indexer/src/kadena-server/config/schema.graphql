@@ -24,6 +24,64 @@ directive @complexity(
   multipliers: [String!]
 ) on FIELD_DEFINITION
 
+"""
+Time frame for chart data
+"""
+enum TimeFrame {
+  """
+  Last 24 hours
+  """
+  DAY
+  """
+  Last 7 days
+  """
+  WEEK
+  """
+  Last 30 days
+  """
+  MONTH
+  """
+  Last 365 days
+  """
+  YEAR
+  """
+  All available data
+  """
+  ALL
+}
+
+"""
+A single data point in a chart
+"""
+type ChartDataPoint {
+  """
+  The timestamp of the data point
+  """
+  timestamp: DateTime!
+  """
+  The value at this timestamp
+  """
+  value: Decimal!
+}
+
+"""
+Chart data for a pool
+"""
+type PoolCharts {
+  """
+  Volume data points
+  """
+  volume: [ChartDataPoint!]!
+  """
+  TVL data points
+  """
+  tvl: [ChartDataPoint!]!
+  """
+  Fees data points
+  """
+  fees: [ChartDataPoint!]!
+}
+
 type Subscription {
   """
   Subscribe to new blocks.
@@ -1093,6 +1151,10 @@ type Pool implements Node {
   apr24h: Decimal!
   createdAt: DateTime!
   updatedAt: DateTime!
+  """
+  Get chart data for this pool
+  """
+  charts(timeFrame: TimeFrame!): PoolCharts!
 }
 
 type QueryPoolsConnection {

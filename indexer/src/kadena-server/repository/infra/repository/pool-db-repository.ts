@@ -19,6 +19,8 @@ import type {
   PoolStatsOutput,
   PoolTransactionOutput,
   PoolTransactionsConnection,
+  GetPoolChartsParams,
+  PoolChartsOutput,
 } from '../../application/pool-repository';
 import { ConnectionEdge } from '../../types';
 import TokenModel from '../../../../models/token';
@@ -521,5 +523,126 @@ export default class PoolDbRepository implements PoolRepository {
       transactionCount24h: row.transactionCount24h,
       apr24h: row.apr24h,
     } as PoolStatsOutput;
+  }
+
+  async getPoolCharts({ pairId, timeFrame }: GetPoolChartsParams): Promise<PoolChartsOutput> {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (timeFrame) {
+      case 'DAY':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case 'WEEK':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'MONTH':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'YEAR':
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      case 'ALL':
+        startDate = new Date(0); // Beginning of Unix time
+        break;
+      default:
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Default to 24h
+    }
+
+    // Get TVL data from PoolStats
+    const tvlData = await sequelize.query<{ timestamp: Date; tvlUsd: number }>(
+      `
+      SELECT 
+        date_trunc('hour', "createdAt") as timestamp,
+        AVG("tvlUsd") as "tvlUsd"
+      FROM "PoolStats"
+      WHERE "pairId" = :pairId
+        AND "createdAt" >= :startDate
+      GROUP BY date_trunc('hour', "createdAt")
+      ORDER BY timestamp ASC
+      `,
+      {
+        replacements: {
+          pairId,
+          startDate: startDate.toISOString(),
+        },
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    // Get volume and fees data from PoolTransactions
+    const volumeAndFeesData = await sequelize.query<{
+      timestamp: Date;
+      volume: number;
+      fees: number;
+    }>(
+      `
+      SELECT 
+        date_trunc('hour', "createdAt") as timestamp,
+        SUM("amountUsd") as volume,
+        SUM("feeUsd") as fees
+      FROM "PoolTransactions"
+      WHERE "pairId" = :pairId
+        AND "createdAt" >= :startDate
+      GROUP BY date_trunc('hour', "createdAt")
+      ORDER BY timestamp ASC
+      `,
+      {
+        replacements: {
+          pairId,
+          startDate: startDate.toISOString(),
+        },
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    // Create a map of timestamps to data points
+    const dataMap = new Map<string, { volume: number; fees: number; tvl: number }>();
+
+    // Initialize all timestamps with zero values
+    const allTimestamps = new Set([
+      ...tvlData.map(d => d.timestamp.toISOString()),
+      ...volumeAndFeesData.map(d => d.timestamp.toISOString()),
+    ]);
+
+    allTimestamps.forEach(timestamp => {
+      dataMap.set(timestamp, { volume: 0, fees: 0, tvl: 0 });
+    });
+
+    // Fill in TVL data
+    tvlData.forEach(data => {
+      const timestamp = data.timestamp.toISOString();
+      const existing = dataMap.get(timestamp) || { volume: 0, fees: 0, tvl: 0 };
+      dataMap.set(timestamp, { ...existing, tvl: data.tvlUsd });
+    });
+
+    // Fill in volume and fees data
+    volumeAndFeesData.forEach(data => {
+      const timestamp = data.timestamp.toISOString();
+      const existing = dataMap.get(timestamp) || { volume: 0, fees: 0, tvl: 0 };
+      dataMap.set(timestamp, {
+        ...existing,
+        volume: data.volume,
+        fees: data.fees,
+      });
+    });
+
+    // Convert map to arrays of data points
+    const sortedTimestamps = Array.from(dataMap.keys()).sort();
+
+    return {
+      volume: sortedTimestamps.map(timestamp => ({
+        timestamp: new Date(timestamp),
+        value: dataMap.get(timestamp)!.volume,
+      })),
+      tvl: sortedTimestamps.map(timestamp => ({
+        timestamp: new Date(timestamp),
+        value: dataMap.get(timestamp)!.tvl,
+      })),
+      fees: sortedTimestamps.map(timestamp => ({
+        timestamp: new Date(timestamp),
+        value: dataMap.get(timestamp)!.fees,
+      })),
+    };
   }
 }
