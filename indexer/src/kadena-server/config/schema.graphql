@@ -1264,6 +1264,14 @@ type PoolSwapTransaction {
   Transaction timestamp
   """
   timestamp: DateTime!
+  """
+  ID of the transaction
+  """
+  transactionId: Int!
+  """
+  Request key of the transaction
+  """
+  requestkey: String!
 }
 
 """
@@ -1294,6 +1302,14 @@ type PoolAddLiquidityTransaction {
   Transaction timestamp
   """
   timestamp: DateTime!
+  """
+  ID of the transaction
+  """
+  transactionId: Int!
+  """
+  Request key of the transaction
+  """
+  requestkey: String!
 }
 
 """
@@ -1324,6 +1340,14 @@ type PoolRemoveLiquidityTransaction {
   Transaction timestamp
   """
   timestamp: DateTime!
+  """
+  ID of the transaction
+  """
+  transactionId: Int!
+  """
+  Request key of the transaction
+  """
+  requestkey: String!
 }
 
 """

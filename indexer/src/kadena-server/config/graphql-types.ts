@@ -519,8 +519,12 @@ export type PoolAddLiquidityTransaction = {
   id: Scalars['ID']['output'];
   /** User who added liquidity */
   maker: Scalars['String']['output'];
+  /** Request key of the transaction */
+  requestkey: Scalars['String']['output'];
   /** Transaction timestamp */
   timestamp: Scalars['DateTime']['output'];
+  /** ID of the transaction */
+  transactionId: Scalars['Int']['output'];
 };
 
 /** Chart data for a pool */
@@ -561,8 +565,12 @@ export type PoolRemoveLiquidityTransaction = {
   id: Scalars['ID']['output'];
   /** User who removed liquidity */
   maker: Scalars['String']['output'];
+  /** Request key of the transaction */
+  requestkey: Scalars['String']['output'];
   /** Transaction timestamp */
   timestamp: Scalars['DateTime']['output'];
+  /** ID of the transaction */
+  transactionId: Scalars['Int']['output'];
 };
 
 /** A swap transaction in a pool */
@@ -582,8 +590,12 @@ export type PoolSwapTransaction = {
   id: Scalars['ID']['output'];
   /** User who made the swap */
   maker: Scalars['String']['output'];
+  /** Request key of the transaction */
+  requestkey: Scalars['String']['output'];
   /** Transaction timestamp */
   timestamp: Scalars['DateTime']['output'];
+  /** ID of the transaction */
+  transactionId: Scalars['Int']['output'];
 };
 
 /** Union type for all pool transactions */
@@ -2508,7 +2520,9 @@ export type PoolAddLiquidityTransactionResolvers<
   amountUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   maker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  requestkey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  transactionId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2532,7 +2546,9 @@ export type PoolRemoveLiquidityTransactionResolvers<
   amountUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   maker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  requestkey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  transactionId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2548,7 +2564,9 @@ export type PoolSwapTransactionResolvers<
   amountUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   maker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  requestkey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  transactionId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 

@@ -54,6 +54,8 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
       parameters: JSON.stringify(event.params),
       qualifiedName: event.qualname,
       chainId: event.chainId,
+      transactionId: event.transactionId,
+      requestkey: event.requestkey,
     }));
     await PairService.processSwaps(swapParams);
   }
@@ -73,6 +75,8 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
       parameters: JSON.stringify(event.params),
       qualifiedName: event.qualname,
       chainId: event.chainId,
+      transactionId: event.transactionId,
+      requestkey: event.requestkey,
     }));
     await PairService.processLiquidityEvents(liquidityParams);
   }

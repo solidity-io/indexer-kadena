@@ -363,6 +363,8 @@ export class PairService {
       parameters: string;
       qualifiedName: string;
       chainId: number;
+      transactionId: number;
+      requestkey: string;
     }>,
   ): Promise<void> {
     if (!swapEvents || swapEvents.length === 0) {
@@ -412,7 +414,8 @@ export class PairService {
         // Create pool transaction record
         await PoolTransaction.create({
           pairId: pair.id,
-          transactionHash: event.parameterText,
+          transactionId: event.transactionId,
+          requestkey: event.requestkey,
           type: TransactionType.SWAP,
           maker: event.parameters.split(',')[0],
           timestamp: new Date(),
@@ -444,6 +447,8 @@ export class PairService {
       parameters: string;
       qualifiedName: string;
       chainId: number;
+      transactionId: number;
+      requestkey: string;
     }>,
   ): Promise<void> {
     for (const event of liquidityEvents) {
@@ -494,7 +499,8 @@ export class PairService {
         // Create pool transaction record
         await PoolTransaction.create({
           pairId: pair.id,
-          transactionHash: event.parameterText,
+          transactionId: event.transactionId,
+          requestkey: event.requestkey,
           type:
             event.name === 'ADD_LIQUIDITY'
               ? TransactionType.ADD_LIQUIDITY
