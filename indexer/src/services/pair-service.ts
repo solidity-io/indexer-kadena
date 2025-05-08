@@ -6,6 +6,7 @@ import PoolChart from '../models/pool-chart';
 import PoolStats from '../models/pool-stats';
 import PoolTransaction, { TransactionType } from '../models/pool-transaction';
 import Token from '../models/token';
+import LiquidityBalance from '../models/liquidity-balance';
 import { PriceService } from './price/price.service';
 
 type TokenAmount = number | { decimal: string };
@@ -454,9 +455,9 @@ export class PairService {
     for (const event of liquidityEvents) {
       try {
         // Parse the parameters
-        const [sender, to, token0Ref, token1Ref, amount0, amount1] = JSON.parse(
+        const [sender, to, token0Ref, token1Ref, amount0, amount1, liquidity] = JSON.parse(
           event.parameters,
-        ) as [string, string, TokenReference, TokenReference, TokenAmount, TokenAmount];
+        ) as [string, string, TokenReference, TokenReference, TokenAmount, TokenAmount, number];
 
         // Convert TokenAmount to string representation
         const amount0Str = typeof amount0 === 'number' ? amount0.toString() : amount0.decimal;
@@ -534,6 +535,38 @@ export class PairService {
           amountUsd,
           feeUsd: 0,
         });
+
+        const liquidityBalance = await LiquidityBalance.findOne({
+          where: {
+            pairKey: pair.key,
+            walletAddress: sender,
+          },
+        });
+
+        if (event.name === 'ADD_LIQUIDITY') {
+          if (liquidityBalance) {
+            // Update existing balance
+            const currentLiquidity = BigInt(liquidityBalance.liquidity);
+            const newLiquidity = currentLiquidity + BigInt(liquidity.toString());
+            await liquidityBalance.update({
+              liquidity: newLiquidity.toString(),
+            });
+          } else {
+            // Create new balance
+            await LiquidityBalance.create({
+              pairKey: pair.key,
+              walletAddress: sender,
+              liquidity: liquidity.toString(),
+            });
+          }
+        } else if (event.name === 'REMOVE_LIQUIDITY' && liquidityBalance) {
+          // Subtract liquidity
+          const currentLiquidity = BigInt(liquidityBalance.liquidity);
+          const newLiquidity = currentLiquidity - BigInt(liquidity.toString());
+          await liquidityBalance.update({
+            liquidity: newLiquidity.toString(),
+          });
+        }
 
         // Update pool stats
         await this.updatePoolStats(pair.id);

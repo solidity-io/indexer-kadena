@@ -1386,3 +1386,12 @@ type PoolTransactionEdge {
 Union type for all pool transactions
 """
 union PoolTransaction = PoolSwapTransaction | PoolAddLiquidityTransaction | PoolRemoveLiquidityTransaction
+
+type LiquidityBalance {
+  id: Int!
+  pairKey: String!
+  liquidity: String!
+  walletAddress: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}

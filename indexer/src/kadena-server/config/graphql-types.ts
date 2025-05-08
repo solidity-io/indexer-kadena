@@ -321,6 +321,16 @@ export type KeysetGuard = IGuard & {
   raw: Scalars['String']['output'];
 };
 
+export type LiquidityBalance = {
+  __typename?: 'LiquidityBalance';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
+  liquidity: Scalars['String']['output'];
+  pairKey: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  walletAddress: Scalars['String']['output'];
+};
+
 /** Information about the network. */
 export type NetworkInfo = {
   __typename?: 'NetworkInfo';
@@ -1485,6 +1495,7 @@ export type ResolversTypes = {
   IGuard: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['IGuard']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   KeysetGuard: ResolverTypeWrapper<KeysetGuard>;
+  LiquidityBalance: ResolverTypeWrapper<LiquidityBalance>;
   NetworkInfo: ResolverTypeWrapper<NetworkInfo>;
   Node: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Node']>;
   NonFungibleAccount: ResolverTypeWrapper<
@@ -1754,6 +1765,7 @@ export type ResolversParentTypes = {
   IGuard: ResolversInterfaceTypes<ResolversParentTypes>['IGuard'];
   Int: Scalars['Int']['output'];
   KeysetGuard: KeysetGuard;
+  LiquidityBalance: LiquidityBalance;
   NetworkInfo: NetworkInfo;
   Node: ResolversInterfaceTypes<ResolversParentTypes>['Node'];
   NonFungibleAccount: Omit<
@@ -2276,6 +2288,20 @@ export type KeysetGuardResolvers<
   keys?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   predicate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   raw?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type LiquidityBalanceResolvers<
+  ContextType = any,
+  ParentType extends
+    ResolversParentTypes['LiquidityBalance'] = ResolversParentTypes['LiquidityBalance'],
+> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  liquidity?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  pairKey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  walletAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -3266,6 +3292,7 @@ export type Resolvers<ContextType = any> = {
   GraphConfiguration?: GraphConfigurationResolvers<ContextType>;
   IGuard?: IGuardResolvers<ContextType>;
   KeysetGuard?: KeysetGuardResolvers<ContextType>;
+  LiquidityBalance?: LiquidityBalanceResolvers<ContextType>;
   NetworkInfo?: NetworkInfoResolvers<ContextType>;
   Node?: NodeResolvers<ContextType>;
   NonFungibleAccount?: NonFungibleAccountResolvers<ContextType>;
