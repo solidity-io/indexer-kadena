@@ -88,7 +88,11 @@ const KADENA_GRAPHQL_API_PORT = getRequiredEnvString('KADENA_GRAPHQL_API_PORT');
 /**
  * Array of domains allowed to access the GraphQL API
  */
-const ALLOWED_ORIGINS = [process.env.API_GATEWAY_URL ?? '', process.env.API_KADENA_URL ?? ''];
+const ALLOWED_ORIGINS = [
+  process.env.API_GATEWAY_URL ?? '',
+  process.env.API_KADENA_URL ?? '',
+  process.env.MONITORING_URL ?? '',
+];
 
 /**
  * Apollo Server plugin that validates pagination parameters in GraphQL requests
