@@ -491,11 +491,9 @@ export class PairService {
         ]);
 
         // Calculate USD value
-        const amountUsd = token0Price
-          ? Number(amount0Str) * token0Price
-          : token1Price
-            ? Number(amount1Str) * token1Price
-            : 0;
+        const amountUsd =
+          (token0Price ? Number(amount0Str) * token0Price : 0) +
+          (token1Price ? Number(amount1Str) * token1Price : 0);
 
         // Create pool transaction record
         await PoolTransaction.create({
