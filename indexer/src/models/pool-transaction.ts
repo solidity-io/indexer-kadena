@@ -11,10 +11,9 @@ export enum TransactionType {
 
 class PoolTransaction extends Model {
   public id!: number;
-  public transactionId!: number;
+  public transactionId!: number | null;
   public requestkey!: string;
   public pairId!: number;
-  public transactionHash!: string;
   public maker!: string;
   public amount0In!: string;
   public amount1In!: string;
@@ -48,7 +47,7 @@ PoolTransaction.init(
     },
     transactionId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
     requestkey: {
       type: DataTypes.STRING,

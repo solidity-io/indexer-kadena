@@ -1293,7 +1293,7 @@ type PoolTransaction {
   """
   ID of the transaction
   """
-  transactionId: Int!
+  transactionId: Int
   """
   Request key of the transaction
   """

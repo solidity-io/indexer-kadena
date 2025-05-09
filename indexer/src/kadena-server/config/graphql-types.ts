@@ -616,7 +616,7 @@ export type PoolTransaction = {
   /** Transaction timestamp */
   timestamp: Scalars['DateTime']['output'];
   /** ID of the transaction */
-  transactionId: Scalars['Int']['output'];
+  transactionId?: Maybe<Scalars['Int']['output']>;
   /** The type of transaction */
   transactionType: PoolTransactionType;
 };
@@ -2611,7 +2611,7 @@ export type PoolTransactionResolvers<
   maker?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   requestkey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  transactionId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  transactionId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   transactionType?: Resolver<ResolversTypes['PoolTransactionType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
