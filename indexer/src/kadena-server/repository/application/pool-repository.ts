@@ -66,26 +66,22 @@ export type PoolOutput = Pool & {
 
 export interface PoolTransaction {
   id: string;
-  type: PoolTransactionType;
   maker: string;
   amount0In: string;
   amount1In: string;
   amount0Out: string;
   amount1Out: string;
-  amount0: string;
-  amount1: string;
   amountUsd: string;
   timestamp: Date;
-  __typename:
-    | 'PoolSwapTransaction'
-    | 'PoolAddLiquidityTransaction'
-    | 'PoolRemoveLiquidityTransaction';
+  transactionId: number;
+  requestkey: string;
+  transactionType: PoolTransactionType;
 }
 
 export interface PoolTransactionsConnection {
-  edges: ConnectionEdge<PoolTransaction>[];
-  pageInfo: PageInfo;
-  totalCount: number;
+  edges: ConnectionEdge<PoolTransaction>[] | null;
+  pageInfo: PageInfo | null;
+  totalCount: number | null;
 }
 
 export interface PoolChartDataOutput {
@@ -140,6 +136,8 @@ export default interface PoolRepository {
     totalCount: number;
   }>;
   getPool(params: GetPoolParams): Promise<Pool | null>;
-  getPoolTransactions(params: GetPoolTransactionsParams): Promise<PoolTransactionsConnection>;
+  getPoolTransactions(
+    params: GetPoolTransactionsParams,
+  ): Promise<PoolTransactionsConnection | null>;
   getPoolCharts(params: GetPoolChartsParams): Promise<PoolCharts>;
 }

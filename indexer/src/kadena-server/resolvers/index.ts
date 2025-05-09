@@ -72,6 +72,7 @@ import { poolResolvers } from './fields/pool/pool-resolvers';
 import { poolQueryResolver } from './query/pool-query-resolver';
 import { poolTransactionsQueryResolver } from './query/pool-transactions-query-resolver';
 import { liquidityPositionsQueryResolver } from './query/liquidity-positions-query-resolver';
+import { dexMetricsQueryResolver } from './query/dex-metrics-resolver';
 
 export const resolvers: Resolvers<ResolverContext> = {
   DateTime: DateTimeResolver,
@@ -110,6 +111,7 @@ export const resolvers: Resolvers<ResolverContext> = {
     pool: poolQueryResolver,
     poolTransactions: poolTransactionsQueryResolver,
     liquidityPositions: liquidityPositionsQueryResolver,
+    dexMetrics: dexMetricsQueryResolver,
   },
   Block: {
     parent: parentBlockResolver, // data loader set.

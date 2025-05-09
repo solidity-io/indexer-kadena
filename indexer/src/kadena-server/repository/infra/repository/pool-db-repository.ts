@@ -127,14 +127,14 @@ export default class PoolDbRepository {
         token0: {
           __typename: 'Token',
           id: pair.token0Id.toString(),
-          chainId: '0',
           name: pair.token0Name,
+          chainId: '0',
         },
         token1: {
           __typename: 'Token',
           id: pair.token1Id.toString(),
-          chainId: '0',
           name: pair.token1Name,
+          chainId: '0',
         },
         reserve0: pair.reserve0,
         reserve1: pair.reserve1,
@@ -199,9 +199,8 @@ export default class PoolDbRepository {
     });
 
     if (!pairResult) {
-      return null;
+      throw new Error(`Token pair not found for pool ${id}`);
     }
-
     const pair = pairResult as any;
 
     // Get the tokens
@@ -218,7 +217,6 @@ export default class PoolDbRepository {
 
     const token0 = tokens.find((t: any) => t.id === pair.token0Id) as TokenModel;
     const token1 = tokens.find((t: any) => t.id === pair.token1Id) as TokenModel;
-
     if (!token0 || !token1) {
       throw new Error(`Tokens not found for pool ${id}`);
     }
@@ -260,7 +258,6 @@ export default class PoolDbRepository {
       FROM current_stats cs
       LEFT JOIN previous_stats ps ON true
     `;
-
     const [statsResult] = await sequelize.query(statsQuery, {
       type: QueryTypes.SELECT,
       bind: [id],
@@ -280,7 +277,6 @@ export default class PoolDbRepository {
           previousFees24hUsd: 0,
           previousTransactionCount24h: 0,
         };
-
     // Calculate percentage changes
     const calculatePercentageChange = (current: number, previous: number): number => {
       if (!previous) return 0;
@@ -304,12 +300,31 @@ export default class PoolDbRepository {
       stats.previousTransactionCount24h,
     );
 
+    const charts = await this.getPoolCharts({
+      pairId: parseInt(pair.id),
+      timeFrame: TimeFrame.Day,
+    });
+    const transactions = await this.getPoolTransactions({
+      pairId: parseInt(pair.id),
+      first: 10,
+    });
+
     return {
       __typename: 'Pool',
       id: pair.id.toString(),
       address: pair.address,
-      token0,
-      token1,
+      token0: {
+        __typename: 'Token',
+        id: token0.id.toString(),
+        name: token0.name,
+        chainId: '0',
+      },
+      token1: {
+        __typename: 'Token',
+        id: token1.id.toString(),
+        name: token1.name,
+        chainId: '0',
+      },
       reserve0: pair.reserve0,
       reserve1: pair.reserve1,
       totalSupply: pair.totalSupply,
@@ -326,15 +341,14 @@ export default class PoolDbRepository {
       apr24h: stats.apr24h ?? 0,
       createdAt: pair.createdAt,
       updatedAt: pair.updatedAt,
-      charts: async () =>
-        this.getPoolCharts({ pairId: parseInt(pair.id), timeFrame: TimeFrame.Day }),
-      transactions: async () => this.getPoolTransactions({ pairId: parseInt(pair.id) }),
-    } as unknown as Pool;
+      charts,
+      transactions,
+    };
   }
 
   async getPoolTransactions(
     params: GetPoolTransactionsParams,
-  ): Promise<PoolTransactionsConnection> {
+  ): Promise<PoolTransactionsConnection | null> {
     const { pairId, type, first, after, last, before } = params;
     const limit = first || last || 10;
     const offset = after ? parseInt(Buffer.from(after, 'base64').toString()) : 0;
@@ -349,7 +363,9 @@ export default class PoolDbRepository {
         t."amount0Out",
         t."amount1Out",
         t."amountUsd",
-        t."timestamp"
+        t."timestamp",
+        t."transactionId",
+        t."requestkey"
       FROM "PoolTransactions" t
       WHERE t."pairId" = $1
     `;
@@ -365,38 +381,31 @@ export default class PoolDbRepository {
 
     query += ` ORDER BY t."timestamp" DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     queryParams.push(limit, offset);
-
     const result = await sequelize.query(query, {
       type: QueryTypes.SELECT,
       bind: queryParams,
     });
 
-    const edges = (result as any[]).map(row => ({
-      cursor: Buffer.from(row.id.toString()).toString('base64'),
-      node: {
-        id: row.id.toString(),
-        type: row.type,
-        maker: row.maker,
-        amount0In:
-          row.type === 'SWAP' ? row.amount0In?.toString() ?? '0' : row.amount0In?.toString() ?? '0',
-        amount1In:
-          row.type === 'SWAP' ? row.amount1In?.toString() ?? '0' : row.amount1In?.toString() ?? '0',
-        amount0Out: row.type === 'SWAP' ? row.amount0Out?.toString() ?? '0' : '0',
-        amount1Out: row.type === 'SWAP' ? row.amount1Out?.toString() ?? '0' : '0',
-        amount0: row.type !== 'SWAP' ? row.amount0In?.toString() ?? '0' : '0',
-        amount1: row.type !== 'SWAP' ? row.amount1In?.toString() ?? '0' : '0',
-        amountUsd: row.amountUsd.toString(),
-        timestamp: row.timestamp,
-        __typename: (row.type === 'SWAP'
-          ? 'PoolSwapTransaction'
-          : row.type === 'ADD_LIQUIDITY'
-            ? 'PoolAddLiquidityTransaction'
-            : 'PoolRemoveLiquidityTransaction') as
-          | 'PoolSwapTransaction'
-          | 'PoolAddLiquidityTransaction'
-          | 'PoolRemoveLiquidityTransaction',
-      },
-    }));
+    const edges =
+      result.length > 0
+        ? (result as any[]).map(row => ({
+            cursor: Buffer.from(row.id.toString()).toString('base64'),
+            node: {
+              __typename: 'PoolTransaction',
+              id: row.id.toString(),
+              maker: row.maker,
+              amount0In: row.amount0In?.toString() ?? '0',
+              amount1In: row.amount1In?.toString() ?? '0',
+              amount0Out: row.amount0Out?.toString() ?? '0',
+              amount1Out: row.amount1Out?.toString() ?? '0',
+              amountUsd: row.amountUsd.toString(),
+              timestamp: row.timestamp,
+              transactionId: row.transactionId,
+              requestkey: row.requestkey,
+              transactionType: row.type,
+            },
+          }))
+        : [];
 
     const countQuery = `
       SELECT COUNT(*)

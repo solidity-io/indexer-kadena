@@ -24,6 +24,8 @@ import PactGateway from '../repository/gateway/pact-gateway';
 import PactApiGateway from '../repository/infra/gateway/pact-api-gateway';
 import { LiquidityPositionRepository } from '../repository/application/liquidity-position-repository';
 import LiquidityPositionDbRepository from '../repository/infra/repository/liquidity-position-db-repository';
+import { DexMetricsRepository } from '../repository/application/dex-metrics-repository';
+import DexMetricsDbRepository from '../repository/infra/repository/dex-metrics-db-repository';
 
 export const publishSubscribe = new PubSub();
 
@@ -45,6 +47,7 @@ export interface ResolverContext {
   pubSub: PubSub;
   signal: AbortSignal;
   liquidityPositionRepository: LiquidityPositionRepository;
+  dexMetricsRepository: DexMetricsRepository;
 }
 
 export const createGraphqlContext = () => {
@@ -64,6 +67,7 @@ export const createGraphqlContext = () => {
     pubSub: publishSubscribe,
     signal: new AbortController().signal,
     liquidityPositionRepository: new LiquidityPositionDbRepository(),
+    dexMetricsRepository: new DexMetricsDbRepository(),
   };
 
   return Promise.resolve({

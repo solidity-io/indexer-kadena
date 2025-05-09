@@ -357,7 +357,7 @@ type Query {
     after: String
     last: Int
     before: String
-  ): PoolTransactionsConnection!
+  ): PoolTransactionsConnection
 
   """
   Get user's liquidity positions
@@ -370,6 +370,20 @@ type Query {
     before: String
     orderBy: LiquidityPositionOrderBy = VALUE_USD_DESC
   ): LiquidityPositionsConnection!
+
+  """
+  Get DEX metrics including TVL, volume, and pool count
+  """
+  dexMetrics(
+    """
+    Start date for historical data
+    """
+    startDate: DateTime
+    """
+    End date for historical data
+    """
+    endDate: DateTime
+  ): DexMetrics!
 }
 
 """
@@ -1192,7 +1206,7 @@ type Pool implements Node {
     Cursor for pagination
     """
     after: String
-  ): PoolTransactionsConnection! @complexity(value: 10, multipliers: ["first"])
+  ): PoolTransactionsConnection @complexity(value: 10, multipliers: ["first"])
 }
 
 type QueryPoolsConnection {
@@ -1243,7 +1257,7 @@ enum PoolTransactionType {
 """
 A swap transaction in a pool
 """
-type PoolSwapTransaction {
+type PoolTransaction {
   """
   Unique identifier
   """
@@ -1284,82 +1298,11 @@ type PoolSwapTransaction {
   Request key of the transaction
   """
   requestkey: String!
-}
 
-"""
-An add liquidity transaction in a pool
-"""
-type PoolAddLiquidityTransaction {
   """
-  Unique identifier
+  The type of transaction
   """
-  id: ID!
-  """
-  User who added liquidity
-  """
-  maker: String!
-  """
-  Amount of token0 added
-  """
-  amount0: Decimal!
-  """
-  Amount of token1 added
-  """
-  amount1: Decimal!
-  """
-  Total amount in USD
-  """
-  amountUsd: Decimal!
-  """
-  Transaction timestamp
-  """
-  timestamp: DateTime!
-  """
-  ID of the transaction
-  """
-  transactionId: Int!
-  """
-  Request key of the transaction
-  """
-  requestkey: String!
-}
-
-"""
-A remove liquidity transaction in a pool
-"""
-type PoolRemoveLiquidityTransaction {
-  """
-  Unique identifier
-  """
-  id: ID!
-  """
-  User who removed liquidity
-  """
-  maker: String!
-  """
-  Amount of token0 removed
-  """
-  amount0: Decimal!
-  """
-  Amount of token1 removed
-  """
-  amount1: Decimal!
-  """
-  Total amount in USD
-  """
-  amountUsd: Decimal!
-  """
-  Transaction timestamp
-  """
-  timestamp: DateTime!
-  """
-  ID of the transaction
-  """
-  transactionId: Int!
-  """
-  Request key of the transaction
-  """
-  requestkey: String!
+  transactionType: PoolTransactionType!
 }
 
 """
@@ -1369,15 +1312,15 @@ type PoolTransactionsConnection {
   """
   List of transaction edges
   """
-  edges: [PoolTransactionEdge!]!
+  edges: [PoolTransactionEdge!]
   """
   Pagination information
   """
-  pageInfo: PageInfo!
+  pageInfo: PageInfo
   """
   Total number of transactions
   """
-  totalCount: Int!
+  totalCount: Int
 }
 
 """
@@ -1393,11 +1336,6 @@ type PoolTransactionEdge {
   """
   node: PoolTransaction!
 }
-
-"""
-Union type for all pool transactions
-"""
-union PoolTransaction = PoolSwapTransaction | PoolAddLiquidityTransaction | PoolRemoveLiquidityTransaction
 
 type LiquidityBalance {
   id: Int!
@@ -1445,4 +1383,30 @@ type LiquidityPositionsConnection {
 type LiquidityPositionEdge {
   cursor: String!
   node: LiquidityPosition!
+}
+
+"""
+DEX metrics including TVL, volume, and pool count
+"""
+type DexMetrics {
+  """
+  Total number of pools
+  """
+  totalPools: Int!
+  """
+  Current total value locked in USD
+  """
+  currentTvlUsd: Decimal!
+  """
+  Historical TVL data points
+  """
+  tvlHistory: [ChartDataPoint!]!
+  """
+  Historical volume data points
+  """
+  volumeHistory: [ChartDataPoint!]!
+  """
+  Total volume in USD for the specified period
+  """
+  totalVolumeUsd: Decimal!
 }
