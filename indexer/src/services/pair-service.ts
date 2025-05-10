@@ -536,7 +536,7 @@ export class PairService {
 
         const liquidityBalance = await LiquidityBalance.findOne({
           where: {
-            pairKey: pair.key,
+            pairId: pair.id,
             walletAddress: sender,
           },
         });
@@ -552,7 +552,7 @@ export class PairService {
           } else {
             // Create new balance
             await LiquidityBalance.create({
-              pairKey: pair.key,
+              pairId: pair.id,
               walletAddress: sender,
               liquidity: liquidity.toString(),
             });
