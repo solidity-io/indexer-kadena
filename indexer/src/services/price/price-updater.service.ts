@@ -11,7 +11,7 @@ export class PriceUpdaterService {
 
   private constructor() {
     this.priceService = PriceService.getInstance();
-    this.updatePrice();
+    this.startPriceUpdates();
   }
 
   public static getInstance(): PriceUpdaterService {

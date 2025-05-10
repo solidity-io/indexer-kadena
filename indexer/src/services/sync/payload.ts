@@ -8,15 +8,12 @@ import Signer from '../../models/signer';
 import TransactionModel, { TransactionAttributes } from '../../models/transaction';
 import TransactionDetails, { TransactionDetailsAttributes } from '../../models/transaction-details';
 import Transfer, { TransferAttributes } from '../../models/transfer';
-import { PriceService } from '../price/price.service';
 import { addCoinbaseTransactions } from './coinbase';
 import { processPairCreationEvents } from './pair';
 import { getCoinTransfers, getNftTransfers } from './transfers';
 
 const TRANSACTION_INDEX = 0;
 const RECEIPT_INDEX = 1;
-
-const DIA_ORACLE_MODULE = 'n_bfb76eab37bf8c84359d6552a1d96a309e030b71.dia-oracle';
 
 interface BalanceInsertResult {
   id: number;
@@ -93,12 +90,6 @@ export async function processTransaction(
   } as TransactionDetailsAttributes;
 
   const eventsAttributes = eventsData.map((eventData: any) => {
-    // Check for DIA oracle price update
-    if (eventData.module.namespace === DIA_ORACLE_MODULE && eventData.name === 'UPDATE') {
-      const priceService = PriceService.getInstance();
-      priceService.processDiaPriceUpdate(eventData);
-    }
-
     return {
       chainId: transactionAttributes.chainId,
       module: eventData.module.namespace
