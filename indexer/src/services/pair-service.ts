@@ -601,7 +601,7 @@ export class PairService {
    * @param startAmount Starting token amount
    * @returns The KDA amount if a path is found, undefined otherwise
    */
-  private static async findPathToKda(
+  private static async findOptimalKdaPricePath(
     startTokenId: number,
     startAmount: bigint,
   ): Promise<bigint | undefined> {
@@ -701,7 +701,7 @@ export class PairService {
       const amountBigInt = BigInt(amountStr);
 
       // Find shortest path to KDA using BFS
-      const kdaAmount = await this.findPathToKda(token.id, amountBigInt);
+      const kdaAmount = await this.findOptimalKdaPricePath(token.id, amountBigInt);
 
       if (kdaAmount === undefined) {
         console.warn(`No path found to calculate USD value for token ${token.code}`);
