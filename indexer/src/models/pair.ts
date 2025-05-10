@@ -33,7 +33,7 @@ Pair.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    address: {
+    contractAddress: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: false,

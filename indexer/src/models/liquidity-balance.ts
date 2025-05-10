@@ -3,7 +3,7 @@ import { sequelize } from '../config/database';
 
 class LiquidityBalance extends Model {
   public id!: number;
-  public pairKey!: string;
+  public pairId!: number;
   public liquidity!: string;
   public walletAddress!: string;
   public readonly createdAt!: Date;
@@ -17,9 +17,13 @@ LiquidityBalance.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    pairKey: {
-      type: DataTypes.STRING,
+    pairId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: 'Pairs',
+        key: 'id',
+      },
     },
     liquidity: {
       type: DataTypes.STRING,
@@ -37,7 +41,10 @@ LiquidityBalance.init(
     indexes: [
       {
         unique: true,
-        fields: ['pairKey', 'walletAddress'],
+        fields: ['pairId', 'walletAddress'],
+      },
+      {
+        fields: ['pairId'],
       },
     ],
   },

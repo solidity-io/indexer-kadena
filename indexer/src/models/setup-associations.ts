@@ -3,6 +3,7 @@ import PoolChart from './pool-chart';
 import PoolStats from './pool-stats';
 import PoolTransaction from './pool-transaction';
 import Token from './token';
+import LiquidityBalance from './liquidity-balance';
 
 /**
  * Sets up all model associations in the application.
@@ -46,6 +47,11 @@ export function setupAssociations() {
     as: 'poolChart',
   });
 
+  Pair.hasMany(LiquidityBalance, {
+    foreignKey: 'pairId',
+    as: 'liquidityBalances',
+  });
+
   // PoolChart associations
   PoolChart.belongsTo(Pair, {
     foreignKey: 'pairId',
@@ -60,6 +66,12 @@ export function setupAssociations() {
 
   // PoolTransaction associations
   PoolTransaction.belongsTo(Pair, {
+    foreignKey: 'pairId',
+    as: 'pair',
+  });
+
+  // LiquidityBalance associations
+  LiquidityBalance.belongsTo(Pair, {
     foreignKey: 'pairId',
     as: 'pair',
   });
