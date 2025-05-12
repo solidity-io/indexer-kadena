@@ -1,29 +1,67 @@
+/**
+ * Transfer Model Definition
+ *
+ * This module defines the Transfer model, which represents token transfers between accounts
+ * in the Kadena blockchain. Transfers are the fundamental operations that move value between
+ * blockchain addresses and are essential for tracking token ownership and flow.
+ *
+ * The model supports multiple transfer types:
+ * 1. Fungible token transfers (standard coin/token movements)
+ * 2. Poly-fungible token transfers (NFTs with unique token IDs)
+ *
+ * Transfers are linked to their originating transactions and associated contracts,
+ * providing a comprehensive view of token movement throughout the blockchain ecosystem.
+ */
+
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../config/database';
 import Transaction from './transaction';
 import Contract from './contract';
 import { gql, makeExtendSchemaPlugin } from 'postgraphile';
 
+/**
+ * Interface defining the attributes of a Transfer.
+ * These attributes represent the essential properties of token transfers
+ * as they are stored in the database.
+ */
 export interface TransferAttributes {
+  /** Unique identifier for the transfer record */
   id: number;
+  /** Reference to the transaction that contained this transfer */
   transactionId: number;
+  /** Type of transfer: 'fungible' or 'poly-fungible' (NFT) */
   type: string;
+  /** Amount of tokens transferred */
   amount: number;
+  /** Chain ID where the transfer occurred */
   chainId: number;
+  /** Account address that initiated the transfer */
   from_acct: string;
+  /** Hash of the module that processed the transfer */
   modulehash: string;
+  /** Name of the module/contract that processed the transfer */
   modulename: string;
+  /** Unique request key identifying the transaction */
   requestkey: string;
+  /** Account address that received the transfer */
   to_acct: string;
+  /** Flag indicating whether this transfer involves a specific token ID (NFTs) */
   hasTokenId: boolean;
+  /** Specific token ID for NFT transfers, undefined for fungible transfers */
   tokenId?: string;
+  /** Reference to the associated contract record */
   contractId?: number;
+  /** Flag indicating whether this is a canonical transfer record */
   canonical?: boolean;
+  /** Index representing the order of the transfer within its transaction */
   orderIndex?: number;
 }
 
 /**
  * Represents a token transfer in the blockchain.
+ *
+ * Transfers track the movement of tokens between accounts, capturing
+ * essential details like amount, sender, receiver, and associated token contract.
  */
 class Transfer extends Model<TransferAttributes> implements TransferAttributes {
   /** The unique identifier for the transfer record (e.g., 1799984). */
@@ -72,6 +110,19 @@ class Transfer extends Model<TransferAttributes> implements TransferAttributes {
   declare orderIndex?: number;
 }
 
+/**
+ * Initialize the Transfer model with its attributes and configuration.
+ * This defines the database schema for the Transfers table and sets up indexes
+ * for efficient querying of transfer data.
+ *
+ * The model includes multiple specialized indexes to optimize different query patterns:
+ * - Simple indexes for common filter columns like type, contractId, and transactionId
+ * - Composite indexes for account-based queries with module names
+ * - Chain-specific account queries for filtering by chain ID
+ *
+ * These indexes support efficient lookups for account balance calculations,
+ * transaction history retrieval, and token movement analysis.
+ */
 Transfer.init(
   {
     id: {
@@ -203,6 +254,17 @@ Transfer.init(
   },
 );
 
+/**
+ * Define relationships between the Transfer model and other models.
+ *
+ * Transfers belong to:
+ * 1. Transactions - Each transfer is part of a blockchain transaction
+ * 2. Contracts - Each transfer involves a specific token contract
+ *
+ * These relationships enable efficient querying of related data,
+ * such as retrieving all transfers for a transaction or finding
+ * transfers involving a specific contract.
+ */
 Transfer.belongsTo(Transaction, {
   foreignKey: 'transactionId',
   as: 'transaction',
@@ -213,6 +275,16 @@ Transfer.belongsTo(Contract, {
   as: 'contract',
 });
 
+/**
+ * GraphQL extension plugin for querying transfers by type.
+ *
+ * This plugin extends the GraphQL schema to provide a specialized
+ * query for retrieving transfers filtered by their type (fungible or poly-fungible).
+ * It includes cursor-based pagination support for handling large result sets efficiently.
+ *
+ * The resolver executes a raw SQL query for optimal performance when
+ * filtering and paginating transfer records.
+ */
 export const transfersByTypeQueryPlugin = makeExtendSchemaPlugin(build => {
   return {
     typeDefs: gql`

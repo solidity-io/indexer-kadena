@@ -1,7 +1,16 @@
+/**
+ * Resolver for the totalCount field of the QueryEventsConnection type.
+ * This module counts blockchain events based on various filter criteria.
+ */
 import { ResolverContext } from '../../../config/apollo-server-config';
 import { QueryEventsConnectionResolvers } from '../../../config/graphql-types';
 import zod from 'zod';
 
+/**
+ * Zod schema for validating event query parameters.
+ * Defines the structure and types of filter parameters used to count events.
+ * Note that qualifiedEventName is required, while other filters are optional.
+ */
 const schema = zod.object({
   blockHash: zod.string().nullable().optional(),
   chainId: zod.string().nullable().optional(),
@@ -12,6 +21,15 @@ const schema = zod.object({
   qualifiedEventName: zod.string(),
 });
 
+/**
+ * Resolver function for the totalCount field of the QueryEventsConnection type.
+ * Retrieves the total count of events matching the provided filter criteria.
+ *
+ * @param parent - The parent object containing filter parameters
+ * @param _args - GraphQL arguments (unused in this resolver)
+ * @param context - The resolver context containing repositories and services
+ * @returns The total count of events matching the criteria
+ */
 export const totalCountQueryEventsConnectionResolver: QueryEventsConnectionResolvers<ResolverContext>['totalCount'] =
   async (parent, _args, context) => {
     const {

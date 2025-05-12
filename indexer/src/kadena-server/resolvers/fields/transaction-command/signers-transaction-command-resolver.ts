@@ -8,6 +8,8 @@ export const signersTransactionCommandResolver: TransactionCommandResolvers<Reso
   async (parent, _args, context) => {
     const parentArgs = schema.parse(parent);
 
-    const output = await context.transactionRepository.getSigners(parentArgs.databaseTransactionId);
+    const output = await context.transactionRepository.getSigners({
+      transactionId: parentArgs.databaseTransactionId,
+    });
     return output;
   };

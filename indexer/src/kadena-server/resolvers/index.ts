@@ -1,5 +1,23 @@
-import { DateTimeResolver } from 'graphql-scalars';
+/**
+ * Central resolver registry for the Kadena Indexer GraphQL API
+ *
+ * This file aggregates and registers all resolvers for the GraphQL schema,
+ * organizing them into logical groups that match the schema structure.
+ * It maps GraphQL types to their corresponding resolver functions following
+ * Apollo Server patterns and implements type resolvers for union and interface types.
+ *
+ * Key features:
+ * - Combines over 60 individual resolver functions into a coherent whole
+ * - Implements the Node interface for Relay Global Object Identification
+ * - Contains type discrimination logic for polymorphic entities
+ * - Includes detailed inline comments identifying optimization points for data loaders
+ * - Supports various query patterns including nested relationship resolution
+ *
+ * The resolvers are organized by GraphQL type, with each type having its own
+ * set of field resolvers to handle data fetching and transformation.
+ */
 
+import { DateTimeResolver } from 'graphql-scalars';
 import { ResolverContext } from '../config/apollo-server-config';
 import { Resolvers } from '../config/graphql-types';
 import { totalCountBlockEventsConnectionResolver } from './fields/block-events-connection/total-count-block-events-connection';
@@ -74,6 +92,22 @@ import { poolTransactionsQueryResolver } from './query/pool-transactions-query-r
 import { liquidityPositionsQueryResolver } from './query/liquidity-positions-query-resolver';
 import { dexMetricsQueryResolver } from './query/dex-metrics-resolver';
 
+/**
+ * Complete resolver map for the GraphQL API
+ *
+ * This object maps GraphQL types and fields to their resolver functions,
+ * following the structure defined in the GraphQL schema. The resolvers
+ * are organized by type, with each type having its fields mapped to their
+ * corresponding resolver functions.
+ *
+ * Key sections:
+ * - Scalar resolvers: Handle custom scalar types like DateTime
+ * - Query resolvers: Entry points for data retrieval operations
+ * - Subscription resolvers: Handle real-time data notifications
+ * - Object type resolvers: Resolve fields for complex objects (Block, Event, etc.)
+ * - Connection resolvers: Handle pagination-related fields and counts
+ * - Union and interface type resolvers: Discriminate between different object types
+ */
 export const resolvers: Resolvers<ResolverContext> = {
   DateTime: DateTimeResolver,
   Subscription: {
@@ -198,6 +232,29 @@ export const resolvers: Resolvers<ResolverContext> = {
   },
   Pool: poolResolvers,
   Node: {
+    /**
+     * Resolves the concrete object type for a Node interface implementation
+     *
+     * This resolver is a key component of the Relay Global Object Identification
+     * specification implementation. It determines which concrete type an object
+     * implements based on examining its properties. This enables polymorphic queries
+     * where clients can request objects by ID without knowing their concrete types.
+     *
+     * The function inspects object properties to determine its type:
+     * - Block: Contains difficulty and powHash
+     * - Event: Contains name and qualifiedName
+     * - NonFungibleTokenBalance: Contains tokenId and version
+     * - NonFungibleChainAccount: Contains chainId and nonFungibleTokenBalances
+     * - NonFungibleAccount: Contains nonFungibleTokenBalances (but not chainId)
+     * - FungibleAccount: Contains totalBalance
+     * - FungibleChainAccount: Contains accountName, chainId, and balance
+     * - Signer: Contains pubkey
+     * - Transaction: Contains cmd and result
+     * - Transfer: Contains senderAccount and receiverAccount
+     *
+     * @param obj - The object to resolve the type for
+     * @returns The GraphQL type name as a string, or null if unrecognized
+     */
     __resolveType(obj: any) {
       if (obj.difficulty && obj.powHash) {
         return 'Block';
@@ -252,6 +309,19 @@ export const resolvers: Resolvers<ResolverContext> = {
     },
   },
   TransactionInfo: {
+    /**
+     * Type resolver for TransactionInfo union type
+     *
+     * Determines whether a transaction object represents a completed transaction
+     * result or a mempool transaction that hasn't been mined yet.
+     *
+     * Note: Currently all transaction objects are resolved as TransactionResult.
+     * The commented-out code indicates a potential future implementation for
+     * distinguishing mempool transactions.
+     *
+     * @param obj - The transaction object to resolve
+     * @returns The GraphQL type name as a string
+     */
     __resolveType: (obj: any) => {
       // if (obj.status) {
       //   return "TransactionMempoolInfo";
@@ -260,6 +330,16 @@ export const resolvers: Resolvers<ResolverContext> = {
     },
   },
   TransactionPayload: {
+    /**
+     * Type resolver for TransactionPayload union type
+     *
+     * Discriminates between the two types of transaction payloads:
+     * - ExecutionPayload: Contains Pact code to be executed
+     * - ContinuationPayload: Contains data for continuing a multi-step transaction
+     *
+     * @param obj - The payload object to resolve
+     * @returns The GraphQL type name as a string
+     */
     __resolveType: (obj: any) => {
       if (obj.code) {
         return 'ExecutionPayload';
@@ -268,6 +348,17 @@ export const resolvers: Resolvers<ResolverContext> = {
     },
   },
   IGuard: {
+    /**
+     * Type resolver for IGuard union type
+     *
+     * Discriminates between the three types of guard objects:
+     * - UserGuard: Contains user-specific guard information
+     * - KeysetGuard: Contains keyset-based guard information
+     * - RawGuard: Contains raw guard information
+     *
+     * @param obj - The guard object to resolve
+     * @returns The GraphQL type name as a string
+     */
     __resolveType: (obj: any) => {
       if (obj.fun) {
         return 'UserGuard';

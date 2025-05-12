@@ -28,6 +28,7 @@ export interface GetLatestBlocksParams {
 
 export type BlockOutput = Omit<Block, 'parent' | 'events' | 'minerAccount' | 'transactions'> & {
   parentHash: string;
+  blockId: number;
 };
 
 export type FungibleChainAccountOutput = Omit<
@@ -59,11 +60,20 @@ export default interface BlockRepository {
 
   getTotalCountOfBlockEvents(blockHash: string): Promise<number>;
 
+  getTotalCountOfBlockTransactions(blockHash: string): Promise<number>;
+
   getLatestBlocks(params: GetLatestBlocksParams): Promise<BlockOutput[]>;
 
   getTransactionsOrderedByBlockDepth(
     transactions: TransactionOutput[],
   ): Promise<TransactionOutput[]>;
+
+  getLastBlocksWithDepth(
+    chainIds: string[],
+    minimumDepth: number,
+    startingTimestamp: number,
+    id?: string,
+  ): Promise<BlockOutput[]>;
 
   // dataloader
   getBlocksByEventIds(eventIds: string[]): Promise<BlockOutput[]>;
