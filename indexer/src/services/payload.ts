@@ -27,6 +27,7 @@ import { sequelize } from '@/config/database';
 import { addCoinbaseTransactions } from './coinbase';
 import { getRequiredEnvString } from '@/utils/helpers';
 import TransactionDetails, { TransactionDetailsAttributes } from '@/models/transaction-details';
+import { mapToEventModel } from '@/models/mappers/event-mapper';
 
 // Constants for array indices in the transaction data structure
 const TRANSACTION_INDEX = 0;
@@ -127,7 +128,10 @@ export async function processTransaction(
   nonce = nonce.replace(/"/g, '');
 
   // Extract events data
-  const eventsData = receiptInfo.events || [];
+  const eventsData = (receiptInfo.events || []).map((event: any, index: number) => ({
+    ...event,
+    orderIndex: index,
+  }));
 
   // Create transaction attributes object for database storage
   const transactionAttributes = {
@@ -160,21 +164,7 @@ export async function processTransaction(
     ttl: cmdData.meta.ttl,
   } as TransactionDetailsAttributes;
 
-  // Map event data to event attributes for database storage
-  const eventsAttributes = eventsData.map((eventData: any) => {
-    return {
-      chainId: transactionAttributes.chainId,
-      module: eventData.module.namespace
-        ? `${eventData.module.namespace}.${eventData.module.name}`
-        : eventData.module.name,
-      name: eventData.name,
-      params: eventData.params,
-      qualname: eventData.module.namespace
-        ? `${eventData.module.namespace}.${eventData.module.name}`
-        : eventData.module.name,
-      requestkey: receiptInfo.reqKey,
-    } as EventAttributes;
-  }) as EventAttributes[];
+  const eventsAttributes = mapToEventModel(eventsData, transactionAttributes);
 
   // Process transfers for both fungible and non-fungible tokens
   const transfersCoinAttributes = await getCoinTransfers(eventsData, transactionAttributes);
