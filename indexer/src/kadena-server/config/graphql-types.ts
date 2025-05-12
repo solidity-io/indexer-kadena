@@ -341,7 +341,8 @@ export type LiquidityBalance = {
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['Int']['output'];
   liquidity: Scalars['String']['output'];
-  pairKey: Scalars['String']['output'];
+  pairId: Scalars['Int']['output'];
+  pair: Pool;
   updatedAt: Scalars['DateTime']['output'];
   walletAddress: Scalars['String']['output'];
 };
@@ -353,9 +354,8 @@ export type LiquidityPosition = {
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['ID']['output'];
   liquidity: Scalars['String']['output'];
-  pairKey: Scalars['String']['output'];
-  token0: Token;
-  token1: Token;
+  pairId: Scalars['Int']['output'];
+  pair: Pool;
   updatedAt: Scalars['DateTime']['output'];
   valueUsd: Scalars['Decimal']['output'];
   walletAddress: Scalars['String']['output'];
@@ -2311,7 +2311,8 @@ export type LiquidityBalanceResolvers<
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   liquidity?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  pairKey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  pairId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pair?: Resolver<ResolversTypes['Pool'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   walletAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2326,9 +2327,8 @@ export type LiquidityPositionResolvers<
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   liquidity?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  pairKey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  token0?: Resolver<ResolversTypes['Token'], ParentType, ContextType>;
-  token1?: Resolver<ResolversTypes['Token'], ParentType, ContextType>;
+  pairId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  pair?: Resolver<ResolversTypes['Pool'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   valueUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
   walletAddress?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

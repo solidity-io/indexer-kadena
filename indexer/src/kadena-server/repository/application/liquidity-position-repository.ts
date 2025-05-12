@@ -3,20 +3,23 @@ import { ConnectionEdge } from '../types';
 
 export interface LiquidityPosition {
   id: string;
-  pairKey: string;
+  pairId: number;
   liquidity: string;
   walletAddress: string;
   valueUsd: number;
   apr24h: number;
-  token0: {
+  pair: {
     id: string;
-    name: string;
-    chainId: string;
-  };
-  token1: {
-    id: string;
-    name: string;
-    chainId: string;
+    token0: {
+      id: string;
+      name: string;
+      chainId: string;
+    };
+    token1: {
+      id: string;
+      name: string;
+      chainId: string;
+    };
   };
   createdAt: Date;
   updatedAt: Date;

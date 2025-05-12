@@ -74,12 +74,13 @@ export default class LiquidityPositionDbRepository {
       )
       SELECT 
         lb.id,
-        lb."pairKey",
+        lb."pairId",
         lb.liquidity,
         lb."walletAddress",
         lb."createdAt",
         lb."updatedAt",
         p.id as "pairId",
+        p.key as "pairKey",
         t0.id as "token0Id",
         t0.name as "token0Name",
         t1.id as "token1Id",
@@ -88,7 +89,7 @@ export default class LiquidityPositionDbRepository {
         COALESCE(ls."apr24h", 0) as "apr24h",
         (CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL) as "valueUsd"
       FROM "LiquidityBalances" lb
-      JOIN "Pairs" p ON lb."pairKey" = p.key
+      JOIN "Pairs" p ON lb."pairId" = p.id
       JOIN "Tokens" t0 ON p."token0Id" = t0.id
       JOIN "Tokens" t1 ON p."token1Id" = t1.id
       JOIN latest_stats ls ON p.id = ls."pairId"
@@ -110,20 +111,23 @@ export default class LiquidityPositionDbRepository {
       cursor: Buffer.from(position.id.toString()).toString('base64'),
       node: {
         id: position.id.toString(),
-        pairKey: position.pairKey,
+        pairId: position.pairId,
         liquidity: position.liquidity,
         walletAddress: position.walletAddress,
         valueUsd: position.valueUsd,
         apr24h: position.apr24h,
-        token0: {
-          id: position.token0Id.toString(),
-          name: position.token0Name,
-          chainId: '0',
-        },
-        token1: {
-          id: position.token1Id.toString(),
-          name: position.token1Name,
-          chainId: '0',
+        pair: {
+          id: position.pairId.toString(),
+          token0: {
+            id: position.token0Id.toString(),
+            name: position.token0Name,
+            chainId: '0',
+          },
+          token1: {
+            id: position.token1Id.toString(),
+            name: position.token1Name,
+            chainId: '0',
+          },
         },
         createdAt: position.createdAt,
         updatedAt: position.updatedAt,

@@ -1339,9 +1339,10 @@ type PoolTransactionEdge {
 
 type LiquidityBalance {
   id: Int!
-  pairKey: String!
+  pairId: Int!
   liquidity: String!
   walletAddress: String!
+  pair: Pool!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
@@ -1363,13 +1364,12 @@ A user's liquidity position in a pool
 """
 type LiquidityPosition {
   id: ID!
-  pairKey: String!
+  pairId: Int!
   liquidity: String!
   walletAddress: String!
   valueUsd: Decimal!
   apr24h: Decimal!
-  token0: Token!
-  token1: Token!
+  pair: Pool!
   createdAt: DateTime!
   updatedAt: DateTime!
 }
