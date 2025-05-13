@@ -20,6 +20,7 @@ import Event, { EventAttributes } from '@/models/event';
 import { getCoinTransfers } from './transfers';
 import Signer from '@/models/signer';
 import Guard from '@/models/guard';
+import { mapToEventModel } from '@/models/mappers/event-mapper';
 
 /**
  * Interface representing the structured data of a coinbase transaction.
@@ -131,11 +132,12 @@ export async function processCoinbaseTransaction(
   coinbase: any,
   block: { id: number; chainId: number; creationTime: bigint },
 ): Promise<CoinbaseTransactionData | undefined> {
-  // If there's no coinbase data, return undefined
   if (!coinbase) return;
 
-  // Extract event data from the coinbase
-  const eventsData = coinbase.events || [];
+  const eventsData = (coinbase.events || []).map((event: any, index: number) => ({
+    ...event,
+    orderIndex: index,
+  }));
 
   // Create transaction attributes for the coinbase transaction
   const transactionAttributes = {
@@ -154,21 +156,7 @@ export async function processCoinbaseTransaction(
   // Process coin transfers associated with the coinbase transaction
   const transfersCoinAttributes = await getCoinTransfers(eventsData, transactionAttributes);
 
-  // Process events associated with the coinbase transaction
-  const eventsAttributes = eventsData.map((eventData: any) => {
-    return {
-      chainId: transactionAttributes.chainId,
-      module: eventData.module.namespace
-        ? `${eventData.module.namespace}.${eventData.module.name}`
-        : eventData.module.name,
-      name: eventData.name,
-      params: eventData.params,
-      qualname: eventData.module.namespace
-        ? `${eventData.module.namespace}.${eventData.module.name}`
-        : eventData.module.name,
-      requestkey: coinbase.reqKey,
-    } as EventAttributes;
-  }) as EventAttributes[];
+  const eventsAttributes = mapToEventModel(eventsData, transactionAttributes);
 
   // Return the structured coinbase transaction data
   return { transactionAttributes, eventsAttributes, transfersCoinAttributes };

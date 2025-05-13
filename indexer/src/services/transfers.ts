@@ -70,7 +70,7 @@ export function getNftTransfers(
     // Filter the events array to only include valid NFT transfers
     .filter(transferNftSignature)
     // Map each matching event to a promise that resolves to a TransferAttributes object
-    .map(async (eventData: any, index: number): Promise<TransferAttributes> => {
+    .map(async (eventData: any): Promise<TransferAttributes> => {
       // Extract the parameters from the event data
       const params = eventData.params;
       // param[0] is the token ID (the unique identifier for this NFT)
@@ -117,7 +117,7 @@ export function getNftTransfers(
         // Reference to the contract that manages this NFT
         contractId: contractId,
         // The position of this transfer within the transaction's events
-        orderIndex: index,
+        orderIndex: eventData.orderIndex,
       } as TransferAttributes;
     }) as TransferAttributes[];
 
@@ -176,7 +176,7 @@ export function getCoinTransfers(
     // Filter the events array to only include valid coin transfers
     .filter(transferCoinSignature)
     // Map each matching event to a promise that resolves to a TransferAttributes object
-    .map(async (eventData: any, index: number): Promise<TransferAttributes> => {
+    .map(async (eventData: any): Promise<TransferAttributes> => {
       // Get the full module name (including namespace if present)
       // This identifies which token module is being transferred (e.g., 'coin', 'fungible-v2', etc.)
       const modulename = eventData.module.namespace
@@ -268,7 +268,7 @@ export function getCoinTransfers(
         // Reference to the contract that manages this token
         contractId: contractId,
         // The position of this transfer within the transaction's events
-        orderIndex: index,
+        orderIndex: eventData.orderIndex,
       } as TransferAttributes;
     }) as TransferAttributes[];
 
