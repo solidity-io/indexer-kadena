@@ -22,8 +22,7 @@ describe('Node', () => {
     expect(nodeFixture001.data).toMatchObject(data);
   });
 
-  // Test TODO: fix streaming to put orderIndex in the event; make backfill of the order index
-  it.skip('#002 - Event', async () => {
+  it('#002 - Event', async () => {
     const query = getNodeQuery('Event', {
       id: 'RXZlbnQ6WyIyZU9LNTBhZnppZjRIN2pNQmdLNjlVNURERnRLemJYQjlLbnd2RWVXQ2swIiwiMyIsIlR5Z3VGOVZVbG5rVkYtSmRTVXdSeXpya2FGOTl2OUNONWk3UUpiQ01HZVkiXQ==',
     });
@@ -52,7 +51,7 @@ describe('Node', () => {
 
   it('#005 - NonFungibleAccount', async () => {
     const query = getNodeQuery('NonFungibleAccount', {
-      id: 'Tm9uRnVuZ2libGVBY2NvdW50Oms6NDhmM2M4ZWUzZjE0OTQzZTIwYWRiYjMwMmNkN2U3NDAzMGFlNGVkMWNmY2JiNjMxM2I4YWM1MzY3YzFhM2RmNA==',
+      id: 'Tm9uRnVuZ2libGVBY2NvdW50Oms6MGM2ODZkZjVkNTE0OWY2NjJiY2JkZGIzNWZjYmVkZGM2M2YxM2IyMmZlNmE5ZTI0NWFkNzgxOTgzNGQ2NjNjMw==',
     });
 
     const data = await client.request(query);
@@ -61,7 +60,7 @@ describe('Node', () => {
 
   it('#006 - NonFungibleChainAccount', async () => {
     const query = getNodeQuery('NonFungibleChainAccount', {
-      id: 'Tm9uRnVuZ2libGVDaGFpbkFjY291bnQ6WyI4Iiwiazo0OGYzYzhlZTNmMTQ5NDNlMjBhZGJiMzAyY2Q3ZTc0MDMwYWU0ZWQxY2ZjYmI2MzEzYjhhYzUzNjdjMWEzZGY0Il0=',
+      id: 'Tm9uRnVuZ2libGVDaGFpbkFjY291bnQ6WyI4IiwiazowY2JlMmI4ZTIwNWIzZTIyNTExMzM0NTc4ZjhlY2Q5MjY3Yzc1MjdkMjBjZjZhMWFhN2IxMzRkODI4Mjc2NzhkIl0=',
     });
 
     const data = await client.request(query);
