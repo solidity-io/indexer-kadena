@@ -32,23 +32,63 @@ import { rootPgPool } from '@/config/database';
  * @returns {Promise<void>} A promise that resolves when the backfill is complete
  */
 export async function backfillBalances() {
-  // Execute a complex SQL query to backfill balances from transfer history
+  // insert the fungible accounts based on the transfer events
   await rootPgPool.query(
     `
       BEGIN;
       SET enable_seqscan = OFF;
       WITH combined AS (
-          SELECT "chainId", "from_acct" AS "account", "modulename" AS "module"
-          FROM "Transfers"
-          UNION ALL
-          SELECT "chainId", "to_acct" AS "account", "modulename" AS "module"
-          FROM "Transfers"
+        SELECT "chainId", "from_acct" AS "account", "modulename" AS "module"
+        FROM "Transfers"
+        UNION ALL
+        SELECT "chainId", "to_acct" AS "account", "modulename" AS "module"
+        FROM "Transfers"
       )
       INSERT INTO "Balances" ("chainId", "account", "module", "createdAt", "updatedAt", "tokenId")
       SELECT "chainId", "account", "module", NOW() AS "createdAt", NOW() AS "updatedAt", '' AS "tokenId"
       FROM combined
       GROUP BY "chainId", "account", "module"
       ON CONFLICT ("chainId", "account", "module", "tokenId") DO NOTHING;
+      COMMIT;
+    `,
+  );
+
+  // insert the non fungible accounts based on the mint events
+  await rootPgPool.query(
+    `
+      BEGIN;
+      INSERT INTO "Balances" ("chainId", "tokenId", "account", "module", "hasTokenId", "createdAt", "updatedAt")
+      SELECT
+        "chainId",
+        REPLACE((params->0)::text, '"', '') as tokenId,
+        REPLACE((params->1)::text, '"', '') as account,
+        module,
+        true,
+        NOW(),
+        NOW()
+      FROM "Events"
+      WHERE name = 'MINT' AND (module = 'marmalade-v2.ledger' OR module = 'marmalade.ledger')
+      ON CONFLICT ("chainId", "tokenId", "account", "module") DO NOTHING;
+      COMMIT;
+    `,
+  );
+
+  // insert the non fungible accounts based on the transfer events
+  await rootPgPool.query(
+    `
+      BEGIN;
+      INSERT INTO "Balances" ("chainId", "tokenId", "account", "module", "hasTokenId", "createdAt", "updatedAt")
+      SELECT
+        "chainId",
+        REPLACE((params->0)::text, '"', '') as tokenId,
+        REPLACE((params->2)::text, '"', '') as account,
+        module,
+        true,
+        NOW(),
+        NOW()
+      FROM "Events"
+      WHERE name = 'TRANSFER' AND (module = 'marmalade-v2.ledger' OR module = 'marmalade.ledger')
+      ON CONFLICT ("chainId", "tokenId", "account", "module") DO NOTHING;
       COMMIT;
     `,
   );

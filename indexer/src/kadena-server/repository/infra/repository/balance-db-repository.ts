@@ -214,9 +214,7 @@ export default class BalanceDbRepository implements BalanceRepository {
 
     const { rows: accountRows } = await rootPgPool.query(balanceQuery, balanceQueryParams);
 
-    const output = accountRows
-      .filter(r => r.hasTokenId)
-      .map(r => fungibleChainAccountValidator.validate(r));
+    const output = accountRows.map(r => fungibleChainAccountValidator.validate(r));
     return output;
   }
 
@@ -235,15 +233,16 @@ export default class BalanceDbRepository implements BalanceRepository {
       SELECT b.id, b."chainId", b.balance, b."tokenId", b.account, b.module, b."hasTokenId"
       FROM "Balances" b
       WHERE b.account = $1
-      AND b.module = 'marmalade-v2.ledger'
-    `;
+      AND (b.module = 'marmalade-v2.ledger' OR b.module = 'marmalade.ledger')
+      ORDER BY b.id DESC
+      `;
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
     if (rows.length === 0) return null;
 
     const nonFungibleTokenBalances = rows
-      .filter(r => r.hasTokenId)
+      .filter(row => row.hasTokenId && row.tokenId != '')
       .map(row => {
         return nonFungibleTokenBalanceValidator.validate(row);
       });
@@ -272,7 +271,8 @@ export default class BalanceDbRepository implements BalanceRepository {
       SELECT b.id, b."chainId", b.balance, b."tokenId", b.account, b.module, b."hasTokenId"
       FROM "Balances" b
       WHERE b.account = $1
-      AND b.module = 'marmalade-v2.ledger'
+      AND (b.module = 'marmalade-v2.ledger' OR b.module = 'marmalade.ledger')
+      ORDER BY b.id DESC
     `;
 
     const { rows } = await rootPgPool.query(query, queryParams);
@@ -280,7 +280,7 @@ export default class BalanceDbRepository implements BalanceRepository {
     if (rows.length === 0) return [];
 
     const nonFungibleTokenBalances = rows
-      .filter(row => row.hasTokenId)
+      .filter(row => row.hasTokenId && row.tokenId != '')
       .map(row => {
         return nonFungibleTokenBalanceValidator.validate(row);
       });
@@ -315,16 +315,19 @@ export default class BalanceDbRepository implements BalanceRepository {
       FROM "Balances" b
       WHERE b.account = $1
       AND b."chainId" = $2
-      AND b.module = 'marmalade-v2.ledger'
+      AND (b.module = 'marmalade-v2.ledger' OR b.module = 'marmalade.ledger')
+      ORDER BY b.id DESC
     `;
 
     const { rows } = await rootPgPool.query(query, queryParams);
 
     if (rows.length === 0) return null;
 
-    const nonFungibleTokenBalances = rows.map(row => {
-      return nonFungibleTokenBalanceValidator.validate(row);
-    });
+    const nonFungibleTokenBalances = rows
+      .filter(row => row.hasTokenId && row.tokenId != '')
+      .map(row => {
+        return nonFungibleTokenBalanceValidator.validate(row);
+      });
 
     return {
       id: getNonFungibleChainAccountBase64ID(chainId, accountName),
@@ -357,7 +360,9 @@ export default class BalanceDbRepository implements BalanceRepository {
       WHERE b.account = $1
       AND b."tokenId" = $2
       AND "chainId" = $3
+      AND (b.module = 'marmalade-v2.ledger' OR b.module = 'marmalade.ledger')
       AND "hasTokenId" = true
+      ORDER BY b.id DESC
     `;
 
     const { rows } = await rootPgPool.query(query, queryParams);
