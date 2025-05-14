@@ -2,6 +2,8 @@
 
 ## May 6 - May 13, 2025
 
+- fix: invalid format of creationtime of coinbase transactions
+- fix: missing NFTs on nonFungibleAccount queries
 - fix: order index property for events in streaming process
 - fix: changed node info validator to accept nullable a node service date
 - refactor: removed dead code
