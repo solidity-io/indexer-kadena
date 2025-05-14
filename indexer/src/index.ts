@@ -22,6 +22,7 @@ import { usePostgraphile } from './server/metrics';
 import { backfillBalances } from './services/sync/balances';
 import { startMissingBlocks } from './services/sync/missing';
 import { startStreaming } from './services/sync/streaming';
+import { backfillPairEvents } from './services/sync/pair';
 
 /**
  * Command-line interface configuration using Commander.
@@ -33,7 +34,8 @@ program
   .option('-t, --graphql', 'Start GraphQL server based on kadena schema')
   .option('-f, --guards', 'Backfill the guards')
   .option('-m, --missing', 'Missing blocks')
-  .option('-z, --database', 'Init the database');
+  .option('-z, --database', 'Init the database')
+  .option('-p, --backfillPairs', 'Backfill the pairs');
 
 program.parse(process.argv);
 
@@ -73,6 +75,8 @@ async function main() {
       await usePostgraphile();
     } else if (options.graphql) {
       await useKadenaGraphqlServer();
+    } else if (options.backfillPairs) {
+      await backfillPairEvents();
     } else {
       console.info('[INFO][BIZ][BIZ_FLOW] No specific task requested.');
     }

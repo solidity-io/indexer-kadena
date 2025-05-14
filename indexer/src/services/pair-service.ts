@@ -271,15 +271,39 @@ export class PairService {
     });
 
     // Calculate volumes and fees
-    const volume24h = transactions24h.reduce((sum, tx) => sum + tx.amountUsd, 0);
-    const volume7d = transactions7d.reduce((sum, tx) => sum + tx.amountUsd, 0);
-    const volume30d = transactions30d.reduce((sum, tx) => sum + tx.amountUsd, 0);
-    const volume1y = transactions1y.reduce((sum, tx) => sum + tx.amountUsd, 0);
+    const volume24h = transactions24h.reduce(
+      (sum, tx) => parseFloat(sum.toString()) + parseFloat(tx.amountUsd.toString()),
+      0,
+    );
+    const volume7d = transactions7d.reduce(
+      (sum, tx) => parseFloat(sum.toString()) + parseFloat(tx.amountUsd.toString()),
+      0,
+    );
+    const volume30d = transactions30d.reduce(
+      (sum, tx) => parseFloat(sum.toString()) + parseFloat(tx.amountUsd.toString()),
+      0,
+    );
+    const volume1y = transactions1y.reduce(
+      (sum, tx) => parseFloat(sum.toString()) + parseFloat(tx.amountUsd.toString()),
+      0,
+    );
 
-    const fees24h = transactions24h.reduce((sum, tx) => sum + tx.feeUsd, 0);
-    const fees7d = transactions7d.reduce((sum, tx) => sum + tx.feeUsd, 0);
-    const fees30d = transactions30d.reduce((sum, tx) => sum + tx.feeUsd, 0);
-    const fees1y = transactions1y.reduce((sum, tx) => sum + tx.feeUsd, 0);
+    const fees24h = transactions24h.reduce(
+      (sum, tx) => parseFloat(sum.toString()) + parseFloat(tx.feeUsd.toString()),
+      0,
+    );
+    const fees7d = transactions7d.reduce(
+      (sum, tx) => parseFloat(sum.toString()) + parseFloat(tx.feeUsd.toString()),
+      0,
+    );
+    const fees30d = transactions30d.reduce(
+      (sum, tx) => parseFloat(sum.toString()) + parseFloat(tx.feeUsd.toString()),
+      0,
+    );
+    const fees1y = transactions1y.reduce(
+      (sum, tx) => parseFloat(sum.toString()) + parseFloat(tx.feeUsd.toString()),
+      0,
+    );
 
     // Calculate APR (assuming 0.3% fee)
     const apr24h = (fees24h * 365) / (latestChart?.tvlUsd ? parseFloat(latestChart.tvlUsd) : 1);
@@ -418,7 +442,7 @@ export class PairService {
           transactionId: event.transactionId,
           requestkey: event.requestkey,
           type: TransactionType.SWAP,
-          maker: event.parameters.split(',')[0],
+          maker: sender,
           timestamp: new Date(),
           amount0In: pair.token0Id === tokenIn.id ? amountInStr : '0',
           amount1In: pair.token1Id === tokenIn.id ? amountInStr : '0',

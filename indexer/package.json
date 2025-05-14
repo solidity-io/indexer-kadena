@@ -70,6 +70,7 @@
     "create:database": "ts-node src/index.ts --database && yarn migrate:up",
     "dev:guards": "ts-node src/index.ts --guards",
     "dev:database": "ts-node src/index.ts --database",
+    "dev:backfillPairs": "ts-node src/index.ts --backfillPairs",
     "dev:streaming": "ts-node src/index.ts --streaming",
     "dev:graphql": "ts-node src/index.ts --graphql",
     "dev:hot:graphql": "nodemon src/index.ts --graphql",
