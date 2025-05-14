@@ -131,14 +131,12 @@ export const getNode = async (context: ResolverContext, id: string) => {
     // Resolve NonFungibleAccount node - requires account name
     // Also fetches additional NFT information from the blockchain
     const account = await context.balanceRepository.getNonFungibleAccountInfo(params);
-    const nftsInfoParams = (account?.nonFungibleTokenBalances ?? []).map(n => ({
-      tokenId: n.tokenId,
-      chainId: n.chainId,
-    }));
+
+    if (!account) return null;
 
     const nftsInfo = await context.pactGateway.getNftsInfo(
-      nftsInfoParams ?? [],
-      account?.accountName ?? '',
+      account.accountName,
+      account.nonFungibleTokenBalances,
     );
     const output = buildNonFungibleAccount(account, nftsInfo);
     return output;
@@ -155,14 +153,9 @@ export const getNode = async (context: ResolverContext, id: string) => {
 
     if (!account) return null;
 
-    const nftsInfoParams = (account?.nonFungibleTokenBalances ?? []).map(n => ({
-      tokenId: n.tokenId,
-      chainId: n.chainId,
-    }));
-
     const nftsInfo = await context.pactGateway.getNftsInfo(
-      nftsInfoParams ?? [],
-      account?.accountName ?? '',
+      account.accountName,
+      account.nonFungibleTokenBalances,
     );
     return buildNonFungibleChainAccount(account, nftsInfo);
   }
@@ -179,12 +172,7 @@ export const getNode = async (context: ResolverContext, id: string) => {
 
     if (!account) return null;
 
-    const nftsInfoParams = [{ tokenId, chainId }];
-
-    const [nftsInfo] = await context.pactGateway.getNftsInfo(
-      nftsInfoParams ?? [],
-      account?.accountName ?? '',
-    );
+    const [nftsInfo] = await context.pactGateway.getNftsInfo(account.accountName, [account]);
 
     return {
       id: account.id,
@@ -193,12 +181,7 @@ export const getNode = async (context: ResolverContext, id: string) => {
       balance: account.balance,
       tokenId: account.tokenId,
       version: nftsInfo.version,
-      // TODO: [OPTIMIZATION] Implement guard resolution for NFT balances
-      guard: {
-        keys: [],
-        predicate: '',
-        raw: JSON.stringify('{}'),
-      },
+      guard: nftsInfo.guard,
       info: {
         precision: nftsInfo.precision,
         supply: nftsInfo.supply,

@@ -269,6 +269,7 @@ export const getNodeQuery = (type: string, params: any): string => {
     query {
       node(${query}) {
         ${type === 'Block' ? blockFragment : ''}
+        ${type === 'Event' ? eventFragment : ''}
         ${type === 'FungibleAccount' ? fungibleAccountFragment : ''}
         ${type === 'FungibleChainAccount' ? fungibleChainAccountFragment : ''}
         ${type === 'NonFungibleAccount' ? nonFungibleAccountFragment : ''}

@@ -21,31 +21,20 @@
 import { ApolloServer, ApolloServerPlugin } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import express, { NextFunction, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import http from 'http';
 import cors from 'cors';
 import { resolvers } from './resolvers';
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import {
-  createGraphqlContext,
-  publishSubscribe,
-  ResolverContext,
-} from './config/apollo-server-config';
+import { createGraphqlContext, ResolverContext } from './config/apollo-server-config';
 import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ArgumentNode, ASTNode, GraphQLError, Kind } from 'graphql';
-import {
-  EVENTS_EVENT,
-  NEW_BLOCKS_EVENT,
-  NEW_BLOCKS_FROM_DEPTH_EVENT,
-  TRANSACTION_EVENT,
-} from './resolvers/subscription/consts';
-import { dispatchInfoSchema } from '../jobs/publisher-job';
+
 import initCache from '../cache/init';
 import { getRequiredEnvString } from '../utils/helpers';
-import ipRangeCheck from 'ip-range-check';
 import {
   directiveEstimator,
   fieldExtensionsEstimator,
@@ -219,30 +208,6 @@ const securitySanitizationPlugin: ApolloServerPlugin = {
 };
 
 /**
- * List of allowed CIDR ranges for restricted endpoints
- * These ranges restrict access to sensitive operations to trusted IP addresses
- */
-const allowedCIDRs = ['10.0.2.0/24', '10.0.3.0/24'];
-
-/**
- * Middleware that filters requests based on IP address
- *
- * Restricts access to sensitive endpoints (like /new-block) to only allow
- * requests from trusted IP ranges specified in allowedCIDRs.
- *
- * @param req - Express request object
- * @param res - Express response object
- * @param next - Express next function
- */
-const ipFilterMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  if (req.ip && ipRangeCheck(req.ip, allowedCIDRs)) {
-    next(); // Allow access
-  } else {
-    res.status(403).json({ message: 'Access denied: IP not allowed' });
-  }
-};
-
-/**
  * Checks if an origin is allowed to access the GraphQL API
  *
  * Implements CORS policy by validating origin domains against the allowed list.
@@ -286,7 +251,7 @@ const isAllowedOrigin = (origin: string): boolean => {
  * This function bootstraps the entire GraphQL API service and begins listening
  * for requests on the configured port.
  */
-export async function useKadenaGraphqlServer() {
+export async function startGraphqlServer() {
   const app = express();
   const httpServer = http.createServer(app);
 
@@ -524,54 +489,6 @@ export async function useKadenaGraphqlServer() {
     } else {
       res.status(403).end();
     }
-  });
-
-  /**
-   * Endpoint to receive new block notifications
-   *
-   * This route receives notifications from the blockchain indexer when new blocks
-   * are added. It validates the input and dispatches events to active subscriptions
-   * for real-time updates. Access is restricted to trusted IPs.
-   */
-  app.post('/new-block', ipFilterMiddleware, async (req, res) => {
-    const payload = await dispatchInfoSchema.safeParseAsync(req.body);
-    if (!payload.success) {
-      return res.status(400).json({ message: 'Invalid input' });
-    }
-    const { hash, chainId, height, requestKeys, qualifiedEventNames } = payload.data;
-
-    publishSubscribe.publish(NEW_BLOCKS_EVENT, {
-      hash,
-      chainId,
-    });
-
-    publishSubscribe.publish(NEW_BLOCKS_FROM_DEPTH_EVENT, {
-      height,
-      chainId,
-      hash,
-    });
-
-    const eventPromises = qualifiedEventNames.map(qualifiedEventName => {
-      return publishSubscribe.publish(EVENTS_EVENT, {
-        qualifiedEventName,
-        height,
-        chainId,
-        hash,
-      });
-    });
-
-    const transactionPromises = requestKeys.map(requestKey => {
-      return publishSubscribe.publish(TRANSACTION_EVENT, {
-        chainId,
-        requestKey,
-      });
-    });
-
-    await Promise.all([...eventPromises, ...transactionPromises]);
-
-    res.json({
-      message: 'New block published.',
-    });
   });
 
   // Initialize cache and start the server
