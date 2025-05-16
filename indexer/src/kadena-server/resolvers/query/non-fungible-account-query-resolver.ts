@@ -4,19 +4,15 @@ import { buildNonFungibleAccount } from '../output/build-non-fungible-account-ou
 
 export const nonFungibleAccountQueryResolver: QueryResolvers<ResolverContext>['nonFungibleAccount'] =
   async (_parent, args, context) => {
-    const account = await context.balanceRepository.getNonFungibleAccountInfo(args.accountName);
+    const accountInfo = await context.balanceRepository.getNonFungibleAccountInfo(args.accountName);
 
-    const params = (account?.nonFungibleTokenBalances ?? []).map(n => ({
-      tokenId: n.tokenId,
-      chainId: n.chainId,
-      module: n.module,
-    }));
+    if (!accountInfo) return null;
 
     const nftsInfo = await context.pactGateway.getNftsInfo(
-      params ?? [],
-      account?.accountName ?? '',
+      accountInfo.accountName,
+      accountInfo.nonFungibleTokenBalances,
     );
 
-    const output = buildNonFungibleAccount(account, nftsInfo);
+    const output = buildNonFungibleAccount(accountInfo, nftsInfo);
     return output;
   };

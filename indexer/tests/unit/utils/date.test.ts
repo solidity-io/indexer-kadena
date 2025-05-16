@@ -1,4 +1,4 @@
-import { convertStringToDate } from '../../../src/kadena-server/utils/date';
+import { convertStringToDate } from '../../../src/utils/date';
 
 describe('date utilities', () => {
   describe('convertStringToDate', () => {

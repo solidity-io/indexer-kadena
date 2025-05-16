@@ -29,15 +29,9 @@ export const chainAccountsNonFungibleAccountResolver: NonFungibleAccountResolver
 
     // For each chain account, fetch detailed NFT information from the blockchain
     const outputPromises = accounts.map(async account => {
-      const params = account.nonFungibleTokenBalances.map(n => ({
-        tokenId: n.tokenId,
-        chainId: n.chainId,
-        module: n.module,
-      }));
-
       const nftsInfo = await context.pactGateway.getNftsInfo(
-        params ?? [],
-        parent.accountName ?? '',
+        account.accountName,
+        account.nonFungibleTokenBalances,
       );
       return buildNonFungibleChainAccount(account, nftsInfo);
     });

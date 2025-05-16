@@ -17,7 +17,7 @@ dotenv.config();
 import { program } from 'commander';
 import { closeDatabase } from './config/database';
 import { initializeDatabase } from './config/init';
-import { useKadenaGraphqlServer } from './kadena-server/server';
+import { startGraphqlServer } from './kadena-server/server';
 import { usePostgraphile } from './server/metrics';
 import { backfillBalances } from './services/sync/balances';
 import { startMissingBlocks } from './services/sync/missing';
@@ -30,7 +30,6 @@ import { backfillPairEvents } from './services/sync/pair';
  */
 program
   .option('-s, --streaming', 'Start streaming blockchain data')
-  .option('-g, --oldGraphql', 'Start GraphQL server based on Postgraphile')
   .option('-t, --graphql', 'Start GraphQL server based on kadena schema')
   .option('-f, --guards', 'Backfill the guards')
   .option('-m, --missing', 'Missing blocks')

@@ -27,7 +27,7 @@ import BlockRepository, {
 import { getPageInfo, getPaginationParams } from '../../pagination';
 import { blockValidator } from '../schema-validator/block-schema-validator';
 import Balance from '../../../../models/balance';
-import { handleSingleQuery } from '../../../utils/raw-query';
+import { handleSingleQuery } from '../../../../utils/raw-query';
 import { formatGuard_NODE } from '../../../../utils/chainweb-node';
 import { MEMORY_CACHE } from '../../../../cache/init';
 import { NODE_INFO_KEY } from '../../../../cache/keys';

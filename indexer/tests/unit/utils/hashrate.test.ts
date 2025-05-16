@@ -1,5 +1,5 @@
-import { calculateNetworkHashRate } from '../../../src/kadena-server/utils/hashrate';
-import { BlockWithDifficulty } from '../../../src/kadena-server/utils/difficulty';
+import { calculateNetworkHashRate } from '../../../src/utils/hashrate';
+import { BlockWithDifficulty } from '../../../src/utils/difficulty';
 
 describe('hashrate utilities', () => {
   describe('calculateNetworkHashRate', () => {

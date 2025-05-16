@@ -41,14 +41,6 @@ import { DexMetricsRepository } from '../repository/application/dex-metrics-repo
 import DexMetricsDbRepository from '../repository/infra/repository/dex-metrics-db-repository';
 
 /**
- * PubSub instance for GraphQL subscriptions
- *
- * This shared instance enables real-time updates through GraphQL subscriptions,
- * allowing the server to push data to clients when events occur.
- */
-export const publishSubscribe = new PubSub();
-
-/**
  * Resolver context type definition for the GraphQL API
  *
  * This type defines the shape of the context object that is passed to all GraphQL resolvers.
@@ -121,7 +113,6 @@ export type ResolverContext = {
   gasGateway: GasGateway;
   mempoolGateway: MempoolGateway;
   pactGateway: PactGateway;
-  pubSub: PubSub;
   signal: AbortSignal;
   liquidityPositionRepository: LiquidityPositionRepository;
   dexMetricsRepository: DexMetricsRepository;
@@ -156,7 +147,6 @@ export const createGraphqlContext = () => {
     gasGateway: new GasApiGateway(),
     mempoolGateway: new MempoolApiGateway(),
     pactGateway: new PactApiGateway(),
-    pubSub: publishSubscribe,
     signal: new AbortController().signal,
     liquidityPositionRepository: new LiquidityPositionDbRepository(),
     dexMetricsRepository: new DexMetricsDbRepository(),

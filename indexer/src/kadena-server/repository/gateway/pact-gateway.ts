@@ -7,6 +7,8 @@
  * the application and the blockchain, allowing for different implementations (e.g., mock for testing).
  */
 
+import { INonFungibleTokenBalance } from '@/kadena-server/repository/application/balance-repository';
+
 /**
  * Represents NFT token information retrieved from the blockchain
  *
@@ -32,16 +34,6 @@ export interface NftInfo {
 }
 
 /**
- * Parameters for querying information about multiple NFTs
- *
- * Each entry in the array represents an NFT to query, identified by:
- * - tokenId: The unique identifier for the NFT
- * - chainId: The Kadena chain where the NFT exists
- * - module: Optional module name if the NFT uses a non-standard namespace
- */
-export type GetNftsInfoParams = Array<{ tokenId: string; chainId: string; module?: string }>;
-
-/**
  * Interface defining operations for interacting with Pact smart contracts
  *
  * This gateway interface provides methods to interact with Pact smart contracts
@@ -59,5 +51,8 @@ export default interface PactGateway {
    * @param account - Account address to check balances for
    * @returns Promise resolving to an array of NFT information objects
    */
-  getNftsInfo(data: GetNftsInfoParams, account: string): Promise<NftInfo[]>;
+  getNftsInfo(
+    accountName: string,
+    nonFungibleTokenBalances: INonFungibleTokenBalance[],
+  ): Promise<NftInfo[]>;
 }
