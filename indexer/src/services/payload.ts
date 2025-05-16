@@ -201,7 +201,11 @@ export async function processTransaction(
     await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
 
     // Process pair creation events
-    await processPairCreationEvents(eventsWithTransactionId);
+    try {
+      await processPairCreationEvents(eventsWithTransactionId);
+    } catch (error) {
+      console.error('Error processing pair creation events:', error);
+    }
 
     const signers = (cmdData.signers ?? []).map((signer: any, index: number) => ({
       address: signer.address,
@@ -268,7 +272,9 @@ export async function processTransaction(
 
     return eventsWithTransactionId;
   } catch (error) {
-    console.error('Error processing transaction:', error);
+    console.error(
+      `[ERROR][DB][DATA_CORRUPT] Failed to save transaction ${transactionInfo.hash}: ${error}`,
+    );
     throw error;
   }
 }

@@ -22,7 +22,7 @@ import { sequelize } from '@/config/database';
 import StreamingError from '@/models/streaming-error';
 import { backfillGuards } from './guards';
 import { Transaction } from 'sequelize';
-import { PriceUpdaterService } from '../../services/price/price-updater.service';
+import { PriceUpdaterService } from './price/price-updater.service';
 
 const SYNC_BASE_URL = getRequiredEnvString('SYNC_BASE_URL');
 const SYNC_NETWORK = getRequiredEnvString('SYNC_NETWORK');

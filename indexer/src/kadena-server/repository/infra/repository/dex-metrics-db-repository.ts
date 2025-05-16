@@ -1,13 +1,12 @@
 import { QueryTypes } from 'sequelize';
 import { sequelize } from '../../../../config/database';
 import Pair from '../../../../models/pair';
-import PoolChart from '../../../../models/pool-chart';
-import PoolTransaction from '../../../../models/pool-transaction';
 import {
   DexMetrics,
   DexMetricsRepository,
   GetDexMetricsParams,
 } from '../../application/dex-metrics-repository';
+import { dexMetricsValidator } from '../schema-validator/dex-metrics-schema-validator';
 
 export default class DexMetricsDbRepository implements DexMetricsRepository {
   async getDexMetrics(params: GetDexMetricsParams): Promise<DexMetrics> {
@@ -80,7 +79,7 @@ export default class DexMetricsDbRepository implements DexMetricsRepository {
       bind: [queryStartDate, queryEndDate],
     });
 
-    return {
+    const result = {
       totalPools,
       currentTvlUsd: parseFloat((currentTvlResult as any).currentTvlUsd),
       tvlHistory: (tvlHistory as any[]).map(item => ({
@@ -93,5 +92,7 @@ export default class DexMetricsDbRepository implements DexMetricsRepository {
       })),
       totalVolumeUsd: parseFloat((totalVolumeResult as any).totalVolumeUsd),
     };
+
+    return dexMetricsValidator.validate(result);
   }
 }

@@ -541,15 +541,15 @@ export default class PoolDbRepository {
     return {
       volume: sortedTimestamps.map(timestamp => ({
         timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)!.volume,
+        value: dataMap.get(timestamp)?.volume ?? 0,
       })),
       tvl: sortedTimestamps.map(timestamp => ({
         timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)!.tvl,
+        value: dataMap.get(timestamp)?.tvl ?? 0,
       })),
       fees: sortedTimestamps.map(timestamp => ({
         timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)!.fees,
+        value: dataMap.get(timestamp)?.fees ?? 0,
       })),
     };
   }

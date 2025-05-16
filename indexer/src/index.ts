@@ -22,6 +22,7 @@ import { backfillBalances } from './services/balances';
 import { startMissingBlocks } from './services/missing';
 import { startStreaming } from './services/streaming';
 import { backfillPairEvents } from './services/pair';
+import { setupAssociations } from './models/setup-associations';
 
 /**
  * Command-line interface configuration using Commander.
@@ -57,6 +58,8 @@ async function main() {
   try {
     if (options.database) {
       await initializeDatabase();
+      // Setup model associations
+      setupAssociations();
       await closeDatabase();
       process.exit(0);
     }
