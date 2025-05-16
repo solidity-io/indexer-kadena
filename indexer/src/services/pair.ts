@@ -1,9 +1,9 @@
-import { EventAttributes } from '../../models/event';
-import Event from '../../models/event';
-import { PairService } from '../pair-service';
-import { sequelize } from '../../config/database';
+import { EventAttributes } from '../models/event';
+import Event from '../models/event';
+import { PairService } from './pair-service';
+import { sequelize } from '../config/database';
 import { Op } from 'sequelize';
-import Transaction from '../../models/transaction';
+import Transaction from '../models/transaction';
 
 const MODULE_NAMES = ['kdlaunch.kdswap-exchange', 'sushiswap.sushi-exchange'];
 const EVENT_TYPES = ['CREATE_PAIR', 'UPDATE', 'SWAP', 'ADD_LIQUIDITY', 'REMOVE_LIQUIDITY'];
@@ -13,21 +13,21 @@ const EVENT_TYPES = ['CREATE_PAIR', 'UPDATE', 'SWAP', 'ADD_LIQUIDITY', 'REMOVE_L
  * @param events Array of events from a transaction
  */
 export async function processPairCreationEvents(events: EventAttributes[]): Promise<void> {
-  // const pairCreationEvents = events.filter(
-  //   event => MODULE_NAMES.includes(event.module) && event.name === 'CREATE_PAIR',
-  // );
+  const pairCreationEvents = events.filter(
+    event => MODULE_NAMES.includes(event.module) && event.name === 'CREATE_PAIR',
+  );
 
-  // if (pairCreationEvents.length > 0) {
-  //   const pairParams = pairCreationEvents.map(event => ({
-  //     moduleName: event.module,
-  //     name: event.name,
-  //     parameterText: JSON.stringify(event.params),
-  //     parameters: JSON.stringify(event.params),
-  //     qualifiedName: event.qualname,
-  //     chainId: event.chainId,
-  //   }));
-  //   await PairService.createPairs(pairParams);
-  // }
+  if (pairCreationEvents.length > 0) {
+    const pairParams = pairCreationEvents.map(event => ({
+      moduleName: event.module,
+      name: event.name,
+      parameterText: JSON.stringify(event.params),
+      parameters: JSON.stringify(event.params),
+      qualifiedName: event.qualname,
+      chainId: event.chainId,
+    }));
+    await PairService.createPairs(pairParams);
+  }
 
   const pairUpdateEvents = events.filter(
     event => MODULE_NAMES.includes(event.module) && event.name === 'UPDATE',
@@ -46,45 +46,43 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
     await PairService.updatePairs(updateParams);
   }
 
-  // const swapEvents = events.filter(
-  //   event => MODULE_NAMES.includes(event.module) && event.name === 'SWAP',
-  // );
+  const swapEvents = events.filter(
+    event => MODULE_NAMES.includes(event.module) && event.name === 'SWAP',
+  );
 
-  // if (swapEvents.length > 0) {
-  //   console.log('swapEvents', swapEvents);
-  //   const swapParams = swapEvents.map(event => ({
-  //     moduleName: event.module,
-  //     name: event.name,
-  //     parameterText: JSON.stringify(event.params),
-  //     parameters: JSON.stringify(event.params),
-  //     qualifiedName: event.qualname,
-  //     chainId: event.chainId,
-  //     transactionId: event.transactionId,
-  //     requestkey: event.requestkey,
-  //   }));
-  //   await PairService.processSwaps(swapParams);
-  // }
+  if (swapEvents.length > 0) {
+    const swapParams = swapEvents.map(event => ({
+      moduleName: event.module,
+      name: event.name,
+      parameterText: JSON.stringify(event.params),
+      parameters: JSON.stringify(event.params),
+      qualifiedName: event.qualname,
+      chainId: event.chainId,
+      transactionId: event.transactionId,
+      requestkey: event.requestkey,
+    }));
+    await PairService.processSwaps(swapParams);
+  }
 
-  // const liquidityEvents = events.filter(
-  //   event =>
-  //     MODULE_NAMES.includes(event.module) &&
-  //     (event.name === 'ADD_LIQUIDITY' || event.name === 'REMOVE_LIQUIDITY'),
-  // );
+  const liquidityEvents = events.filter(
+    event =>
+      MODULE_NAMES.includes(event.module) &&
+      (event.name === 'ADD_LIQUIDITY' || event.name === 'REMOVE_LIQUIDITY'),
+  );
 
-  // if (liquidityEvents.length > 0) {
-  //   console.log('liquidityEvents', liquidityEvents);
-  //   const liquidityParams = liquidityEvents.map(event => ({
-  //     moduleName: event.module,
-  //     name: event.name,
-  //     parameterText: JSON.stringify(event.params),
-  //     parameters: JSON.stringify(event.params),
-  //     qualifiedName: event.qualname,
-  //     chainId: event.chainId,
-  //     transactionId: event.transactionId,
-  //     requestkey: event.requestkey,
-  //   }));
-  //   await PairService.processLiquidityEvents(liquidityParams);
-  // }
+  if (liquidityEvents.length > 0) {
+    const liquidityParams = liquidityEvents.map(event => ({
+      moduleName: event.module,
+      name: event.name,
+      parameterText: JSON.stringify(event.params),
+      parameters: JSON.stringify(event.params),
+      qualifiedName: event.qualname,
+      chainId: event.chainId,
+      transactionId: event.transactionId,
+      requestkey: event.requestkey,
+    }));
+    await PairService.processLiquidityEvents(liquidityParams);
+  }
 }
 
 /**
