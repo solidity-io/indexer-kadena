@@ -6,11 +6,11 @@ export const poolQueryResolver: QueryResolvers<ResolverContext>['pool'] = async 
   _parent: unknown,
   args: { id: string },
   context: ResolverContext,
-): Promise<any> => {
+) => {
   const pool = (await context.poolRepository.getPool({ id: parseInt(args.id, 10) })) as PoolOutput;
 
   if (!pool) {
-    return null;
+    throw new Error(`Pool with id ${args.id} not found`);
   }
 
   return {
@@ -45,5 +45,11 @@ export const poolQueryResolver: QueryResolvers<ResolverContext>['pool'] = async 
     apr24h: pool.apr24h ?? 0,
     createdAt: pool.createdAt,
     updatedAt: pool.updatedAt,
+    charts: {
+      __typename: 'PoolCharts',
+      tvl: [],
+      volume: [],
+      fees: [],
+    },
   };
 };
