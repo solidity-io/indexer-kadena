@@ -18,11 +18,10 @@ import { program } from 'commander';
 import { closeDatabase } from './config/database';
 import { initializeDatabase } from './config/init';
 import { startGraphqlServer } from './kadena-server/server';
-import { usePostgraphile } from './server/metrics';
-import { backfillBalances } from './services/sync/balances';
-import { startMissingBlocks } from './services/sync/missing';
-import { startStreaming } from './services/sync/streaming';
-import { backfillPairEvents } from './services/sync/pair';
+import { backfillBalances } from './services/balances';
+import { startMissingBlocks } from './services/missing';
+import { startStreaming } from './services/streaming';
+import { backfillPairEvents } from './services/pair';
 
 /**
  * Command-line interface configuration using Commander.
@@ -70,10 +69,9 @@ async function main() {
       process.exit(0);
     } else if (options.missing) {
       await startMissingBlocks();
-    } else if (options.oldGraphql) {
-      await usePostgraphile();
+      process.exit(0);
     } else if (options.graphql) {
-      await useKadenaGraphqlServer();
+      await startGraphqlServer();
     } else if (options.backfillPairs) {
       await backfillPairEvents();
     } else {
