@@ -264,11 +264,17 @@ export default class TransferDbRepository implements TransferRepository {
   async getCrossChainTransferByPactId({
     amount,
     pactId,
-    requestKey,
     receiverAccount,
     senderAccount,
   }: GetCrossChainTransferByPactIdParams) {
-    const requestKeyParam = requestKey !== pactId ? requestKey : pactId;
+    let conditions = '';
+
+    if (senderAccount === '') {
+      conditions += `\nAND transfers."to_acct" = ''`;
+    }
+    if (receiverAccount === '') {
+      conditions += `\nAND transfers."from_acct" = ''`;
+    }
 
     const query = `
       select transfers.id as id,
@@ -289,19 +295,12 @@ export default class TransferDbRepository implements TransferRepository {
       join "Transactions" transactions on b.id = transactions."blockId"
       join "Transfers" transfers on transfers."transactionId" = transactions.id 
       left join "TransactionDetails" td on transactions.id = td."transactionId"
-      where transactions.requestkey = $1
+      where td.pactid = $1
       and transfers.amount = $2
-      and transfers.from_acct = $3
-      and transfers.to_acct = $4
+      ${conditions}
     `;
 
-    const { rows } = await rootPgPool.query(query, [
-      requestKeyParam,
-      amount,
-      senderAccount,
-      receiverAccount,
-    ]);
-
+    const { rows } = await rootPgPool.query(query, [pactId, amount]);
     const [row] = rows;
     if (!row) return null;
     const output = transferSchemaValidator.validate(row);

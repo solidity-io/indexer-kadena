@@ -13,7 +13,6 @@ import { buildTransferOutput } from '../../output/build-transfer-output';
  */
 const schema = zod.object({
   pactId: zod.string().nullable(),
-  requestKey: zod.string(),
   amount: zod.string(),
   receiverAccount: zod.string(),
   senderAccount: zod.string(),
@@ -30,14 +29,13 @@ const schema = zod.object({
  */
 export const crossChainTransferTransferResolver: TransferResolvers<ResolverContext>['crossChainTransfer'] =
   async (parent, _args, context) => {
-    const { pactId, requestKey, amount, receiverAccount, senderAccount } = schema.parse(parent);
-    if (!pactId || (receiverAccount !== '' && senderAccount !== '')) {
-      return null;
-    }
+    const { pactId, amount, receiverAccount, senderAccount } = schema.parse(parent);
+
+    if (receiverAccount !== '' && senderAccount !== '') return null;
+    if (!pactId) return null;
 
     const output = await context.transferRepository.getCrossChainTransferByPactId({
       pactId,
-      requestKey,
       amount,
       receiverAccount,
       senderAccount,

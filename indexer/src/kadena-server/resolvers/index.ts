@@ -325,10 +325,10 @@ export const resolvers: Resolvers<ResolverContext> = {
      * @returns The GraphQL type name as a string
      */
     __resolveType: (obj: any) => {
-      if (obj.code) {
-        return 'ExecutionPayload';
+      if (obj.step === 1) {
+        return 'ContinuationPayload';
       }
-      return 'ContinuationPayload';
+      return 'ExecutionPayload';
     },
   },
   IGuard: {
