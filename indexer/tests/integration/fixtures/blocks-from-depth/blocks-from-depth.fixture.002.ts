@@ -8,6 +8,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:31:02.948Z',
             difficulty: 759225036595719000,
+            hash: 'o3b8aRmhZtzd5blhNIwPBybtYr7IooS3ry2mwCgh-eE',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -38,7 +39,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'o3b8aRmhZtzd5blhNIwPBybtYr7IooS3ry2mwCgh-eE',
             height: 5785713,
             id: 'QmxvY2s6bzNiOGFSbWhadHpkNWJsaE5Jd1BCeWJ0WXI3SW9vUzNyeTJtd0NnaC1lRQ==',
             minerAccount: {
@@ -100,6 +100,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:31:21.535Z',
             difficulty: 756698524244495400,
+            hash: 'fvfa2FzZVzoI_AM6R7MjhE1elPIWo4k2wjQgpm3dyW8',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -130,7 +131,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'fvfa2FzZVzoI_AM6R7MjhE1elPIWo4k2wjQgpm3dyW8',
             height: 5785713,
             id: 'QmxvY2s6ZnZmYTJGelpWem9JX0FNNlI3TWpoRTFlbFBJV280azJ3alFncG0zZHlXOA==',
             minerAccount: {
@@ -192,6 +192,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:30:43.613Z',
             difficulty: 759225036595719000,
+            hash: 'WgJBRI9PmvvhqiFAjKiMelRS7ObG0AViBcTvsUe5RLg',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 2,
@@ -239,7 +240,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'WgJBRI9PmvvhqiFAjKiMelRS7ObG0AViBcTvsUe5RLg',
             height: 5785712,
             id: 'QmxvY2s6V2dKQlJJOVBtdnZocWlGQWpLaU1lbFJTN09iRzBBVmlCY1R2c1VlNVJMZw==',
             minerAccount: {
@@ -307,6 +307,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:30:46.224Z',
             difficulty: 756698524244495400,
+            hash: '-PtsdhKZaa9oiqm0F0-ciBnqsn3ap09kqMVuUblkicw',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -337,7 +338,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: '-PtsdhKZaa9oiqm0F0-ciBnqsn3ap09kqMVuUblkicw',
             height: 5785712,
             id: 'QmxvY2s6LVB0c2RoS1phYTlvaXFtMEYwLWNpQm5xc24zYXAwOWtxTVZ1VWJsa2ljdw==',
             minerAccount: {
@@ -399,6 +399,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:30:26.320Z',
             difficulty: 759225036595719000,
+            hash: 'Uyp6EguQ2AXdlCDWRY4WfircQOn4Mcvr6KXRN6Q3j2Q',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -429,7 +430,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'Uyp6EguQ2AXdlCDWRY4WfircQOn4Mcvr6KXRN6Q3j2Q',
             height: 5785711,
             id: 'QmxvY2s6VXlwNkVndVEyQVhkbENEV1JZNFdmaXJjUU9uNE1jdnI2S1hSTjZRM2oyUQ==',
             minerAccount: {
@@ -491,6 +491,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:30:35.154Z',
             difficulty: 756698524244495400,
+            hash: 'b4LRR_AUkpifsC3uOpMkFTW2ZXSD_uv-ZZxhG59-Bxc',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -521,7 +522,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'b4LRR_AUkpifsC3uOpMkFTW2ZXSD_uv-ZZxhG59-Bxc',
             height: 5785711,
             id: 'QmxvY2s6YjRMUlJfQVVrcGlmc0MzdU9wTWtGVFcyWlhTRF91di1aWnhoRzU5LUJ4Yw==',
             minerAccount: {
@@ -583,6 +583,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:30:19.770Z',
             difficulty: 759225036595719000,
+            hash: 'tWAbqOHEfkvWcJubG16IKXocp-qGL7UthLP36bx_Ye8',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -613,7 +614,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'tWAbqOHEfkvWcJubG16IKXocp-qGL7UthLP36bx_Ye8',
             height: 5785710,
             id: 'QmxvY2s6dFdBYnFPSEVma3ZXY0p1YkcxNklLWG9jcC1xR0w3VXRoTFAzNmJ4X1llOA==',
             minerAccount: {
@@ -675,6 +675,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:30:04.267Z',
             difficulty: 756698524244495400,
+            hash: 'lQetCCcsg0GKSaQPyadV4VcCS9LsLIaVnh6CoYatUjU',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -705,7 +706,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'lQetCCcsg0GKSaQPyadV4VcCS9LsLIaVnh6CoYatUjU',
             height: 5785710,
             id: 'QmxvY2s6bFFldENDY3NnMEdLU2FRUHlhZFY0VmNDUzlMc0xJYVZuaDZDb1lhdFVqVQ==',
             minerAccount: {
@@ -767,6 +767,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:29:17.655Z',
             difficulty: 759225036595719000,
+            hash: 'W1ieQAnwia2V0k8L_mzBVySrxekznDqs6isPwOs8CI0',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -797,7 +798,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'W1ieQAnwia2V0k8L_mzBVySrxekznDqs6isPwOs8CI0',
             height: 5785709,
             id: 'QmxvY2s6VzFpZVFBbndpYTJWMGs4TF9tekJWeVNyeGVrem5EcXM2aXNQd09zOENJMA==',
             minerAccount: {
@@ -859,6 +859,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:29:56.372Z',
             difficulty: 756698524244495400,
+            hash: 'dcRqbqdv059RYlObzpOxYnyCwKayuhpy_C_8G4c7nxk',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -889,7 +890,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'dcRqbqdv059RYlObzpOxYnyCwKayuhpy_C_8G4c7nxk',
             height: 5785709,
             id: 'QmxvY2s6ZGNScWJxZHYwNTlSWWxPYnpwT3hZbnlDd0theXVocHlfQ184RzRjN254aw==',
             minerAccount: {
@@ -951,6 +951,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:28:25.296Z',
             difficulty: 759225036595719000,
+            hash: 'pM9ruRwzO51nCz2H9fIaFoQQBLRpXCLSB-bS2JoU73E',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -981,7 +982,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'pM9ruRwzO51nCz2H9fIaFoQQBLRpXCLSB-bS2JoU73E',
             height: 5785708,
             id: 'QmxvY2s6cE05cnVSd3pPNTFuQ3oySDlmSWFGb1FRQkxScFhDTFNCLWJTMkpvVTczRQ==',
             minerAccount: {
@@ -1043,6 +1043,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:29:10.115Z',
             difficulty: 756698524244495400,
+            hash: 'TGDp1iADNWLXRs40y4qlaJX4EfhKSAOFjSOY1MJsEmE',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -1073,7 +1074,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'TGDp1iADNWLXRs40y4qlaJX4EfhKSAOFjSOY1MJsEmE',
             height: 5785708,
             id: 'QmxvY2s6VEdEcDFpQUROV0xYUnM0MHk0cWxhSlg0RWZoS1NBT0ZqU09ZMU1Kc0VtRQ==',
             minerAccount: {
@@ -1135,6 +1135,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:28:04.838Z',
             difficulty: 759225036595719000,
+            hash: '_4-o3pZm-qqyR0drz3hd5i3q6PdzwYSyXWNJC82uhSw',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -1165,7 +1166,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: '_4-o3pZm-qqyR0drz3hd5i3q6PdzwYSyXWNJC82uhSw',
             height: 5785707,
             id: 'QmxvY2s6XzQtbzNwWm0tcXF5UjBkcnozaGQ1aTNxNlBkendZU3lYV05KQzgydWhTdw==',
             minerAccount: {
@@ -1227,6 +1227,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:28:12.702Z',
             difficulty: 756698524244495400,
+            hash: '1oNvws4L0MAilccAXxpwHL8nj5vY4r1an7K8a5slOa8',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -1257,7 +1258,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: '1oNvws4L0MAilccAXxpwHL8nj5vY4r1an7K8a5slOa8',
             height: 5785707,
             id: 'QmxvY2s6MW9OdndzNEwwTUFpbGNjQVh4cHdITDhuajV2WTRyMWFuN0s4YTVzbE9hOA==',
             minerAccount: {
@@ -1319,6 +1319,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:27:22.997Z',
             difficulty: 759225036595719000,
+            hash: 'ICAeU2ifaRJWYQ_W2M2BSfiykTgSksbDqCeXC-lp3oU',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -1349,7 +1350,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'ICAeU2ifaRJWYQ_W2M2BSfiykTgSksbDqCeXC-lp3oU',
             height: 5785706,
             id: 'QmxvY2s6SUNBZVUyaWZhUkpXWVFfVzJNMkJTZml5a1RnU2tzYkRxQ2VYQy1scDNvVQ==',
             minerAccount: {
@@ -1411,6 +1411,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:27:59.485Z',
             difficulty: 756698524244495400,
+            hash: 'p2-e4OGRDpCaM31Piktdi_tJxaVsc6EhD964714wJrA',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -1441,7 +1442,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'p2-e4OGRDpCaM31Piktdi_tJxaVsc6EhD964714wJrA',
             height: 5785706,
             id: 'QmxvY2s6cDItZTRPR1JEcENhTTMxUGlrdGRpX3RKeGFWc2M2RWhEOTY0NzE0d0pyQQ==',
             minerAccount: {
@@ -1503,6 +1503,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:26:54.228Z',
             difficulty: 759225036595719000,
+            hash: 'WJtUOija3_22GxvqIR58C0zt0zKTTYQMDemacJzYq9A',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -1533,7 +1534,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'WJtUOija3_22GxvqIR58C0zt0zKTTYQMDemacJzYq9A',
             height: 5785705,
             id: 'QmxvY2s6V0p0VU9pamEzXzIyR3h2cUlSNThDMHp0MHpLVFRZUU1EZW1hY0p6WXE5QQ==',
             minerAccount: {
@@ -1595,6 +1595,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:27:08.347Z',
             difficulty: 756698524244495400,
+            hash: 'Yaz8iecqLVuMuoD7NZ5v4we0KFj2KP2MuCS7q2wmM4c',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -1625,7 +1626,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'Yaz8iecqLVuMuoD7NZ5v4we0KFj2KP2MuCS7q2wmM4c',
             height: 5785705,
             id: 'QmxvY2s6WWF6OGllY3FMVnVNdW9EN05aNXY0d2UwS0ZqMktQMk11Q1M3cTJ3bU00Yw==',
             minerAccount: {
@@ -1687,6 +1687,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 13,
             creationTime: '2025-04-30T22:26:40.795Z',
             difficulty: 759225036595719000,
+            hash: 'dVHhi26yoQyTLg6t3ndK1qzaeAop5pC_CogzdKb4S8g',
             epoch: '2025-04-30T22:13:51.988Z',
             events: {
               totalCount: 1,
@@ -1717,7 +1718,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'dVHhi26yoQyTLg6t3ndK1qzaeAop5pC_CogzdKb4S8g',
             height: 5785704,
             id: 'QmxvY2s6ZFZIaGkyNnlvUXlUTGc2dDNuZEsxcXphZUFvcDVwQ19Db2d6ZEtiNFM4Zw==',
             minerAccount: {
@@ -1779,6 +1779,7 @@ export const blocksFromDepthFixture002 = {
             chainId: 12,
             creationTime: '2025-04-30T22:26:50.004Z',
             difficulty: 756698524244495400,
+            hash: 'TSsUpyS8HeTbUvk5t0xc2QNwH6jRy_3WcTBywAiXapk',
             epoch: '2025-04-30T22:14:11.531Z',
             events: {
               totalCount: 1,
@@ -1809,7 +1810,6 @@ export const blocksFromDepthFixture002 = {
               ],
             },
             flags: '0',
-            hash: 'TSsUpyS8HeTbUvk5t0xc2QNwH6jRy_3WcTBywAiXapk',
             height: 5785704,
             id: 'QmxvY2s6VFNzVXB5UzhIZVRiVXZrNXQweGMyUU53SDZqUnlfM1djVEJ5d0FpWGFwaw==',
             minerAccount: {

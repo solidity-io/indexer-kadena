@@ -23,6 +23,7 @@ export const getBlocksFromDepthQuery = (params: any): string => {
             chainId
             creationTime
             difficulty
+            hash
             epoch
             events {
               totalCount

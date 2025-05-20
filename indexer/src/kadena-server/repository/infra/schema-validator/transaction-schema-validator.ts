@@ -116,10 +116,10 @@ function validate(row: any): TransactionOutput {
     cmd: {
       payload: {
         // ExecutionPayload
-        code: JSON.stringify(res.code),
+        code: res.code ? JSON.stringify(res.code) : '{}',
 
         // ContinuationPayload and ExecutionPayload
-        data: JSON.stringify(res.data),
+        data: res.data ? JSON.stringify(res.data) : '{}',
 
         // ContinuationPayload
         pactId: res.pactId,
