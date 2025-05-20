@@ -56,10 +56,10 @@ const options = program.opts();
  */
 async function main() {
   try {
+    setupAssociations();
+
     if (options.database) {
       await initializeDatabase();
-      // Setup model associations
-      setupAssociations();
       await closeDatabase();
       process.exit(0);
     }
