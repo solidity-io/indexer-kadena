@@ -17,6 +17,8 @@
     "@kadena/client": "^1.11.1",
     "@kadena/client-utils": "^0.11.0",
     "@kadena/types": "^0.6.2",
+    "@sentry/node": "^9.19.0",
+    "@sentry/profiling-node": "^9.19.0",
     "apollo-server-plugin-base": "^3.7.2",
     "commander": "^12.0.0",
     "cors": "^2.8.5",
