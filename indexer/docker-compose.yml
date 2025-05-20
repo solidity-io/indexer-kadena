@@ -18,41 +18,41 @@ services:
       timeout: 5s
       retries: 5
 
-  db-migration:
-    build:
-      context: ../
-      dockerfile: Dockerfile.development
-    container_name: db-migration
-    environment:
-      DB_HOST: indexer-db
-    command: ['yarn', 'create:database']
-    depends_on:
-      indexer-db:
-        condition: service_healthy
+  # db-migration:
+  #   build:
+  #     context: ../
+  #     dockerfile: Dockerfile.development
+  #   container_name: db-migration
+  #   environment:
+  #     DB_HOST: indexer-db
+  #   command: ['yarn', 'create:database']
+  #   depends_on:
+  #     indexer-db:
+  #       condition: service_healthy
 
-  graphql-app:
-    build:
-      context: ../
-      dockerfile: Dockerfile.development
-    container_name: kad-indexer-graphql
-    environment:
-      DB_HOST: indexer-db
-    command: ['yarn', 'dev:graphql']
-    ports:
-      - '3001:3001'
-    depends_on:
-      db-migration:
-        condition: service_completed_successfully
+  # graphql-app:
+  #   build:
+  #     context: ../
+  #     dockerfile: Dockerfile.development
+  #   container_name: kad-indexer-graphql
+  #   environment:
+  #     DB_HOST: indexer-db
+  #   command: ['yarn', 'dev:graphql']
+  #   ports:
+  #     - '3001:3001'
+  #   depends_on:
+  #     db-migration:
+  #       condition: service_completed_successfully
 
-  streaming-app:
-    build:
-      context: ../
-      dockerfile: Dockerfile.development
-    container_name: kad-indexer-streaming
-    environment:
-      DB_HOST: indexer-db
-      KADENA_GRAPHQL_API_URL: http://graphql-app
-    command: ['yarn', 'dev:streaming']
-    depends_on:
-      graphql-app:
-        condition: service_started
+  # streaming-app:
+  #   build:
+  #     context: ../
+  #     dockerfile: Dockerfile.development
+  #   container_name: kad-indexer-streaming
+  #   environment:
+  #     DB_HOST: indexer-db
+  #     KADENA_GRAPHQL_API_URL: http://graphql-app
+  #   command: ['yarn', 'dev:streaming']
+  #   depends_on:
+  #     graphql-app:
+  #       condition: service_started
