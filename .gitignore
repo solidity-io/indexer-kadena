@@ -3,7 +3,6 @@ dist/
 data/
 draft/
 .env
-.env.testing
 .terraform
 .terraform.lock.hcl
 .terraform.tfstate.lock.info
