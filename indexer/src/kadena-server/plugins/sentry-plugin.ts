@@ -10,34 +10,41 @@ import { ResolverContext } from '../config/apollo-server-config';
 export function createSentryPlugin(): ApolloServerPlugin<ResolverContext> {
   return {
     async requestDidStart({ request, contextValue }) {
-      // Configure scope BEFORE starting the profiler
-      // Scope to capture specifc events with detailed query context and searchable logs
-      Sentry.withScope(scope => {
-        // Add operation tags
-        scope.setTag('operation.type', 'graphql.query');
-        scope.setTag('operation.name', request.operationName || 'anonymous');
-        scope.setContext('operation', {
-          type: 'graphql.query',
+      Sentry.startSpan(
+        {
           name: request.operationName || 'anonymous',
-          timestamp: new Date().toISOString(),
-          parameters: request.variables || {},
-          query: request.query,
-        });
-      });
-      // Optionally log all incoming queries to Sentry as breadcrumbs
-      // Breadcrumbs create a historical trail that persists (query history)
-      // Sentry.profiler.startProfiler();
-      // Sentry.addBreadcrumb({
-      //   category: 'graphql.query',
-      //   message: request.operationName || 'Anonymous GraphQL operation',
-      //   level: 'info',
-      //   data: {
-      //     query: request.query,
-      //     variables: request.variables,
-      //     operationType: request.operationName ? 'named' : 'anonymous',
-      //   },
-      // });
-      // Sentry.profiler.stopProfiler();
+          op: 'graphql.query',
+          attributes: {
+            'random-test': 'test',
+            'operation.type': 'graphql.query',
+            'operation.name': request.operationName || 'anonymous',
+          },
+        },
+        span => {
+          // Set operation attributes
+          span.setAttributes({
+            'operation.details.type': 'graphql.query',
+            'operation.details.name': request.operationName || 'anonymous',
+            'operation.details.timestamp': new Date().toISOString(),
+            'operation.details.query': request.query,
+          });
+
+          // Optionally log all incoming queries to Sentry as breadcrumbs
+          // Breadcrumbs create a historical trail that persists (query history)
+          Sentry.profiler.startProfiler();
+          Sentry.addBreadcrumb({
+            category: 'graphql.query',
+            message: request.operationName || 'Anonymous GraphQL operation',
+            level: 'info',
+            data: {
+              query: request.query,
+              variables: request.variables,
+              operationType: request.operationName ? 'named' : 'anonymous',
+            },
+          });
+          Sentry.profiler.stopProfiler();
+        },
+      );
       return {
         async didEncounterErrors({ errors, operation, operationName, request }) {
           // Skip Apollo-specific errors that are intentionally thrown

@@ -19,6 +19,9 @@ Sentry.init({
   tracesSampleRate: 1.0,
   profileSessionSampleRate: 1.0,
   profileLifecycle: 'trace',
-  integrations: [nodeProfilingIntegration()],
+  integrations: [
+    nodeProfilingIntegration(),
+    Sentry.graphqlIntegration({ useOperationNameForRootSpan: true }),
+  ],
   debug: false,
 });
