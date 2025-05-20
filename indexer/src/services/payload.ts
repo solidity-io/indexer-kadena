@@ -197,12 +197,16 @@ export async function processTransaction(
       },
     );
 
-    const eventsWithTransactionId = await Promise.all(eventsAttributes);
+    const events = await Promise.all(eventsAttributes);
+    const eventsWithTransactionId = events.map(event => ({
+      ...event,
+      transactionId,
+    }));
     await Event.bulkCreate(eventsWithTransactionId, { transaction: tx });
 
     // Process pair creation events
     try {
-      await processPairCreationEvents(eventsWithTransactionId);
+      await processPairCreationEvents(events);
     } catch (error) {
       console.error('Error processing pair creation events:', error);
     }
