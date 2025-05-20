@@ -64,7 +64,7 @@ export const transactionsFixture010 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {
@@ -110,7 +110,7 @@ export const transactionsFixture010 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {
@@ -133,7 +133,7 @@ export const transactionsFixture010 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {
@@ -202,7 +202,7 @@ export const transactionsFixture010 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {
@@ -271,7 +271,7 @@ export const transactionsFixture010 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {
@@ -317,7 +317,7 @@ export const transactionsFixture010 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {
@@ -363,7 +363,7 @@ export const transactionsFixture010 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {
@@ -386,7 +386,7 @@ export const transactionsFixture010 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {

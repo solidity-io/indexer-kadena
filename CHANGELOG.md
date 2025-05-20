@@ -1,5 +1,25 @@
 # Changelog
 
+## May 13 - May 20, 2025
+
+- merge: PR of Sushi
+  - docs: api readme
+  - feat: dex schemas
+  - feat: dex metrics
+  - feat: schema resolvers
+  - feat: backfill historical data
+  - feat: oracle for KDA price
+  - feat: processing new payloads
+  - feat: added streaming
+- fix: missing table migrations for Sushi PR
+- fix: missing transaction id when creating event
+- fix: missing table associations for Sushi PR
+- fix: legibility of env variables
+- fix: alias resolution inside container on package.json
+- fix: missing dotenv-cli
+- feat: sentry plugin to track index usage
+- feat: using env array instead of hardcoded items
+
 ## May 6 - May 13, 2025
 
 - fix: invalid format of creationtime of coinbase transactions

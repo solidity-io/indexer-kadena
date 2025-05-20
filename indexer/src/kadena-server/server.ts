@@ -18,6 +18,7 @@
  * data fetching with advanced filtering and pagination.
  */
 
+import './plugins/instrument';
 import { ApolloServer, ApolloServerPlugin } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
@@ -42,6 +43,7 @@ import {
   simpleEstimator,
 } from 'graphql-query-complexity';
 import { depthLimit } from '@graphile/depth-limit';
+import { createSentryPlugin } from './plugins/sentry-plugin';
 
 /**
  * Maximum allowed complexity for GraphQL queries
@@ -271,6 +273,7 @@ export async function startGraphqlServer() {
       }),
     ],
     plugins: [
+      createSentryPlugin(),
       validatePaginationParamsPlugin,
       securitySanitizationPlugin,
       ApolloServerPluginDrainHttpServer({ httpServer }),

@@ -18,7 +18,7 @@ export const transactionsFixture001 = {
                 sender: 'coinbase',
               },
               payload: {
-                code: 'null',
+                code: '{}',
               },
             },
             result: {
