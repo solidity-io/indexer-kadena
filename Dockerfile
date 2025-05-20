@@ -7,7 +7,7 @@ RUN yarn build
 
 FROM node:18-alpine
 WORKDIR /app
-COPY indexer/package.json yarn.lock ./
+COPY indexer/package.json indexer/tsconfig.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/src/config/global-bundle.pem ./dist/config/global-bundle.pem
@@ -17,4 +17,4 @@ EXPOSE 3001
 
 ARG INDEXER_MODE_PARAM
 ENV INDEXER_MODE=${INDEXER_MODE_PARAM}
-CMD ["sh", "-c", "node dist/index.js $INDEXER_MODE"]
+CMD ["sh", "-c", "node -r module-alias/register dist/index.js $INDEXER_MODE"]
