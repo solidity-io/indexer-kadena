@@ -1,9 +1,9 @@
 import { EventAttributes } from '../models/event';
 import Event from '../models/event';
 import { PairService } from './pair-service';
-import { sequelize } from '../config/database';
 import { Op } from 'sequelize';
 import Transaction from '../models/transaction';
+import Block from '@/models/block';
 
 const MODULE_NAMES = ['kdlaunch.kdswap-exchange', 'sushiswap.sushi-exchange'];
 const EVENT_TYPES = ['CREATE_PAIR', 'UPDATE', 'SWAP', 'ADD_LIQUIDITY', 'REMOVE_LIQUIDITY'];
@@ -131,14 +131,21 @@ export async function backfillPairEvents(
           model: Transaction,
           as: 'transaction',
           attributes: ['blockId'],
+          include: [
+            {
+              model: Block,
+              attributes: ['creationTime', 'height'],
+            },
+          ],
         },
       ],
       limit: batchSize,
       offset: processedCount,
-      order: [[sequelize.literal('"transaction"."blockId"'), 'ASC']],
+      order: [
+        [{ model: Transaction, as: 'transaction' }, { model: Block, as: 'Block' }, 'height', 'ASC'],
+      ],
     });
 
-    console.log('events', events);
     if (events.length === 0) {
       hasMore = false;
       continue;
