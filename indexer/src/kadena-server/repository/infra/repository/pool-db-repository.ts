@@ -118,37 +118,14 @@ export default class PoolDbRepository {
       type: QueryTypes.SELECT,
     });
 
-    const edges = pairs.map((pair: any) => ({
-      cursor: pair.id.toString(),
-      node: {
-        __typename: 'Pool',
-        id: pair.id.toString(),
-        address: pair.address,
-        token0: {
-          __typename: 'Token',
-          id: pair.token0Id.toString(),
-          name: pair.token0Name,
-          chainId: '0',
-        },
-        token1: {
-          __typename: 'Token',
-          id: pair.token1Id.toString(),
-          name: pair.token1Name,
-          chainId: '0',
-        },
-        reserve0: pair.reserve0,
-        reserve1: pair.reserve1,
-        totalSupply: pair.totalSupply,
-        key: pair.key,
-        tvlUsd: pair.tvlUsd ?? 0,
-        volume24hUsd: pair.volume24hUsd ?? 0,
-        volume7dUsd: pair.volume7dUsd ?? 0,
-        transactionCount24h: pair.transactionCount24h ?? 0,
-        apr24h: pair.apr24h ?? 0,
-        createdAt: pair.createdAt,
-        updatedAt: pair.updatedAt,
-      } as Pool,
-    }));
+    const promises = pairs.map((pair: any) => this.getPool(pair));
+    const pools = await Promise.all(promises);
+    const edges = pools
+      .filter((pool): pool is Pool => pool !== null)
+      .map(pool => ({
+        cursor: pool.id,
+        node: pool,
+      }));
 
     const totalCount = await Pair.count({
       where: {
