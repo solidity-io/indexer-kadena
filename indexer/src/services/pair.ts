@@ -121,8 +121,6 @@ export async function backfillPairEvents(
   let processedCount = 0;
   let hasMore = true;
 
-  console.log('whereClause', whereClause);
-
   while (hasMore) {
     const events = await Event.findAll({
       where: whereClause,
@@ -130,20 +128,12 @@ export async function backfillPairEvents(
         {
           model: Transaction,
           as: 'transaction',
-          attributes: ['blockId'],
-          include: [
-            {
-              model: Block,
-              attributes: ['creationTime', 'height'],
-            },
-          ],
+          attributes: ['blockId', 'creationtime'],
         },
       ],
       limit: batchSize,
       offset: processedCount,
-      order: [
-        [{ model: Transaction, as: 'transaction' }, { model: Block, as: 'Block' }, 'height', 'ASC'],
-      ],
+      order: [[{ model: Transaction, as: 'transaction' }, 'creationtime', 'ASC']],
     });
 
     if (events.length === 0) {
