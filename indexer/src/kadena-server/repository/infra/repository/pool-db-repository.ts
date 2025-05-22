@@ -3,7 +3,7 @@ import { Op, QueryTypes } from 'sequelize';
 import { sequelize } from '../../../../config/database';
 import Pair from '../../../../models/pair';
 import PoolStats from '../../../../models/pool-stats';
-import { getPageInfo, getPaginationParams } from '../../pagination';
+import { encodeCursor, getPageInfo, getPaginationParams } from '../../pagination';
 import {
   PageInfo,
   Pool,
@@ -66,14 +66,6 @@ export default class PoolDbRepository {
       {} as Record<number, Date>,
     );
 
-    const orderByClause = [
-      [
-        'PoolStats',
-        POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field,
-        POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction,
-      ],
-    ] as [string, string, 'ASC' | 'DESC'][];
-
     const pairIdsStr = pairIds.join(',');
     const timestampsStr = Object.values(maxTimestamps)
       .map(t => `'${t.toISOString()}'`)
@@ -87,6 +79,14 @@ export default class PoolDbRepository {
     }
     if (timestampsStr) {
       conditions.push(`ps.timestamp IN (${timestampsStr})`);
+    }
+
+    if (pagination.after) {
+      conditions.push(`p.id ${pagination.order === 'DESC' ? '<' : '>'} ${pagination.after}`);
+    }
+
+    if (pagination.before) {
+      conditions.push(`p.id ${pagination.order === 'DESC' ? '>' : '<'} ${pagination.before}`);
     }
 
     if (conditions.length > 0) {
@@ -111,7 +111,7 @@ export default class PoolDbRepository {
       JOIN "PoolStats" ps ON p.id = ps."pairId"
       ${whereClause}
       ORDER BY ps."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
-      LIMIT ${pagination.limit} OFFSET ${pagination.after ? 0 : pagination.limit}
+      LIMIT ${pagination.limit}
     `;
 
     const pairs = await sequelize.query(query, {
