@@ -328,7 +328,7 @@ export default class PoolDbRepository {
   ): Promise<PoolTransactionsConnection | null> {
     const { pairId, type, first, after, last, before } = params;
     const limit = first || last || 10;
-    const offset = after ? parseInt(Buffer.from(after, 'base64').toString()) : 0;
+    const order = last ? 'ASC' : 'DESC';
 
     let query = `
       SELECT 
@@ -356,8 +356,22 @@ export default class PoolDbRepository {
       paramIndex++;
     }
 
-    query += ` ORDER BY t."timestamp" DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    queryParams.push(limit, offset);
+    if (after) {
+      const afterId = parseInt(Buffer.from(after, 'base64').toString());
+      query += ` AND t.id ${order === 'DESC' ? '<' : '>'} $${paramIndex}`;
+      queryParams.push(afterId);
+      paramIndex++;
+    }
+
+    if (before) {
+      const beforeId = parseInt(Buffer.from(before, 'base64').toString());
+      query += ` AND t.id ${order === 'DESC' ? '>' : '<'} $${paramIndex}`;
+      queryParams.push(beforeId);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY t.id ${order} LIMIT $${paramIndex}`;
+    queryParams.push(limit);
     const result = await sequelize.query(query, {
       type: QueryTypes.SELECT,
       bind: queryParams,
@@ -401,8 +415,8 @@ export default class PoolDbRepository {
     return {
       edges,
       pageInfo: {
-        hasNextPage: offset + limit < totalCount,
-        hasPreviousPage: offset > 0,
+        hasNextPage: limit + (after ? 0 : 1) < totalCount,
+        hasPreviousPage: limit + (before ? 0 : 1) > 0,
         startCursor: edges[0]?.cursor || null,
         endCursor: edges[edges.length - 1]?.cursor || null,
       },
