@@ -109,18 +109,7 @@ export class PairService {
         ]);
 
         // Create pair
-        await Pair.create(
-          {
-            token0Id: token0.id,
-            token1Id: token1.id,
-            reserve0: '0',
-            reserve1: '0',
-            totalSupply: '0',
-            key: key,
-            address: moduleName,
-          },
-          { transaction: t },
-        );
+        await this.createOrFindPair(token0, token1, moduleName);
       });
     }
   }
@@ -175,7 +164,7 @@ export class PairService {
         const reserve1Str = typeof reserve1 === 'number' ? reserve1.toString() : reserve1.decimal;
 
         // Find the pair by key
-        const pair = await Pair.findOne({
+        let pair = await Pair.findOne({
           where: { key },
           include: [
             { model: Token, as: 'token0' },
@@ -184,8 +173,54 @@ export class PairService {
         });
 
         if (!pair) {
-          console.warn(`Pair not found for key: ${key}`);
-          continue;
+          const [code0, code1] = key.split(':');
+          // Create tokens using module name
+          const token0 = await Token.findOrCreate({
+            where: { code: code0 },
+            defaults: {
+              address: code0,
+              name: code0.split('.')[1],
+              symbol: code0.split('.')[1].toUpperCase(),
+              code: code0,
+              decimals: 18,
+              totalSupply: '0',
+              tokenInfo: {
+                decimalsToDisplay: 8,
+                description: '',
+                themeColor: '#000000',
+                discordUrl: '',
+                mediumUrl: '',
+                telegramUrl: '',
+                twitterUrl: '',
+                websiteUrl: '',
+              },
+            },
+          });
+
+          const token1 = await Token.findOrCreate({
+            where: { code: code1 },
+            defaults: {
+              address: code1,
+              name: code1.split('.')[1],
+              symbol: code1.split('.')[1].toUpperCase(),
+              code: code1,
+              decimals: 18,
+              totalSupply: '0',
+              tokenInfo: {
+                decimalsToDisplay: 8,
+                description: '',
+                themeColor: '#000000',
+                discordUrl: '',
+                mediumUrl: '',
+                telegramUrl: '',
+                twitterUrl: '',
+                websiteUrl: '',
+              },
+            },
+          });
+
+          // Create or find pair using existing method
+          pair = await this.createOrFindPair(token0[0], token1[0], event.moduleName);
         }
 
         // Get token prices in USD
@@ -348,6 +383,7 @@ export class PairService {
           { token0Id: token0.id, token1Id: token1.id },
           { token0Id: token1.id, token1Id: token0.id },
         ],
+        address: moduleName,
       },
     });
 
@@ -411,10 +447,8 @@ export class PairService {
           typeof amountOut === 'number' ? amountOut.toString() : amountOut.decimal;
 
         // Create or find both tokens
-        const [tokenIn, tokenOut] = await Promise.all([
-          this.createOrFindToken(tokenInRef, null),
-          this.createOrFindToken(tokenOutRef, null),
-        ]);
+        const tokenIn = await this.createOrFindToken(tokenInRef, null);
+        const tokenOut = await this.createOrFindToken(tokenOutRef, null);
 
         // Create or find the pair
         const pair = await this.createOrFindPair(tokenIn, tokenOut, event.moduleName);
