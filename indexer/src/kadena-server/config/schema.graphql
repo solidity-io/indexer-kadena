@@ -383,6 +383,10 @@ type Query {
     End date for historical data
     """
     endDate: DateTime
+    """
+    Filter metrics by protocol address
+    """
+    protocolAddress: String
   ): DexMetrics!
 }
 
