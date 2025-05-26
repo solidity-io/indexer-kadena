@@ -79,16 +79,16 @@ export default class DexMetricsDbRepository implements DexMetricsRepository {
       type: QueryTypes.SELECT,
       bind: protocolAddress
         ? [queryStartDate, queryEndDate, protocolAddress]
-        : [queryStartDate, queryEndDate],
+        : [queryStartDate, queryEndDate, DEFAULT_PROTOCOL_ADDRESS],
     });
 
     // Get total volume
     const totalVolumeQuery = `
       SELECT COALESCE(SUM(pt."amountUsd"), 0) as "totalVolumeUsd"
       FROM "PoolTransactions" pt
-      ${protocolAddress ? 'JOIN "Pairs" p ON p.id = pt."pairId"' : ''}
+      JOIN "Pairs" p ON p.id = pt."pairId"
       WHERE pt.timestamp BETWEEN $1 AND $2
-      ${protocolAddress ? 'AND p.address = $3' : ''}
+      AND p.address = $3
     `;
 
     const [totalVolumeResult] = await sequelize.query(totalVolumeQuery, {

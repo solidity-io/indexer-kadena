@@ -867,6 +867,7 @@ export type QueryPoolsArgs = {
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
   orderBy?: InputMaybe<PoolOrderBy>;
+  protocolAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type QueryTokensArgs = {
