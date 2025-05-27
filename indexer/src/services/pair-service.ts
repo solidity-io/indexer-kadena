@@ -179,8 +179,11 @@ export class PairService {
             where: { code: code0 },
             defaults: {
               address: code0,
-              name: code0.split('.')[1],
-              symbol: code0.split('.')[1].toUpperCase(),
+              name: code0.split('.').length > 1 ? code0.split('.')[1] : code0,
+              symbol:
+                code0.split('.').length > 1
+                  ? code0.split('.')[1].toUpperCase()
+                  : code0.toUpperCase(),
               code: code0,
               decimals: 18,
               totalSupply: '0',
@@ -201,8 +204,11 @@ export class PairService {
             where: { code: code1 },
             defaults: {
               address: code1,
-              name: code1.split('.')[1],
-              symbol: code1.split('.')[1].toUpperCase(),
+              name: code1.split('.').length > 1 ? code1.split('.')[1] : code1,
+              symbol:
+                code1.split('.').length > 1
+                  ? code1.split('.')[1].toUpperCase()
+                  : code1.toUpperCase(),
               code: code1,
               decimals: 18,
               totalSupply: '0',
