@@ -120,7 +120,10 @@ export class PairService {
    * @param token The token to get price for
    * @returns The token price in USD
    */
-  private static async getTokenPriceInUSD(token: Token): Promise<number | undefined> {
+  private static async getTokenPriceInUSD(
+    token: Token,
+    protocolAddress = DEFAULT_PROTOCOL,
+  ): Promise<number | undefined> {
     const now = Date.now();
     const cached = this.tokenPriceCache.get(token.id);
 
@@ -130,7 +133,7 @@ export class PairService {
     }
 
     // Calculate new price
-    const price = await this.calculateTokenPriceInUSD(token, { decimal: '1' });
+    const price = await this.calculateTokenPriceInUSD(token, { decimal: '1' }, protocolAddress);
     if (price !== undefined) {
       this.tokenPriceCache.set(token.id, { price, timestamp: now });
     }
@@ -232,8 +235,8 @@ export class PairService {
 
         // Get token prices in USD
         const [token0Price, token1Price] = await Promise.all([
-          pair.token0 ? this.getTokenPriceInUSD(pair.token0) : undefined,
-          pair.token1 ? this.getTokenPriceInUSD(pair.token1) : undefined,
+          pair.token0 ? this.getTokenPriceInUSD(pair.token0, pair.address) : undefined,
+          pair.token1 ? this.getTokenPriceInUSD(pair.token1, pair.address) : undefined,
         ]);
 
         // Calculate USD values
@@ -462,8 +465,8 @@ export class PairService {
 
         // Get token prices in USD
         const [tokenInPrice, tokenOutPrice] = await Promise.all([
-          this.getTokenPriceInUSD(tokenIn),
-          this.getTokenPriceInUSD(tokenOut),
+          this.getTokenPriceInUSD(tokenIn, pair.address),
+          this.getTokenPriceInUSD(tokenOut, pair.address),
         ]);
 
         // Calculate USD value
@@ -551,8 +554,8 @@ export class PairService {
 
         // Get token prices in USD
         const [token0Price, token1Price] = await Promise.all([
-          this.getTokenPriceInUSD(token0),
-          this.getTokenPriceInUSD(token1),
+          this.getTokenPriceInUSD(token0, pair.address),
+          this.getTokenPriceInUSD(token1, pair.address),
         ]);
 
         // Calculate USD value
