@@ -389,6 +389,16 @@ type Query {
     """
     protocolAddress: String
   ): DexMetrics!
+
+  """
+  Get price for a specific token
+  """
+  tokenPrice(tokenAddress: String!, protocolAddress: String): TokenPrice
+
+  """
+  Get prices for all tokens in a protocol
+  """
+  tokenPrices(protocolAddress: String): [TokenPrice!]!
 }
 
 """
@@ -1415,4 +1425,13 @@ type DexMetrics {
   Total volume in USD for the specified period
   """
   totalVolumeUsd: Decimal!
+}
+
+type TokenPrice {
+  id: ID!
+  token: Token!
+  priceInKda: Decimal!
+  priceInUsd: Decimal!
+  protocolAddress: String!
+  updatedAt: DateTime!
 }

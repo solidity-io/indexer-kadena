@@ -3,7 +3,6 @@ import Event from '../models/event';
 import { PairService } from './pair-service';
 import { Op } from 'sequelize';
 import Transaction from '../models/transaction';
-import Block from '@/models/block';
 
 const MODULE_NAMES = ['kdlaunch.kdswap-exchange', 'sushiswap.sushi-exchange'];
 const EVENT_TYPES = ['CREATE_PAIR', 'UPDATE', 'SWAP', 'ADD_LIQUIDITY', 'REMOVE_LIQUIDITY'];

@@ -8,6 +8,7 @@ import PoolTransaction, { TransactionType } from '../models/pool-transaction';
 import Token from '../models/token';
 import LiquidityBalance from '../models/liquidity-balance';
 import { PriceService } from './price/price.service';
+import { DEFAULT_PROTOCOL } from '../kadena-server/config/apollo-server-config';
 
 type TokenAmount = number | { decimal: string };
 
@@ -608,8 +609,8 @@ export class PairService {
         if (event.name === 'ADD_LIQUIDITY') {
           if (liquidityBalance) {
             // Update existing balance
-            const currentLiquidity = BigInt(liquidityBalance.liquidity);
-            const newLiquidity = currentLiquidity + BigInt(liquidity.toString());
+            const currentLiquidity = Number(liquidityBalance.liquidity);
+            const newLiquidity = currentLiquidity + liquidity;
             await liquidityBalance.update({
               liquidity: newLiquidity.toString(),
             });
@@ -623,8 +624,8 @@ export class PairService {
           }
         } else if (event.name === 'REMOVE_LIQUIDITY' && liquidityBalance) {
           // Subtract liquidity
-          const currentLiquidity = BigInt(liquidityBalance.liquidity);
-          const newLiquidity = currentLiquidity - BigInt(liquidity.toString());
+          const currentLiquidity = Number(liquidityBalance.liquidity);
+          const newLiquidity = currentLiquidity - liquidity;
           await liquidityBalance.update({
             liquidity: newLiquidity.toString(),
           });
@@ -644,13 +645,18 @@ export class PairService {
    * @param token1Id Second token ID
    * @returns The pair if found, null otherwise
    */
-  private static async findDirectPair(token0Id: number, token1Id: number): Promise<Pair | null> {
+  private static async findDirectPair(
+    token0Id: number,
+    token1Id: number,
+    protocolAddress = DEFAULT_PROTOCOL,
+  ): Promise<Pair | null> {
     return Pair.findOne({
       where: {
         [Op.or]: [
           { token0Id, token1Id },
           { token0Id: token1Id, token1Id: token0Id },
         ],
+        address: protocolAddress,
       },
       include: [
         { model: Token, as: 'token0' },
@@ -667,8 +673,9 @@ export class PairService {
    */
   private static async findOptimalKdaPricePath(
     startTokenId: number,
-    startAmount: bigint,
-  ): Promise<bigint | undefined> {
+    startAmount: number,
+    protocolAddress = DEFAULT_PROTOCOL,
+  ): Promise<number | undefined> {
     // Get KDA token
     const kdaToken = await Token.findOne({ where: { code: 'coin' } });
     if (!kdaToken) {
@@ -676,19 +683,19 @@ export class PairService {
     }
 
     // Queue for BFS: [tokenId, amount, path]
-    const queue: Array<[number, bigint, number[]]> = [[startTokenId, startAmount, [startTokenId]]];
+    const queue: Array<[number, number, number[]]> = [[startTokenId, startAmount, [startTokenId]]];
     const visited = new Set<number>([startTokenId]);
 
     while (queue.length > 0) {
       const [currentTokenId, currentAmount, path] = queue.shift()!;
 
       // Try direct path to KDA
-      const directPair = await this.findDirectPair(currentTokenId, kdaToken.id);
+      const directPair = await this.findDirectPair(currentTokenId, kdaToken.id, protocolAddress);
       if (directPair) {
-        const reserve0 = BigInt(directPair.reserve0);
-        const reserve1 = BigInt(directPair.reserve1);
+        const reserve0 = Number(directPair.reserve0);
+        const reserve1 = Number(directPair.reserve1);
 
-        let kdaAmount: bigint;
+        let kdaAmount: number;
         if (currentTokenId === directPair.token0Id) {
           kdaAmount = (currentAmount * reserve1) / reserve0;
         } else {
@@ -708,6 +715,7 @@ export class PairService {
       const connectedPairs = await Pair.findAll({
         where: {
           [Op.or]: [{ token0Id: currentTokenId }, { token1Id: currentTokenId }],
+          address: protocolAddress,
         },
         include: [
           { model: Token, as: 'token0' },
@@ -725,8 +733,8 @@ export class PairService {
         }
 
         // Calculate amount of the other token
-        const reserve0 = BigInt(pair.reserve0);
-        const reserve1 = BigInt(pair.reserve1);
+        const reserve0 = Number(pair.reserve0);
+        const reserve1 = Number(pair.reserve1);
         const otherTokenAmount =
           currentTokenId === pair.token0Id
             ? (currentAmount * reserve1) / reserve0
@@ -750,7 +758,29 @@ export class PairService {
   static async calculateTokenPriceInUSD(
     token: Token,
     amount: TokenAmount,
+    protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<number | undefined> {
+    try {
+      const prices = await this.calculateTokenPrice(token, protocolAddress);
+      if (!prices) return undefined;
+
+      const amountStr = typeof amount === 'number' ? amount.toString() : amount.decimal;
+      return prices.priceInUSD * Number(amountStr);
+    } catch (error) {
+      console.error('Error calculating token USD value:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Calculates the price of a token in USD
+   * @param token The token to calculate price for
+   * @returns The price of the token in USD
+   */
+  static async calculateTokenPrice(
+    token: Token,
+    protocolAddress = DEFAULT_PROTOCOL,
+  ): Promise<{ priceInUSD: number; priceInKDA: number } | undefined> {
     try {
       // Get KDA/USD price
       const priceService = PriceService.getInstance();
@@ -759,23 +789,23 @@ export class PairService {
         console.warn('KDA/USD price not available');
         return undefined;
       }
-
-      // Convert amount to string and then to BigInt
-      const amountStr = typeof amount === 'number' ? amount.toString() : amount.decimal;
-      const amountBigInt = BigInt(amountStr);
+      // Use 1 token with proper decimals
+      const oneToken = 10 ** token.decimals;
 
       // Find shortest path to KDA using BFS
-      const kdaAmount = await this.findOptimalKdaPricePath(token.id, amountBigInt);
+      const kdaAmount = await this.findOptimalKdaPricePath(token.id, oneToken, protocolAddress);
 
       if (kdaAmount === undefined) {
-        console.warn(`No path found to calculate USD value for token ${token.code}`);
+        console.warn(`No path found to calculate price for token ${token.code}`);
         return undefined;
       }
 
-      // Convert to USD
-      return Number(kdaAmount) * kdaUsdPrice;
+      // Convert to USD with proper decimal handling
+      const priceInUSD = (kdaAmount * kdaUsdPrice) / 10 ** token.decimals;
+      const priceInKDA = kdaAmount / 10 ** token.decimals;
+      return { priceInUSD, priceInKDA };
     } catch (error) {
-      console.error('Error calculating token USD value:', error);
+      console.error('Error calculating token price:', error);
       return undefined;
     }
   }
