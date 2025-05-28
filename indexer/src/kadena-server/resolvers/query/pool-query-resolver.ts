@@ -1,13 +1,12 @@
 import { ResolverContext } from '../../config/apollo-server-config';
-import { QueryResolvers } from '../../config/graphql-types';
-import { PoolOutput } from '../../repository/application/pool-repository';
+import { Pool, QueryResolvers } from '../../config/graphql-types';
 
 export const poolQueryResolver: QueryResolvers<ResolverContext>['pool'] = async (
   _parent: unknown,
   args: { id: string },
   context: ResolverContext,
-) => {
-  const pool = (await context.poolRepository.getPool({ id: parseInt(args.id, 10) })) as PoolOutput;
+): Promise<Pool> => {
+  const pool = await context.poolRepository.getPool({ id: parseInt(args.id, 10) });
 
   if (!pool) {
     throw new Error(`Pool with id ${args.id} not found`);
@@ -22,12 +21,14 @@ export const poolQueryResolver: QueryResolvers<ResolverContext>['pool'] = async 
       id: String(pool.token0.id),
       chainId: '0',
       name: pool.token0.name,
+      address: pool.token0.address || '',
     },
     token1: {
       __typename: 'Token',
       id: String(pool.token1.id),
       chainId: '0',
       name: pool.token1.name,
+      address: pool.token1.address || '',
     },
     reserve0: pool.reserve0,
     reserve1: pool.reserve1,
@@ -47,9 +48,19 @@ export const poolQueryResolver: QueryResolvers<ResolverContext>['pool'] = async 
     updatedAt: pool.updatedAt,
     charts: {
       __typename: 'PoolCharts',
-      tvl: [],
-      volume: [],
-      fees: [],
+      tvl: pool.charts.tvl || [],
+      volume: pool.charts.volume || [],
+      fees: pool.charts.fees || [],
+    },
+    transactions: pool.transactions || {
+      edges: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+      totalCount: 0,
     },
   };
 };

@@ -1165,6 +1165,7 @@ type Token {
   id: ID!
   name: String!
   chainId: String!
+  address: String
 }
 
 """

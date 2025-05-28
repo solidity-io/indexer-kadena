@@ -1109,6 +1109,7 @@ export enum TimeFrame {
 
 export type Token = {
   __typename?: 'Token';
+  address?: Maybe<Scalars['String']['output']>;
   chainId: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
@@ -3073,6 +3074,7 @@ export type TokenResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Token'] = ResolversParentTypes['Token'],
 > = {
+  address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   chainId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

@@ -300,12 +300,14 @@ export default class PoolDbRepository {
         id: token0.id.toString(),
         name: token0.name,
         chainId: '0',
+        address: token0.code,
       },
       token1: {
         __typename: 'Token',
         id: token1.id.toString(),
         name: token1.name,
         chainId: '0',
+        address: token1.code,
       },
       reserve0: pair.reserve0,
       reserve1: pair.reserve1,
@@ -325,7 +327,7 @@ export default class PoolDbRepository {
       updatedAt: pair.updatedAt,
       charts,
       transactions,
-    };
+    } as Pool;
   }
 
   async getPoolTransactions(
