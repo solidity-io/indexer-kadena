@@ -78,6 +78,7 @@ async function main() {
     } else if (options.graphql) {
       await startGraphqlServer();
     } else if (options.backfillPairs) {
+      PriceUpdaterService.getInstance();
       await backfillPairEvents();
     } else {
       console.info('[INFO][BIZ][BIZ_FLOW] No specific task requested.');
