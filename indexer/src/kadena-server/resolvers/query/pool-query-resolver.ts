@@ -1,12 +1,12 @@
 import { ResolverContext } from '../../config/apollo-server-config';
-import { Pool, QueryResolvers } from '../../config/graphql-types';
+import { Pool, QueryResolvers, QueryPoolArgs } from '../../config/graphql-types';
 
 export const poolQueryResolver: QueryResolvers<ResolverContext>['pool'] = async (
   _parent: unknown,
-  args: { id: string },
+  args: QueryPoolArgs,
   context: ResolverContext,
 ): Promise<Pool> => {
-  const pool = await context.poolRepository.getPool({ id: parseInt(args.id, 10) });
+  const pool = await context.poolRepository.getPool(args);
 
   if (!pool) {
     throw new Error(`Pool with id ${args.id} not found`);

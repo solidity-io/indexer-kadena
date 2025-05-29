@@ -45,6 +45,7 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
       parameters: JSON.stringify(event.params),
       qualifiedName: event.qualname,
       chainId: event.chainId,
+      transactionId: event.transactionId,
     }));
     await PairService.updatePairs(updateParams);
   }

@@ -349,7 +349,7 @@ type Query {
   """
   Retrieve a specific pool by its ID.
   """
-  pool(id: ID!): Pool @complexity(value: 1)
+  pool(id: ID!, timeFrame: TimeFrame, type: PoolTransactionType, first: Int, after: String, last: Int, before: String): Pool @complexity(value: 1)
 
   poolTransactions(
     pairId: Int!
@@ -1222,6 +1222,14 @@ type Pool implements Node {
     Cursor for pagination
     """
     after: String
+    """
+    Number of items to fetch
+    """
+    last: Int
+    """
+    Cursor for pagination
+    """
+    before: String
   ): PoolTransactionsConnection @complexity(value: 10, multipliers: ["first"])
 }
 

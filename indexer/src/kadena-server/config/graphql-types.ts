@@ -565,7 +565,9 @@ export type PoolChartsArgs = {
 /** A liquidity pool for a token pair. */
 export type PoolTransactionsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
+  last?: InputMaybe<Scalars['Int']['input']>;
   type?: InputMaybe<PoolTransactionType>;
 };
 
@@ -853,7 +855,13 @@ export type QueryPactQueryArgs = {
 };
 
 export type QueryPoolArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
   id: Scalars['ID']['input'];
+  last?: InputMaybe<Scalars['Int']['input']>;
+  timeFrame?: InputMaybe<TimeFrame>;
+  type?: InputMaybe<PoolTransactionType>;
 };
 
 export type QueryPoolTransactionsArgs = {

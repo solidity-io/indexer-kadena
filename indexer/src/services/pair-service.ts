@@ -9,6 +9,7 @@ import Token from '../models/token';
 import LiquidityBalance from '../models/liquidity-balance';
 import { PriceService } from './price/price.service';
 import { DEFAULT_PROTOCOL } from '../kadena-server/config/apollo-server-config';
+import Transaction from '@/models/transaction';
 
 type TokenAmount = number | { decimal: string };
 
@@ -152,6 +153,7 @@ export class PairService {
       parameters: string;
       qualifiedName: string;
       chainId: number;
+      transactionId: number;
     }>,
   ): Promise<void> {
     for (const event of updateEvents) {
@@ -244,6 +246,7 @@ export class PairService {
         const reserve1Usd = token1Price ? (Number(reserve1Str) * token1Price).toString() : '0';
         const tvlUsd = (Number(reserve0Usd) + Number(reserve1Usd)).toString();
 
+        const transaction = await Transaction.findByPk(event.transactionId);
         // Store chart data
         await PoolChart.create({
           pairId: pair.id,
@@ -253,7 +256,7 @@ export class PairService {
           reserve0Usd,
           reserve1Usd,
           tvlUsd,
-          timestamp: new Date(),
+          timestamp: transaction ? new Date(Number(transaction.creationtime) * 1000) : new Date(),
         });
 
         // Update pair's current state

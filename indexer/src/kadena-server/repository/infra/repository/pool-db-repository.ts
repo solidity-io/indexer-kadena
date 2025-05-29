@@ -3,17 +3,16 @@ import { Op, QueryTypes } from 'sequelize';
 import { sequelize } from '../../../../config/database';
 import Pair from '../../../../models/pair';
 import PoolStats from '../../../../models/pool-stats';
-import { encodeCursor, getPageInfo, getPaginationParams } from '../../pagination';
+import { getPageInfo, getPaginationParams } from '../../pagination';
 import {
   PageInfo,
   Pool,
   PoolCharts,
-  PoolTransactionType,
+  QueryPoolArgs,
   TimeFrame,
 } from '../../../config/graphql-types';
 import {
   GetPoolsParams,
-  GetPoolParams,
   GetPoolTransactionsParams,
   GetPoolChartsParams,
   PoolTransactionsConnection,
@@ -155,7 +154,7 @@ export default class PoolDbRepository {
     };
   }
 
-  async getPool(params: GetPoolParams): Promise<Pool | null> {
+  async getPool(params: QueryPoolArgs): Promise<Pool | null> {
     const { id } = params;
 
     // Get the pair
@@ -284,11 +283,15 @@ export default class PoolDbRepository {
 
     const charts = await this.getPoolCharts({
       pairId: parseInt(pair.id),
-      timeFrame: TimeFrame.Day,
+      timeFrame: params.timeFrame || TimeFrame.Day,
     });
     const transactions = await this.getPoolTransactions({
       pairId: parseInt(pair.id),
-      first: 10,
+      type: params.type || undefined,
+      first: params.first || undefined,
+      after: params.after || undefined,
+      last: params.last || undefined,
+      before: params.before || undefined,
     });
 
     return {
