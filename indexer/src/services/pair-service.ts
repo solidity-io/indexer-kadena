@@ -601,39 +601,6 @@ export class PairService {
           amountUsd,
           feeUsd: 0,
         });
-
-        const liquidityBalance = await LiquidityBalance.findOne({
-          where: {
-            pairId: pair.id,
-            walletAddress: sender,
-          },
-        });
-
-        if (event.name === 'ADD_LIQUIDITY') {
-          if (liquidityBalance) {
-            // Update existing balance
-            const currentLiquidity = Number(liquidityBalance.liquidity);
-            const newLiquidity = currentLiquidity + liquidity;
-            await liquidityBalance.update({
-              liquidity: newLiquidity.toString(),
-            });
-          } else {
-            // Create new balance
-            await LiquidityBalance.create({
-              pairId: pair.id,
-              walletAddress: sender,
-              liquidity: liquidity.toString(),
-            });
-          }
-        } else if (event.name === 'REMOVE_LIQUIDITY' && liquidityBalance) {
-          // Subtract liquidity
-          const currentLiquidity = Number(liquidityBalance.liquidity);
-          const newLiquidity = currentLiquidity - liquidity;
-          await liquidityBalance.update({
-            liquidity: newLiquidity.toString(),
-          });
-        }
-
         // Update pool stats
         await this.updatePoolStats(pair.id);
       } catch (error) {
@@ -810,6 +777,175 @@ export class PairService {
     } catch (error) {
       console.error('Error calculating token price:', error);
       return undefined;
+    }
+  }
+
+  static async processExchangeTokenEvents(
+    exchangeTokenEvents: Array<{
+      moduleName: string;
+      name: string;
+      parameterText: string;
+      parameters: string;
+      qualifiedName: string;
+      chainId: number;
+      transactionId: number;
+      requestkey: string;
+    }>,
+  ): Promise<void> {
+    for (const event of exchangeTokenEvents) {
+      try {
+        switch (event.name) {
+          case 'TRANSFER_EVENT': {
+            const [token, sender, receiver, amount] = JSON.parse(event.parameters) as [
+              string,
+              string,
+              string,
+              TokenAmount,
+            ];
+
+            // Convert TokenAmount to string representation
+            const amountStr = typeof amount === 'number' ? amount.toString() : amount.decimal;
+            const pair = await Pair.findOne({
+              where: {
+                key: token,
+              },
+            });
+
+            if (!pair) {
+              console.warn(`Pair not found for token ${token}`);
+              continue;
+            }
+
+            // Find or create liquidity balances for both sender and receiver
+            const [senderBalance, receiverBalance] = await Promise.all([
+              LiquidityBalance.findOne({
+                where: { walletAddress: sender, pairId: pair.id },
+              }),
+              LiquidityBalance.findOne({
+                where: { walletAddress: receiver, pairId: pair.id },
+              }),
+            ]);
+
+            // Update or create sender's balance
+            if (senderBalance) {
+              const currentLiquidity = Number(senderBalance.liquidity);
+              const newLiquidity = currentLiquidity - Number(amountStr);
+              await senderBalance.update({
+                liquidity: newLiquidity.toString(),
+              });
+            } else {
+              await LiquidityBalance.create({
+                walletAddress: sender,
+                pairId: pair.id,
+                liquidity: (-Number(amountStr)).toString(),
+              });
+            }
+
+            // Update or create receiver's balance
+            if (receiverBalance) {
+              const currentLiquidity = Number(receiverBalance.liquidity);
+              const newLiquidity = currentLiquidity + Number(amountStr);
+              await receiverBalance.update({
+                liquidity: newLiquidity.toString(),
+              });
+            } else {
+              await LiquidityBalance.create({
+                walletAddress: receiver,
+                pairId: pair.id,
+                liquidity: amountStr,
+              });
+            }
+            break;
+          }
+
+          case 'BURN_EVENT': {
+            const [token, account, amount] = JSON.parse(event.parameters) as [
+              string,
+              string,
+              TokenAmount,
+            ];
+
+            // Convert TokenAmount to string representation
+            const amountStr = typeof amount === 'number' ? amount.toString() : amount.decimal;
+            const pair = await Pair.findOne({
+              where: {
+                key: token,
+              },
+            });
+
+            if (!pair) {
+              console.warn(`Pair not found for token ${token}`);
+              continue;
+            }
+
+            // Find or create the account's liquidity balance
+            const balance = await LiquidityBalance.findOne({
+              where: { walletAddress: account, pairId: pair.id },
+            });
+
+            if (balance) {
+              const currentLiquidity = Number(balance.liquidity);
+              const newLiquidity = currentLiquidity - Number(amountStr);
+              await balance.update({
+                liquidity: newLiquidity.toString(),
+              });
+            } else {
+              await LiquidityBalance.create({
+                walletAddress: account,
+                pairId: pair.id,
+                liquidity: (-Number(amountStr)).toString(),
+              });
+            }
+            break;
+          }
+
+          case 'MINT_EVENT': {
+            const [token, account, amount] = JSON.parse(event.parameters) as [
+              string,
+              string,
+              TokenAmount,
+            ];
+
+            // Convert TokenAmount to string representation
+            const amountStr = typeof amount === 'number' ? amount.toString() : amount.decimal;
+            const pair = await Pair.findOne({
+              where: {
+                key: token,
+              },
+            });
+
+            if (!pair) {
+              console.warn(`Pair not found for token ${token}`);
+              continue;
+            }
+
+            // Find or create the account's liquidity balance
+            const balance = await LiquidityBalance.findOne({
+              where: { walletAddress: account, pairId: pair.id },
+            });
+
+            if (balance) {
+              const currentLiquidity = Number(balance.liquidity);
+              const newLiquidity = currentLiquidity + Number(amountStr);
+              await balance.update({
+                liquidity: newLiquidity.toString(),
+              });
+            } else {
+              await LiquidityBalance.create({
+                walletAddress: account,
+                pairId: pair.id,
+                liquidity: amountStr,
+              });
+            }
+            break;
+          }
+
+          default:
+            console.warn(`Unknown event type: ${event.name}`);
+        }
+      } catch (error) {
+        console.error('Error processing exchange token event:', error);
+      }
     }
   }
 }

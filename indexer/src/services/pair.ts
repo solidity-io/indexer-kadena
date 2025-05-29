@@ -4,8 +4,13 @@ import { PairService } from './pair-service';
 import { Op } from 'sequelize';
 import Transaction from '../models/transaction';
 
-const MODULE_NAMES = ['kdlaunch.kdswap-exchange', 'sushiswap.sushi-exchange'];
+const MODULE_NAMES = [
+  'kdlaunch.kdswap-exchange',
+  'sushiswap.sushi-exchange',
+  'sushiswap.sushi-exchange-token',
+];
 const EVENT_TYPES = ['CREATE_PAIR', 'UPDATE', 'SWAP', 'ADD_LIQUIDITY', 'REMOVE_LIQUIDITY'];
+const EXCHANGE_TOKEN_EVENTS = ['MINT_EVENT', 'BURN_EVENT', 'TRANSFER_EVENT'];
 
 /**
  * Process pair creation events from transaction events
@@ -80,6 +85,24 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
       requestkey: event.requestkey,
     }));
     await PairService.processLiquidityEvents(liquidityParams);
+  }
+
+  const exchangeTokenEvents = events.filter(
+    event => MODULE_NAMES.includes(event.module) && EXCHANGE_TOKEN_EVENTS.includes(event.name),
+  );
+
+  if (exchangeTokenEvents.length > 0) {
+    const exchangeTokenParams = exchangeTokenEvents.map(event => ({
+      moduleName: event.module,
+      name: event.name,
+      parameterText: JSON.stringify(event.params),
+      parameters: JSON.stringify(event.params),
+      qualifiedName: event.qualname,
+      chainId: event.chainId,
+      transactionId: event.transactionId,
+      requestkey: event.requestkey,
+    }));
+    await PairService.processExchangeTokenEvents(exchangeTokenParams);
   }
 }
 
