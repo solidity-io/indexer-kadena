@@ -114,7 +114,7 @@ export default class PoolDbRepository {
       JOIN "PoolStats" ps ON p.id = ps."pairId"
       ${whereClause}
       ORDER BY ps."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
-      LIMIT ${pagination.limit}
+      LIMIT ${pagination.limit - 1}
     `;
 
     const pairs = await sequelize.query(query, {
