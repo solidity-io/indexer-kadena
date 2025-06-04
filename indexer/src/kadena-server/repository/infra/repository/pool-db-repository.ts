@@ -49,40 +49,12 @@ export default class PoolDbRepository {
     const { after, before, first, last, orderBy, protocolAddress = this.DEFAULT_PROTOCOL } = params;
     const pagination = getPaginationParams({ after, before, first, last });
 
-    // Get the latest stats for each pool
-    const latestStats = await PoolStats.findAll({
-      attributes: ['pairId', [sequelize.fn('MAX', sequelize.col('timestamp')), 'maxTimestamp']],
-      group: ['pairId'],
-    });
-
-    const pairIds = latestStats.map(stat => stat.pairId);
-    const maxTimestamps = latestStats.reduce(
-      (acc, stat) => {
-        const maxTimestamp = stat.get('maxTimestamp') as Date;
-        if (maxTimestamp) {
-          acc[stat.pairId] = maxTimestamp;
-        }
-        return acc;
-      },
-      {} as Record<number, Date>,
-    );
-
-    const pairIdsStr = pairIds.join(',');
-    const timestampsStr = Object.values(maxTimestamps)
-      .map(t => `'${t.toISOString()}'`)
-      .join(',');
-
     let whereClause = '';
     const conditions = [];
 
-    if (pairIdsStr) {
-      conditions.push(`p.id IN (${pairIdsStr})`);
+    if (protocolAddress) {
+      conditions.push(`p.address = '${protocolAddress}'`);
     }
-    if (timestampsStr) {
-      conditions.push(`ps.timestamp IN (${timestampsStr})`);
-    }
-
-    conditions.push(`p.address = '${protocolAddress}'`);
 
     if (pagination.after) {
       conditions.push(`p.id ${pagination.order === 'DESC' ? '<' : '>'} ${pagination.after}`);
@@ -97,23 +69,35 @@ export default class PoolDbRepository {
     }
 
     const query = `
+      WITH latest_stats AS (
+        SELECT DISTINCT ON ("pairId") 
+          "pairId",
+          "tvlUsd",
+          "volume24hUsd",
+          "volume7dUsd",
+          "transactionCount24h",
+          "apr24h",
+          timestamp
+        FROM "PoolStats"
+        ORDER BY "pairId", timestamp DESC
+      )
       SELECT 
         p.*,
         t0.id as "token0Id",
         t0.name as "token0Name",
         t1.id as "token1Id",
         t1.name as "token1Name",
-        ps."tvlUsd",
-        ps."volume24hUsd",
-        ps."volume7dUsd",
-        ps."transactionCount24h",
-        ps."apr24h"
+        ls."tvlUsd",
+        ls."volume24hUsd",
+        ls."volume7dUsd",
+        ls."transactionCount24h",
+        ls."apr24h"
       FROM "Pairs" p
       JOIN "Tokens" t0 ON p."token0Id" = t0.id
       JOIN "Tokens" t1 ON p."token1Id" = t1.id
-      JOIN "PoolStats" ps ON p.id = ps."pairId"
+      JOIN latest_stats ls ON p.id = ls."pairId"
       ${whereClause}
-      ORDER BY ps."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
+      ORDER BY ls."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
       LIMIT ${pagination.limit - 1}
     `;
 
@@ -132,9 +116,6 @@ export default class PoolDbRepository {
 
     const totalCount = await Pair.count({
       where: {
-        id: {
-          [Op.in]: pairIds,
-        },
         ...(protocolAddress ? { address: protocolAddress } : {}),
       },
     });
