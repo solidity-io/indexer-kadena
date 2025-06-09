@@ -233,11 +233,14 @@ export class PairService {
         // Pre-fetch all pairs for this batch to reduce database queries
         const pairKeys = batch.map(event => {
           const [key] = JSON.parse(event.parameters) as [string, TokenAmount, TokenAmount];
-          return key;
+          return { key, address: event.moduleName };
         });
 
         const existingPairs = await Pair.findAll({
-          where: { key: { [Op.in]: pairKeys } },
+          where: {
+            key: { [Op.in]: pairKeys.map(pair => pair.key) },
+            address: { [Op.in]: pairKeys.map(pair => pair.address) },
+          },
           include: [
             { model: Token, as: 'token0' },
             { model: Token, as: 'token1' },
@@ -245,7 +248,7 @@ export class PairService {
           transaction: tx,
         });
 
-        const pairMap = new Map(existingPairs.map(pair => [pair.key, pair]));
+        const pairMap = new Map(existingPairs.map(pair => [`${pair.key}:${pair.address}`, pair]));
 
         // Process each event in the batch
         await Promise.all(
@@ -265,7 +268,7 @@ export class PairService {
                 typeof reserve1 === 'number' ? reserve1.toString() : reserve1.decimal;
 
               // Get pair from pre-fetched map
-              let pair = pairMap.get(key);
+              let pair = pairMap.get(`${key}:${event.moduleName}`);
 
               if (!pair) {
                 const [code0, code1] = key.split(':');
@@ -728,6 +731,7 @@ export class PairService {
                     { token0Id: token0.id, token1Id: token1.id },
                     { token0Id: token1.id, token1Id: token0.id },
                   ],
+                  address: event.moduleName,
                 },
                 transaction: tx,
               });
@@ -1000,6 +1004,7 @@ export class PairService {
             const pair = await Pair.findOne({
               where: {
                 key: token,
+                address: event.moduleName,
               },
             });
 
@@ -1062,6 +1067,7 @@ export class PairService {
             const pair = await Pair.findOne({
               where: {
                 key: token,
+                address: event.moduleName,
               },
             });
 
@@ -1103,6 +1109,7 @@ export class PairService {
             const pair = await Pair.findOne({
               where: {
                 key: token,
+                address: event.moduleName,
               },
             });
 
