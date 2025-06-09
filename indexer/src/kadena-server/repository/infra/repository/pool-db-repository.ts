@@ -163,7 +163,7 @@ export default class PoolDbRepository {
     if (!pairResult) {
       throw new Error(`Token pair not found for pool ${id}`);
     }
-    const pair = pairResult as any;
+    const pair = pairResult as Pair;
 
     // Get the tokens
     const tokensQuery = `
@@ -224,50 +224,68 @@ export default class PoolDbRepository {
       type: QueryTypes.SELECT,
       bind: [id],
     });
+    const statsResult1 = statsResult as any;
 
-    const stats = statsResult
-      ? (statsResult as any)
-      : {
-          tvlUsd: 0,
-          volume24hUsd: 0,
-          volume7dUsd: 0,
-          fees24hUsd: 0,
-          transactionCount24h: 0,
-          apr24h: 0,
-          previousTvlUsd: 0,
-          previousVolume24hUsd: 0,
-          previousFees24hUsd: 0,
-          previousTransactionCount24h: 0,
-        };
+    interface Stats {
+      tvlUsd: number;
+      volume24hUsd: number;
+      volume7dUsd: number;
+      fees24hUsd: number;
+      transactionCount24h: number;
+      apr24h: number;
+      previousTvlUsd: number;
+      previousVolume24hUsd: number;
+      previousFees24hUsd: number;
+      previousTransactionCount24h: number;
+    }
+
+    const stats: Stats = {
+      tvlUsd: statsResult1.tvlUsd ? parseFloat(statsResult1.tvlUsd.toString()) : 0,
+      volume24hUsd: statsResult1.volume24hUsd
+        ? parseFloat(statsResult1.volume24hUsd.toString())
+        : 0,
+      volume7dUsd: statsResult1.volume7dUsd ? parseFloat(statsResult1.volume7dUsd.toString()) : 0,
+      fees24hUsd: statsResult1.fees24hUsd ? parseFloat(statsResult1.fees24hUsd.toString()) : 0,
+      transactionCount24h: statsResult1.transactionCount24h
+        ? parseFloat(statsResult1.transactionCount24h.toString())
+        : 0,
+      apr24h: statsResult1.apr24h ? parseFloat(statsResult1.apr24h.toString()) : 0,
+      previousTvlUsd: statsResult1.previousTvlUsd
+        ? parseFloat(statsResult1.previousTvlUsd.toString())
+        : 0,
+      previousVolume24hUsd: statsResult1.previousVolume24hUsd
+        ? parseFloat(statsResult1.previousVolume24hUsd.toString())
+        : 0,
+      previousFees24hUsd: statsResult1.previousFees24hUsd
+        ? parseFloat(statsResult1.previousFees24hUsd.toString())
+        : 0,
+      previousTransactionCount24h: statsResult1.previousTransactionCount24h
+        ? parseFloat(statsResult1.previousTransactionCount24h.toString())
+        : 0,
+    };
     // Calculate percentage changes
     const calculatePercentageChange = (current: number, previous: number): number => {
       if (!previous) return 0;
       return ((current - previous) / previous) * 100;
     };
 
-    const tvlChange24h = calculatePercentageChange(
-      parseFloat(stats.tvlUsd),
-      parseFloat(stats.previousTvlUsd),
-    );
+    const tvlChange24h = calculatePercentageChange(stats.tvlUsd, stats.previousTvlUsd);
     const volumeChange24h = calculatePercentageChange(
-      parseFloat(stats.volume24hUsd),
-      parseFloat(stats.previousVolume24hUsd),
+      stats.volume24hUsd,
+      stats.previousVolume24hUsd,
     );
-    const feesChange24h = calculatePercentageChange(
-      parseFloat(stats.fees24hUsd),
-      parseFloat(stats.previousFees24hUsd),
-    );
+    const feesChange24h = calculatePercentageChange(stats.fees24hUsd, stats.previousFees24hUsd);
     const transactionCountChange24h = calculatePercentageChange(
       stats.transactionCount24h,
       stats.previousTransactionCount24h,
     );
 
     const charts = await this.getPoolCharts({
-      pairId: parseInt(pair.id),
+      pairId: pair.id,
       timeFrame: params.timeFrame || TimeFrame.Day,
     });
     const transactions = await this.getPoolTransactions({
-      pairId: parseInt(pair.id),
+      pairId: pair.id,
       type: params.type || undefined,
       first: params.first || undefined,
       after: params.after || undefined,
@@ -275,19 +293,19 @@ export default class PoolDbRepository {
       before: params.before || undefined,
     });
 
-    return {
-      __typename: 'Pool',
+    const pool = {
+      __typename: 'Pool' as const,
       id: pair.id.toString(),
       address: pair.address,
       token0: {
-        __typename: 'Token',
+        __typename: 'Token' as const,
         id: token0.id.toString(),
         name: token0.name,
         chainId: '0',
         address: token0.code,
       },
       token1: {
-        __typename: 'Token',
+        __typename: 'Token' as const,
         id: token1.id.toString(),
         name: token1.name,
         chainId: '0',
@@ -297,21 +315,23 @@ export default class PoolDbRepository {
       reserve1: pair.reserve1,
       totalSupply: pair.totalSupply,
       key: pair.key,
-      tvlUsd: stats.tvlUsd ?? 0,
+      tvlUsd: stats.tvlUsd,
       tvlChange24h,
-      volume24hUsd: stats.volume24hUsd ?? 0,
+      volume24hUsd: stats.volume24hUsd,
       volumeChange24h,
-      volume7dUsd: stats.volume7dUsd ?? 0,
-      fees24hUsd: stats.fees24hUsd ?? 0,
+      volume7dUsd: stats.volume7dUsd,
+      fees24hUsd: stats.fees24hUsd,
       feesChange24h,
-      transactionCount24h: stats.transactionCount24h ?? 0,
+      transactionCount24h: stats.transactionCount24h,
       transactionCountChange24h,
-      apr24h: stats.apr24h ?? 0,
+      apr24h: stats.apr24h,
       createdAt: pair.createdAt,
       updatedAt: pair.updatedAt,
       charts,
       transactions,
-    } as Pool;
+    };
+    console.log(pool);
+    return pool;
   }
 
   async getPoolTransactions(

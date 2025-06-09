@@ -532,11 +532,11 @@ export type PageInfo = {
 export type Pool = Node & {
   __typename?: 'Pool';
   address: Scalars['String']['output'];
-  apr24h: Scalars['Decimal']['output'];
+  apr24h: Scalars['Float']['output'];
   /** Get chart data for this pool */
   charts: PoolCharts;
   createdAt: Scalars['DateTime']['output'];
-  fees24hUsd: Scalars['Decimal']['output'];
+  fees24hUsd: Scalars['Float']['output'];
   feesChange24h: Scalars['Float']['output'];
   id: Scalars['ID']['output'];
   key: Scalars['String']['output'];
@@ -550,10 +550,10 @@ export type Pool = Node & {
   /** Get transactions for this pool */
   transactions?: Maybe<PoolTransactionsConnection>;
   tvlChange24h: Scalars['Float']['output'];
-  tvlUsd: Scalars['Decimal']['output'];
+  tvlUsd: Scalars['Float']['output'];
   updatedAt: Scalars['DateTime']['output'];
-  volume7dUsd: Scalars['Decimal']['output'];
-  volume24hUsd: Scalars['Decimal']['output'];
+  volume7dUsd: Scalars['Float']['output'];
+  volume24hUsd: Scalars['Float']['output'];
   volumeChange24h: Scalars['Float']['output'];
 };
 
@@ -2589,7 +2589,7 @@ export type PoolResolvers<
   ParentType extends ResolversParentTypes['Pool'] = ResolversParentTypes['Pool'],
 > = {
   address?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  apr24h?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  apr24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   charts?: Resolver<
     ResolversTypes['PoolCharts'],
     ParentType,
@@ -2597,7 +2597,7 @@ export type PoolResolvers<
     RequireFields<PoolChartsArgs, 'timeFrame'>
   >;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  fees24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  fees24hUsd?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   feesChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2615,10 +2615,10 @@ export type PoolResolvers<
     Partial<PoolTransactionsArgs>
   >;
   tvlChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  tvlUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  tvlUsd?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  volume7dUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
-  volume24hUsd?: Resolver<ResolversTypes['Decimal'], ParentType, ContextType>;
+  volume7dUsd?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  volume24hUsd?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   volumeChange24h?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
