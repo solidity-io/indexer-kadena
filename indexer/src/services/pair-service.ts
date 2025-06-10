@@ -397,6 +397,7 @@ export class PairService {
    */
   private static async updatePoolStats(pairId: number, tx?: SequelizeTransaction): Promise<void> {
     const now = new Date();
+    const dateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -474,7 +475,7 @@ export class PairService {
     await PoolStats.upsert(
       {
         pairId,
-        timestamp: now,
+        timestamp: dateOnly,
         volume24hUsd: this.formatTo8Decimals(volume24h),
         volume7dUsd: this.formatTo8Decimals(volume7d),
         volume30dUsd: this.formatTo8Decimals(volume30d),
@@ -490,7 +491,10 @@ export class PairService {
           value: chart.tvlUsd,
         })),
       },
-      { transaction: tx },
+      {
+        transaction: tx,
+        fields: ['pairId', 'timestamp'],
+      },
     );
   }
 

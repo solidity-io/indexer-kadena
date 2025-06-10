@@ -100,7 +100,7 @@ PoolStats.init(
       comment: 'The ID of the associated pair',
     },
     timestamp: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
       comment: 'The timestamp when these stats were recorded',
     },
