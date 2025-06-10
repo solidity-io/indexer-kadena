@@ -19,6 +19,7 @@ import {
 } from '../../application/pool-repository';
 import { ConnectionEdge } from '../../types';
 import TokenModel from '../../../../models/token';
+import { DEFAULT_PROTOCOL } from '../../../config/apollo-server-config';
 
 type OrderDirection = 'ASC' | 'DESC';
 
@@ -39,14 +40,12 @@ const POOL_ORDER_BY_MAP: Record<
 };
 
 export default class PoolDbRepository {
-  private readonly DEFAULT_PROTOCOL = 'kdlaunch.kdswap-exchange';
-
   async getPools(params: GetPoolsParams): Promise<{
     pageInfo: PageInfo;
     edges: ConnectionEdge<Pool>[];
     totalCount: number;
   }> {
-    const { after, before, first, last, orderBy, protocolAddress = this.DEFAULT_PROTOCOL } = params;
+    const { after, before, first, last, orderBy, protocolAddress = DEFAULT_PROTOCOL } = params;
     const pagination = getPaginationParams({ after, before, first, last });
 
     let whereClause = '';
@@ -292,6 +291,8 @@ export default class PoolDbRepository {
       last: params.last || undefined,
       before: params.before || undefined,
     });
+
+    console.log({ stats });
 
     const pool = {
       __typename: 'Pool' as const,

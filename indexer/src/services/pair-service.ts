@@ -753,6 +753,17 @@ export class PairService {
                   (token1Price ? Number(amount1Str) * token1Price : 0),
               );
 
+              let totalSupply = Number(pair.totalSupply);
+              if (event.name === 'ADD_LIQUIDITY') {
+                totalSupply = Number(pair.totalSupply) + Number(liquidity);
+              } else {
+                totalSupply = Number(pair.totalSupply) - Number(liquidity);
+              }
+
+              await pair.update({
+                totalSupply: totalSupply.toString(),
+              });
+
               // Create pool transaction record
               await PoolTransaction.create({
                 pairId: pair.id,
