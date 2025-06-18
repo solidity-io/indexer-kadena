@@ -497,6 +497,7 @@ export default class PoolDbRepository {
     );
 
     // Get volume and fees data from PoolTransactions
+    const timeFrameTrunc = timeFrame === TimeFrame.Day ? 'hour' : 'day';
     const volumeAndFeesData = await sequelize.query<{
       timestamp: Date;
       volume: number;
@@ -504,70 +505,37 @@ export default class PoolDbRepository {
     }>(
       `
       SELECT 
-        date_trunc('hour', "createdAt") as timestamp,
-        SUM("amountUsd") as volume,
-        SUM("feeUsd") as fees
-      FROM "PoolTransactions"
-      WHERE "pairId" = :pairId
-        AND "createdAt" >= :startDate
-      GROUP BY date_trunc('hour', "createdAt")
+        date_trunc('${timeFrameTrunc}', ps."timestamp") as timestamp,
+        SUM(ps."amountUsd") as volume,
+        SUM(ps."feeUsd") as fees
+      FROM "PoolTransactions" ps
+      WHERE ps."pairId" = :pairId
+        AND ps."timestamp" >= :startDate AND ps."timestamp" <= :endDate
+      GROUP BY date_trunc('${timeFrameTrunc}', ps."timestamp")
       ORDER BY timestamp ASC
       `,
       {
         replacements: {
           pairId,
           startDate: startDate.toISOString(),
+          endDate: todayUTC.toISOString(),
         },
         type: QueryTypes.SELECT,
       },
     );
 
-    // Create a map of timestamps to data points
-    const dataMap = new Map<string, { volume: number; fees: number; tvl: number }>();
-
-    // Initialize all timestamps with zero values
-    const allTimestamps = new Set([
-      ...tvlData.map(d => d.timestamp.toISOString()),
-      ...volumeAndFeesData.map(d => d.timestamp.toISOString()),
-    ]);
-
-    allTimestamps.forEach(timestamp => {
-      dataMap.set(timestamp, { volume: 0, fees: 0, tvl: 0 });
-    });
-
-    // Fill in TVL data
-    tvlData.forEach(data => {
-      const timestamp = data.timestamp.toISOString();
-      const existing = dataMap.get(timestamp) || { volume: 0, fees: 0, tvl: 0 };
-      dataMap.set(timestamp, { ...existing, tvl: data.tvlUsd });
-    });
-
-    // Fill in volume and fees data
-    volumeAndFeesData.forEach(data => {
-      const timestamp = data.timestamp.toISOString();
-      const existing = dataMap.get(timestamp) || { volume: 0, fees: 0, tvl: 0 };
-      dataMap.set(timestamp, {
-        ...existing,
-        volume: data.volume,
-        fees: data.fees,
-      });
-    });
-
-    // Convert map to arrays of data points
-    const sortedTimestamps = Array.from(dataMap.keys()).sort();
-
     return {
-      volume: sortedTimestamps.map(timestamp => ({
-        timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)?.volume ?? 0,
+      volume: volumeAndFeesData.map(data => ({
+        timestamp: new Date(data.timestamp),
+        value: data.volume,
       })),
-      tvl: sortedTimestamps.map(timestamp => ({
-        timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)?.tvl ?? 0,
+      tvl: tvlData.map(data => ({
+        timestamp: new Date(data.timestamp),
+        value: data.tvlUsd,
       })),
-      fees: sortedTimestamps.map(timestamp => ({
-        timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)?.fees ?? 0,
+      fees: volumeAndFeesData.map(data => ({
+        timestamp: new Date(data.timestamp),
+        value: data.fees,
       })),
     };
   }
