@@ -412,7 +412,6 @@ export class PairService {
     const utcDate = now.getUTCDate();
     const todayUTC = new Date(Date.UTC(utcYear, utcMonth, utcDate, 0, 0, 0, 0));
     const endOfDayUTC = new Date(Date.UTC(utcYear, utcMonth, utcDate, 23, 59, 59, 999));
-    const oneDayAgo = new Date(Date.UTC(utcYear, utcMonth, utcDate - 1, 0, 0, 0, 0));
     const sevenDaysAgo = new Date(Date.UTC(utcYear, utcMonth, utcDate - 7, 0, 0, 0, 0));
     const thirtyDaysAgo = new Date(Date.UTC(utcYear, utcMonth, utcDate - 30, 0, 0, 0, 0));
     const oneYearAgo = new Date(Date.UTC(utcYear - 1, utcMonth, utcDate, 0, 0, 0, 0));
@@ -422,25 +421,25 @@ export class PairService {
       PoolTransaction.findAll({
         where: {
           pairId,
-          timestamp: { [Op.gte]: oneDayAgo },
+          timestamp: { [Op.gte]: todayUTC, [Op.lte]: endOfDayUTC },
         },
       }),
       PoolTransaction.findAll({
         where: {
           pairId,
-          timestamp: { [Op.gte]: sevenDaysAgo },
+          timestamp: { [Op.gte]: sevenDaysAgo, [Op.lte]: todayUTC },
         },
       }),
       PoolTransaction.findAll({
         where: {
           pairId,
-          timestamp: { [Op.gte]: thirtyDaysAgo },
+          timestamp: { [Op.gte]: thirtyDaysAgo, [Op.lte]: todayUTC },
         },
       }),
       PoolTransaction.findAll({
         where: {
           pairId,
-          timestamp: { [Op.gte]: oneYearAgo },
+          timestamp: { [Op.gte]: oneYearAgo, [Op.lte]: todayUTC },
         },
       }),
     ]);
@@ -497,6 +496,7 @@ export class PairService {
       fees7dUsd: this.formatTo8Decimals(fees7d),
       fees30dUsd: this.formatTo8Decimals(fees30d),
       fees1yUsd: this.formatTo8Decimals(fees1y),
+      transactionCount24h: transactions24h.length,
       tvlUsd: latestChart?.tvlUsd ? this.formatTo8Decimals(parseFloat(latestChart.tvlUsd)) : 0,
       apr24h: this.formatTo8Decimals(apr24h),
       tvlHistory: tvlHistory.map(chart => ({
@@ -628,9 +628,11 @@ export class PairService {
 
               // Calculate fee amount using the formula: fee_amount = in * (FEE / (1 - FEE))
               const feeAmount = Number(amountInStr) * (FEE / (1 - FEE));
+              console.log({ feeAmount, amountInStr, FEE });
               const feeUsd = tokenInPrice
                 ? this.formatTo8Decimals(feeAmount * tokenInPrice)
                 : '0.00000000';
+              console.log({ feeUsd });
 
               // Create pool transaction record
               await PoolTransaction.create(
