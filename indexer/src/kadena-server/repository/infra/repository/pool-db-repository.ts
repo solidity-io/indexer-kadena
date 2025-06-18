@@ -438,44 +438,59 @@ export default class PoolDbRepository {
 
   async getPoolCharts({ pairId, timeFrame }: GetPoolChartsParams): Promise<PoolCharts> {
     const now = new Date();
+    const utcYear = now.getUTCFullYear();
+    const utcMonth = now.getUTCMonth();
+    const utcDate = now.getUTCDate();
+    const todayUTC = new Date(Date.UTC(utcYear, utcMonth, utcDate, 0, 0, 0, 0));
+
     let startDate: Date;
 
     switch (timeFrame) {
       case TimeFrame.Day:
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        startDate = new Date(todayUTC.getTime() - 24 * 60 * 60 * 1000);
         break;
       case TimeFrame.Week:
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        startDate = new Date(todayUTC.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
       case TimeFrame.Month:
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        startDate = new Date(todayUTC.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
       case TimeFrame.Year:
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        startDate = new Date(todayUTC.getTime() - 365 * 24 * 60 * 60 * 1000);
         break;
       case TimeFrame.All:
         startDate = new Date(0); // Beginning of Unix time
         break;
       default:
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Default to 24h
+        startDate = new Date(todayUTC.getTime() - 24 * 60 * 60 * 1000); // Default to 24h
     }
 
     // Get TVL data from PoolStats
     const tvlData = await sequelize.query<{ timestamp: Date; tvlUsd: number }>(
-      `
+      timeFrame === TimeFrame.Day
+        ? `
       SELECT 
-        date_trunc('hour', "createdAt") as timestamp,
-        AVG("tvlUsd") as "tvlUsd"
+        (jsonb_array_elements("tvlHistory")->>'timestamp')::timestamp as timestamp,
+        (jsonb_array_elements("tvlHistory")->>'value')::numeric as "tvlUsd"
       FROM "PoolStats"
       WHERE "pairId" = :pairId
-        AND "createdAt" >= :startDate
-      GROUP BY date_trunc('hour', "createdAt")
+        AND "timestamp" = :startDate
+      ORDER BY timestamp ASC
+      `
+        : `
+      SELECT 
+        "timestamp",
+        "tvlUsd"
+      FROM "PoolStats"
+      WHERE "pairId" = :pairId
+        AND "timestamp" >= :startDate AND "timestamp" <= :endDate
       ORDER BY timestamp ASC
       `,
       {
         replacements: {
           pairId,
           startDate: startDate.toISOString(),
+          endDate: todayUTC.toISOString(),
         },
         type: QueryTypes.SELECT,
       },

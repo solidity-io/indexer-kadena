@@ -185,6 +185,7 @@ PoolStats.init(
       {
         name: 'pool_stats_pairid_timestamp_idx',
         fields: ['pairId', 'timestamp'],
+        unique: true,
       },
     ],
   },

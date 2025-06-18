@@ -359,7 +359,17 @@ export class PairService {
                   reserve1Usd,
                   tvlUsd,
                   timestamp: transaction
-                    ? new Date(Number(transaction.creationtime) * 1000)
+                    ? new Date(
+                        Date.UTC(
+                          new Date(Number(transaction.creationtime) * 1000).getUTCFullYear(),
+                          new Date(Number(transaction.creationtime) * 1000).getUTCMonth(),
+                          new Date(Number(transaction.creationtime) * 1000).getUTCDate(),
+                          0,
+                          0,
+                          0,
+                          0,
+                        ),
+                      )
                     : new Date(),
                 },
                 { transaction: tx },
@@ -397,11 +407,15 @@ export class PairService {
    */
   private static async updatePoolStats(pairId: number, tx?: SequelizeTransaction): Promise<void> {
     const now = new Date();
-    const dateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+    const utcYear = now.getUTCFullYear();
+    const utcMonth = now.getUTCMonth();
+    const utcDate = now.getUTCDate();
+    const todayUTC = new Date(Date.UTC(utcYear, utcMonth, utcDate, 0, 0, 0, 0));
+    const endOfDayUTC = new Date(Date.UTC(utcYear, utcMonth, utcDate, 23, 59, 59, 999));
+    const oneDayAgo = new Date(Date.UTC(utcYear, utcMonth, utcDate - 1, 0, 0, 0, 0));
+    const sevenDaysAgo = new Date(Date.UTC(utcYear, utcMonth, utcDate - 7, 0, 0, 0, 0));
+    const thirtyDaysAgo = new Date(Date.UTC(utcYear, utcMonth, utcDate - 30, 0, 0, 0, 0));
+    const oneYearAgo = new Date(Date.UTC(utcYear - 1, utcMonth, utcDate, 0, 0, 0, 0));
 
     // Get transactions for different time periods
     const [transactions24h, transactions7d, transactions30d, transactions1y] = await Promise.all([
@@ -466,36 +480,30 @@ export class PairService {
 
     // Get TVL history
     const tvlHistory = await PoolChart.findAll({
-      where: { pairId },
+      where: { pairId, timestamp: { [Op.lte]: endOfDayUTC, [Op.gte]: todayUTC } },
       attributes: ['timestamp', 'tvlUsd'],
       order: [['timestamp', 'ASC']],
     });
 
     // Update or create pool stats
-    await PoolStats.upsert(
-      {
-        pairId,
-        timestamp: dateOnly,
-        volume24hUsd: this.formatTo8Decimals(volume24h),
-        volume7dUsd: this.formatTo8Decimals(volume7d),
-        volume30dUsd: this.formatTo8Decimals(volume30d),
-        volume1yUsd: this.formatTo8Decimals(volume1y),
-        fees24hUsd: this.formatTo8Decimals(fees24h),
-        fees7dUsd: this.formatTo8Decimals(fees7d),
-        fees30dUsd: this.formatTo8Decimals(fees30d),
-        fees1yUsd: this.formatTo8Decimals(fees1y),
-        tvlUsd: latestChart?.tvlUsd ? this.formatTo8Decimals(parseFloat(latestChart.tvlUsd)) : 0,
-        apr24h: this.formatTo8Decimals(apr24h),
-        tvlHistory: tvlHistory.map(chart => ({
-          timestamp: chart.timestamp,
-          value: chart.tvlUsd,
-        })),
-      },
-      {
-        transaction: tx,
-        fields: ['pairId', 'timestamp'],
-      },
-    );
+    await PoolStats.upsert({
+      pairId,
+      timestamp: todayUTC,
+      volume24hUsd: this.formatTo8Decimals(volume24h),
+      volume7dUsd: this.formatTo8Decimals(volume7d),
+      volume30dUsd: this.formatTo8Decimals(volume30d),
+      volume1yUsd: this.formatTo8Decimals(volume1y),
+      fees24hUsd: this.formatTo8Decimals(fees24h),
+      fees7dUsd: this.formatTo8Decimals(fees7d),
+      fees30dUsd: this.formatTo8Decimals(fees30d),
+      fees1yUsd: this.formatTo8Decimals(fees1y),
+      tvlUsd: latestChart?.tvlUsd ? this.formatTo8Decimals(parseFloat(latestChart.tvlUsd)) : 0,
+      apr24h: this.formatTo8Decimals(apr24h),
+      tvlHistory: tvlHistory.map(chart => ({
+        timestamp: chart.timestamp,
+        value: chart.tvlUsd,
+      })),
+    });
   }
 
   private static async createOrFindPair(
