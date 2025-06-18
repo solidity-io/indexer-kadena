@@ -498,16 +498,14 @@ export default class PoolDbRepository {
 
     // Get volume and fees data from PoolTransactions
     const timeFrameTrunc = timeFrame === TimeFrame.Day ? 'hour' : 'day';
-    const volumeAndFeesData = await sequelize.query<{
+    const volumesData = await sequelize.query<{
       timestamp: Date;
       volume: number;
-      fees: number;
     }>(
       `
       SELECT 
         date_trunc('${timeFrameTrunc}', ps."timestamp") as timestamp,
-        SUM(ps."amountUsd") as volume,
-        SUM(ps."feeUsd") as fees
+        SUM(ps."amountUsd") as volume
       FROM "PoolTransactions" ps
       WHERE ps."pairId" = :pairId
         AND ps."timestamp" >= :startDate AND ps."timestamp" <= :endDate
@@ -524,8 +522,32 @@ export default class PoolDbRepository {
       },
     );
 
+    const feesData = await sequelize.query<{
+      timestamp: Date;
+      fees: number;
+    }>(
+      `
+      SELECT 
+        date_trunc('${timeFrameTrunc}', ps."timestamp") as timestamp,
+        SUM(ps."feeUsd") as fees
+      FROM "PoolTransactions" ps
+      WHERE ps."pairId" = :pairId
+        AND ps."timestamp" >= :startDate AND ps."timestamp" <= :endDate AND ps."type" = 'SWAP'
+      GROUP BY date_trunc('${timeFrameTrunc}', ps."timestamp")
+      ORDER BY timestamp ASC
+      `,
+      {
+        replacements: {
+          pairId,
+          startDate: startDate.toISOString(),
+          endDate: todayUTC.toISOString(),
+        },
+        type: QueryTypes.SELECT,
+      },
+    );
+
     return {
-      volume: volumeAndFeesData.map(data => ({
+      volume: volumesData.map(data => ({
         timestamp: new Date(data.timestamp),
         value: data.volume,
       })),
@@ -533,7 +555,7 @@ export default class PoolDbRepository {
         timestamp: new Date(data.timestamp),
         value: data.tvlUsd,
       })),
-      fees: volumeAndFeesData.map(data => ({
+      fees: feesData.map(data => ({
         timestamp: new Date(data.timestamp),
         value: data.fees,
       })),
