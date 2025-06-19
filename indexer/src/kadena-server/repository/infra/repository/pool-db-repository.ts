@@ -20,6 +20,7 @@ import {
 import { ConnectionEdge } from '../../types';
 import TokenModel from '../../../../models/token';
 import { DEFAULT_PROTOCOL } from '../../../config/apollo-server-config';
+import { PairService } from '@/services/pair-service';
 
 type OrderDirection = 'ASC' | 'DESC';
 
@@ -292,7 +293,7 @@ export default class PoolDbRepository {
       before: params.before || undefined,
     });
 
-    console.log({ stats });
+    const tvlUsd = await PairService.calculateTvlUsdFromPair(pair.id.toString());
 
     const pool = {
       __typename: 'Pool' as const,
@@ -316,7 +317,7 @@ export default class PoolDbRepository {
       reserve1: pair.reserve1,
       totalSupply: pair.totalSupply,
       key: pair.key,
-      tvlUsd: stats.tvlUsd,
+      tvlUsd: tvlUsd,
       tvlChange24h,
       volume24hUsd: stats.volume24hUsd,
       volumeChange24h,
