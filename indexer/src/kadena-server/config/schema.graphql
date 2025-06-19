@@ -352,7 +352,7 @@ type Query {
   pool(id: ID!, timeFrame: TimeFrame, type: PoolTransactionType, first: Int, after: String, last: Int, before: String): Pool @complexity(value: 1)
 
   poolTransactions(
-    pairId: Int!
+    pairId: String!
     type: PoolTransactionType
     first: Int
     after: String
@@ -1363,7 +1363,7 @@ type PoolTransactionEdge {
 
 type LiquidityBalance {
   id: Int!
-  pairId: Int!
+  pairId: String!
   liquidity: String!
   walletAddress: String!
   pair: Pool!
@@ -1388,7 +1388,7 @@ A user's liquidity position in a pool
 """
 type LiquidityPosition {
   id: ID!
-  pairId: Int!
+  pairId: String!
   liquidity: String!
   walletAddress: String!
   valueUsd: Decimal!

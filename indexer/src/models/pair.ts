@@ -31,6 +31,7 @@ Pair.init(
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
+      allowNull: false,
     },
     address: {
       type: DataTypes.STRING,

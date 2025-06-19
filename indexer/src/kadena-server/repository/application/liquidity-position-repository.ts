@@ -3,7 +3,7 @@ import { ConnectionEdge } from '../types';
 
 export interface LiquidityPosition {
   id: string;
-  pairId: number;
+  pairId: string;
   liquidity: string;
   walletAddress: string;
   valueUsd: number;

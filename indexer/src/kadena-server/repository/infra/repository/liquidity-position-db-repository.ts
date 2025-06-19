@@ -1,8 +1,6 @@
-import { Op, QueryTypes } from 'sequelize';
+import { QueryTypes } from 'sequelize';
 import { sequelize } from '../../../../config/database';
 import LiquidityBalance from '../../../../models/liquidity-balance';
-import Pair from '../../../../models/pair';
-import Token from '../../../../models/token';
 import PoolStats from '../../../../models/pool-stats';
 import { getPageInfo, getPaginationParams } from '../../pagination';
 import {
@@ -11,7 +9,6 @@ import {
   LiquidityPositionsConnection,
 } from '../../application/liquidity-position-repository';
 import PoolDbRepository from './pool-db-repository';
-import { Pool } from '../../../config/graphql-types';
 
 export default class LiquidityPositionDbRepository {
   private poolRepository: PoolDbRepository;
@@ -33,7 +30,6 @@ export default class LiquidityPositionDbRepository {
     });
 
     const pairIds = latestStats.map(stat => stat.pairId);
-
     // If no pairIds, return empty result
     if (pairIds.length === 0) {
       return {
@@ -48,25 +44,14 @@ export default class LiquidityPositionDbRepository {
       };
     }
 
-    const maxTimestamps = latestStats.reduce(
-      (acc, stat) => {
-        const maxTimestamp = stat.get('maxTimestamp') as Date;
-        if (maxTimestamp) {
-          acc[stat.pairId] = maxTimestamp;
-        }
-        return acc;
-      },
-      {} as Record<number, Date>,
-    );
-
     // Build order by clause
     const orderByMap: Record<string, [string, string]> = {
       VALUE_USD_ASC: [
-        '(CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL)',
+        'CASE WHEN CAST(p."totalSupply" AS DECIMAL) = 0 THEN 0 ELSE (CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL) END',
         'ASC',
       ],
       VALUE_USD_DESC: [
-        '(CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL)',
+        'CASE WHEN CAST(p."totalSupply" AS DECIMAL) = 0 THEN 0 ELSE (CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL) END',
         'DESC',
       ],
       LIQUIDITY_ASC: ['lb.liquidity', 'ASC'],
@@ -77,13 +62,15 @@ export default class LiquidityPositionDbRepository {
 
     const [orderField, orderDirection] = orderByMap[orderBy || 'VALUE_USD_DESC'];
 
+    const pairIdsString = pairIds.map(id => `'${id}'`).join(',');
+
     // Query to get positions with pool and token information
     let query = `
       WITH latest_stats AS (
         SELECT DISTINCT ON (ps."pairId") 
           ps.*
         FROM "PoolStats" ps
-        WHERE ps."pairId" IN (${pairIds.join(',')})
+        WHERE ps."pairId" IN (${pairIdsString})
         ORDER BY ps."pairId", ps.timestamp DESC
       )
       SELECT 
@@ -93,7 +80,6 @@ export default class LiquidityPositionDbRepository {
         lb."walletAddress",
         lb."createdAt",
         lb."updatedAt",
-        p.id as "pairId",
         p.key as "pairKey",
         t0.id as "token0Id",
         t0.name as "token0Name",
@@ -101,7 +87,7 @@ export default class LiquidityPositionDbRepository {
         t1.name as "token1Name",
         ls."tvlUsd",
         COALESCE(ls."apr24h", 0) as "apr24h",
-        (CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL) as "valueUsd"
+        CASE WHEN CAST(p."totalSupply" AS DECIMAL) = 0 THEN 0 ELSE (CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL) END as "valueUsd"
       FROM "LiquidityBalances" lb
       JOIN "Pairs" p ON lb."pairId" = p.id
       JOIN "Tokens" t0 ON p."token0Id" = t0.id
@@ -128,7 +114,6 @@ export default class LiquidityPositionDbRepository {
     // First order by the requested field, then by id for consistent pagination
     query += ` ORDER BY ${orderField} ${orderDirection}, lb.id ${pagination.order} LIMIT $${paramIndex}`;
     queryParams.push(pagination.limit - 1);
-
     const positions = await sequelize.query(query, {
       type: QueryTypes.SELECT,
       bind: queryParams,

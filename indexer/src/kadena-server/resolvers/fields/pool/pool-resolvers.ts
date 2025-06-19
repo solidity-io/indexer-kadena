@@ -21,7 +21,7 @@ export const poolResolvers = {
     fees: GraphQLChartDataPoint[];
   }> => {
     const charts = await context.poolRepository.getPoolCharts({
-      pairId: parseInt(parent.id, 10),
+      pairId: parent.id,
       timeFrame,
     });
 

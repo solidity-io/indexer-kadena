@@ -24,7 +24,7 @@ export interface GetPoolParams {
 }
 
 export interface GetPoolTransactionsParams {
-  pairId: number;
+  pairId: string;
   type?: PoolTransactionType;
   first?: number | null;
   after?: string | null;
@@ -33,7 +33,7 @@ export interface GetPoolTransactionsParams {
 }
 
 export interface GetPoolChartDataParams {
-  pairId: number;
+  pairId: string;
   type: 'TVL' | 'VOLUME' | 'PRICE';
   first?: number;
   after?: string;
@@ -43,7 +43,7 @@ export interface GetPoolChartDataParams {
 }
 
 export interface GetPoolChartsParams {
-  pairId: number;
+  pairId: string;
   timeFrame: TimeFrame;
 }
 
