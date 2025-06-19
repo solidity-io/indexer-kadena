@@ -1,4 +1,4 @@
-import { PageInfo } from '../../config/graphql-types';
+import { PageInfo, Pool } from '../../config/graphql-types';
 import { ConnectionEdge } from '../types';
 
 export interface LiquidityPosition {
@@ -8,19 +8,7 @@ export interface LiquidityPosition {
   walletAddress: string;
   valueUsd: number;
   apr24h: number;
-  pair: {
-    id: string;
-    token0: {
-      id: string;
-      name: string;
-      chainId: string;
-    };
-    token1: {
-      id: string;
-      name: string;
-      chainId: string;
-    };
-  };
+  pair: Pool;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -18,7 +18,11 @@ export default class TokenPriceDbRepository implements TokenPriceRepository {
       return null;
     }
 
-    const price = await PairService.calculateTokenPrice(token, protocolAddress || DEFAULT_PROTOCOL);
+    const price = await PairService.calculateTokenPrice(
+      token,
+      undefined,
+      protocolAddress || DEFAULT_PROTOCOL,
+    );
 
     return {
       id: `price-${tokenAddress}`,

@@ -246,7 +246,7 @@ export default class PoolDbRepository {
       volume7dUsd: statsResult1.volume7dUsd ? parseFloat(statsResult1.volume7dUsd.toString()) : 0,
       fees24hUsd: statsResult1.fees24hUsd ? parseFloat(statsResult1.fees24hUsd.toString()) : 0,
       transactionCount24h: statsResult1.transactionCount24h
-        ? parseFloat(statsResult1.transactionCount24h.toString())
+        ? parseInt(statsResult1.transactionCount24h.toString())
         : 0,
       apr24h: statsResult1.apr24h ? parseFloat(statsResult1.apr24h.toString()) : 0,
       previousTvlUsd: statsResult1.previousTvlUsd

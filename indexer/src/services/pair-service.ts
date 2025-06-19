@@ -111,7 +111,10 @@ export class PairService {
    * Creates tokens if they don't exist and then creates a pair
    * @param pairs Array of pair creation parameters
    */
-  static async createPairs(pairs: CreatePairParams[]): Promise<void> {
+  static async createPairs(
+    pairs: CreatePairParams[],
+    transaction: SequelizeTransaction | null | undefined,
+  ): Promise<void> {
     if (!pairs || pairs.length === 0) {
       return;
     }
@@ -134,7 +137,7 @@ export class PairService {
         `Progress: ${progressPercentage}% (Create Pairs Batch ${batchIndex + 1}/${batches.length})`,
       );
 
-      const tx = await sequelize.transaction();
+      const tx = transaction ?? (await sequelize.transaction());
       try {
         await Promise.all(
           batch.map(async pair => {
@@ -160,7 +163,7 @@ export class PairService {
             }
           }),
         );
-        await tx.commit();
+        // await tx.commit();
       } catch (error) {
         await tx.rollback();
         console.error(`Error processing batch ${batchIndex + 1}/${batches.length}:`, error);
@@ -176,6 +179,7 @@ export class PairService {
    */
   private static async getTokenPriceInUSD(
     token: Token,
+    tx?: SequelizeTransaction | null | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<number | undefined> {
     const now = Date.now();
@@ -187,7 +191,7 @@ export class PairService {
     }
 
     // Calculate new price
-    const price = await this.calculateTokenPriceInUSD(token, { decimal: '1' }, protocolAddress);
+    const price = await this.calculateTokenPriceInUSD(token, { decimal: '1' }, tx, protocolAddress);
     if (price !== undefined) {
       this.tokenPriceCache.set(token.id, { price, timestamp: now });
     }
@@ -208,6 +212,7 @@ export class PairService {
       chainId: number;
       transactionId: number;
     }>,
+    transaction: SequelizeTransaction | null | undefined,
   ): Promise<void> {
     // Process events in smaller batches to avoid connection pool exhaustion
     const BATCH_SIZE = 10;
@@ -228,7 +233,7 @@ export class PairService {
         `Progress: ${progressPercentage}% (Update Pairs Batch ${batchIndex + 1}/${batches.length})`,
       );
 
-      const tx = await sequelize.transaction();
+      const tx = transaction ?? (await sequelize.transaction());
       try {
         // Pre-fetch all pairs for this batch to reduce database queries
         const pairKeys = batch.map(event => {
@@ -392,7 +397,7 @@ export class PairService {
             }
           }),
         );
-        await tx.commit();
+        // await tx.commit();
       } catch (error) {
         await tx.rollback();
         console.error(`Error processing batch ${batchIndex + 1}/${batches.length}:`, error);
@@ -566,6 +571,7 @@ export class PairService {
       transactionId: number;
       requestkey: string;
     }>,
+    transaction: SequelizeTransaction | null | undefined,
   ): Promise<void> {
     if (!swapEvents || swapEvents.length === 0) {
       return;
@@ -590,7 +596,7 @@ export class PairService {
         `Progress: ${progressPercentage}% (Process Swaps Batch ${batchIndex + 1}/${batches.length})`,
       );
 
-      const tx = await sequelize.transaction();
+      const tx = transaction ?? (await sequelize.transaction());
       try {
         await Promise.all(
           batch.map(async event => {
@@ -615,8 +621,8 @@ export class PairService {
 
               // Get token prices in USD
               const [tokenInPrice, tokenOutPrice] = await Promise.all([
-                this.getTokenPriceInUSD(tokenIn, pair.address),
-                this.getTokenPriceInUSD(tokenOut, pair.address),
+                this.getTokenPriceInUSD(tokenIn, tx, pair.address),
+                this.getTokenPriceInUSD(tokenOut, tx, pair.address),
               ]);
 
               // Calculate USD value
@@ -661,7 +667,7 @@ export class PairService {
             }
           }),
         );
-        await tx.commit();
+        // await tx.commit();
       } catch (error) {
         await tx.rollback();
         console.error(`Error processing batch ${batchIndex + 1}/${batches.length}:`, error);
@@ -685,6 +691,7 @@ export class PairService {
       transactionId: number;
       requestkey: string;
     }>,
+    transaction: SequelizeTransaction | null | undefined,
   ): Promise<void> {
     if (!liquidityEvents || liquidityEvents.length === 0) {
       return;
@@ -710,7 +717,7 @@ export class PairService {
         `Progress: ${progressPercentage}% (Process Liquidity Events Batch ${batchIndex + 1}/${batches.length})`,
       );
 
-      const tx = await sequelize.transaction();
+      const tx = transaction ?? (await sequelize.transaction());
       try {
         await Promise.all(
           batch.map(async event => {
@@ -757,8 +764,8 @@ export class PairService {
 
               // Get token prices in USD
               const [token0Price, token1Price] = await Promise.all([
-                this.getTokenPriceInUSD(token0, pair.address),
-                this.getTokenPriceInUSD(token1, pair.address),
+                this.getTokenPriceInUSD(token0, tx, pair.address),
+                this.getTokenPriceInUSD(token1, tx, pair.address),
               ]);
 
               // Calculate USD value
@@ -774,9 +781,12 @@ export class PairService {
                 totalSupply = Number(pair.totalSupply) - Number(liquidity);
               }
 
-              await pair.update({
-                totalSupply: totalSupply.toString(),
-              });
+              await pair.update(
+                {
+                  totalSupply: totalSupply.toString(),
+                },
+                { transaction: tx },
+              );
 
               // Create pool transaction record
               await PoolTransaction.create({
@@ -817,7 +827,7 @@ export class PairService {
                 feeUsd: 0,
               });
               // Update pool stats
-              await this.updatePoolStats(pair.id);
+              await this.updatePoolStats(pair.id, tx);
             } catch (error) {
               console.error(`Error processing event ${event.requestkey}:`, error);
             }
@@ -839,6 +849,7 @@ export class PairService {
   private static async findDirectPair(
     token0Id: number,
     token1Id: number,
+    tx?: SequelizeTransaction | null | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<Pair | null> {
     return Pair.findOne({
@@ -853,6 +864,7 @@ export class PairService {
         { model: Token, as: 'token0' },
         { model: Token, as: 'token1' },
       ],
+      transaction: tx,
     });
   }
 
@@ -865,10 +877,11 @@ export class PairService {
   private static async findOptimalKdaPricePath(
     startTokenId: number,
     startAmount: number,
+    tx?: SequelizeTransaction | null | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<number | undefined> {
     // Get KDA token
-    const kdaToken = await Token.findOne({ where: { code: 'coin' } });
+    const kdaToken = await Token.findOne({ where: { code: 'coin' }, transaction: tx });
     if (!kdaToken) {
       return undefined;
     }
@@ -881,7 +894,12 @@ export class PairService {
       const [currentTokenId, currentAmount, path] = queue.shift()!;
 
       // Try direct path to KDA
-      const directPair = await this.findDirectPair(currentTokenId, kdaToken.id, protocolAddress);
+      const directPair = await this.findDirectPair(
+        currentTokenId,
+        kdaToken.id,
+        tx,
+        protocolAddress,
+      );
       if (directPair) {
         const reserve0 = Number(directPair.reserve0);
         const reserve1 = Number(directPair.reserve1);
@@ -912,6 +930,7 @@ export class PairService {
           { model: Token, as: 'token0' },
           { model: Token, as: 'token1' },
         ],
+        transaction: tx,
       });
 
       // Add connected tokens to queue
@@ -949,10 +968,11 @@ export class PairService {
   static async calculateTokenPriceInUSD(
     token: Token,
     amount: TokenAmount,
+    tx?: SequelizeTransaction | null | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<number | undefined> {
     try {
-      const prices = await this.calculateTokenPrice(token, protocolAddress);
+      const prices = await this.calculateTokenPrice(token, tx, protocolAddress);
       if (!prices) return undefined;
 
       const amountStr = typeof amount === 'number' ? amount.toString() : amount.decimal;
@@ -970,6 +990,7 @@ export class PairService {
    */
   static async calculateTokenPrice(
     token: Token,
+    tx?: SequelizeTransaction | null | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<{ priceInUSD: number; priceInKDA: number } | undefined> {
     try {
@@ -984,7 +1005,7 @@ export class PairService {
       const oneToken = 10 ** token.decimals;
 
       // Find shortest path to KDA using BFS
-      const kdaAmount = await this.findOptimalKdaPricePath(token.id, oneToken, protocolAddress);
+      const kdaAmount = await this.findOptimalKdaPricePath(token.id, oneToken, tx, protocolAddress);
 
       if (kdaAmount === undefined) {
         console.warn(`No path found to calculate price for token ${token.code}`);
@@ -1012,7 +1033,9 @@ export class PairService {
       transactionId: number;
       requestkey: string;
     }>,
+    tx: SequelizeTransaction | null | undefined,
   ): Promise<void> {
+    const transaction = tx ?? (await sequelize.transaction());
     for (const event of exchangeTokenEvents) {
       try {
         switch (event.name) {
@@ -1029,8 +1052,11 @@ export class PairService {
             const pair = await Pair.findOne({
               where: {
                 key: token,
-                address: event.moduleName,
+                address: event.moduleName.includes('-tokens')
+                  ? event.moduleName.split('-tokens')[0]
+                  : event.moduleName, // convert ns.sushi-exchange-tokens to ns.sushi-exchange
               },
+              transaction,
             });
 
             if (!pair) {
@@ -1042,9 +1068,11 @@ export class PairService {
             const [senderBalance, receiverBalance] = await Promise.all([
               LiquidityBalance.findOne({
                 where: { walletAddress: sender, pairId: pair.id },
+                transaction,
               }),
               LiquidityBalance.findOne({
                 where: { walletAddress: receiver, pairId: pair.id },
+                transaction,
               }),
             ]);
 
@@ -1052,30 +1080,42 @@ export class PairService {
             if (senderBalance) {
               const currentLiquidity = Number(senderBalance.liquidity);
               const newLiquidity = currentLiquidity - Number(amountStr);
-              await senderBalance.update({
-                liquidity: newLiquidity.toString(),
-              });
+              await senderBalance.update(
+                {
+                  liquidity: newLiquidity.toString(),
+                },
+                { transaction },
+              );
             } else {
-              await LiquidityBalance.create({
-                walletAddress: sender,
-                pairId: pair.id,
-                liquidity: (-Number(amountStr)).toString(),
-              });
+              await LiquidityBalance.create(
+                {
+                  walletAddress: sender,
+                  pairId: pair.id,
+                  liquidity: (-Number(amountStr)).toString(),
+                },
+                { transaction },
+              );
             }
 
             // Update or create receiver's balance
             if (receiverBalance) {
               const currentLiquidity = Number(receiverBalance.liquidity);
               const newLiquidity = currentLiquidity + Number(amountStr);
-              await receiverBalance.update({
-                liquidity: newLiquidity.toString(),
-              });
+              await receiverBalance.update(
+                {
+                  liquidity: newLiquidity.toString(),
+                },
+                { transaction },
+              );
             } else {
-              await LiquidityBalance.create({
-                walletAddress: receiver,
-                pairId: pair.id,
-                liquidity: amountStr,
-              });
+              await LiquidityBalance.create(
+                {
+                  walletAddress: receiver,
+                  pairId: pair.id,
+                  liquidity: amountStr,
+                },
+                { transaction },
+              );
             }
             break;
           }
@@ -1092,8 +1132,11 @@ export class PairService {
             const pair = await Pair.findOne({
               where: {
                 key: token,
-                address: event.moduleName,
+                address: event.moduleName.includes('-tokens')
+                  ? event.moduleName.split('-tokens')[0]
+                  : event.moduleName,
               },
+              transaction,
             });
 
             if (!pair) {
@@ -1104,20 +1147,27 @@ export class PairService {
             // Find or create the account's liquidity balance
             const balance = await LiquidityBalance.findOne({
               where: { walletAddress: account, pairId: pair.id },
+              transaction,
             });
 
             if (balance) {
               const currentLiquidity = Number(balance.liquidity);
               const newLiquidity = currentLiquidity - Number(amountStr);
-              await balance.update({
-                liquidity: newLiquidity.toString(),
-              });
+              await balance.update(
+                {
+                  liquidity: newLiquidity.toString(),
+                },
+                { transaction },
+              );
             } else {
-              await LiquidityBalance.create({
-                walletAddress: account,
-                pairId: pair.id,
-                liquidity: (-Number(amountStr)).toString(),
-              });
+              await LiquidityBalance.create(
+                {
+                  walletAddress: account,
+                  pairId: pair.id,
+                  liquidity: (-Number(amountStr)).toString(),
+                },
+                { transaction },
+              );
             }
             break;
           }
@@ -1128,14 +1178,16 @@ export class PairService {
               string,
               TokenAmount,
             ];
-
             // Convert TokenAmount to string representation
             const amountStr = typeof amount === 'number' ? amount.toString() : amount.decimal;
             const pair = await Pair.findOne({
               where: {
                 key: token,
-                address: event.moduleName,
+                address: event.moduleName.includes('-tokens')
+                  ? event.moduleName.split('-tokens')[0]
+                  : event.moduleName, // convert ns.sushi-exchange-tokens to ns.sushi-exchange
               },
+              transaction,
             });
 
             if (!pair) {
@@ -1146,20 +1198,26 @@ export class PairService {
             // Find or create the account's liquidity balance
             const balance = await LiquidityBalance.findOne({
               where: { walletAddress: account, pairId: pair.id },
+              transaction,
             });
-
             if (balance) {
               const currentLiquidity = Number(balance.liquidity);
               const newLiquidity = currentLiquidity + Number(amountStr);
-              await balance.update({
-                liquidity: newLiquidity.toString(),
-              });
+              await balance.update(
+                {
+                  liquidity: newLiquidity.toString(),
+                },
+                { transaction },
+              );
             } else {
-              await LiquidityBalance.create({
-                walletAddress: account,
-                pairId: pair.id,
-                liquidity: amountStr,
-              });
+              await LiquidityBalance.create(
+                {
+                  walletAddress: account,
+                  pairId: pair.id,
+                  liquidity: amountStr,
+                },
+                { transaction },
+              );
             }
             break;
           }

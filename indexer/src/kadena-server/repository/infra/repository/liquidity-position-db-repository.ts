@@ -10,8 +10,16 @@ import {
   LiquidityPosition,
   LiquidityPositionsConnection,
 } from '../../application/liquidity-position-repository';
+import PoolDbRepository from './pool-db-repository';
+import { Pool } from '../../../config/graphql-types';
 
 export default class LiquidityPositionDbRepository {
+  private poolRepository: PoolDbRepository;
+
+  constructor() {
+    this.poolRepository = new PoolDbRepository();
+  }
+
   async getLiquidityPositions(
     params: GetLiquidityPositionsParams,
   ): Promise<LiquidityPositionsConnection> {
@@ -126,32 +134,25 @@ export default class LiquidityPositionDbRepository {
       bind: queryParams,
     });
 
-    const edges = (positions as any[]).map(position => ({
-      cursor: Buffer.from(position.id.toString()).toString('base64'),
-      node: {
-        id: position.id.toString(),
-        pairId: position.pairId,
-        liquidity: position.liquidity,
-        walletAddress: position.walletAddress,
-        valueUsd: position.valueUsd,
-        apr24h: position.apr24h,
-        pair: {
-          id: position.pairId.toString(),
-          token0: {
-            id: position.token0Id.toString(),
-            name: position.token0Name,
-            chainId: '0',
-          },
-          token1: {
-            id: position.token1Id.toString(),
-            name: position.token1Name,
-            chainId: '0',
-          },
-        },
-        createdAt: position.createdAt,
-        updatedAt: position.updatedAt,
-      } as LiquidityPosition,
-    }));
+    const edges = await Promise.all(
+      (positions as any[]).map(async position => {
+        const pool = await this.poolRepository.getPool({ id: position.pairId });
+        return {
+          cursor: Buffer.from(position.id.toString()).toString('base64'),
+          node: {
+            id: position.id.toString(),
+            pairId: position.pairId,
+            liquidity: position.liquidity,
+            walletAddress: position.walletAddress,
+            valueUsd: parseFloat(position.valueUsd),
+            apr24h: parseFloat(position.apr24h),
+            pair: pool!,
+            createdAt: new Date(position.createdAt),
+            updatedAt: new Date(position.updatedAt),
+          } as LiquidityPosition,
+        };
+      }),
+    );
 
     const totalCount = await LiquidityBalance.count({
       where: {
