@@ -95,7 +95,7 @@ PoolStats.init(
       comment: 'The unique identifier for the pool stats record',
     },
     pairId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       comment: 'The ID of the associated pair',
     },
