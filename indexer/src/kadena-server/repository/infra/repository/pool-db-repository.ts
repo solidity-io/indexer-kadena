@@ -98,7 +98,6 @@ export default class PoolDbRepository {
       JOIN latest_stats ls ON p.id = ls."pairId"
       ${whereClause}
       ORDER BY ls."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
-      LIMIT ${pagination.limit - 1}
     `;
 
     const pairs = await sequelize.query(query, {
@@ -114,12 +113,6 @@ export default class PoolDbRepository {
         node: pool,
       }));
 
-    const totalCount = await Pair.count({
-      where: {
-        ...(protocolAddress ? { address: protocolAddress } : {}),
-      },
-    });
-
     const pageInfo = getPageInfo({
       edges,
       order: pagination.order,
@@ -128,10 +121,11 @@ export default class PoolDbRepository {
       before,
     });
 
+    // console.log(JSON.stringify(pageInfo, null, 2));
+
     return {
-      edges,
-      pageInfo: pageInfo.pageInfo,
-      totalCount,
+      ...pageInfo,
+      totalCount: edges.length,
     };
   }
 
@@ -281,11 +275,11 @@ export default class PoolDbRepository {
     );
 
     const charts = await this.getPoolCharts({
-      pairId: pair.id,
+      pairId: pair.id.toString(),
       timeFrame: params.timeFrame || TimeFrame.Day,
     });
     const transactions = await this.getPoolTransactions({
-      pairId: pair.id,
+      pairId: pair.id.toString(),
       type: params.type || undefined,
       first: params.first || undefined,
       after: params.after || undefined,
@@ -293,9 +287,9 @@ export default class PoolDbRepository {
       before: params.before || undefined,
     });
 
-    const tvlUsd = await PairService.calculateTvlUsdFromPair(pair.id.toString());
+    // const tvlUsd = await PairService.calculateTvlUsdFromPair(pair.id.toString());
 
-    const pool = {
+    return {
       __typename: 'Pool' as const,
       id: pair.id.toString(),
       address: pair.address,
@@ -317,7 +311,7 @@ export default class PoolDbRepository {
       reserve1: pair.reserve1,
       totalSupply: pair.totalSupply,
       key: pair.key,
-      tvlUsd: tvlUsd,
+      tvlUsd: stats.tvlUsd,
       tvlChange24h,
       volume24hUsd: stats.volume24hUsd,
       volumeChange24h,
@@ -332,8 +326,6 @@ export default class PoolDbRepository {
       charts,
       transactions,
     };
-    console.log(pool);
-    return pool;
   }
 
   async getPoolTransactions(
@@ -475,8 +467,8 @@ export default class PoolDbRepository {
         (jsonb_array_elements("tvlHistory")->>'value')::numeric as "tvlUsd"
       FROM "PoolStats"
       WHERE "pairId" = :pairId
-        AND "timestamp" = :startDate
-      ORDER BY timestamp ASC
+      ORDER BY timestamp DESC
+      LIMIT 1
       `
         : `
       SELECT 
@@ -491,7 +483,7 @@ export default class PoolDbRepository {
         replacements: {
           pairId,
           startDate: startDate.toISOString(),
-          endDate: todayUTC.toISOString(),
+          endDate: now.toISOString(),
         },
         type: QueryTypes.SELECT,
       },
@@ -517,7 +509,7 @@ export default class PoolDbRepository {
         replacements: {
           pairId,
           startDate: startDate.toISOString(),
-          endDate: todayUTC.toISOString(),
+          endDate: now.toISOString(),
         },
         type: QueryTypes.SELECT,
       },
@@ -541,7 +533,7 @@ export default class PoolDbRepository {
         replacements: {
           pairId,
           startDate: startDate.toISOString(),
-          endDate: todayUTC.toISOString(),
+          endDate: now.toISOString(),
         },
         type: QueryTypes.SELECT,
       },

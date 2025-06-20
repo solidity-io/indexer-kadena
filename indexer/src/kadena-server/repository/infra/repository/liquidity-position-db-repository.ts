@@ -22,7 +22,6 @@ export default class LiquidityPositionDbRepository {
   ): Promise<LiquidityPositionsConnection> {
     const { walletAddress, first, after, last, before, orderBy } = params;
     const pagination = getPaginationParams({ after, before, first, last });
-
     // Get the latest stats for each pool
     const latestStats = await PoolStats.findAll({
       attributes: ['pairId', [sequelize.fn('MAX', sequelize.col('timestamp')), 'maxTimestamp']],
@@ -112,8 +111,8 @@ export default class LiquidityPositionDbRepository {
     }
 
     // First order by the requested field, then by id for consistent pagination
-    query += ` ORDER BY ${orderField} ${orderDirection}, lb.id ${pagination.order} LIMIT $${paramIndex}`;
-    queryParams.push(pagination.limit - 1);
+    query += ` ORDER BY ${orderField} ${orderDirection}, lb.id ${pagination.order}`;
+
     const positions = await sequelize.query(query, {
       type: QueryTypes.SELECT,
       bind: queryParams,
@@ -139,12 +138,6 @@ export default class LiquidityPositionDbRepository {
       }),
     );
 
-    const totalCount = await LiquidityBalance.count({
-      where: {
-        walletAddress,
-      },
-    });
-
     const pageInfo = getPageInfo({
       edges,
       order: pagination.order,
@@ -154,9 +147,8 @@ export default class LiquidityPositionDbRepository {
     });
 
     return {
-      edges,
-      pageInfo: pageInfo.pageInfo,
-      totalCount,
+      ...pageInfo,
+      totalCount: edges.length,
     };
   }
 }
