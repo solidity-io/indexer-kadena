@@ -111,10 +111,7 @@ export class PairService {
    * Creates tokens if they don't exist and then creates a pair
    * @param pairs Array of pair creation parameters
    */
-  static async createPairs(
-    pairs: CreatePairParams[],
-    transaction: SequelizeTransaction | null | undefined,
-  ): Promise<void> {
+  static async createPairs(pairs: CreatePairParams[]): Promise<void> {
     if (!pairs || pairs.length === 0) {
       return;
     }
@@ -137,7 +134,7 @@ export class PairService {
         `Progress: ${progressPercentage}% (Create Pairs Batch ${batchIndex + 1}/${batches.length})`,
       );
 
-      const tx = transaction ?? (await sequelize.transaction());
+      const tx = await sequelize.transaction();
       try {
         await Promise.all(
           batch.map(async pair => {
@@ -163,7 +160,7 @@ export class PairService {
             }
           }),
         );
-        // await tx.commit();
+        await tx.commit();
       } catch (error) {
         await tx.rollback();
         console.error(`Error processing batch ${batchIndex + 1}/${batches.length}:`, error);
@@ -179,7 +176,7 @@ export class PairService {
    */
   private static async getTokenPriceInUSD(
     token: Token,
-    tx?: SequelizeTransaction | null | undefined,
+    tx?: SequelizeTransaction | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<number | undefined> {
     const now = Date.now();
@@ -212,7 +209,6 @@ export class PairService {
       chainId: number;
       transactionId: number;
     }>,
-    transaction: SequelizeTransaction | null | undefined,
   ): Promise<void> {
     // Process events in smaller batches to avoid connection pool exhaustion
     const BATCH_SIZE = 10;
@@ -233,7 +229,7 @@ export class PairService {
         `Progress: ${progressPercentage}% (Update Pairs Batch ${batchIndex + 1}/${batches.length})`,
       );
 
-      const tx = transaction ?? (await sequelize.transaction());
+      const tx = await sequelize.transaction();
       try {
         // Pre-fetch all pairs for this batch to reduce database queries
         const pairKeys = batch.map(event => {
@@ -255,149 +251,146 @@ export class PairService {
 
         const pairMap = new Map(existingPairs.map(pair => [`${pair.key}:${pair.address}`, pair]));
 
-        // Process each event in the batch
-        await Promise.all(
-          batch.map(async event => {
-            try {
-              // Parse the parameters
-              const [key, reserve0, reserve1] = JSON.parse(event.parameters) as [
-                string,
-                TokenAmount,
-                TokenAmount,
-              ];
+        // Process each event in the batch sequentially
+        for (const event of batch) {
+          try {
+            // Parse the parameters
+            const [key, reserve0, reserve1] = JSON.parse(event.parameters) as [
+              string,
+              TokenAmount,
+              TokenAmount,
+            ];
 
-              // Convert TokenAmount to string representation
-              const reserve0Str =
-                typeof reserve0 === 'number' ? reserve0.toString() : reserve0.decimal;
-              const reserve1Str =
-                typeof reserve1 === 'number' ? reserve1.toString() : reserve1.decimal;
+            // Convert TokenAmount to string representation
+            const reserve0Str =
+              typeof reserve0 === 'number' ? reserve0.toString() : reserve0.decimal;
+            const reserve1Str =
+              typeof reserve1 === 'number' ? reserve1.toString() : reserve1.decimal;
 
-              // Get pair from pre-fetched map
-              let pair = pairMap.get(`${key}:${event.moduleName}`);
+            // Get pair from pre-fetched map
+            let pair = pairMap.get(`${key}:${event.moduleName}`);
 
-              if (!pair) {
-                const [code0, code1] = key.split(':');
-                // Create tokens using module name
-                const [token0, token1] = await Promise.all([
-                  Token.findOrCreate({
-                    where: { code: code0 },
-                    transaction: tx,
-                    defaults: {
-                      address: code0,
-                      name: code0.split('.').length > 1 ? code0.split('.')[1] : code0,
-                      symbol:
-                        code0.split('.').length > 1
-                          ? code0.split('.')[1].toUpperCase()
-                          : code0.toUpperCase(),
-                      code: code0,
-                      decimals: 18,
-                      totalSupply: '0',
-                      tokenInfo: {
-                        decimalsToDisplay: 8,
-                        description: '',
-                        themeColor: '#000000',
-                        discordUrl: '',
-                        mediumUrl: '',
-                        telegramUrl: '',
-                        twitterUrl: '',
-                        websiteUrl: '',
-                      },
+            if (!pair) {
+              const [code0, code1] = key.split(':');
+              // Create tokens using module name
+              const [token0, token1] = await Promise.all([
+                Token.findOrCreate({
+                  where: { code: code0 },
+                  transaction: tx,
+                  defaults: {
+                    address: code0,
+                    name: code0.split('.').length > 1 ? code0.split('.')[1] : code0,
+                    symbol:
+                      code0.split('.').length > 1
+                        ? code0.split('.')[1].toUpperCase()
+                        : code0.toUpperCase(),
+                    code: code0,
+                    decimals: 18,
+                    totalSupply: '0',
+                    tokenInfo: {
+                      decimalsToDisplay: 8,
+                      description: '',
+                      themeColor: '#000000',
+                      discordUrl: '',
+                      mediumUrl: '',
+                      telegramUrl: '',
+                      twitterUrl: '',
+                      websiteUrl: '',
                     },
-                  }),
-                  Token.findOrCreate({
-                    where: { code: code1 },
-                    transaction: tx,
-                    defaults: {
-                      address: code1,
-                      name: code1.split('.').length > 1 ? code1.split('.')[1] : code1,
-                      symbol:
-                        code1.split('.').length > 1
-                          ? code1.split('.')[1].toUpperCase()
-                          : code1.toUpperCase(),
-                      code: code1,
-                      decimals: 18,
-                      totalSupply: '0',
-                      tokenInfo: {
-                        decimalsToDisplay: 8,
-                        description: '',
-                        themeColor: '#000000',
-                        discordUrl: '',
-                        mediumUrl: '',
-                        telegramUrl: '',
-                        twitterUrl: '',
-                        websiteUrl: '',
-                      },
+                  },
+                }),
+                Token.findOrCreate({
+                  where: { code: code1 },
+                  transaction: tx,
+                  defaults: {
+                    address: code1,
+                    name: code1.split('.').length > 1 ? code1.split('.')[1] : code1,
+                    symbol:
+                      code1.split('.').length > 1
+                        ? code1.split('.')[1].toUpperCase()
+                        : code1.toUpperCase(),
+                    code: code1,
+                    decimals: 18,
+                    totalSupply: '0',
+                    tokenInfo: {
+                      decimalsToDisplay: 8,
+                      description: '',
+                      themeColor: '#000000',
+                      discordUrl: '',
+                      mediumUrl: '',
+                      telegramUrl: '',
+                      twitterUrl: '',
+                      websiteUrl: '',
                     },
-                  }),
-                ]);
-
-                // Create or find pair using existing method
-                pair = await this.createOrFindPair(token0[0], token1[0], event.moduleName, tx);
-                pairMap.set(key, pair);
-              }
-
-              // Get token prices in USD
-              const [token0Price, token1Price] = await Promise.all([
-                pair.token0 ? this.getTokenPriceInUSD(pair.token0) : undefined,
-                pair.token1 ? this.getTokenPriceInUSD(pair.token1) : undefined,
+                  },
+                }),
               ]);
 
-              // Calculate USD values
-              const reserve0Usd = token0Price
-                ? this.formatTo8Decimals(Number(reserve0Str) * token0Price)
-                : '0.00000000';
-              const reserve1Usd = token1Price
-                ? this.formatTo8Decimals(Number(reserve1Str) * token1Price)
-                : '0.00000000';
-              const tvlUsd = this.formatTo8Decimals(Number(reserve0Usd) + Number(reserve1Usd));
-
-              const transaction = await Transaction.findByPk(event.transactionId);
-
-              // Store chart data
-              await PoolChart.create(
-                {
-                  pairId: pair.id,
-                  reserve0: reserve0Str,
-                  reserve1: reserve1Str,
-                  totalSupply: pair.totalSupply,
-                  reserve0Usd,
-                  reserve1Usd,
-                  tvlUsd,
-                  timestamp: transaction
-                    ? new Date(
-                        Date.UTC(
-                          new Date(Number(transaction.creationtime) * 1000).getUTCFullYear(),
-                          new Date(Number(transaction.creationtime) * 1000).getUTCMonth(),
-                          new Date(Number(transaction.creationtime) * 1000).getUTCDate(),
-                          0,
-                          0,
-                          0,
-                          0,
-                        ),
-                      )
-                    : new Date(),
-                },
-                { transaction: tx },
-              );
-
-              // Update pair's current state
-              await pair.update(
-                {
-                  reserve0: reserve0Str,
-                  reserve1: reserve1Str,
-                },
-                { transaction: tx },
-              );
-
-              // Update pool stats
-              await this.updatePoolStats(pair.id, tx);
-            } catch (error) {
-              console.error('Error updating pair:', error);
-              throw error;
+              // Create or find pair using existing method
+              pair = await this.createOrFindPair(token0[0], token1[0], event.moduleName, tx);
+              pairMap.set(key, pair);
             }
-          }),
-        );
-        // await tx.commit();
+
+            // Get token prices in USD
+            const [token0Price, token1Price] = await Promise.all([
+              pair.token0 ? this.getTokenPriceInUSD(pair.token0) : undefined,
+              pair.token1 ? this.getTokenPriceInUSD(pair.token1) : undefined,
+            ]);
+
+            // Calculate USD values
+            const reserve0Usd = token0Price
+              ? this.formatTo8Decimals(Number(reserve0Str) * token0Price)
+              : '0.00000000';
+            const reserve1Usd = token1Price
+              ? this.formatTo8Decimals(Number(reserve1Str) * token1Price)
+              : '0.00000000';
+            const tvlUsd = this.formatTo8Decimals(Number(reserve0Usd) + Number(reserve1Usd));
+
+            const transaction = await Transaction.findByPk(event.transactionId);
+
+            // Store chart data
+            await PoolChart.create(
+              {
+                pairId: pair.id,
+                reserve0: reserve0Str,
+                reserve1: reserve1Str,
+                totalSupply: pair.totalSupply,
+                reserve0Usd,
+                reserve1Usd,
+                tvlUsd,
+                timestamp: transaction
+                  ? new Date(
+                      Date.UTC(
+                        new Date(Number(transaction.creationtime) * 1000).getUTCFullYear(),
+                        new Date(Number(transaction.creationtime) * 1000).getUTCMonth(),
+                        new Date(Number(transaction.creationtime) * 1000).getUTCDate(),
+                        new Date(Number(transaction.creationtime) * 1000).getUTCHours(),
+                        new Date(Number(transaction.creationtime) * 1000).getUTCMinutes(),
+                        new Date(Number(transaction.creationtime) * 1000).getUTCSeconds(),
+                      ),
+                    )
+                  : new Date(),
+              },
+              { transaction: tx },
+            );
+
+            // Update pair's current state
+            await pair.update(
+              {
+                reserve0: reserve0Str,
+                reserve1: reserve1Str,
+              },
+              { transaction: tx },
+            );
+
+            // Update pool stats
+            await this.updatePoolStats(pair.id, tx);
+          } catch (error) {
+            console.error('Error updating pair:', error);
+            throw error;
+          }
+        }
+        await tx.commit();
       } catch (error) {
         await tx.rollback();
         console.error(`Error processing batch ${batchIndex + 1}/${batches.length}:`, error);
@@ -426,33 +419,37 @@ export class PairService {
       PoolTransaction.findAll({
         where: {
           pairId,
-          timestamp: { [Op.gte]: todayUTC, [Op.lte]: endOfDayUTC },
+          timestamp: { [Op.gte]: todayUTC },
         },
+        transaction: tx,
       }),
       PoolTransaction.findAll({
         where: {
           pairId,
           timestamp: { [Op.gte]: sevenDaysAgo, [Op.lte]: todayUTC },
         },
+        transaction: tx,
       }),
       PoolTransaction.findAll({
         where: {
           pairId,
           timestamp: { [Op.gte]: thirtyDaysAgo, [Op.lte]: todayUTC },
         },
+        transaction: tx,
       }),
       PoolTransaction.findAll({
         where: {
           pairId,
           timestamp: { [Op.gte]: oneYearAgo, [Op.lte]: todayUTC },
         },
+        transaction: tx,
       }),
     ]);
-
     // Get latest chart data for TVL
     const latestChart = await PoolChart.findOne({
       where: { pairId },
       order: [['timestamp', 'DESC']],
+      transaction: tx,
     });
 
     // Calculate volumes and fees
@@ -487,28 +484,32 @@ export class PairService {
       where: { pairId, timestamp: { [Op.lte]: endOfDayUTC, [Op.gte]: todayUTC } },
       attributes: ['timestamp', 'tvlUsd'],
       order: [['timestamp', 'ASC']],
+      transaction: tx,
     });
 
     // Update or create pool stats
-    await PoolStats.upsert({
-      pairId,
-      timestamp: todayUTC,
-      volume24hUsd: this.formatTo8Decimals(volume24h),
-      volume7dUsd: this.formatTo8Decimals(volume7d),
-      volume30dUsd: this.formatTo8Decimals(volume30d),
-      volume1yUsd: this.formatTo8Decimals(volume1y),
-      fees24hUsd: this.formatTo8Decimals(fees24h),
-      fees7dUsd: this.formatTo8Decimals(fees7d),
-      fees30dUsd: this.formatTo8Decimals(fees30d),
-      fees1yUsd: this.formatTo8Decimals(fees1y),
-      transactionCount24h: transactions24h.length,
-      tvlUsd: latestChart?.tvlUsd ? this.formatTo8Decimals(parseFloat(latestChart.tvlUsd)) : 0,
-      apr24h: this.formatTo8Decimals(apr24h),
-      tvlHistory: tvlHistory.map(chart => ({
-        timestamp: chart.timestamp,
-        value: chart.tvlUsd,
-      })),
-    });
+    await PoolStats.upsert(
+      {
+        pairId,
+        timestamp: todayUTC,
+        volume24hUsd: this.formatTo8Decimals(volume24h),
+        volume7dUsd: this.formatTo8Decimals(volume7d),
+        volume30dUsd: this.formatTo8Decimals(volume30d),
+        volume1yUsd: this.formatTo8Decimals(volume1y),
+        fees24hUsd: this.formatTo8Decimals(fees24h),
+        fees7dUsd: this.formatTo8Decimals(fees7d),
+        fees30dUsd: this.formatTo8Decimals(fees30d),
+        fees1yUsd: this.formatTo8Decimals(fees1y),
+        transactionCount24h: transactions24h.length,
+        tvlUsd: latestChart?.tvlUsd ? this.formatTo8Decimals(parseFloat(latestChart.tvlUsd)) : 0,
+        apr24h: this.formatTo8Decimals(apr24h),
+        tvlHistory: tvlHistory.map(chart => ({
+          timestamp: chart.timestamp,
+          value: chart.tvlUsd,
+        })),
+      },
+      { transaction: tx },
+    );
   }
 
   private static async createOrFindPair(
@@ -526,6 +527,7 @@ export class PairService {
         ],
         address: moduleName,
       },
+      transaction: tx,
     });
 
     if (existingPair) {
@@ -542,8 +544,9 @@ export class PairService {
     const orderedToken1 = isToken0First ? token1 : token0;
 
     // Create new pair if not found
-    return await Pair.create(
+    const pair = await Pair.create(
       {
+        id: `${moduleName}-${key}`,
         token0Id: orderedToken0.id,
         token1Id: orderedToken1.id,
         reserve0: '0',
@@ -554,6 +557,7 @@ export class PairService {
       },
       { transaction: tx },
     );
+    return pair;
   }
 
   /**
@@ -571,7 +575,6 @@ export class PairService {
       transactionId: number;
       requestkey: string;
     }>,
-    transaction: SequelizeTransaction | null | undefined,
   ): Promise<void> {
     if (!swapEvents || swapEvents.length === 0) {
       return;
@@ -596,78 +599,86 @@ export class PairService {
         `Progress: ${progressPercentage}% (Process Swaps Batch ${batchIndex + 1}/${batches.length})`,
       );
 
-      const tx = transaction ?? (await sequelize.transaction());
+      const tx = await sequelize.transaction();
       try {
-        await Promise.all(
-          batch.map(async event => {
-            try {
-              // Parse parameters
-              const [sender, receiver, amountIn, tokenInRef, amountOut, tokenOutRef] = JSON.parse(
-                event.parameters,
-              ) as [string, string, TokenAmount, TokenReference, TokenAmount, TokenReference];
+        // Process each event in the batch sequentially
+        for (const event of batch) {
+          try {
+            // Parse parameters
+            const [sender, receiver, amountIn, tokenInRef, amountOut, tokenOutRef] = JSON.parse(
+              event.parameters,
+            ) as [string, string, TokenAmount, TokenReference, TokenAmount, TokenReference];
 
-              // Convert TokenAmount to string representation
-              const amountInStr =
-                typeof amountIn === 'number' ? amountIn.toString() : amountIn.decimal;
-              const amountOutStr =
-                typeof amountOut === 'number' ? amountOut.toString() : amountOut.decimal;
+            // Convert TokenAmount to string representation
+            const amountInStr =
+              typeof amountIn === 'number' ? amountIn.toString() : amountIn.decimal;
+            const amountOutStr =
+              typeof amountOut === 'number' ? amountOut.toString() : amountOut.decimal;
 
-              // Create or find both tokens
-              const tokenIn = await this.createOrFindToken(tokenInRef, tx);
-              const tokenOut = await this.createOrFindToken(tokenOutRef, tx);
+            // Create or find both tokens
+            const tokenIn = await this.createOrFindToken(tokenInRef, tx);
+            const tokenOut = await this.createOrFindToken(tokenOutRef, tx);
 
-              // Create or find the pair
-              const pair = await this.createOrFindPair(tokenIn, tokenOut, event.moduleName, tx);
+            // Create or find the pair
+            const pair = await this.createOrFindPair(tokenIn, tokenOut, event.moduleName, tx);
 
-              // Get token prices in USD
-              const [tokenInPrice, tokenOutPrice] = await Promise.all([
-                this.getTokenPriceInUSD(tokenIn, tx, pair.address),
-                this.getTokenPriceInUSD(tokenOut, tx, pair.address),
-              ]);
+            // Get token prices in USD
+            const [tokenInPrice, tokenOutPrice] = await Promise.all([
+              this.getTokenPriceInUSD(tokenIn, tx, pair.address),
+              this.getTokenPriceInUSD(tokenOut, tx, pair.address),
+            ]);
 
-              // Calculate USD value
-              const amountUsd = tokenInPrice
-                ? this.formatTo8Decimals(Number(amountInStr) * tokenInPrice)
-                : tokenOutPrice
-                  ? this.formatTo8Decimals(Number(amountOutStr) * tokenOutPrice)
-                  : '0.00000000';
-
-              // Calculate fee amount using the formula: fee_amount = in * (FEE / (1 - FEE))
-              const feeAmount = Number(amountInStr) * (FEE / (1 - FEE));
-              console.log({ feeAmount, amountInStr, FEE });
-              const feeUsd = tokenInPrice
-                ? this.formatTo8Decimals(feeAmount * tokenInPrice)
+            // Calculate USD value
+            const amountUsd = tokenInPrice
+              ? this.formatTo8Decimals(Number(amountInStr) * tokenInPrice)
+              : tokenOutPrice
+                ? this.formatTo8Decimals(Number(amountOutStr) * tokenOutPrice)
                 : '0.00000000';
-              console.log({ feeUsd });
 
-              // Create pool transaction record
-              await PoolTransaction.create(
-                {
-                  pairId: pair.id,
-                  transactionId: event.transactionId,
-                  requestkey: event.requestkey,
-                  type: TransactionType.SWAP,
-                  maker: sender,
-                  timestamp: new Date(),
-                  amount0In: pair.token0Id === tokenIn.id ? amountInStr : '0',
-                  amount1In: pair.token1Id === tokenIn.id ? amountInStr : '0',
-                  amount0Out: pair.token0Id === tokenOut.id ? amountOutStr : '0',
-                  amount1Out: pair.token1Id === tokenOut.id ? amountOutStr : '0',
-                  amountUsd,
-                  feeUsd,
-                },
-                { transaction: tx },
-              );
+            // Calculate fee amount using the formula: fee_amount = in * (FEE / (1 - FEE))
+            const feeAmount = Number(amountInStr) * (FEE / (1 - FEE));
+            console.log({ feeAmount, amountInStr, FEE });
+            const feeUsd = tokenInPrice
+              ? this.formatTo8Decimals(feeAmount * tokenInPrice)
+              : '0.00000000';
+            console.log({ feeUsd });
 
-              // Update pool stats
-              await this.updatePoolStats(pair.id, tx);
-            } catch (error) {
-              console.error('Error processing swap:', error);
-              throw error;
-            }
-          }),
-        );
-        // await tx.commit();
+            const transaction = await Transaction.findOne({
+              where: {
+                id: event.transactionId,
+              },
+              transaction: tx,
+            });
+
+            // Create pool transaction record
+            await PoolTransaction.create(
+              {
+                pairId: pair.id,
+                transactionId: event.transactionId,
+                requestkey: event.requestkey,
+                type: TransactionType.SWAP,
+                maker: sender,
+                timestamp: transaction?.creationtime
+                  ? new Date(Number(transaction.creationtime) * 1000)
+                  : new Date(),
+                amount0In: pair.token0Id === tokenIn.id ? amountInStr : '0',
+                amount1In: pair.token1Id === tokenIn.id ? amountInStr : '0',
+                amount0Out: pair.token0Id === tokenOut.id ? amountOutStr : '0',
+                amount1Out: pair.token1Id === tokenOut.id ? amountOutStr : '0',
+                amountUsd,
+                feeUsd,
+              },
+              { transaction: tx },
+            );
+
+            // Update pool stats
+            await this.updatePoolStats(pair.id, tx);
+          } catch (error) {
+            console.error('Error processing swap:', error);
+            throw error;
+          }
+        }
+        await tx.commit();
       } catch (error) {
         await tx.rollback();
         console.error(`Error processing batch ${batchIndex + 1}/${batches.length}:`, error);
@@ -691,7 +702,6 @@ export class PairService {
       transactionId: number;
       requestkey: string;
     }>,
-    transaction: SequelizeTransaction | null | undefined,
   ): Promise<void> {
     if (!liquidityEvents || liquidityEvents.length === 0) {
       return;
@@ -717,79 +727,80 @@ export class PairService {
         `Progress: ${progressPercentage}% (Process Liquidity Events Batch ${batchIndex + 1}/${batches.length})`,
       );
 
-      const tx = transaction ?? (await sequelize.transaction());
+      const tx = await sequelize.transaction();
       try {
-        await Promise.all(
-          batch.map(async event => {
-            try {
-              // Parse the parameters
-              const [sender, to, token0Ref, token1Ref, amount0, amount1, liquidity] = JSON.parse(
-                event.parameters,
-              ) as [
-                string,
-                string,
-                TokenReference,
-                TokenReference,
-                TokenAmount,
-                TokenAmount,
-                number,
-              ];
+        // Process each event in the batch sequentially
+        for (const event of batch) {
+          try {
+            // Parse the parameters
+            const [sender, to, token0Ref, token1Ref, amount0, amount1, liquidity] = JSON.parse(
+              event.parameters,
+            ) as [string, string, TokenReference, TokenReference, TokenAmount, TokenAmount, number];
 
-              // Convert TokenAmount to string representation
-              const amount0Str = typeof amount0 === 'number' ? amount0.toString() : amount0.decimal;
-              const amount1Str = typeof amount1 === 'number' ? amount1.toString() : amount1.decimal;
+            // Convert TokenAmount to string representation
+            const amount0Str = typeof amount0 === 'number' ? amount0.toString() : amount0.decimal;
+            const amount1Str = typeof amount1 === 'number' ? amount1.toString() : amount1.decimal;
 
-              // Find the tokens
-              const [token0, token1] = await Promise.all([
-                this.createOrFindToken(token0Ref, tx),
-                this.createOrFindToken(token1Ref, tx),
-              ]);
+            // Find the tokens
+            const [token0, token1] = await Promise.all([
+              this.createOrFindToken(token0Ref, tx),
+              this.createOrFindToken(token1Ref, tx),
+            ]);
 
-              // Find the pair
-              const pair = await Pair.findOne({
-                where: {
-                  [Op.or]: [
-                    { token0Id: token0.id, token1Id: token1.id },
-                    { token0Id: token1.id, token1Id: token0.id },
-                  ],
-                  address: event.moduleName,
-                },
-                transaction: tx,
-              });
+            // Find the pair
+            const pair = await Pair.findOne({
+              where: {
+                [Op.or]: [
+                  { token0Id: token0.id, token1Id: token1.id },
+                  { token0Id: token1.id, token1Id: token0.id },
+                ],
+                address: event.moduleName,
+              },
+              transaction: tx,
+            });
 
-              if (!pair) {
-                console.warn(`Pair not found for tokens: ${token0.code} and ${token1.code}`);
-                return;
-              }
+            if (!pair) {
+              console.warn(`Pair not found for tokens: ${token0.code} and ${token1.code}`);
+              continue;
+            }
 
-              // Get token prices in USD
-              const [token0Price, token1Price] = await Promise.all([
-                this.getTokenPriceInUSD(token0, tx, pair.address),
-                this.getTokenPriceInUSD(token1, tx, pair.address),
-              ]);
+            // Get token prices in USD
+            const [token0Price, token1Price] = await Promise.all([
+              this.getTokenPriceInUSD(token0, tx, pair.address),
+              this.getTokenPriceInUSD(token1, tx, pair.address),
+            ]);
 
-              // Calculate USD value
-              const amountUsd = this.formatTo8Decimals(
-                (token0Price ? Number(amount0Str) * token0Price : 0) +
-                  (token1Price ? Number(amount1Str) * token1Price : 0),
-              );
+            console.log({ token0Price, token1Price });
 
-              let totalSupply = Number(pair.totalSupply);
-              if (event.name === 'ADD_LIQUIDITY') {
-                totalSupply = Number(pair.totalSupply) + Number(liquidity);
-              } else {
-                totalSupply = Number(pair.totalSupply) - Number(liquidity);
-              }
+            // Calculate USD value
+            const amountUsd = this.formatTo8Decimals(
+              (token0Price ? Number(amount0Str) * token0Price : 0) +
+                (token1Price ? Number(amount1Str) * token1Price : 0),
+            );
 
-              await pair.update(
-                {
-                  totalSupply: totalSupply.toString(),
-                },
-                { transaction: tx },
-              );
+            let totalSupply = Number(pair.totalSupply);
+            if (event.name === 'ADD_LIQUIDITY') {
+              totalSupply = Number(pair.totalSupply) + Number(liquidity);
+            } else {
+              totalSupply = Number(pair.totalSupply) - Number(liquidity);
+            }
 
-              // Create pool transaction record
-              await PoolTransaction.create({
+            await pair.update(
+              {
+                totalSupply: totalSupply.toString(),
+              },
+              { transaction: tx },
+            );
+            // Create pool transaction record
+            const transaction = await Transaction.findOne({
+              where: {
+                id: event.transactionId,
+              },
+              transaction: tx,
+            });
+
+            await PoolTransaction.create(
+              {
                 pairId: pair.id,
                 transactionId: event.transactionId,
                 requestkey: event.requestkey,
@@ -798,7 +809,9 @@ export class PairService {
                     ? TransactionType.ADD_LIQUIDITY
                     : TransactionType.REMOVE_LIQUIDITY,
                 maker: sender,
-                timestamp: new Date(),
+                timestamp: transaction?.creationtime
+                  ? new Date(Number(transaction.creationtime) * 1000)
+                  : new Date(),
                 amount0In:
                   event.name === 'ADD_LIQUIDITY'
                     ? pair.token0Id === token0.id
@@ -825,14 +838,15 @@ export class PairService {
                     : '0',
                 amountUsd,
                 feeUsd: 0,
-              });
-              // Update pool stats
-              await this.updatePoolStats(pair.id, tx);
-            } catch (error) {
-              console.error(`Error processing event ${event.requestkey}:`, error);
-            }
-          }),
-        );
+              },
+              { transaction: tx },
+            );
+            // Update pool stats
+            await this.updatePoolStats(pair.id, tx);
+          } catch (error) {
+            console.error(`Error processing event ${event.requestkey}:`, error);
+          }
+        }
       } catch (error) {
         await tx.rollback();
         console.error(`Error processing batch ${batchIndex + 1}/${batches.length}:`, error);
@@ -849,7 +863,7 @@ export class PairService {
   private static async findDirectPair(
     token0Id: number,
     token1Id: number,
-    tx?: SequelizeTransaction | null | undefined,
+    tx?: SequelizeTransaction | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<Pair | null> {
     return Pair.findOne({
@@ -877,11 +891,11 @@ export class PairService {
   private static async findOptimalKdaPricePath(
     startTokenId: number,
     startAmount: number,
-    tx?: SequelizeTransaction | null | undefined,
+    tx?: SequelizeTransaction | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<number | undefined> {
     // Get KDA token
-    const kdaToken = await Token.findOne({ where: { code: 'coin' }, transaction: tx });
+    const kdaToken = await Token.findOne({ where: { code: 'coin' } });
     if (!kdaToken) {
       return undefined;
     }
@@ -968,7 +982,7 @@ export class PairService {
   static async calculateTokenPriceInUSD(
     token: Token,
     amount: TokenAmount,
-    tx?: SequelizeTransaction | null | undefined,
+    tx?: SequelizeTransaction | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<number | undefined> {
     try {
@@ -990,7 +1004,7 @@ export class PairService {
    */
   static async calculateTokenPrice(
     token: Token,
-    tx?: SequelizeTransaction | null | undefined,
+    tx?: SequelizeTransaction | undefined,
     protocolAddress = DEFAULT_PROTOCOL,
   ): Promise<{ priceInUSD: number; priceInKDA: number } | undefined> {
     try {
@@ -1001,6 +1015,11 @@ export class PairService {
         console.warn('KDA/USD price not available');
         return undefined;
       }
+
+      if (token.code === 'coin') {
+        return { priceInUSD: kdaUsdPrice, priceInKDA: 1 };
+      }
+
       // Use 1 token with proper decimals
       const oneToken = 10 ** token.decimals;
 
@@ -1033,10 +1052,10 @@ export class PairService {
       transactionId: number;
       requestkey: string;
     }>,
-    tx: SequelizeTransaction | null | undefined,
   ): Promise<void> {
-    const transaction = tx ?? (await sequelize.transaction());
+    const transaction = await sequelize.transaction();
     for (const event of exchangeTokenEvents) {
+      console.log('event', JSON.stringify(event, null, 2));
       try {
         switch (event.name) {
           case 'TRANSFER_EVENT': {
@@ -1068,11 +1087,11 @@ export class PairService {
             const [senderBalance, receiverBalance] = await Promise.all([
               LiquidityBalance.findOne({
                 where: { walletAddress: sender, pairId: pair.id },
-                transaction,
+                // transaction,
               }),
               LiquidityBalance.findOne({
                 where: { walletAddress: receiver, pairId: pair.id },
-                transaction,
+                // transaction,
               }),
             ]);
 
@@ -1084,7 +1103,7 @@ export class PairService {
                 {
                   liquidity: newLiquidity.toString(),
                 },
-                { transaction },
+                // { transaction },
               );
             } else {
               await LiquidityBalance.create(
@@ -1093,7 +1112,7 @@ export class PairService {
                   pairId: pair.id,
                   liquidity: (-Number(amountStr)).toString(),
                 },
-                { transaction },
+                // { transaction },
               );
             }
 
@@ -1105,7 +1124,7 @@ export class PairService {
                 {
                   liquidity: newLiquidity.toString(),
                 },
-                { transaction },
+                // { transaction },
               );
             } else {
               await LiquidityBalance.create(
@@ -1114,7 +1133,7 @@ export class PairService {
                   pairId: pair.id,
                   liquidity: amountStr,
                 },
-                { transaction },
+                // { transaction },
               );
             }
             break;
@@ -1136,7 +1155,7 @@ export class PairService {
                   ? event.moduleName.split('-tokens')[0]
                   : event.moduleName,
               },
-              transaction,
+              // transaction,
             });
 
             if (!pair) {
@@ -1147,7 +1166,7 @@ export class PairService {
             // Find or create the account's liquidity balance
             const balance = await LiquidityBalance.findOne({
               where: { walletAddress: account, pairId: pair.id },
-              transaction,
+              // transaction,
             });
 
             if (balance) {
@@ -1157,7 +1176,7 @@ export class PairService {
                 {
                   liquidity: newLiquidity.toString(),
                 },
-                { transaction },
+                // { transaction },
               );
             } else {
               await LiquidityBalance.create(
@@ -1166,7 +1185,7 @@ export class PairService {
                   pairId: pair.id,
                   liquidity: (-Number(amountStr)).toString(),
                 },
-                { transaction },
+                // { transaction },
               );
             }
             break;
@@ -1187,7 +1206,7 @@ export class PairService {
                   ? event.moduleName.split('-tokens')[0]
                   : event.moduleName, // convert ns.sushi-exchange-tokens to ns.sushi-exchange
               },
-              transaction,
+              // transaction,
             });
 
             if (!pair) {
@@ -1198,7 +1217,7 @@ export class PairService {
             // Find or create the account's liquidity balance
             const balance = await LiquidityBalance.findOne({
               where: { walletAddress: account, pairId: pair.id },
-              transaction,
+              // transaction,
             });
             if (balance) {
               const currentLiquidity = Number(balance.liquidity);
@@ -1207,7 +1226,7 @@ export class PairService {
                 {
                   liquidity: newLiquidity.toString(),
                 },
-                { transaction },
+                // { transaction },
               );
             } else {
               await LiquidityBalance.create(
@@ -1216,7 +1235,7 @@ export class PairService {
                   pairId: pair.id,
                   liquidity: amountStr,
                 },
-                { transaction },
+                // { transaction },
               );
             }
             break;
@@ -1229,5 +1248,60 @@ export class PairService {
         console.error('Error processing exchange token event:', error);
       }
     }
+  }
+
+  /**
+   * Calculates the Total Value Locked (TVL) in USD for a given pair
+   * @param pair The pair to calculate TVL for
+   * @param reserve0Str Reserve amount of token0 as string
+   * @param reserve1Str Reserve amount of token1 as string
+   * @param tx Optional transaction
+   * @param protocolAddress Protocol address (defaults to DEFAULT_PROTOCOL)
+   * @returns The TVL in USD as a formatted number
+   */
+  static async calculateTvlUsd(pair: Pair, tx?: SequelizeTransaction | undefined): Promise<number> {
+    try {
+      // Get token prices in USD
+      const [token0Price, token1Price] = await Promise.all([
+        pair.token0 ? this.getTokenPriceInUSD(pair.token0, tx, pair.address) : undefined,
+        pair.token1 ? this.getTokenPriceInUSD(pair.token1, tx, pair.address) : undefined,
+      ]);
+
+      // Calculate USD values
+      const reserve0Usd = token0Price
+        ? this.formatTo8Decimals(Number(pair.reserve0) * token0Price)
+        : 0;
+      const reserve1Usd = token1Price
+        ? this.formatTo8Decimals(Number(pair.reserve1) * token1Price)
+        : 0;
+
+      // Calculate total TVL
+      const tvlUsd = this.formatTo8Decimals(reserve0Usd + reserve1Usd);
+
+      return tvlUsd;
+    } catch (error) {
+      console.error('Error calculating TVL USD:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Calculates the Total Value Locked (TVL) in USD for a pair using current reserves
+   * @param pair The pair to calculate TVL for
+   * @param tx Optional transaction
+   * @param protocolAddress Protocol address (defaults to DEFAULT_PROTOCOL)
+   * @returns The TVL in USD as a formatted number
+   */
+  static async calculateTvlUsdFromPair(pairId: string): Promise<number> {
+    const pair = await Pair.findByPk(pairId, {
+      include: [
+        { model: Token, as: 'token0' },
+        { model: Token, as: 'token1' },
+      ],
+    });
+    if (!pair) {
+      throw new Error(`Pair not found for id: ${pairId}`);
+    }
+    return this.calculateTvlUsd(pair);
   }
 }
