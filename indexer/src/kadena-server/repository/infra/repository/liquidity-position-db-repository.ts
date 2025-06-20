@@ -122,7 +122,7 @@ export default class LiquidityPositionDbRepository {
       (positions as any[]).map(async position => {
         const pool = await this.poolRepository.getPool({ id: position.pairId });
         return {
-          cursor: Buffer.from(position.id.toString()).toString('base64'),
+          cursor: position.id.toString(),
           node: {
             id: position.id.toString(),
             pairId: position.pairId,

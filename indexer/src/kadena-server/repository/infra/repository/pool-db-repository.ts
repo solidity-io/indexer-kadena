@@ -57,11 +57,11 @@ export default class PoolDbRepository {
     }
 
     if (pagination.after) {
-      conditions.push(`p.id ${pagination.order === 'DESC' ? '<' : '>'} ${pagination.after}`);
+      conditions.push(`p.id ${pagination.order === 'DESC' ? '<' : '>'} '${pagination.after}'`);
     }
 
     if (pagination.before) {
-      conditions.push(`p.id ${pagination.order === 'DESC' ? '>' : '<'} ${pagination.before}`);
+      conditions.push(`p.id ${pagination.order === 'DESC' ? '>' : '<'} '${pagination.before}'`);
     }
 
     if (conditions.length > 0) {
