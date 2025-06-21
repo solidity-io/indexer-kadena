@@ -21,9 +21,7 @@ export default class LiquidityPositionDbRepository {
     params: GetLiquidityPositionsParams,
   ): Promise<LiquidityPositionsConnection> {
     const { walletAddress, first, after, last, before, orderBy } = params;
-    console.log(params);
     const pagination = getPaginationParams({ after, before, first, last });
-    console.log(pagination);
     // Get the latest stats for each pool
     const latestStats = await PoolStats.findAll({
       attributes: ['pairId', [sequelize.fn('MAX', sequelize.col('timestamp')), 'maxTimestamp']],
@@ -65,6 +63,15 @@ export default class LiquidityPositionDbRepository {
 
     const pairIdsString = pairIds.map(id => `'${id}'`).join(',');
 
+    let where = '';
+    if (pagination.after) {
+      where = `where lbs."paginationCursor" ${pagination.order === 'DESC' ? '>' : '<'} ${pagination.after}`;
+    }
+
+    if (pagination.before) {
+      where = `where lbs."paginationCursor" ${pagination.order === 'DESC' ? '<' : '>'} ${pagination.before}`;
+    }
+
     // Query to get positions with pool and token information
     let query = `
       WITH latest_stats AS (
@@ -74,6 +81,7 @@ export default class LiquidityPositionDbRepository {
         WHERE ps."pairId" IN (${pairIdsString})
         ORDER BY ps."pairId", ps.timestamp DESC
       )
+      SELECT * FROM (
       SELECT 
         lb.id,
         lb."pairId",
@@ -88,45 +96,33 @@ export default class LiquidityPositionDbRepository {
         t1.name as "token1Name",
         ls."tvlUsd",
         COALESCE(ls."apr24h", 0) as "apr24h",
-        CASE WHEN CAST(p."totalSupply" AS DECIMAL) = 0 THEN 0 ELSE (CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL) END as "valueUsd"
+        CASE WHEN CAST(p."totalSupply" AS DECIMAL) = 0 THEN 0 ELSE (CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL) END as "valueUsd",
+        ROW_NUMBER() OVER (ORDER BY ${orderField} ${orderDirection}) as "paginationCursor"
       FROM "LiquidityBalances" lb
       LEFT JOIN "Pairs" p ON lb."pairId" = p.id
       LEFT JOIN "Tokens" t0 ON p."token0Id" = t0.id
       LEFT JOIN "Tokens" t1 ON p."token1Id" = t1.id
       LEFT JOIN latest_stats ls ON p.id = ls."pairId"
       WHERE lb."walletAddress" = $1
+      ) as lbs
+      ${where}
+      ORDER BY lbs."paginationCursor" ASC
     `;
 
     const queryParams: any[] = [walletAddress];
-    let paramIndex = 2;
-
-    if (pagination.after) {
-      query += ` AND lb.id ${pagination.order === 'DESC' ? '<' : '>'} $${paramIndex}`;
-      queryParams.push(pagination.after);
-      paramIndex++;
-    }
-
-    if (pagination.before) {
-      query += ` AND lb.id ${pagination.order === 'DESC' ? '>' : '<'} $${paramIndex}`;
-      queryParams.push(pagination.before);
-      paramIndex++;
-    }
 
     // First order by the requested field, then by id for consistent pagination
-    query += ` ORDER BY lb.id ${pagination.order}, ${orderField} ${orderDirection}`;
-    console.log(query);
 
     const positions = await sequelize.query(query, {
       type: QueryTypes.SELECT,
       bind: queryParams,
     });
-    console.log({ positions });
 
     const edges = await Promise.all(
       (positions as any[]).map(async position => {
         const pool = await this.poolRepository.getPool({ id: position.pairId });
         return {
-          cursor: position.id.toString(),
+          cursor: position.paginationCursor.toString(),
           node: {
             id: position.id.toString(),
             pairId: position.pairId,

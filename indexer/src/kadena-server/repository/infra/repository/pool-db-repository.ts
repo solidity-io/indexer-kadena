@@ -50,6 +50,7 @@ export default class PoolDbRepository {
     const pagination = getPaginationParams({ after, before, first, last });
 
     let whereClause = '';
+    let whereClause2 = '';
     const conditions = [];
 
     if (protocolAddress) {
@@ -57,11 +58,11 @@ export default class PoolDbRepository {
     }
 
     if (pagination.after) {
-      conditions.push(`p.id ${pagination.order === 'DESC' ? '<' : '>'} '${pagination.after}'`);
+      whereClause2 = `WHERE ps."paginationCursor" ${pagination.order === 'DESC' ? '<' : '>'} ${parseInt(pagination.after) || 0}`;
     }
 
     if (pagination.before) {
-      conditions.push(`p.id ${pagination.order === 'DESC' ? '>' : '<'} '${pagination.before}'`);
+      whereClause2 = `WHERE ps."paginationCursor" ${pagination.order === 'DESC' ? '>' : '<'} ${parseInt(pagination.before) || 0}`;
     }
 
     if (conditions.length > 0) {
@@ -81,35 +82,44 @@ export default class PoolDbRepository {
         FROM "PoolStats"
         ORDER BY "pairId", timestamp DESC
       )
-      SELECT 
-        p.*,
-        t0.id as "token0Id",
-        t0.name as "token0Name",
-        t1.id as "token1Id",
-        t1.name as "token1Name",
-        COALESCE(ls."tvlUsd", 0) as "tvlUsd",
-        COALESCE(ls."volume24hUsd", 0) as "volume24hUsd",
-        COALESCE(ls."volume7dUsd", 0) as "volume7dUsd",
-        COALESCE(ls."transactionCount24h", 0) as "transactionCount24h",
-        COALESCE(ls."apr24h", 0) as "apr24h"
-      FROM "Pairs" p
-      LEFT JOIN "Tokens" t0 ON p."token0Id" = t0.id
-      LEFT JOIN "Tokens" t1 ON p."token1Id" = t1.id
-      LEFT JOIN latest_stats ls ON p.id = ls."pairId"
-      ${whereClause}
-      ORDER BY p.id ${pagination.order}, ls."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
+      SELECT * FROM (
+        SELECT 
+          p.*,
+          t0.id as "token0Id",
+          t0.name as "token0Name",
+          t1.id as "token1Id",
+          t1.name as "token1Name",
+          COALESCE(ls."tvlUsd", 0) as "tvlUsd",
+          COALESCE(ls."volume24hUsd", 0) as "volume24hUsd",
+          COALESCE(ls."volume7dUsd", 0) as "volume7dUsd",
+          COALESCE(ls."transactionCount24h", 0) as "transactionCount24h",
+          COALESCE(ls."apr24h", 0) as "apr24h",
+          ROW_NUMBER() OVER (ORDER BY ls."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}, p.id ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}) as "paginationCursor"
+        FROM "Pairs" p
+        LEFT JOIN "Tokens" t0 ON p."token0Id" = t0.id
+        LEFT JOIN "Tokens" t1 ON p."token1Id" = t1.id
+        LEFT JOIN latest_stats ls ON p.id = ls."pairId"
+        ${whereClause}
+    ) as ps
+    ${whereClause2}
+     order by ps."paginationCursor" ${pagination.order}
     `;
 
     const pairs = await sequelize.query(query, {
       type: QueryTypes.SELECT,
     });
 
-    const promises = pairs.map((pair: any) => this.getPool(pair));
+    const paginationCursorMap = new Map<string, number>();
+
+    const promises = pairs.map((pair: any) => {
+      paginationCursorMap.set(pair.id, pair.paginationCursor);
+      return this.getPool(pair);
+    });
     const pools = await Promise.all(promises);
     const edges = pools
-      .filter((pool): pool is Pool => pool !== null)
+      .filter((pool): pool is Pool & { paginationCursor: number } => pool !== null)
       .map(pool => ({
-        cursor: pool.id,
+        cursor: paginationCursorMap.get(pool.id)!.toString(),
         node: pool,
       }));
 
@@ -222,7 +232,7 @@ export default class PoolDbRepository {
       type: QueryTypes.SELECT,
       bind: [id],
     });
-    const statsResult1 = statsResult as any;
+    const statsResult1 = (statsResult || {}) as any;
 
     interface Stats {
       tvlUsd: number;
@@ -292,7 +302,6 @@ export default class PoolDbRepository {
     });
 
     // const tvlUsd = await PairService.calculateTvlUsdFromPair(pair.id.toString());
-
     return {
       __typename: 'Pool' as const,
       id: pair.id.toString(),
