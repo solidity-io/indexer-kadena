@@ -21,7 +21,9 @@ export default class LiquidityPositionDbRepository {
     params: GetLiquidityPositionsParams,
   ): Promise<LiquidityPositionsConnection> {
     const { walletAddress, first, after, last, before, orderBy } = params;
+    console.log(params);
     const pagination = getPaginationParams({ after, before, first, last });
+    console.log(pagination);
     // Get the latest stats for each pool
     const latestStats = await PoolStats.findAll({
       attributes: ['pairId', [sequelize.fn('MAX', sequelize.col('timestamp')), 'maxTimestamp']],
@@ -88,10 +90,10 @@ export default class LiquidityPositionDbRepository {
         COALESCE(ls."apr24h", 0) as "apr24h",
         CASE WHEN CAST(p."totalSupply" AS DECIMAL) = 0 THEN 0 ELSE (CAST(lb.liquidity AS DECIMAL) / CAST(p."totalSupply" AS DECIMAL)) * CAST(ls."tvlUsd" AS DECIMAL) END as "valueUsd"
       FROM "LiquidityBalances" lb
-      JOIN "Pairs" p ON lb."pairId" = p.id
-      JOIN "Tokens" t0 ON p."token0Id" = t0.id
-      JOIN "Tokens" t1 ON p."token1Id" = t1.id
-      JOIN latest_stats ls ON p.id = ls."pairId"
+      LEFT JOIN "Pairs" p ON lb."pairId" = p.id
+      LEFT JOIN "Tokens" t0 ON p."token0Id" = t0.id
+      LEFT JOIN "Tokens" t1 ON p."token1Id" = t1.id
+      LEFT JOIN latest_stats ls ON p.id = ls."pairId"
       WHERE lb."walletAddress" = $1
     `;
 
@@ -111,12 +113,14 @@ export default class LiquidityPositionDbRepository {
     }
 
     // First order by the requested field, then by id for consistent pagination
-    query += ` ORDER BY ${orderField} ${orderDirection}, lb.id ${pagination.order}`;
+    query += ` ORDER BY lb.id ${pagination.order}, ${orderField} ${orderDirection}`;
+    console.log(query);
 
     const positions = await sequelize.query(query, {
       type: QueryTypes.SELECT,
       bind: queryParams,
     });
+    console.log({ positions });
 
     const edges = await Promise.all(
       (positions as any[]).map(async position => {
@@ -146,9 +150,15 @@ export default class LiquidityPositionDbRepository {
       before,
     });
 
+    const totalCount = await LiquidityBalance.count({
+      where: {
+        walletAddress,
+      },
+    });
+
     return {
       ...pageInfo,
-      totalCount: edges.length,
+      totalCount,
     };
   }
 }

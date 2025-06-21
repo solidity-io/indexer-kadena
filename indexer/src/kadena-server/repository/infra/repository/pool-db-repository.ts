@@ -87,17 +87,17 @@ export default class PoolDbRepository {
         t0.name as "token0Name",
         t1.id as "token1Id",
         t1.name as "token1Name",
-        ls."tvlUsd",
-        ls."volume24hUsd",
-        ls."volume7dUsd",
-        ls."transactionCount24h",
-        ls."apr24h"
+        COALESCE(ls."tvlUsd", 0) as "tvlUsd",
+        COALESCE(ls."volume24hUsd", 0) as "volume24hUsd",
+        COALESCE(ls."volume7dUsd", 0) as "volume7dUsd",
+        COALESCE(ls."transactionCount24h", 0) as "transactionCount24h",
+        COALESCE(ls."apr24h", 0) as "apr24h"
       FROM "Pairs" p
-      JOIN "Tokens" t0 ON p."token0Id" = t0.id
-      JOIN "Tokens" t1 ON p."token1Id" = t1.id
-      JOIN latest_stats ls ON p.id = ls."pairId"
+      LEFT JOIN "Tokens" t0 ON p."token0Id" = t0.id
+      LEFT JOIN "Tokens" t1 ON p."token1Id" = t1.id
+      LEFT JOIN latest_stats ls ON p.id = ls."pairId"
       ${whereClause}
-      ORDER BY ls."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
+      ORDER BY p.id ${pagination.order}, ls."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
     `;
 
     const pairs = await sequelize.query(query, {
@@ -121,11 +121,15 @@ export default class PoolDbRepository {
       before,
     });
 
-    // console.log(JSON.stringify(pageInfo, null, 2));
+    const totalCount = await Pair.count({
+      where: {
+        address: protocolAddress,
+      },
+    });
 
     return {
       ...pageInfo,
-      totalCount: edges.length,
+      totalCount,
     };
   }
 
@@ -207,10 +211,10 @@ export default class PoolDbRepository {
       )
       SELECT 
         cs.*,
-        ps."tvlUsd" as "previousTvlUsd",
-        ps."volume24hUsd" as "previousVolume24hUsd",
-        ps."fees24hUsd" as "previousFees24hUsd",
-        ps."transactionCount24h" as "previousTransactionCount24h"
+        COALESCE(ps."tvlUsd", 0) as "previousTvlUsd",
+        COALESCE(ps."volume24hUsd", 0) as "previousVolume24hUsd",
+        COALESCE(ps."fees24hUsd", 0) as "previousFees24hUsd",
+        COALESCE(ps."transactionCount24h", 0) as "previousTransactionCount24h"
       FROM current_stats cs
       LEFT JOIN previous_stats ps ON true
     `;
@@ -234,26 +238,26 @@ export default class PoolDbRepository {
     }
 
     const stats: Stats = {
-      tvlUsd: statsResult1.tvlUsd ? parseFloat(statsResult1.tvlUsd.toString()) : 0,
-      volume24hUsd: statsResult1.volume24hUsd
+      tvlUsd: statsResult1?.tvlUsd ? parseFloat(statsResult1.tvlUsd.toString()) : 0,
+      volume24hUsd: statsResult1?.volume24hUsd
         ? parseFloat(statsResult1.volume24hUsd.toString())
         : 0,
-      volume7dUsd: statsResult1.volume7dUsd ? parseFloat(statsResult1.volume7dUsd.toString()) : 0,
-      fees24hUsd: statsResult1.fees24hUsd ? parseFloat(statsResult1.fees24hUsd.toString()) : 0,
-      transactionCount24h: statsResult1.transactionCount24h
+      volume7dUsd: statsResult1?.volume7dUsd ? parseFloat(statsResult1.volume7dUsd.toString()) : 0,
+      fees24hUsd: statsResult1?.fees24hUsd ? parseFloat(statsResult1.fees24hUsd.toString()) : 0,
+      transactionCount24h: statsResult1?.transactionCount24h
         ? parseInt(statsResult1.transactionCount24h.toString())
         : 0,
-      apr24h: statsResult1.apr24h ? parseFloat(statsResult1.apr24h.toString()) : 0,
-      previousTvlUsd: statsResult1.previousTvlUsd
+      apr24h: statsResult1?.apr24h ? parseFloat(statsResult1.apr24h.toString()) : 0,
+      previousTvlUsd: statsResult1?.previousTvlUsd
         ? parseFloat(statsResult1.previousTvlUsd.toString())
         : 0,
-      previousVolume24hUsd: statsResult1.previousVolume24hUsd
+      previousVolume24hUsd: statsResult1?.previousVolume24hUsd
         ? parseFloat(statsResult1.previousVolume24hUsd.toString())
         : 0,
-      previousFees24hUsd: statsResult1.previousFees24hUsd
+      previousFees24hUsd: statsResult1?.previousFees24hUsd
         ? parseFloat(statsResult1.previousFees24hUsd.toString())
         : 0,
-      previousTransactionCount24h: statsResult1.previousTransactionCount24h
+      previousTransactionCount24h: statsResult1?.previousTransactionCount24h
         ? parseFloat(statsResult1.previousTransactionCount24h.toString())
         : 0,
     };
