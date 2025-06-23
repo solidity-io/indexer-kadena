@@ -46,9 +46,9 @@ func SaveTransactions(db pgx.Tx, transactions []TransactionAttributes, coinbaseT
 
 	query := `
 		INSERT INTO "Transactions" 
-		("blockId", "chainId", creationtime, hash, result, logs, num_events, requestkey, sender, txid, "createdAt", "updatedAt")
+		("blockId", "chainId", creationtime, hash, result, logs, num_events, requestkey, sender, txid, "createdAt", "updatedAt", canonical)
 		VALUES 
-		($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11, $12)
+		($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING id
 	`
 
@@ -75,6 +75,7 @@ func SaveTransactions(db pgx.Tx, transactions []TransactionAttributes, coinbaseT
 			t.TxId,
 			now,
 			now,
+			true,
 		)
 	}
 
@@ -92,6 +93,7 @@ func SaveTransactions(db pgx.Tx, transactions []TransactionAttributes, coinbaseT
 		coinbaseTx.TxId,
 		now,
 		now,
+		true,
 	)
 
 	br := db.SendBatch(context.Background(), batch)
