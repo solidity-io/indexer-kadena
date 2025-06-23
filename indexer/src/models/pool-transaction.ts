@@ -38,7 +38,7 @@ PoolTransaction.init(
       primaryKey: true,
     },
     pairId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: 'Pairs',
@@ -82,7 +82,7 @@ PoolTransaction.init(
       defaultValue: '0',
     },
     amountUsd: {
-      type: DataTypes.DECIMAL(20, 2),
+      type: DataTypes.DECIMAL(20, 10),
       allowNull: false,
       defaultValue: 0,
     },
@@ -92,7 +92,7 @@ PoolTransaction.init(
       defaultValue: '0',
     },
     feeUsd: {
-      type: DataTypes.DECIMAL(20, 2),
+      type: DataTypes.DECIMAL(20, 10),
       allowNull: false,
       defaultValue: 0,
     },

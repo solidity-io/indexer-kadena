@@ -40,10 +40,10 @@ func SaveBlocks(tx pgx.Tx, blocks []BlockAttributes) ([]int64, error) {
 			nonce, "creationTime", parent, adjacents, target, "payloadHash", 
 			"chainId", weight, height, "chainwebVersion", "epochStart", 
 			"featureFlags", hash, "minerData", "transactionsHash", 
-			"outputsHash", coinbase, "transactionsCount", "createdAt", "updatedAt"
+			"outputsHash", coinbase, "transactionsCount", "createdAt", "updatedAt", canonical
 		)
 		VALUES 
-			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
 		RETURNING id
 	`
 
@@ -78,6 +78,7 @@ func SaveBlocks(tx pgx.Tx, blocks []BlockAttributes) ([]int64, error) {
 			block.TransactionsCount,
 			now,
 			now,
+			true,
 		)
 	}
 

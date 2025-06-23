@@ -1,13 +1,17 @@
 import { EventAttributes } from '../models/event';
 import Event from '../models/event';
 import { PairService } from './pair-service';
-import { Op, Sequelize, WhereOptions } from 'sequelize';
+import { Op, WhereOptions, Transaction as SequelizeTransaction } from 'sequelize';
 import Transaction from '../models/transaction';
-import Block from '@/models/block';
-import { getRequiredEnvString } from '@/utils/helpers';
+// import { DEFAULT_PROTOCOL } from '../kadena-server/config/apollo-server-config';
 
-const MODULE_NAMES = ['kdlaunch.kdswap-exchange', 'sushiswap.sushi-exchange'];
+const MODULE_NAMES = [
+  // 'kdlaunch.kdswap-exchange',
+  'n_82274f03ce7df5c0ea6c3d5766b535a7a748a552.sushi-exchange',
+  'n_82274f03ce7df5c0ea6c3d5766b535a7a748a552.sushi-exchange-tokens',
+];
 const EVENT_TYPES = ['CREATE_PAIR', 'UPDATE', 'SWAP', 'ADD_LIQUIDITY', 'REMOVE_LIQUIDITY'];
+const EXCHANGE_TOKEN_EVENTS = ['MINT_EVENT', 'BURN_EVENT', 'TRANSFER_EVENT'];
 
 const LAST_BLOCK_ID = process.env.BACKFILL_PAIR_EVENTS_LAST_BLOCK_ID
   ? Number(process.env.BACKFILL_PAIR_EVENTS_LAST_BLOCK_ID)
@@ -17,7 +21,10 @@ const LAST_BLOCK_ID = process.env.BACKFILL_PAIR_EVENTS_LAST_BLOCK_ID
  * Process pair creation events from transaction events
  * @param events Array of events from a transaction
  */
-export async function processPairCreationEvents(events: EventAttributes[]): Promise<void> {
+export async function processPairCreationEvents(
+  events: EventAttributes[],
+  transaction: SequelizeTransaction | null | undefined,
+): Promise<void> {
   const pairCreationEvents = events.filter(
     event => MODULE_NAMES.includes(event.module) && event.name === 'CREATE_PAIR',
   );
@@ -46,6 +53,7 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
       parameters: JSON.stringify(event.params),
       qualifiedName: event.qualname,
       chainId: event.chainId,
+      transactionId: event.transactionId,
     }));
     await PairService.updatePairs(updateParams);
   }
@@ -87,6 +95,24 @@ export async function processPairCreationEvents(events: EventAttributes[]): Prom
     }));
     await PairService.processLiquidityEvents(liquidityParams);
   }
+
+  const exchangeTokenEvents = events.filter(
+    event => MODULE_NAMES.includes(event.module) && EXCHANGE_TOKEN_EVENTS.includes(event.name),
+  );
+
+  if (exchangeTokenEvents.length > 0) {
+    const exchangeTokenParams = exchangeTokenEvents.map(event => ({
+      moduleName: event.module,
+      name: event.name,
+      parameterText: JSON.stringify(event.params),
+      parameters: JSON.stringify(event.params),
+      qualifiedName: event.qualname,
+      chainId: event.chainId,
+      transactionId: event.transactionId,
+      requestkey: event.requestkey,
+    }));
+    await PairService.processExchangeTokenEvents(exchangeTokenParams);
+  }
 }
 
 /**
@@ -109,7 +135,7 @@ export async function backfillPairEvents(
       [Op.in]: MODULE_NAMES,
     },
     name: {
-      [Op.in]: EVENT_TYPES,
+      [Op.in]: [...EVENT_TYPES, ...EXCHANGE_TOKEN_EVENTS],
     },
   };
 
@@ -144,7 +170,6 @@ export async function backfillPairEvents(
       offset: processedCount,
       order: [[{ model: Transaction, as: 'transaction' }, 'creationtime', 'ASC']],
     });
-
     if (events.length === 0) {
       hasMore = false;
       continue;
@@ -154,7 +179,10 @@ export async function backfillPairEvents(
     console.log(
       `Processing batch of ${events.length} events starting from offset ${processedCount} (${progressPercentage}% complete)`,
     );
-    await processPairCreationEvents(events.map(event => event.get({ plain: true })));
+    await processPairCreationEvents(
+      events.map(event => event.get({ plain: true })),
+      null,
+    );
     processedCount += events.length;
 
     const endTime = Date.now();
