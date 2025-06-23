@@ -246,13 +246,19 @@ export default class BlockDbRepository implements BlockRepository {
       last,
     } = params;
 
-    const { limit, order, after, before } = getPaginationParams({
+    const {
+      limit,
+      order: orderParam,
+      after,
+      before,
+    } = getPaginationParams({
       after: afterEncoded,
       before: beforeEncoded,
       first,
       last,
     });
 
+    const order = orderParam === 'ASC' ? 'DESC' : 'ASC';
     const queryParams: (string | number | string[])[] = [limit, startHeight];
     let conditions = '';
 
