@@ -33,8 +33,8 @@ func SaveTransfersToDatabase(transfers []TransferAttributes, db pgx.Tx) error {
 
 	query := `
 		INSERT INTO "Transfers" 
-		("transactionId", amount, "chainId", from_acct, modulehash, modulename, requestkey, to_acct, "hasTokenId", "tokenId", "type", "contractId", "orderIndex", "createdAt", "updatedAt")
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		("transactionId", amount, "chainId", from_acct, modulehash, modulename, requestkey, to_acct, "hasTokenId", "tokenId", "type", "contractId", "orderIndex", "createdAt", "updatedAt", canonical)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 	`
 
 	now := time.Now()
@@ -58,6 +58,7 @@ func SaveTransfersToDatabase(transfers []TransferAttributes, db pgx.Tx) error {
 			transfer.OrderIndex,
 			now,
 			now,
+			true,
 		)
 	}
 
