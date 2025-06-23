@@ -18,7 +18,7 @@ LiquidityBalance.init(
       primaryKey: true,
     },
     pairId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: 'Pairs',

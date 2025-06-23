@@ -3,23 +3,24 @@ import { Op, QueryTypes } from 'sequelize';
 import { sequelize } from '../../../../config/database';
 import Pair from '../../../../models/pair';
 import PoolStats from '../../../../models/pool-stats';
-import { encodeCursor, getPageInfo, getPaginationParams } from '../../pagination';
+import { getPageInfo, getPaginationParams } from '../../pagination';
 import {
   PageInfo,
   Pool,
   PoolCharts,
-  PoolTransactionType,
+  QueryPoolArgs,
   TimeFrame,
 } from '../../../config/graphql-types';
 import {
   GetPoolsParams,
-  GetPoolParams,
   GetPoolTransactionsParams,
   GetPoolChartsParams,
   PoolTransactionsConnection,
 } from '../../application/pool-repository';
 import { ConnectionEdge } from '../../types';
 import TokenModel from '../../../../models/token';
+import { DEFAULT_PROTOCOL } from '../../../config/apollo-server-config';
+import { PairService } from '@/services/pair-service';
 
 type OrderDirection = 'ASC' | 'DESC';
 
@@ -40,57 +41,28 @@ const POOL_ORDER_BY_MAP: Record<
 };
 
 export default class PoolDbRepository {
-  private readonly DEFAULT_PROTOCOL = 'kdlaunch.kdswap-exchange';
-
   async getPools(params: GetPoolsParams): Promise<{
     pageInfo: PageInfo;
     edges: ConnectionEdge<Pool>[];
     totalCount: number;
   }> {
-    const { after, before, first, last, orderBy, protocolAddress = this.DEFAULT_PROTOCOL } = params;
+    const { after, before, first, last, orderBy, protocolAddress = DEFAULT_PROTOCOL } = params;
     const pagination = getPaginationParams({ after, before, first, last });
 
-    // Get the latest stats for each pool
-    const latestStats = await PoolStats.findAll({
-      attributes: ['pairId', [sequelize.fn('MAX', sequelize.col('timestamp')), 'maxTimestamp']],
-      group: ['pairId'],
-    });
-
-    const pairIds = latestStats.map(stat => stat.pairId);
-    const maxTimestamps = latestStats.reduce(
-      (acc, stat) => {
-        const maxTimestamp = stat.get('maxTimestamp') as Date;
-        if (maxTimestamp) {
-          acc[stat.pairId] = maxTimestamp;
-        }
-        return acc;
-      },
-      {} as Record<number, Date>,
-    );
-
-    const pairIdsStr = pairIds.join(',');
-    const timestampsStr = Object.values(maxTimestamps)
-      .map(t => `'${t.toISOString()}'`)
-      .join(',');
-
     let whereClause = '';
+    let whereClause2 = '';
     const conditions = [];
 
-    if (pairIdsStr) {
-      conditions.push(`p.id IN (${pairIdsStr})`);
+    if (protocolAddress) {
+      conditions.push(`p.address = '${protocolAddress}'`);
     }
-    if (timestampsStr) {
-      conditions.push(`ps.timestamp IN (${timestampsStr})`);
-    }
-
-    conditions.push(`p.address = '${protocolAddress}'`);
 
     if (pagination.after) {
-      conditions.push(`p.id ${pagination.order === 'DESC' ? '<' : '>'} ${pagination.after}`);
+      whereClause2 = `WHERE ps."paginationCursor" ${pagination.order === 'DESC' ? '<' : '>'} ${parseInt(pagination.after) || 0}`;
     }
 
     if (pagination.before) {
-      conditions.push(`p.id ${pagination.order === 'DESC' ? '>' : '<'} ${pagination.before}`);
+      whereClause2 = `WHERE ps."paginationCursor" ${pagination.order === 'DESC' ? '>' : '<'} ${parseInt(pagination.before) || 0}`;
     }
 
     if (conditions.length > 0) {
@@ -98,47 +70,58 @@ export default class PoolDbRepository {
     }
 
     const query = `
-      SELECT 
-        p.*,
-        t0.id as "token0Id",
-        t0.name as "token0Name",
-        t1.id as "token1Id",
-        t1.name as "token1Name",
-        ps."tvlUsd",
-        ps."volume24hUsd",
-        ps."volume7dUsd",
-        ps."transactionCount24h",
-        ps."apr24h"
-      FROM "Pairs" p
-      JOIN "Tokens" t0 ON p."token0Id" = t0.id
-      JOIN "Tokens" t1 ON p."token1Id" = t1.id
-      JOIN "PoolStats" ps ON p.id = ps."pairId"
-      ${whereClause}
-      ORDER BY ps."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}
-      LIMIT ${pagination.limit}
+      WITH latest_stats AS (
+        SELECT DISTINCT ON ("pairId") 
+          "pairId",
+          "tvlUsd",
+          "volume24hUsd",
+          "volume7dUsd",
+          "transactionCount24h",
+          "apr24h",
+          timestamp
+        FROM "PoolStats"
+        ORDER BY "pairId", timestamp DESC
+      )
+      SELECT * FROM (
+        SELECT 
+          p.*,
+          t0.id as "token0Id",
+          t0.name as "token0Name",
+          t1.id as "token1Id",
+          t1.name as "token1Name",
+          COALESCE(ls."tvlUsd", 0) as "tvlUsd",
+          COALESCE(ls."volume24hUsd", 0) as "volume24hUsd",
+          COALESCE(ls."volume7dUsd", 0) as "volume7dUsd",
+          COALESCE(ls."transactionCount24h", 0) as "transactionCount24h",
+          COALESCE(ls."apr24h", 0) as "apr24h",
+          ROW_NUMBER() OVER (ORDER BY ls."${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].field}" ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}, p.id ${POOL_ORDER_BY_MAP[orderBy || 'TVL_USD_DESC'].direction}) as "paginationCursor"
+        FROM "Pairs" p
+        LEFT JOIN "Tokens" t0 ON p."token0Id" = t0.id
+        LEFT JOIN "Tokens" t1 ON p."token1Id" = t1.id
+        LEFT JOIN latest_stats ls ON p.id = ls."pairId"
+        ${whereClause}
+    ) as ps
+    ${whereClause2}
+     order by ps."paginationCursor" ${pagination.order}
     `;
 
     const pairs = await sequelize.query(query, {
       type: QueryTypes.SELECT,
     });
 
-    const promises = pairs.map((pair: any) => this.getPool(pair));
+    const paginationCursorMap = new Map<string, number>();
+
+    const promises = pairs.map((pair: any) => {
+      paginationCursorMap.set(pair.id, pair.paginationCursor);
+      return this.getPool(pair);
+    });
     const pools = await Promise.all(promises);
     const edges = pools
-      .filter((pool): pool is Pool => pool !== null)
+      .filter((pool): pool is Pool & { paginationCursor: number } => pool !== null)
       .map(pool => ({
-        cursor: pool.id,
+        cursor: paginationCursorMap.get(pool.id)!.toString(),
         node: pool,
       }));
-
-    const totalCount = await Pair.count({
-      where: {
-        id: {
-          [Op.in]: pairIds,
-        },
-        ...(protocolAddress ? { address: protocolAddress } : {}),
-      },
-    });
 
     const pageInfo = getPageInfo({
       edges,
@@ -148,14 +131,19 @@ export default class PoolDbRepository {
       before,
     });
 
+    const totalCount = await Pair.count({
+      where: {
+        address: protocolAddress,
+      },
+    });
+
     return {
-      edges,
-      pageInfo: pageInfo.pageInfo,
+      ...pageInfo,
       totalCount,
     };
   }
 
-  async getPool(params: GetPoolParams): Promise<Pool | null> {
+  async getPool(params: QueryPoolArgs): Promise<Pool | null> {
     const { id } = params;
 
     // Get the pair
@@ -183,7 +171,7 @@ export default class PoolDbRepository {
     if (!pairResult) {
       throw new Error(`Token pair not found for pool ${id}`);
     }
-    const pair = pairResult as any;
+    const pair = pairResult as Pair;
 
     // Get the tokens
     const tokensQuery = `
@@ -233,10 +221,10 @@ export default class PoolDbRepository {
       )
       SELECT 
         cs.*,
-        ps."tvlUsd" as "previousTvlUsd",
-        ps."volume24hUsd" as "previousVolume24hUsd",
-        ps."fees24hUsd" as "previousFees24hUsd",
-        ps."transactionCount24h" as "previousTransactionCount24h"
+        COALESCE(ps."tvlUsd", 0) as "previousTvlUsd",
+        COALESCE(ps."volume24hUsd", 0) as "previousVolume24hUsd",
+        COALESCE(ps."fees24hUsd", 0) as "previousFees24hUsd",
+        COALESCE(ps."transactionCount24h", 0) as "previousTransactionCount24h"
       FROM current_stats cs
       LEFT JOIN previous_stats ps ON true
     `;
@@ -244,83 +232,108 @@ export default class PoolDbRepository {
       type: QueryTypes.SELECT,
       bind: [id],
     });
+    const statsResult1 = (statsResult || {}) as any;
 
-    const stats = statsResult
-      ? (statsResult as any)
-      : {
-          tvlUsd: 0,
-          volume24hUsd: 0,
-          volume7dUsd: 0,
-          fees24hUsd: 0,
-          transactionCount24h: 0,
-          apr24h: 0,
-          previousTvlUsd: 0,
-          previousVolume24hUsd: 0,
-          previousFees24hUsd: 0,
-          previousTransactionCount24h: 0,
-        };
+    interface Stats {
+      tvlUsd: number;
+      volume24hUsd: number;
+      volume7dUsd: number;
+      fees24hUsd: number;
+      transactionCount24h: number;
+      apr24h: number;
+      previousTvlUsd: number;
+      previousVolume24hUsd: number;
+      previousFees24hUsd: number;
+      previousTransactionCount24h: number;
+    }
+
+    const stats: Stats = {
+      tvlUsd: statsResult1?.tvlUsd ? parseFloat(statsResult1.tvlUsd.toString()) : 0,
+      volume24hUsd: statsResult1?.volume24hUsd
+        ? parseFloat(statsResult1.volume24hUsd.toString())
+        : 0,
+      volume7dUsd: statsResult1?.volume7dUsd ? parseFloat(statsResult1.volume7dUsd.toString()) : 0,
+      fees24hUsd: statsResult1?.fees24hUsd ? parseFloat(statsResult1.fees24hUsd.toString()) : 0,
+      transactionCount24h: statsResult1?.transactionCount24h
+        ? parseInt(statsResult1.transactionCount24h.toString())
+        : 0,
+      apr24h: statsResult1?.apr24h ? parseFloat(statsResult1.apr24h.toString()) : 0,
+      previousTvlUsd: statsResult1?.previousTvlUsd
+        ? parseFloat(statsResult1.previousTvlUsd.toString())
+        : 0,
+      previousVolume24hUsd: statsResult1?.previousVolume24hUsd
+        ? parseFloat(statsResult1.previousVolume24hUsd.toString())
+        : 0,
+      previousFees24hUsd: statsResult1?.previousFees24hUsd
+        ? parseFloat(statsResult1.previousFees24hUsd.toString())
+        : 0,
+      previousTransactionCount24h: statsResult1?.previousTransactionCount24h
+        ? parseFloat(statsResult1.previousTransactionCount24h.toString())
+        : 0,
+    };
     // Calculate percentage changes
     const calculatePercentageChange = (current: number, previous: number): number => {
       if (!previous) return 0;
       return ((current - previous) / previous) * 100;
     };
 
-    const tvlChange24h = calculatePercentageChange(
-      parseFloat(stats.tvlUsd),
-      parseFloat(stats.previousTvlUsd),
-    );
+    const tvlChange24h = calculatePercentageChange(stats.tvlUsd, stats.previousTvlUsd);
     const volumeChange24h = calculatePercentageChange(
-      parseFloat(stats.volume24hUsd),
-      parseFloat(stats.previousVolume24hUsd),
+      stats.volume24hUsd,
+      stats.previousVolume24hUsd,
     );
-    const feesChange24h = calculatePercentageChange(
-      parseFloat(stats.fees24hUsd),
-      parseFloat(stats.previousFees24hUsd),
-    );
+    const feesChange24h = calculatePercentageChange(stats.fees24hUsd, stats.previousFees24hUsd);
     const transactionCountChange24h = calculatePercentageChange(
       stats.transactionCount24h,
       stats.previousTransactionCount24h,
     );
 
     const charts = await this.getPoolCharts({
-      pairId: parseInt(pair.id),
-      timeFrame: TimeFrame.Day,
+      pairId: pair.id.toString(),
+      timeFrame: params.timeFrame || TimeFrame.Day,
     });
     const transactions = await this.getPoolTransactions({
-      pairId: parseInt(pair.id),
-      first: 10,
+      pairId: pair.id.toString(),
+      type: params.type || undefined,
+      first: params.first || undefined,
+      after: params.after || undefined,
+      last: params.last || undefined,
+      before: params.before || undefined,
     });
 
+    // const tvlUsd = await PairService.calculateTvlUsdFromPair(pair.id.toString());
     return {
-      __typename: 'Pool',
+      __typename: 'Pool' as const,
       id: pair.id.toString(),
       address: pair.address,
       token0: {
-        __typename: 'Token',
+        __typename: 'Token' as const,
         id: token0.id.toString(),
         name: token0.name,
         chainId: '0',
+        address: token0.code,
       },
       token1: {
-        __typename: 'Token',
+        __typename: 'Token' as const,
         id: token1.id.toString(),
         name: token1.name,
         chainId: '0',
+        address: token1.code,
       },
       reserve0: pair.reserve0,
       reserve1: pair.reserve1,
       totalSupply: pair.totalSupply,
       key: pair.key,
-      tvlUsd: stats.tvlUsd ?? 0,
+      tvlUsd: stats.tvlUsd,
       tvlChange24h,
-      volume24hUsd: stats.volume24hUsd ?? 0,
+      volume24hUsd: stats.volume24hUsd,
       volumeChange24h,
-      volume7dUsd: stats.volume7dUsd ?? 0,
-      fees24hUsd: stats.fees24hUsd ?? 0,
+      volume7dUsd: stats.volume7dUsd,
+      fees24hUsd: stats.fees24hUsd,
       feesChange24h,
-      transactionCount24h: stats.transactionCount24h ?? 0,
+      transactionCount24h: stats.transactionCount24h,
       transactionCountChange24h,
-      apr24h: stats.apr24h ?? 0,
+      apr24h: stats.apr24h,
       createdAt: pair.createdAt,
       updatedAt: pair.updatedAt,
       charts,
@@ -431,121 +444,126 @@ export default class PoolDbRepository {
 
   async getPoolCharts({ pairId, timeFrame }: GetPoolChartsParams): Promise<PoolCharts> {
     const now = new Date();
+    const utcYear = now.getUTCFullYear();
+    const utcMonth = now.getUTCMonth();
+    const utcDate = now.getUTCDate();
+    const todayUTC = new Date(Date.UTC(utcYear, utcMonth, utcDate, 0, 0, 0, 0));
+
     let startDate: Date;
 
     switch (timeFrame) {
       case TimeFrame.Day:
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        startDate = new Date(todayUTC.getTime() - 24 * 60 * 60 * 1000);
         break;
       case TimeFrame.Week:
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        startDate = new Date(todayUTC.getTime() - 7 * 24 * 60 * 60 * 1000);
         break;
       case TimeFrame.Month:
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        startDate = new Date(todayUTC.getTime() - 30 * 24 * 60 * 60 * 1000);
         break;
       case TimeFrame.Year:
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        startDate = new Date(todayUTC.getTime() - 365 * 24 * 60 * 60 * 1000);
         break;
       case TimeFrame.All:
         startDate = new Date(0); // Beginning of Unix time
         break;
       default:
-        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Default to 24h
+        startDate = new Date(todayUTC.getTime() - 24 * 60 * 60 * 1000); // Default to 24h
     }
 
     // Get TVL data from PoolStats
     const tvlData = await sequelize.query<{ timestamp: Date; tvlUsd: number }>(
-      `
+      timeFrame === TimeFrame.Day
+        ? `
       SELECT 
-        date_trunc('hour', "createdAt") as timestamp,
-        AVG("tvlUsd") as "tvlUsd"
+        (jsonb_array_elements("tvlHistory")->>'timestamp')::timestamp as timestamp,
+        (jsonb_array_elements("tvlHistory")->>'value')::numeric as "tvlUsd"
       FROM "PoolStats"
       WHERE "pairId" = :pairId
-        AND "createdAt" >= :startDate
-      GROUP BY date_trunc('hour', "createdAt")
+      ORDER BY timestamp DESC
+      LIMIT 1
+      `
+        : `
+      SELECT 
+        "timestamp",
+        "tvlUsd"
+      FROM "PoolStats"
+      WHERE "pairId" = :pairId
+        AND "timestamp" >= :startDate AND "timestamp" <= :endDate
       ORDER BY timestamp ASC
       `,
       {
         replacements: {
           pairId,
           startDate: startDate.toISOString(),
+          endDate: now.toISOString(),
         },
         type: QueryTypes.SELECT,
       },
     );
 
     // Get volume and fees data from PoolTransactions
-    const volumeAndFeesData = await sequelize.query<{
+    const timeFrameTrunc = timeFrame === TimeFrame.Day ? 'hour' : 'day';
+    const volumesData = await sequelize.query<{
       timestamp: Date;
       volume: number;
-      fees: number;
     }>(
       `
       SELECT 
-        date_trunc('hour', "createdAt") as timestamp,
-        SUM("amountUsd") as volume,
-        SUM("feeUsd") as fees
-      FROM "PoolTransactions"
-      WHERE "pairId" = :pairId
-        AND "createdAt" >= :startDate
-      GROUP BY date_trunc('hour', "createdAt")
+        date_trunc('${timeFrameTrunc}', ps."timestamp") as timestamp,
+        SUM(ps."amountUsd") as volume
+      FROM "PoolTransactions" ps
+      WHERE ps."pairId" = :pairId
+        AND ps."timestamp" >= :startDate AND ps."timestamp" <= :endDate
+      GROUP BY date_trunc('${timeFrameTrunc}', ps."timestamp")
       ORDER BY timestamp ASC
       `,
       {
         replacements: {
           pairId,
           startDate: startDate.toISOString(),
+          endDate: now.toISOString(),
         },
         type: QueryTypes.SELECT,
       },
     );
 
-    // Create a map of timestamps to data points
-    const dataMap = new Map<string, { volume: number; fees: number; tvl: number }>();
-
-    // Initialize all timestamps with zero values
-    const allTimestamps = new Set([
-      ...tvlData.map(d => d.timestamp.toISOString()),
-      ...volumeAndFeesData.map(d => d.timestamp.toISOString()),
-    ]);
-
-    allTimestamps.forEach(timestamp => {
-      dataMap.set(timestamp, { volume: 0, fees: 0, tvl: 0 });
-    });
-
-    // Fill in TVL data
-    tvlData.forEach(data => {
-      const timestamp = data.timestamp.toISOString();
-      const existing = dataMap.get(timestamp) || { volume: 0, fees: 0, tvl: 0 };
-      dataMap.set(timestamp, { ...existing, tvl: data.tvlUsd });
-    });
-
-    // Fill in volume and fees data
-    volumeAndFeesData.forEach(data => {
-      const timestamp = data.timestamp.toISOString();
-      const existing = dataMap.get(timestamp) || { volume: 0, fees: 0, tvl: 0 };
-      dataMap.set(timestamp, {
-        ...existing,
-        volume: data.volume,
-        fees: data.fees,
-      });
-    });
-
-    // Convert map to arrays of data points
-    const sortedTimestamps = Array.from(dataMap.keys()).sort();
+    const feesData = await sequelize.query<{
+      timestamp: Date;
+      fees: number;
+    }>(
+      `
+      SELECT 
+        date_trunc('${timeFrameTrunc}', ps."timestamp") as timestamp,
+        SUM(ps."feeUsd") as fees
+      FROM "PoolTransactions" ps
+      WHERE ps."pairId" = :pairId
+        AND ps."timestamp" >= :startDate AND ps."timestamp" <= :endDate AND ps."type" = 'SWAP'
+      GROUP BY date_trunc('${timeFrameTrunc}', ps."timestamp")
+      ORDER BY timestamp ASC
+      `,
+      {
+        replacements: {
+          pairId,
+          startDate: startDate.toISOString(),
+          endDate: now.toISOString(),
+        },
+        type: QueryTypes.SELECT,
+      },
+    );
 
     return {
-      volume: sortedTimestamps.map(timestamp => ({
-        timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)?.volume ?? 0,
+      volume: volumesData.map(data => ({
+        timestamp: new Date(data.timestamp),
+        value: data.volume,
       })),
-      tvl: sortedTimestamps.map(timestamp => ({
-        timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)?.tvl ?? 0,
+      tvl: tvlData.map(data => ({
+        timestamp: new Date(data.timestamp),
+        value: data.tvlUsd,
       })),
-      fees: sortedTimestamps.map(timestamp => ({
-        timestamp: new Date(timestamp),
-        value: dataMap.get(timestamp)?.fees ?? 0,
+      fees: feesData.map(data => ({
+        timestamp: new Date(data.timestamp),
+        value: data.fees,
       })),
     };
   }

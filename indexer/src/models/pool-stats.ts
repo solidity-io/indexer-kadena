@@ -95,12 +95,12 @@ PoolStats.init(
       comment: 'The unique identifier for the pool stats record',
     },
     pairId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       comment: 'The ID of the associated pair',
     },
     timestamp: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
       comment: 'The timestamp when these stats were recorded',
     },
@@ -185,6 +185,7 @@ PoolStats.init(
       {
         name: 'pool_stats_pairid_timestamp_idx',
         fields: ['pairId', 'timestamp'],
+        unique: true,
       },
     ],
   },

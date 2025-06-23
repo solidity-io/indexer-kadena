@@ -5,6 +5,7 @@ import {
   Pool,
   PoolCharts,
   PoolTransactionType,
+  QueryPoolArgs,
   TimeFrame,
 } from '../../config/graphql-types';
 import { ConnectionEdge } from '../types';
@@ -23,7 +24,7 @@ export interface GetPoolParams {
 }
 
 export interface GetPoolTransactionsParams {
-  pairId: number;
+  pairId: string;
   type?: PoolTransactionType;
   first?: number | null;
   after?: string | null;
@@ -32,7 +33,7 @@ export interface GetPoolTransactionsParams {
 }
 
 export interface GetPoolChartDataParams {
-  pairId: number;
+  pairId: string;
   type: 'TVL' | 'VOLUME' | 'PRICE';
   first?: number;
   after?: string;
@@ -42,7 +43,7 @@ export interface GetPoolChartDataParams {
 }
 
 export interface GetPoolChartsParams {
-  pairId: number;
+  pairId: string;
   timeFrame: TimeFrame;
 }
 
@@ -134,7 +135,7 @@ export default interface PoolRepository {
     edges: ConnectionEdge<Pool>[];
     totalCount: number;
   }>;
-  getPool(params: GetPoolParams): Promise<Pool | null>;
+  getPool(params: QueryPoolArgs): Promise<Pool | null>;
   getPoolTransactions(
     params: GetPoolTransactionsParams,
   ): Promise<PoolTransactionsConnection | null>;

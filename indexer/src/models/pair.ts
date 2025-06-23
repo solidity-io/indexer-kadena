@@ -29,9 +29,9 @@ class Pair extends Model {
 Pair.init(
   {
     id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
+      type: DataTypes.STRING,
       primaryKey: true,
+      allowNull: false,
     },
     address: {
       type: DataTypes.STRING,
