@@ -19,7 +19,11 @@ func main() {
 	go config.StartMemoryMonitoring()
 	cut := fetch.FetchCut()
 	ChainId := env.ChainId
-	minHeights := config.GetMinHeights(env.Network)
-	SyncMinHeight := minHeights[ChainId]
-	process.StartBackfill(cut.Height, cut.Hash, ChainId, SyncMinHeight, pool)
+
+	chainGenesisHeights := config.GetMinHeights(env.Network)
+	chainGenesisHeight := chainGenesisHeights[ChainId]
+
+	effectiveSyncMinHeight := process.Max(env.SyncMinHeight, chainGenesisHeight)
+
+	process.StartBackfill(cut.Height, cut.Hash, ChainId, effectiveSyncMinHeight, pool)
 }

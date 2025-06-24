@@ -25,7 +25,7 @@ func StartBackfill(LastHeight int, Hash string, ChainId int, SyncMinHeight int, 
 		if CurrentHeight == SyncMinHeight {
 			nextHeight = SyncMinHeight
 		} else {
-			nextHeight = max(CurrentHeight-env.SyncFetchIntervalInBlocks+1, SyncMinHeight)
+			nextHeight = Max(CurrentHeight-env.SyncFetchIntervalInBlocks+1, SyncMinHeight)
 		}
 
 		log.Printf("Processing height %d to %d...\n", CurrentHeight, nextHeight)
