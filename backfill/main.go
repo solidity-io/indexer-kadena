@@ -20,10 +20,13 @@ func main() {
 	cut := fetch.FetchCut()
 	ChainId := env.ChainId
 
-	chainGenesisHeights := config.GetMinHeights(env.Network)
-	chainGenesisHeight := chainGenesisHeights[ChainId]
-
-	effectiveSyncMinHeight := process.Max(env.SyncMinHeight, chainGenesisHeight)
+	var effectiveSyncMinHeight int
+	if env.SyncMinHeight > 0 {
+		effectiveSyncMinHeight = env.SyncMinHeight
+	} else {
+		chainGenesisHeights := config.GetMinHeights(env.Network)
+		effectiveSyncMinHeight = chainGenesisHeights[ChainId]
+	}
 
 	process.StartBackfill(cut.Height, cut.Hash, ChainId, effectiveSyncMinHeight, pool)
 }
