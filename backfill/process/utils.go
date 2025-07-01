@@ -161,7 +161,7 @@ func buildModuleName(namespace *string, name string) string {
 	return name
 }
 
-func max(a, b int) int {
+func Max(a, b int) int {
 	if a > b {
 		return a
 	}

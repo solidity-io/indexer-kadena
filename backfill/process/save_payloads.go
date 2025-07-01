@@ -72,17 +72,17 @@ func savePayloads(network string, chainId int, processedPayloads []fetch.Process
 		var currBlock = blocks[index]
 		txs, txDetails, txCoinbase, err := PrepareTransactions(network, blockId, processedPayload, currBlock)
 		if err != nil {
-			return Counters{}, DataSizeTracker{}, fmt.Errorf("saving transactions -> %w", err)
+			return Counters{}, DataSizeTracker{}, fmt.Errorf("preparing transactions for block %d -> %w", currBlock.Height, err)
 		}
 
 		transactionIds, err := repository.SaveTransactions(tx, txs, txCoinbase)
 		if err != nil {
-			return Counters{}, DataSizeTracker{}, fmt.Errorf("saving transactions -> %w", err)
+			return Counters{}, DataSizeTracker{}, fmt.Errorf("saving transactions for block %d -> %w", currBlock.Height, err)
 		}
 
 		err = repository.SaveTransactionDetails(tx, txDetails, transactionIds)
 		if err != nil {
-			return Counters{}, DataSizeTracker{}, fmt.Errorf("saving transactions -> %w", err)
+			return Counters{}, DataSizeTracker{}, fmt.Errorf("saving transaction details for block %d -> %w", currBlock.Height, err)
 		}
 
 		txsSize := approximateSize(txs)
@@ -144,15 +144,18 @@ func savePayloads(network string, chainId int, processedPayloads []fetch.Process
 	// 	counters.Guards += len(guards)
 	// }
 
+	log.Printf("Saved payloads in %fs\n", time.Since(startTime).Seconds())
+
+	commitStartTime := time.Now()
 	if err := tx.Commit(context.Background()); err != nil {
 		return Counters{}, DataSizeTracker{}, fmt.Errorf("committing transaction: %w", err)
 	}
+	log.Printf("DB commit took %fs\n", time.Since(commitStartTime).Seconds())
 
 	dataSizeTracker.TransactionsKB /= 1024
 	dataSizeTracker.EventsKB /= 1024
 	dataSizeTracker.TransfersKB /= 1024
 	dataSizeTracker.SignersKB /= 1024
 
-	log.Printf("Saved payloads in %fs\n", time.Since(startTime).Seconds())
 	return counters, dataSizeTracker, nil
 }
