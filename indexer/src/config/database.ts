@@ -23,9 +23,19 @@ const DB_CONNECTION = `postgres://${DB_USERNAME}:${encodeURIComponent(DB_PASSWOR
 const isSslEnabled = DB_SSL_ENABLED === 'true';
 
 // Determine if the server's certificate should be validated against the local CA bundle.
-// Defaults to true to maintain existing security posture for AWS environments.
-const DB_SSL_REJECT_UNAUTHORIZED = getRequiredEnvString('DB_SSL_REJECT_UNAUTHORIZED');
-const rejectUnauthorized = DB_SSL_REJECT_UNAUTHORIZED !== 'false';
+// Defaults to true (most secure). This is only overridden if SSL is enabled AND the
+// DB_SSL_REJECT_UNAUTHORIZED variable is explicitly set.
+let rejectUnauthorized = true;
+
+if (isSslEnabled) {
+  try {
+    // getRequiredEnvString throws if the env var is not present. We catch this to make it optional.
+    const rejectUnauthorizedEnv = getRequiredEnvString('DB_SSL_REJECT_UNAUTHORIZED');
+    rejectUnauthorized = rejectUnauthorizedEnv !== 'false';
+  } catch (error) {
+    // The env var is not set; we'll proceed with the default of rejectUnauthorized = true.
+  }
+}
 
 /**
  * PostgreSQL connection pool for direct query execution.
