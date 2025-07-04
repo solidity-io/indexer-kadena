@@ -36,7 +36,7 @@ export async function processPairCreationEvents(
       qualifiedName: event.qualname,
       chainId: event.chainId,
     }));
-    await PairService.createPairs(pairParams);
+    await PairService.createPairs(pairParams, transaction);
   }
 
   const pairUpdateEvents = events.filter(
@@ -53,7 +53,7 @@ export async function processPairCreationEvents(
       chainId: event.chainId,
       transactionId: event.transactionId,
     }));
-    await PairService.updatePairs(updateParams);
+    await PairService.updatePairs(updateParams, transaction);
   }
 
   const swapEvents = events.filter(
@@ -71,7 +71,7 @@ export async function processPairCreationEvents(
       transactionId: event.transactionId,
       requestkey: event.requestkey,
     }));
-    await PairService.processSwaps(swapParams);
+    await PairService.processSwaps(swapParams, transaction);
   }
 
   const liquidityEvents = events.filter(
@@ -91,7 +91,7 @@ export async function processPairCreationEvents(
       transactionId: event.transactionId,
       requestkey: event.requestkey,
     }));
-    await PairService.processLiquidityEvents(liquidityParams);
+    await PairService.processLiquidityEvents(liquidityParams, transaction);
   }
 
   const exchangeTokenEvents = events.filter(
@@ -109,7 +109,7 @@ export async function processPairCreationEvents(
       transactionId: event.transactionId,
       requestkey: event.requestkey,
     }));
-    await PairService.processExchangeTokenEvents(exchangeTokenParams);
+    await PairService.processExchangeTokenEvents(exchangeTokenParams, transaction);
   }
 }
 
