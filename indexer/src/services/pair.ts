@@ -3,11 +3,9 @@ import Event from '../models/event';
 import { PairService } from './pair-service';
 import { Op, WhereOptions, Transaction as SequelizeTransaction } from 'sequelize';
 import Transaction from '../models/transaction';
+import { DEFAULT_PROTOCOL } from '../kadena-server/config/apollo-server-config';
 
-const MODULE_NAMES = [
-  'n_bd19ba92f0449d4422e620740759c9e94cacdb37.sushi-exchange',
-  'n_bd19ba92f0449d4422e620740759c9e94cacdb37.sushi-exchange-tokens',
-];
+const MODULE_NAMES = [`${DEFAULT_PROTOCOL}`, `${DEFAULT_PROTOCOL}-tokens`];
 const EVENT_TYPES = ['CREATE_PAIR', 'UPDATE', 'SWAP', 'ADD_LIQUIDITY', 'REMOVE_LIQUIDITY'];
 const EXCHANGE_TOKEN_EVENTS = ['MINT_EVENT', 'BURN_EVENT', 'TRANSFER_EVENT'];
 
